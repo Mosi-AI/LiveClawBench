@@ -1,0 +1,6 @@
+node_modules/
+data/stellar.db
+data/*.db-*
+dist/
+.env
+*.log

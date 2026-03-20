@@ -18,11 +18,8 @@ tc_total = int(tc_match.group(2)) if tc_match else 21
 ms_passed = int(ms_match.group(1)) if ms_match else 0
 ms_total = int(ms_match.group(2)) if ms_match else 5
 
-test_score = (tc_passed / tc_total) * 0.5 if tc_total else 0
-ms_score = (ms_passed / ms_total) * 0.5 if ms_total else 0
-final = test_score + ms_score
+test_score = (tc_passed / tc_total) if tc_total else 0
+ms_score = (ms_passed / ms_total) if ms_total else 0
 
 print(f"Test Cases: {tc_passed}/{tc_total}")
 print(f"Milestones: {ms_passed}/{ms_total}")
-print(f"Score: {final:.2f}/1.0")
-sys.exit(0 if final > 0 else 1)

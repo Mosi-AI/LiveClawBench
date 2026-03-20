@@ -1,0 +1,193 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { postQueries, settingsQueries } from '../../lib/database';
+
+// Get pagination params
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get('page') || '1');
+const postsPerPage = parseInt(settingsQueries.get('posts_per_page') || '10');
+
+// Fetch posts with pagination
+const allPosts = postQueries.findAll({ status: 'published' });
+const totalPosts = allPosts.length;
+const totalPages = Math.ceil(totalPosts / postsPerPage);
+
+const posts = allPosts.slice((page - 1) * postsPerPage, page * postsPerPage);
+
+// Pagination helpers
+const hasPrev = page > 1;
+const hasNext = page < totalPages;
+const prevPage = page - 1;
+const nextPage = page + 1;
+---
+
+<BaseLayout title="Blog" description="All blog posts">
+  <div class="container">
+    <h1 class="page-title">All Posts</h1>
+    <p class="post-count">{totalPosts} post{totalPosts !== 1 ? 's' : ''}</p>
+
+    {posts.length > 0 ? (
+      <>
+        <div class="post-list">
+          {posts.map((post) => (
+            <article class="post-card">
+              {post.featured_image && (
+                <img src={post.featured_image} alt={post.title} class="post-image" />
+              )}
+              <h2>
+                <a href={`/blog/${post.slug}`}>{post.title}</a>
+              </h2>
+              <div class="post-meta">
+                {post.published_at && (
+                  <time datetime={post.published_at}>
+                    {new Date(post.published_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </time>
+                )}
+                <span class="view-count">{post.view_count} views</span>
+              </div>
+              {post.excerpt && (
+                <p class="post-excerpt">{post.excerpt}</p>
+              )}
+              <a href={`/blog/${post.slug}`} class="read-more">Read more →</a>
+            </article>
+          ))}
+        </div>
+
+        {totalPages > 1 && (
+          <nav class="pagination" aria-label="Pagination">
+            {hasPrev ? (
+              <a href={`/blog?page=${prevPage}`} class="prev">← Previous</a>
+            ) : (
+              <span class="disabled">← Previous</span>
+            )}
+
+            <div class="page-numbers">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <a href={`/blog?page=${p}`} class={p === page ? 'active' : ''}>{p}</a>
+              ))}
+            </div>
+
+            {hasNext ? (
+              <a href={`/blog?page=${nextPage}`} class="next">Next →</a>
+            ) : (
+              <span class="disabled">Next →</span>
+            )}
+          </nav>
+        )}
+      </>
+    ) : (
+      <div class="empty-state">
+        <p>No posts yet. Check back soon!</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .page-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .post-count {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .post-list {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .post-card {
+    background: var(--color-secondary);
+    border: 1px solid var(--color-accent);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .post-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-highlight);
+  }
+
+  .post-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+  }
+
+  .post-card h2 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .post-card h2 a {
+    color: var(--color-text);
+  }
+
+  .post-meta {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    gap: 1rem;
+  }
+
+  .post-excerpt {
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .read-more {
+    font-weight: 500;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 0;
+    color: var(--color-text-muted);
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 3rem;
+    gap: 1rem;
+  }
+
+  .page-numbers {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .page-numbers a {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-secondary);
+    border: 1px solid var(--color-accent);
+    border-radius: 4px;
+  }
+
+  .page-numbers a.active {
+    background: var(--color-highlight);
+    border-color: var(--color-highlight);
+    color: white;
+  }
+
+  .pagination .disabled {
+    color: var(--color-accent);
+    cursor: not-allowed;
+  }
+</style>

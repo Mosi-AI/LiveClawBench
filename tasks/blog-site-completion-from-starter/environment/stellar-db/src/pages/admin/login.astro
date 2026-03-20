@@ -1,0 +1,249 @@
+---
+import { login, createAdminUser, checkAuth } from '../../lib/auth';
+import { getDatabase } from '../../lib/database';
+
+// If already logged in, redirect to dashboard
+const user = checkAuth(Astro);
+if (user) {
+  return Astro.redirect('/admin');
+}
+
+// Check if initial setup is needed
+const needsSetup = (() => {
+  const db = getDatabase();
+  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+  return userCount.count === 0;
+})();
+
+let error = '';
+let success = '';
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+
+  if (needsSetup) {
+    // Create initial admin
+    const username = formData.get('username') as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const confirmPassword = formData.get('confirm_password') as string;
+
+    if (!username || !email || !password) {
+      error = 'All fields are required';
+    } else if (password.length < 8) {
+      error = 'Password must be at least 8 characters';
+    } else if (password !== confirmPassword) {
+      error = 'Passwords do not match';
+    } else {
+      const result = await createAdminUser(username, email, password);
+      if (result.success) {
+        success = 'Admin user created successfully. You can now log in.';
+      } else {
+        error = result.message;
+      }
+    }
+  } else {
+    // Regular login
+    const username = formData.get('username') as string;
+    const password = formData.get('password') as string;
+
+    const result = await login({ username, password });
+
+    if (result) {
+      Astro.cookies.set('auth-token', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 // 7 days
+      });
+      const redirect = Astro.url.searchParams.get('redirect') || '/admin';
+      return Astro.redirect(redirect);
+    } else {
+      error = 'Invalid username or password';
+    }
+  }
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{needsSetup ? 'Setup' : 'Login'} | Stellar-DB Admin</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: #f1f1f1;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .login-header h1 span {
+      color: #e94560;
+    }
+
+    .login-header p {
+      color: #b8b8b8;
+    }
+
+    .login-form {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 8px;
+      padding: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      background: #1a1a2e;
+      border: 1px solid #0f3460;
+      color: #f1f1f1;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+
+    .btn {
+      width: 100%;
+      background: #e94560;
+      color: white;
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .alert {
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .alert-error {
+      background: rgba(233, 69, 96, 0.2);
+      border: 1px solid #e94560;
+      color: #e94560;
+    }
+
+    .alert-success {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid #22c55e;
+      color: #22c55e;
+    }
+
+    .setup-notice {
+      background: rgba(233, 69, 96, 0.1);
+      border: 1px solid #e94560;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+    }
+
+    .setup-notice h3 {
+      margin-bottom: 0.5rem;
+      color: #e94560;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <h1>Stellar<span>DB</span></h1>
+      <p>{needsSetup ? 'Initial Setup' : 'Admin Login'}</p>
+    </div>
+
+    <div class="login-form">
+      {needsSetup && (
+        <div class="setup-notice">
+          <h3>Welcome to Stellar-DB!</h3>
+          <p>This appears to be a fresh installation. Please create an admin user to get started.</p>
+        </div>
+      )}
+
+      {error && <div class="alert alert-error">{error}</div>}
+      {success && <div class="alert alert-success">{success}</div>}
+
+      <form method="POST">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autocomplete="username" />
+        </div>
+
+        {needsSetup && (
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+        )}
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required autocomplete={needsSetup ? "new-password" : "current-password"} />
+        </div>
+
+        {needsSetup && (
+          <div class="form-group">
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" required />
+          </div>
+        )}
+
+        <button type="submit" class="btn">
+          {needsSetup ? 'Create Admin Account' : 'Sign In'}
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -2,6 +2,7 @@ from agentbay import AgentBay, CreateSessionParams
 import os
 import json
 import subprocess
+import shlex
 
 
 def run_conversation(session, command: str, cwd: str=None, timeout_ms: int = 500000) -> str:

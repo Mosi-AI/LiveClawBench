@@ -1,0 +1,14 @@
+---
+import { requireAuth } from '../../../../lib/auth';
+import { postQueries } from '../../../../lib/database';
+
+const user = requireAuth(Astro);
+if (user instanceof Response) return user;
+const { id } = Astro.params;
+
+if (Astro.request.method === 'POST') {
+  postQueries.delete(parseInt(id as string));
+}
+
+return Astro.redirect('/admin/posts');
+---

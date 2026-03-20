@@ -1,0 +1,438 @@
+---
+import { requireAuth } from '../../lib/auth';
+import { postQueries, tagQueries, settingsQueries } from '../../lib/database';
+
+const user = requireAuth(Astro);
+if (user instanceof Response) return user;
+
+// Fetch stats
+const allPosts = postQueries.findAll();
+const publishedPosts = allPosts.filter(p => p.status === 'published');
+const draftPosts = allPosts.filter(p => p.status === 'draft');
+const totalViews = allPosts.reduce((sum, p) => sum + p.view_count, 0);
+
+// Fetch recent posts for the table
+const recentPosts = allPosts.slice(0, 10);
+
+// Quick stats
+const stats = {
+  total: allPosts.length,
+  published: publishedPosts.length,
+  drafts: draftPosts.length,
+  views: totalViews
+};
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Stellar-DB Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: #f1f1f1;
+      min-height: 100vh;
+    }
+
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: #16213e;
+      border-right: 1px solid #0f3460;
+      padding: 1.5rem;
+    }
+
+    .sidebar-header {
+      margin-bottom: 2rem;
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.5rem;
+    }
+
+    .sidebar-header h1 span {
+      color: #e94560;
+    }
+
+    .sidebar-header p {
+      color: #b8b8b8;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    .nav {
+      list-style: none;
+    }
+
+    .nav li {
+      margin-bottom: 0.25rem;
+    }
+
+    .nav a {
+      display: block;
+      padding: 0.75rem 1rem;
+      color: #b8b8b8;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .nav a:hover,
+    .nav a.active {
+      background: #0f3460;
+      color: #f1f1f1;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 1.5rem;
+      border-top: 1px solid #0f3460;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: #e94560;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .user-details {
+      font-size: 0.875rem;
+    }
+
+    .user-role {
+      color: #b8b8b8;
+      font-size: 0.75rem;
+      text-transform: capitalize;
+    }
+
+    .logout-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid #0f3460;
+      color: #b8b8b8;
+      padding: 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .logout-btn:hover {
+      background: #0f3460;
+      color: #f1f1f1;
+    }
+
+    /* Main Content */
+    .main {
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .page-header h2 {
+      font-size: 1.75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #e94560;
+      color: white;
+      text-decoration: none;
+      padding: 0.625rem 1.25rem;
+      border-radius: 4px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .stat-card h3 {
+      font-size: 0.875rem;
+      color: #b8b8b8;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .stat-card.published .stat-value { color: #22c55e; }
+    .stat-card.drafts .stat-value { color: #f59e0b; }
+    .stat-card.views .stat-value { color: #3b82f6; }
+
+    /* Content Section */
+    .content-section {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 8px;
+    }
+
+    .section-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #0f3460;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-header h3 {
+      font-size: 1.125rem;
+    }
+
+    .view-all {
+      color: #e94560;
+      font-size: 0.875rem;
+      text-decoration: none;
+    }
+
+    /* Table */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 1rem 1.5rem;
+      text-align: left;
+    }
+
+    th {
+      color: #b8b8b8;
+      font-weight: 500;
+      font-size: 0.875rem;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    td {
+      border-bottom: 1px solid #0f3460;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(15, 52, 96, 0.3);
+    }
+
+    .post-title {
+      color: #f1f1f1;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .post-title:hover {
+      color: #e94560;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: capitalize;
+    }
+
+    .status.published {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+
+    .status.draft {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+
+    .status.archived {
+      background: rgba(156, 163, 175, 0.2);
+      color: #9ca3af;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      background: transparent;
+      border: 1px solid #0f3460;
+      color: #b8b8b8;
+      padding: 0.375rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .action-btn:hover {
+      border-color: #e94560;
+      color: #e94560;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #b8b8b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>Stellar<span>DB</span></h1>
+        <p>Admin Dashboard</p>
+      </div>
+
+      <ul class="nav">
+        <li><a href="/admin" class="active">Dashboard</a></li>
+        <li><a href="/admin/posts">Posts</a></li>
+        <li><a href="/admin/write">Write New</a></li>
+        <li><a href="/admin/media">Media</a></li>
+        <li><a href="/admin/settings">Settings</a></li>
+        <li style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #0f3460;"><a href="/" style="color: #e94560;">← View Site</a></li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">{user.username[0].toUpperCase()}</div>
+          <div class="user-details">
+            <div>{user.username}</div>
+            <div class="user-role">{user.role}</div>
+          </div>
+        </div>
+        <a href="/admin/logout" class="logout-btn">Log Out</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-header">
+        <h2>Dashboard</h2>
+        <a href="/admin/write" class="btn">+ New Post</a>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Posts</h3>
+          <div class="stat-value">{stats.total}</div>
+        </div>
+        <div class="stat-card published">
+          <h3>Published</h3>
+          <div class="stat-value">{stats.published}</div>
+        </div>
+        <div class="stat-card drafts">
+          <h3>Drafts</h3>
+          <div class="stat-value">{stats.drafts}</div>
+        </div>
+        <div class="stat-card views">
+          <h3>Total Views</h3>
+          <div class="stat-value">{stats.views}</div>
+        </div>
+      </div>
+
+      <div class="content-section">
+        <div class="section-header">
+          <h3>Recent Posts</h3>
+          <a href="/admin/posts" class="view-all">View all →</a>
+        </div>
+
+        {recentPosts.length > 0 ? (
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Status</th>
+                  <th>Views</th>
+                  <th>Updated</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentPosts.map((post) => (
+                  <tr>
+                    <td>
+                      <a href={`/admin/posts/${post.id}/edit`} class="post-title">
+                        {post.title}
+                      </a>
+                    </td>
+                    <td>
+                      <span class={`status ${post.status}`}>{post.status}</span>
+                    </td>
+                    <td>{post.view_count}</td>
+                    <td>{new Date(post.updated_at).toLocaleDateString()}</td>
+                    <td>
+                      <div class="actions">
+                        <a href={`/blog/${post.slug}`} class="action-btn" target="_blank">View</a>
+                        <a href={`/admin/posts/${post.id}/edit`} class="action-btn">Edit</a>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div class="empty-state">
+            <p>No posts yet. <a href="/admin/write">Write your first post</a>.</p>
+          </div>
+        )}
+      </div>
+    </main>
+  </div>
+</body>
+</html>

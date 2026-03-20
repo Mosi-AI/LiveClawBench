@@ -1,0 +1,108 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { postQueries } from '../lib/database';
+
+// Fetch recent posts
+const recentPosts = postQueries.findAll({ status: 'published', limit: 6 });
+---
+
+<BaseLayout>
+  <div class="container">
+    <section class="hero">
+      <h1>Welcome to Stellar-DB</h1>
+      <p class="hero-description">
+        A self-hosted, Local-First blog platform powered by Astro and SQLite.
+        Fast, secure, and fully owned by you.
+      </p>
+      <div class="hero-actions">
+        <a href="/blog" class="btn btn-large">Read the Blog</a>
+        <a href="/admin" class="btn btn-secondary btn-large">Admin Dashboard</a>
+      </div>
+    </section>
+
+    <section class="recent-posts">
+      <h2>Recent Posts</h2>
+      {recentPosts.length > 0 ? (
+        <div class="post-list">
+          {recentPosts.map((post) => (
+            <article class="post-card">
+              <h3>
+                <a href={`/blog/${post.slug}`}>{post.title}</a>
+              </h3>
+              <div class="post-meta">
+                {post.published_at && (
+                  <time datetime={post.published_at}>
+                    {new Date(post.published_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </time>
+                )}
+                <span class="view-count">{post.view_count} views</span>
+              </div>
+              {post.excerpt && (
+                <p class="post-excerpt">{post.excerpt}</p>
+              )}
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div class="empty-state">
+          <p>No posts yet. Check back soon!</p>
+        </div>
+      )}
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .hero {
+    text-align: center;
+    padding: 4rem 0;
+    border-bottom: 1px solid var(--color-accent);
+    margin-bottom: 3rem;
+  }
+
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--color-text), var(--color-highlight));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-description {
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+    max-width: 600px;
+    margin: 0 auto 2rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .btn-large {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .recent-posts h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--color-text-muted);
+  }
+
+  .post-list {
+    margin-top: 1.5rem;
+  }
+</style>

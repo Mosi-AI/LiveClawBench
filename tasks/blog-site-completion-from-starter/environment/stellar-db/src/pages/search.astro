@@ -1,0 +1,159 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { postQueries, settingsQueries } from '../lib/database';
+import { processMarkdown } from '../lib/markdown';
+
+const url = new URL(Astro.request.url);
+const query = url.searchParams.get('q') || '';
+
+let posts: ReturnType<typeof postQueries.findAll> = [];
+if (query) {
+  posts = postQueries.search(query);
+}
+---
+
+<BaseLayout title="Search" description="Search blog posts">
+  <div class="container">
+    <h1 class="page-title">Search</h1>
+
+    <form action="/search" method="GET" class="search-form-large">
+      <input
+        type="search"
+        name="q"
+        value={query}
+        placeholder="Search posts..."
+        class="search-input-large"
+        required
+      />
+      <button type="submit" class="btn btn-large">Search</button>
+    </form>
+
+    {query && (
+      <div class="search-results">
+        <p class="results-info">
+          {posts.length} result{posts.length !== 1 ? 's' : ''} for "{query}"
+        </p>
+
+        {posts.length > 0 ? (
+          <div class="post-list">
+            {posts.map((post) => (
+              <article class="post-card">
+                <h2>
+                  <a href={`/blog/${post.slug}`}>{post.title}</a>
+                </h2>
+                <div class="post-meta">
+                  {post.published_at && (
+                    <time datetime={post.published_at}>
+                      {new Date(post.published_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </time>
+                  )}
+                </div>
+                {post.excerpt && (
+                  <p class="post-excerpt">{post.excerpt}</p>
+                )}
+                <a href={`/blog/${post.slug}`} class="read-more">Read more →</a>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="no-results">
+            <p>No posts found matching your search.</p>
+            <p>Try different keywords or <a href="/blog">browse all posts</a>.</p>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .page-title {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .search-form-large {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .search-input-large {
+    flex: 1;
+    background: var(--color-secondary);
+    border: 1px solid var(--color-accent);
+    color: var(--color-text);
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+
+  .search-input-large:focus {
+    outline: none;
+    border-color: var(--color-highlight);
+  }
+
+  .btn-large {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .search-results {
+    margin-top: 2rem;
+  }
+
+  .results-info {
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .post-list {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .post-card {
+    background: var(--color-secondary);
+    border: 1px solid var(--color-accent);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .post-card h2 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .post-card h2 a {
+    color: var(--color-text);
+  }
+
+  .post-meta {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .post-excerpt {
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .read-more {
+    font-weight: 500;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--color-text-muted);
+  }
+
+  .no-results p {
+    margin-bottom: 0.5rem;
+  }
+</style>

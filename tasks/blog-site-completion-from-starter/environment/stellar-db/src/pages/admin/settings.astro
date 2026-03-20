@@ -1,0 +1,116 @@
+---
+import { requireAuth } from '../../lib/auth';
+import { settingsQueries } from '../../lib/database';
+
+const user = requireAuth(Astro);
+if (user instanceof Response) return user;
+
+let message = '';
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const blogTitle = formData.get('blog_title') as string;
+  const blogDescription = formData.get('blog_description') as string;
+  const postsPerPage = formData.get('posts_per_page') as string;
+
+  if (blogTitle) settingsQueries.set('blog_title', blogTitle);
+  if (blogDescription) settingsQueries.set('blog_description', blogDescription);
+  if (postsPerPage) settingsQueries.set('posts_per_page', postsPerPage);
+
+  message = 'Settings saved successfully!';
+}
+
+const settings = settingsQueries.getAll();
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings | Stellar-DB Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #1a1a2e; color: #f1f1f1; min-height: 100vh; }
+    .admin-layout { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+    .sidebar { background: #16213e; border-right: 1px solid #0f3460; padding: 1.5rem; }
+    .sidebar-header { margin-bottom: 2rem; }
+    .sidebar-header h1 { font-size: 1.5rem; }
+    .sidebar-header h1 span { color: #e94560; }
+    .nav { list-style: none; }
+    .nav a { display: block; padding: 0.75rem 1rem; color: #b8b8b8; text-decoration: none; border-radius: 4px; }
+    .nav a:hover, .nav a.active { background: #0f3460; color: #f1f1f1; }
+    .main { padding: 2rem; }
+    .page-header { margin-bottom: 2rem; }
+    .page-header h2 { font-size: 1.75rem; }
+    .success { background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; color: #22c55e; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; }
+    .form-section { background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: 1.5rem; max-width: 600px; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #b8b8b8; }
+    .form-group input, .form-group textarea { width: 100%; background: #1a1a2e; border: 1px solid #0f3460; color: #f1f1f1; padding: 0.75rem 1rem; border-radius: 4px; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #e94560; }
+    .form-group textarea { min-height: 100px; resize: vertical; }
+    .btn { background: #e94560; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+    .btn:hover { opacity: 0.9; }
+    .form-group small { display: block; color: #666; font-size: 0.8rem; margin-top: 0.25rem; }
+    .form-group .required { color: #e94560; }
+    .form-group.checkbox label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+    .form-group.checkbox input { width: auto; }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header"><h1>Stellar<span>DB</span></h1></div>
+      <ul class="nav">
+        <li><a href="/admin">Dashboard</a></li>
+        <li><a href="/admin/posts">Posts</a></li>
+        <li><a href="/admin/write">Write New</a></li>
+        <li><a href="/admin/media">Media</a></li>
+        <li><a href="/admin/settings" class="active">Settings</a></li>
+        <li style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #0f3460;"><a href="/" style="color: #e94560;">← View Site</a></li>
+      </ul>
+    </aside>
+    <main class="main">
+      <div class="page-header"><h2>Settings</h2></div>
+      {message && <div class="success">{message}</div>}
+      <form method="POST" class="form-section">
+        <h3 style="margin-bottom: 1.5rem; color: #e94560;">Site Configuration</h3>
+        <div class="form-group">
+          <label for="blog_title">Blog Title <span class="required">*</span></label>
+          <input type="text" id="blog_title" name="blog_title" value={settings.blog_title || 'Stellar-DB'} required />
+          <small>Displayed in header, browser tab, and RSS feed</small>
+        </div>
+        <div class="form-group">
+          <label for="blog_description">Blog Description</label>
+          <textarea id="blog_description" name="blog_description">{settings.blog_description || 'A self-hosted blog'}</textarea>
+          <small>SEO meta description and RSS feed summary</small>
+        </div>
+
+        <h3 style="margin: 2rem 0 1.5rem; color: #e94560;">Display Options</h3>
+        <div class="form-group">
+          <label for="posts_per_page">Posts Per Page <span class="required">*</span></label>
+          <input type="number" id="posts_per_page" name="posts_per_page" min="1" max="50" value={settings.posts_per_page || '10'} required />
+          <small>Number of posts shown on blog listing pages</small>
+        </div>
+
+        <h3 style="margin: 2rem 0 1.5rem; color: #e94560;">Features</h3>
+        <div class="form-group checkbox">
+          <label>
+            <input type="checkbox" name="enable_search" checked disabled />
+            Enable Search (always on)
+          </label>
+        </div>
+        <div class="form-group checkbox">
+          <label>
+            <input type="checkbox" name="enable_rss" checked disabled />
+            Enable RSS Feed (always on)
+          </label>
+        </div>
+
+        <button type="submit" class="btn">Save Settings</button>
+      </form>
+    </main>
+  </div>
+</body>
+</html>

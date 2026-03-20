@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { postQueries } from '../../lib/database';
+import { processMarkdown } from '../../lib/markdown';
+
+// Server-side rendering
+const { slug } = Astro.params;
+const post = postQueries.findBySlug(slug as string);
+
+if (!post) {
+  return Astro.redirect('/404');
+}
+
+// Increment view count (async - don't wait)
+postQueries.incrementViewCount(post.id);
+
+// Process Markdown content
+const contentHtml = await processMarkdown(post.content);
+---
+
+<BaseLayout title={post.title} description={post.excerpt || undefined} image={post.featured_image || undefined}>
+  <article class="container">
+    <header class="post-header">
+      <h1>{post.title}</h1>
+      <div class="post-meta">
+        {post.published_at && (
+          <time datetime={post.published_at}>
+            Published {new Date(post.published_at).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </time>
+        )}
+        <span class="view-count">{post.view_count + 1} views</span>
+      </div>
+    </header>
+
+    {post.featured_image && (
+      <img src={post.featured_image} alt={post.title} class="featured-image" />
+    )}
+
+    <div class="post-content prose" set:html={contentHtml} />
+
+    <footer class="post-footer">
+      <a href="/blog" class="back-link">← Back to all posts</a>
+    </footer>
+  </article>
+</BaseLayout>
+
+<style>
+  .post-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-accent);
+  }
+
+  .post-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  .post-meta {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .featured-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+
+  .post-content {
+    margin-bottom: 3rem;
+  }
+
+  .post-footer {
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-accent);
+  }
+
+  .back-link {
+    font-weight: 500;
+  }
+</style>

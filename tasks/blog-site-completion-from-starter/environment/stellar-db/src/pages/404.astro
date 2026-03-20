@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="404 Not Found" description="Page not found">
+  <div class="container">
+    <div class="error-page">
+      <h1>404</h1>
+      <h2>Page Not Found</h2>
+      <p>The page you're looking for doesn't exist or has been moved.</p>
+      <a href="/" class="btn">Go Home</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .error-page {
+    text-align: center;
+    padding: 6rem 0;
+  }
+
+  .error-page h1 {
+    font-size: 8rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--color-highlight);
+    margin-bottom: 0.5rem;
+  }
+
+  .error-page h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--color-text-muted);
+  }
+
+  .error-page p {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .btn {
+    display: inline-block;
+    background: var(--color-highlight);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+</style>

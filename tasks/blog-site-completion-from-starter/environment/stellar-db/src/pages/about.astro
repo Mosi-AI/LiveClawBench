@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About" description="About Stellar-DB">
+  <div class="container">
+    <div class="about-page">
+      <h1>About Stellar-DB</h1>
+      <p class="intro">
+        Stellar-DB is a self-hosted, Local-First blog platform built with modern web technologies.
+      </p>
+
+      <h2>Features</h2>
+      <ul>
+        <li><strong>Fast:</strong> Astro's Islands Architecture for optimal performance</li>
+        <li><strong>Secure:</strong> SQLite database with your data kept private</li>
+        <li><strong>Simple:</strong> Markdown editing with live preview</li>
+        <li><strong>Searchable:</strong> Full-text search with SQLite FTS5</li>
+        <li><strong>Yours:</strong> Complete data ownership and control</li>
+      </ul>
+
+      <h2>Technology Stack</h2>
+      <ul>
+        <li>Astro - Modern static site generator</li>
+        <li>React - Interactive components</li>
+        <li>SQLite - Embedded database</li>
+        <li>TypeScript - Type-safe code</li>
+      </ul>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-highlight);
+  }
+
+  .intro {
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  li {
+    margin-bottom: 0.5rem;
+  }
+
+  strong {
+    color: var(--color-highlight);
+  }
+</style>

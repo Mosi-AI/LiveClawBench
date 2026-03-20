@@ -1,0 +1,457 @@
+---
+import { requireAuth } from '../../lib/auth';
+import { postQueries } from '../../lib/database';
+import { generateExcerpt, generateSlug } from '../../lib/markdown';
+import type { Post } from '../../lib/database';
+
+const user = requireAuth(Astro);
+if (user instanceof Response) return user;
+
+let error = '';
+let success = '';
+let post: Partial<Post> = { status: 'draft' };
+
+if (Astro.request.method === 'POST') {
+  const formData = await Astro.request.formData();
+  const title = formData.get('title') as string;
+  const content = formData.get('content') as string;
+  const status = formData.get('status') as 'draft' | 'published';
+  let slug = formData.get('slug') as string;
+
+  if (!title || !content) {
+    error = 'Title and content are required';
+  } else {
+    // Auto-generate slug if not provided
+    if (!slug) {
+      slug = generateSlug(title);
+    } else {
+      // Clean up slug
+      slug = slug.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 100);
+    }
+
+    // Check for slug collision
+    const existing = postQueries.findBySlug(slug);
+    if (existing) {
+      // Append a number if slug exists
+      let counter = 1;
+      let newSlug = `${slug}-${counter}`;
+      while (postQueries.findBySlug(newSlug)) {
+        counter++;
+        newSlug = `${slug}-${counter}`;
+      }
+      slug = newSlug;
+    }
+
+    // Generate excerpt if not provided
+    const excerpt = generateExcerpt(content);
+
+    // Set published_at if publishing
+    const publishedAt = status === 'published' ? new Date().toISOString() : null;
+
+    try {
+      const postId = postQueries.create({
+        title,
+        slug,
+        content,
+        excerpt,
+        featured_image: null,
+        status,
+        published_at: publishedAt
+      });
+
+      return Astro.redirect('/admin/posts');
+    } catch (err: any) {
+      error = 'Failed to create post: ' + err.message;
+    }
+  }
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Write Post | Stellar-DB Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: #f1f1f1;
+      min-height: 100vh;
+    }
+
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: #16213e;
+      border-right: 1px solid #0f3460;
+      padding: 1.5rem;
+    }
+
+    .sidebar-header {
+      margin-bottom: 2rem;
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.5rem;
+    }
+
+    .sidebar-header h1 span {
+      color: #e94560;
+    }
+
+    .nav {
+      list-style: none;
+    }
+
+    .nav li {
+      margin-bottom: 0.25rem;
+    }
+
+    .nav a {
+      display: block;
+      padding: 0.75rem 1rem;
+      color: #b8b8b8;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+
+    .nav a:hover,
+    .nav a.active {
+      background: #0f3460;
+      color: #f1f1f1;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 1.5rem;
+      border-top: 1px solid #0f3460;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: #e94560;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .user-details {
+      font-size: 0.875rem;
+    }
+
+    .user-role {
+      color: #b8b8b8;
+      font-size: 0.75rem;
+      text-transform: capitalize;
+    }
+
+    .logout-btn {
+      width: 100%;
+      background: transparent;
+      border: 1px solid #0f3460;
+      color: #b8b8b8;
+      padding: 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      text-decoration: none;
+      display: block;
+      text-align: center;
+    }
+
+    /* Main */
+    .main {
+      padding: 2rem;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .page-header h2 {
+      font-size: 1.75rem;
+    }
+
+    .btn-secondary {
+      background: #0f3460;
+      color: white;
+      text-decoration: none;
+      padding: 0.625rem 1.25rem;
+      border-radius: 4px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: #1a4a7a;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+    }
+
+    .alert-error {
+      background: rgba(233, 69, 96, 0.2);
+      border: 1px solid #e94560;
+      color: #e94560;
+    }
+
+    .alert-success {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid #22c55e;
+      color: #22c55e;
+    }
+
+    /* Form */
+    .editor-form {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 2rem;
+    }
+
+    .editor-main {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+      color: #b8b8b8;
+    }
+
+    .form-group input[type="text"],
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      background: #16213e;
+      border: 1px solid #0f3460;
+      color: #f1f1f1;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+
+    .form-group input[type="text"] {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .form-group textarea {
+      min-height: 400px;
+      resize: vertical;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .editor-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .sidebar-section {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .sidebar-section h3 {
+      font-size: 0.875rem;
+      color: #b8b8b8;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn {
+      width: 100%;
+      background: #e94560;
+      color: white;
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn-draft {
+      background: transparent;
+      border: 1px solid #0f3460;
+    }
+
+    .help-text {
+      font-size: 0.75rem;
+      color: #b8b8b8;
+      margin-top: 0.5rem;
+    }
+
+    .slug-preview {
+      font-size: 0.875rem;
+      color: #b8b8b8;
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>Stellar<span>DB</span></h1>
+      </div>
+
+      <ul class="nav">
+        <li><a href="/admin">Dashboard</a></li>
+        <li><a href="/admin/posts">Posts</a></li>
+        <li><a href="/admin/write" class="active">Write New</a></li>
+        <li><a href="/admin/media">Media</a></li>
+        <li><a href="/admin/settings">Settings</a></li>
+        <li style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #0f3460;"><a href="/" style="color: #e94560;">← View Site</a></li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">{user.username[0].toUpperCase()}</div>
+          <div class="user-details">
+            <div>{user.username}</div>
+            <div class="user-role">{user.role}</div>
+          </div>
+        </div>
+        <a href="/admin/logout" class="logout-btn">Log Out</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-header">
+        <h2>Write New Post</h2>
+        <a href="/admin/posts" class="btn-secondary">← Back to Posts</a>
+      </div>
+
+      {error && <div class="alert alert-error">{error}</div>}
+
+      <form method="POST" class="editor-form">
+        <div class="editor-main">
+          <div class="form-group">
+            <input type="text" id="title" name="title" placeholder="Post title" value={post.title || ''} required />
+          </div>
+
+          <div class="form-group">
+            <input type="text" id="slug" name="slug" placeholder="url-slug (auto-generated if empty)" value={post.slug || ''} />
+            <div class="slug-preview">/blog/<span id="slug-preview">{post.slug || 'post-slug'}</span></div>
+          </div>
+
+          <div class="form-group">
+            <textarea id="content" name="content" placeholder="Write your post in Markdown..." required>{post.content || ''}</textarea>
+          </div>
+        </div>
+
+        <div class="editor-sidebar">
+          <div class="sidebar-section">
+            <h3>Publish</h3>
+
+            <div class="form-group">
+              <label for="status">Status</label>
+              <select id="status" name="status">
+                <option value="draft" selected={post.status === 'draft'}>Draft</option>
+                <option value="published" selected={post.status === 'published'}>Published</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn">Publish</button>
+            <button type="submit" class="btn btn-draft" name="status" value="draft">Save Draft</button>
+          </div>
+
+          <div class="sidebar-section">
+            <h3>Formatting Help</h3>
+            <p class="help-text">
+              Use Markdown syntax:<br/><br/>
+              # Heading 1<br/>
+              ## Heading 2<br/>
+              **bold** *italic*<br/>
+              `code` ```block```<br/>
+              [link](url)<br/>
+              ![image](url)
+            </p>
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    // Auto-generate slug from title
+    const titleInput = document.getElementById('title') as HTMLInputElement;
+    const slugInput = document.getElementById('slug') as HTMLInputElement;
+    const slugPreview = document.getElementById('slug-preview');
+
+    function generateSlug(title: string): string {
+      return title
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .substring(0, 100);
+    }
+
+    titleInput.addEventListener('input', () => {
+      if (!slugInput.value) {
+        const slug = generateSlug(titleInput.value);
+        if (slugPreview) slugPreview.textContent = slug || 'post-slug';
+      }
+    });
+
+    slugInput.addEventListener('input', () => {
+      const slug = generateSlug(slugInput.value);
+      if (slugPreview) slugPreview.textContent = slug || 'post-slug';
+    });
+  </script>
+</body>
+</html>

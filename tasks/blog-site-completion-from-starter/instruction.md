@@ -1,22 +1,11 @@
-You are given a partially implemented blog system (Stellar-DB) with some code already in place but with bugs and missing features. Your task is to diagnose the issues, fix the bugs, and complete the missing functionality.
+The stellar-db project has been set up at /workspce/environment/stellar-db. Please Read the following requirements and finish the Stellar-DB project.
 
-The starter code is located at `/workspace/environment/stellar-db/`. Review the existing code, identify what's broken or incomplete, and make it fully functional according to the specification below.
-
----
-
-Read the following requirements and finish the Stellar-DB project.
-
-# Project Requirement Document: "Stellar-DB" Private Blog System
-
-**Version:** 2.1
-**Target OS:** Ubuntu 24.04 LTS
-**Tech Stack:** Astro (Frontend), Node.js (Backend Runtime), SQLite (Database)
-**Last Updated:** 2026-03-18
+# Project Requirement Document: Stellar-DB Private Blog System
 
 ---
 
 ## 1. Project Overview
-"Stellar-DB" is a self-hosted, multi-user blog platform with SQLite database for fast performance and data portability. The system uses Astro's SSR mode with React for interactive components.
+Stellar-DB is a self-hosted, multi-user blog platform with SQLite database for fast performance and data portability. The system uses Astro's SSR mode with React for interactive components.
 
 The platform supports three user roles:
 - **Admin:** Full system access and user management
@@ -38,10 +27,9 @@ The platform supports three user roles:
 | Milestone | Description | Priority |
 | :--- | :--- | :--- |
 | **M1** | System Core - Database setup, schema, environment config | High |
-| **M3** | Authentication - JWT auth, role-based access control | High |
-| **M4** | User Dashboard - Personal content management, profiles | High |
-| **M5** | Search & UX - Full-text search, RSS feeds, SEO | Medium |
-| **Edge** | Validation, error handling, permissions | High |
+| **M2** | Authentication - JWT auth, role-based access control | High |
+| **M3** | User Dashboard - Personal content management, profiles | High |
+| **M4** | Search & UX - Full-text search, RSS feeds, SEO | Medium |
 
 ---
 
@@ -294,12 +282,6 @@ The platform supports three user roles:
 3. Initialize database schema
 4. Run application in production mode
 
-**Required Environment Variables:**
-```bash
-JWT_SECRET=your-secure-secret-key
-DATABASE_URL=/path/to/database/stellar.db
-```
-
 ---
 
 ## 9. Out of Scope
@@ -317,24 +299,3 @@ The following features are not included in this version:
 - Bulk operations
 
 ---
-
-## 10. Success Criteria
-
-The project is complete when:
-1. ✅ Database schema properly defined with all tables
-2. ✅ Foreign keys and constraints enforced
-3. ✅ User authentication with JWT working
-4. ✅ Role-based permissions enforced correctly
-5. ✅ Users can manage only their own posts
-6. ✅ Public profiles display correctly
-7. ✅ Post visibility rules working (draft/published/archived)
-8. ✅ FTS5 search functional
-9. ✅ RSS feed generates valid XML
-10. ✅ Settings persist correctly
-11. ✅ No database locking issues
-
----
-
-**Document Version:** 2.1
-**Last Updated:** 2026-03-18
-
