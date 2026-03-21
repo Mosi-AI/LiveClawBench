@@ -185,9 +185,16 @@ docker run --rm liveclawbench-base:latest sqlite3 --version
 > update the `FROM` line in `docker/base/Dockerfile` only — all task Dockerfiles
 > inherit automatically.
 
-> **browser_mock_sidecar** files in `conflict-repair-acb` and `mixed-tool-memory`
-> (`environment/browser_mock_sidecar/`) are COPY'd into the main container at build time
-> and run as an in-process Python service — they do not have a separate Docker image.
+> **Harbor Dockerfile discovery**: harbor only builds `environment/Dockerfile` by default
+> (path is hardcoded; build context is the `environment/` directory). Subdirectory
+> Dockerfiles (e.g. `environment/browser_mock_sidecar/Dockerfile`) are **never built
+> automatically** — they are only built if the task author explicitly references them
+> in a custom `environment/docker-compose.yaml`. Files inside those subdirectories are
+> typically `COPY`'d into the main container as runtime assets.
+>
+> **browser_mock_sidecar** in `conflict-repair-acb` and `mixed-tool-memory` follows this
+> pattern: the sidecar directory is `COPY`'d into the main container and the Python
+> service runs in-process — there is no separate Docker image for it.
 
 ## Task Structure
 
@@ -237,6 +244,9 @@ Each `task.toml` encodes which factors apply (`factor_a1 = 1`, etc.).
 ```bash
 python scripts/validate_tasks.py       # validates all tasks (required files, TOML fields, case_id uniqueness)
 python scripts/validate_annotations.py # cross-checks factor annotations across task.toml / complexity-framework.md / cases_registry.csv
+
+# Build base image (required before building any task image)
+docker build -t liveclawbench-base:latest docker/base/
 ```
 
 - `capability_dimension` field is deprecated — `validate_tasks.py` flags it as an error; do not add to new tasks
