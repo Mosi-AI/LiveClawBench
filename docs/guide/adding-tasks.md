@@ -87,18 +87,38 @@ allow_internet = true  # REQUIRED for all OpenClaw tasks (agent calls LLM APIs)
 ## Dockerfile Requirements
 
 ```dockerfile
-FROM ghcr.io/openclaw/openclaw:2026.3.11
+FROM liveclawbench-base:latest
 
-# Install your task's dependencies
-RUN apt-get install -y ...
+# Install your task's additional dependencies (python3/pip/venv/curl already in base)
+RUN apt-get update && apt-get install -y --no-install-recommends <your-packages> && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy environment files
-COPY environment/ /task/environment/
+COPY . /workspace/environment/
 
 # If your task has running services, start them via an entrypoint or startup script
+COPY startup.sh /workspace/startup.sh
+RUN chmod +x /workspace/startup.sh
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["sh", "-c", "sleep infinity"]
 ```
 
-- Base image: `ghcr.io/openclaw/openclaw:2026.3.11` (provides the OpenClaw agent runtime)
+- Base image: `liveclawbench-base:latest` — inherits from `ghcr.io/openclaw/openclaw:2026.3.11` and adds:
+  - HTTPS apt source fix (required for proxy environments)
+  - Common packages: `python3 python3-pip python3-venv curl`
+  - Playwright Chromium at `/usr/bin/chromium` (needed for browser-based tasks)
+  - `/workspace` and `/workspace/output` directory scaffolding
+- **Build the base image first** before building any task image:
+  ```bash
+  docker build -t liveclawbench-base:latest tasks/base/
+  ```
+- For knowledge/research tasks using the `ARG OPENCLAW_BASE_IMAGE` pattern, set the default to `liveclawbench-base:latest`:
+  ```dockerfile
+  ARG OPENCLAW_BASE_IMAGE=liveclawbench-base:latest
+  FROM ${OPENCLAW_BASE_IMAGE}
+  ```
 - For multi-service tasks: use a single `entrypoint.sh` that starts all services in the background and sleeps briefly before handing off to the main command
 - Services are accessible to the agent at `localhost:<port>`
 

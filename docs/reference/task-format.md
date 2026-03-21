@@ -25,7 +25,7 @@ Each task follows this standardised directory layout:
 
 - `task.toml` — declares task metadata (difficulty, domain, complexity factors) and resource config (CPU, memory, timeouts)
 - `instruction.md` — the task description shown to the agent, simulating a user's natural language request
-- `Dockerfile` — builds the task runtime environment, including mock service startup, database init, and dependency installation
+- `Dockerfile` — builds the task runtime environment on top of `liveclawbench-base:latest`, including app dependency installation, database init, and startup scripts
 - `solve.sh` — reference solution script used to verify task solvability (not exposed to the agent)
 - `test.sh` — verification entry point; scoring files vary by task (see [Evaluation Patterns](#evaluation-patterns) below)
 
