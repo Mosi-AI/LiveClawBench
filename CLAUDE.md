@@ -159,7 +159,7 @@ cat jobs/*/logs/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 ## Base Docker Image
 
 All task Dockerfiles inherit from `liveclawbench-base:latest` instead of directly
-from `ghcr.io/openclaw/openclaw:2026.3.11`. The base image (`tasks/base/Dockerfile`) pre-bakes:
+from `ghcr.io/openclaw/openclaw:2026.3.11`. The base image (`docker/base/Dockerfile`) pre-bakes:
 
 - **HTTPS apt source fix**: Debian 12 bookworm sources patched `http://` → `https://deb.debian.org`
   so that `apt-get` works through a local proxy (port 7897) that supports HTTPS CONNECT but not plain HTTP
@@ -171,15 +171,15 @@ from `ghcr.io/openclaw/openclaw:2026.3.11`. The base image (`tasks/base/Dockerfi
 Build order: **build base first**, then build task images that depend on it.
 
 ```bash
-# Build the base image (one-time, or when tasks/base/Dockerfile changes)
-docker build -t liveclawbench-base:latest tasks/base/
+# Build the base image (one-time, or when docker/base/Dockerfile changes)
+docker build -t liveclawbench-base:latest docker/base/
 
 # Verify apt sources are HTTPS
 docker run --rm liveclawbench-base:latest grep -i uri /etc/apt/sources.list.d/debian.sources
 ```
 
 > **Upgrading openclaw**: if the upstream base version changes (e.g. `2026.4.x`),
-> update the `FROM` line in `tasks/base/Dockerfile` only — all task Dockerfiles
+> update the `FROM` line in `docker/base/Dockerfile` only — all task Dockerfiles
 > inherit automatically.
 
 > **browser_mock_sidecar containers** in `conflict-repair-acb` and `mixed-tool-memory`

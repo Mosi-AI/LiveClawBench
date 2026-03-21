@@ -112,7 +112,7 @@ CMD ["sh", "-c", "sleep infinity"]
   - `/workspace` and `/workspace/output` directory scaffolding
 - **Build the base image first** before building any task image:
   ```bash
-  docker build -t liveclawbench-base:latest tasks/base/
+  docker build -t liveclawbench-base:latest docker/base/
   ```
 - For knowledge/research tasks using the `ARG OPENCLAW_BASE_IMAGE` pattern, set the default to `liveclawbench-base:latest`:
   ```dockerfile
