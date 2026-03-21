@@ -31,7 +31,7 @@ check_cmd uv     "Install from https://docs.astral.sh/uv/getting-started/install
 check_cmd docker "Install from https://docs.docker.com/get-docker/"
 
 # Python >= 3.12 check (uv manages Python, but verify host has one accessible)
-PY_VERSION=$(python3 --version 2>&1 | grep -oP '\d+\.\d+' | head -1)
+PY_VERSION=$(python3 --version 2>&1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
 PY_MAJOR=$(echo "$PY_VERSION" | cut -d. -f1)
 PY_MINOR=$(echo "$PY_VERSION" | cut -d. -f2)
 if [ "$PY_MAJOR" -lt 3 ] || { [ "$PY_MAJOR" -eq 3 ] && [ "$PY_MINOR" -lt 12 ]; }; then
