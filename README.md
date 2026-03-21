@@ -48,7 +48,12 @@ but differs in exactly one complexity factor, enabling causal analysis of agent 
 git clone https://github.com/Mosi-AI/LiveClawBench.git
 cd LiveClawBench
 ./setup.sh          # installs harbor CLI, creates .env from template
-# edit .env with your API key, then:
+
+# Build the shared base image (required once before running any task)
+docker build -t liveclawbench-base:latest docker/base/
+
+# Edit .env with your API key, then run a task:
+source .venv/bin/activate
 harbor run -p tasks/watch-shop -a openclaw -m custom/<YOUR_MODEL_ID> \
   -n 1 -o jobs \
   --ae CUSTOM_BASE_URL="<YOUR_BASE_URL>" \

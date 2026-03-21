@@ -18,10 +18,13 @@ RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' \
 # openclaw's findChromeExecutableLinux() only checks system paths like /usr/bin/chromium —
 # it does not scan the Playwright cache directory. The symlink bridges this gap.
 # --with-deps works because apt sources are already HTTPS-fixed above.
+# chmod ensures the Playwright cache is world-readable/executable so that tasks
+# running as USER node (Pattern 4) can launch the browser without permission errors.
 RUN PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright \
     node /app/node_modules/playwright-core/cli.js install --with-deps chromium && \
     CHROME_PATH=$(find /root/.cache/ms-playwright -name 'chrome' -type f | head -1) && \
-    ln -sf "$CHROME_PATH" /usr/bin/chromium
+    ln -sf "$CHROME_PATH" /usr/bin/chromium && \
+    chmod -R a+rX /root/.cache/ms-playwright/
 
 WORKDIR /workspace
 RUN mkdir -p /workspace/output
