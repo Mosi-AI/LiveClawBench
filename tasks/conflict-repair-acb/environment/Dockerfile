@@ -1,4 +1,4 @@
-ARG OPENCLAW_BASE_IMAGE=ghcr.io/openclaw/openclaw:2026.3.11
+ARG OPENCLAW_BASE_IMAGE=liveclawbench-base:latest
 FROM ${OPENCLAW_BASE_IMAGE}
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true

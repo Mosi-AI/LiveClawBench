@@ -1,19 +1,13 @@
-FROM ghcr.io/openclaw/openclaw:2026.3.11
+FROM liveclawbench-base:latest
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 
 USER root
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip git && \
+    git && \
     rm -rf /var/lib/apt/lists/*
-
-WORKDIR /workspace
 
 # Copy environment data and scripts
 COPY . /workspace/environment/
 COPY patches/ /workspace/patches/
-
-# Create output directory
-RUN mkdir -p /workspace/output
-
