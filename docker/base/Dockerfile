@@ -4,20 +4,16 @@ HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 
 USER root
 
-# Pre-fix apt sources to HTTPS: proxy at port 7897 supports HTTPS CONNECT tunneling
-# but not plain HTTP forwarding. The default Debian 12 (bookworm) DEB822 sources
-# use http://deb.debian.org which returns 502 through the proxy. This must run
-# BEFORE any apt-get calls, especially `playwright install --with-deps`.
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' \
-        /etc/apt/sources.list.d/debian.sources && \
-    apt-get update && apt-get install -y --no-install-recommends \
-        python3 python3-pip python3-venv curl && \
+# Install common packages needed by all task containers.
+# On restricted networks, configure Docker daemon proxy before building so that
+# apt-get can reach deb.debian.org — see docs/guide/getting-started.md.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-pip python3-venv curl sqlite3 && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Playwright Chromium with all system dependencies.
 # openclaw's findChromeExecutableLinux() only checks system paths like /usr/bin/chromium —
 # it does not scan the Playwright cache directory. The symlink bridges this gap.
-# --with-deps works because apt sources are already HTTPS-fixed above.
 # chmod ensures the Playwright cache is world-readable/executable so that tasks
 # running as USER node (Pattern 4) can launch the browser without permission errors.
 RUN PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright \

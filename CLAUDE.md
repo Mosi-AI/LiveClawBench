@@ -161,9 +161,7 @@ cat jobs/*/logs/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 All task Dockerfiles inherit from `liveclawbench-base:latest` instead of directly
 from `ghcr.io/openclaw/openclaw:2026.3.11`. The base image (`docker/base/Dockerfile`) pre-bakes:
 
-- **HTTPS apt source fix**: Debian 12 bookworm sources patched `http://` → `https://deb.debian.org`
-  so that `apt-get` works through a local proxy (port 7897) that supports HTTPS CONNECT but not plain HTTP
-- **Common packages**: `python3 python3-pip python3-venv curl`
+- **Common packages**: `python3 python3-pip python3-venv curl sqlite3`
 - **Playwright Chromium** with all system deps (`--with-deps`), plus `/usr/bin/chromium` symlink so
   openclaw's `findChromeExecutableLinux()` can discover it via standard system paths
 - **Directory scaffolding**: `/workspace` and `/workspace/output`
@@ -174,17 +172,22 @@ Build order: **build base first**, then build task images that depend on it.
 # Build the base image (one-time, or when docker/base/Dockerfile changes)
 docker build -t liveclawbench-base:latest docker/base/
 
-# Verify apt sources are HTTPS
-docker run --rm liveclawbench-base:latest grep -i uri /etc/apt/sources.list.d/debian.sources
+# Verify common packages
+docker run --rm liveclawbench-base:latest python3 --version
+docker run --rm liveclawbench-base:latest sqlite3 --version
 ```
+
+> **Restricted network / proxy**: if your Docker daemon routes through a local proxy,
+> configure daemon-level HTTP/HTTPS proxy before building — see
+> `docs/guide/getting-started.md` (Troubleshooting → Docker Proxy Configuration).
 
 > **Upgrading openclaw**: if the upstream base version changes (e.g. `2026.4.x`),
 > update the `FROM` line in `docker/base/Dockerfile` only — all task Dockerfiles
 > inherit automatically.
 
-> **browser_mock_sidecar containers** in `conflict-repair-acb` and `mixed-tool-memory`
-> intentionally keep `ghcr.io/openclaw/openclaw:2026.3.11` as their base — they are
-> lightweight Python sidecar services that do not need Playwright.
+> **browser_mock_sidecar** files in `conflict-repair-acb` and `mixed-tool-memory`
+> (`environment/browser_mock_sidecar/`) are COPY'd into the main container at build time
+> and run as an in-process Python service — they do not have a separate Docker image.
 
 ## Task Structure
 

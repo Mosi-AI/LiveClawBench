@@ -123,3 +123,43 @@ Use `--timeout-multiplier 2.0` (or higher) to scale all `task.toml` timeouts.
 **Using a non-standard OpenAI-compatible provider**
 Use `custom/<model-id>` with `--ae CUSTOM_BASE_URL` and `--ae CUSTOM_API_KEY` — no code changes needed.
 See [Running Tasks — Adding a Custom Provider](running-tasks.md#adding-a-custom-provider) for adding a permanent entry to `_PROVIDER_CONFIGS`.
+
+**`docker build` fails with `502` / `connection refused` on `deb.debian.org`**
+
+Your Docker daemon is routing through a proxy that supports HTTPS CONNECT tunneling but
+not plain HTTP forwarding (common with local dev proxies). Configure the Docker daemon
+proxy so that `apt-get` inside containers can reach `deb.debian.org` over HTTPS.
+
+_macOS (Docker Desktop)_ — edit `~/.docker/config.json` (create if absent), then restart
+Docker Desktop:
+
+```json
+{
+  "proxies": {
+    "default": {
+      "httpProxy":  "http://host.docker.internal:<PORT>",
+      "httpsProxy": "http://host.docker.internal:<PORT>",
+      "noProxy":    "localhost,127.0.0.1"
+    }
+  }
+}
+```
+
+`host.docker.internal` resolves to the host machine from inside containers. Replace
+`<PORT>` with your proxy port (e.g. `7897`).
+
+_Linux (systemd)_ — create a systemd drop-in and restart the daemon:
+
+```bash
+sudo mkdir -p /etc/systemd/system/docker.service.d
+sudo tee /etc/systemd/system/docker.service.d/http-proxy.conf << 'EOF'
+[Service]
+Environment="HTTP_PROXY=http://<PROXY_HOST>:<PORT>"
+Environment="HTTPS_PROXY=http://<PROXY_HOST>:<PORT>"
+Environment="NO_PROXY=localhost,127.0.0.1"
+EOF
+sudo systemctl daemon-reload && sudo systemctl restart docker
+```
+
+**No proxy?** If `deb.debian.org` is directly reachable (open networks), no configuration
+is required — `docker build` works as-is.

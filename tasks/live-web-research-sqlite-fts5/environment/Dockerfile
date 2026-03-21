@@ -11,12 +11,9 @@ ENV HOME=/home/node \
 WORKDIR /home/node/.openclaw
 
 USER root
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends sqlite3 \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /home/node/.openclaw/output /home/node/.openclaw/workspace/memory \
-               /home/node/.openclaw/workspace/state /home/node/.openclaw/workspace/db \
-               /home/node/.openclaw/tests /home/node/.openclaw/tools /home/node/.openclaw/solution \
+RUN mkdir -p /home/node/.openclaw/output /home/node/.openclaw/workspace/memory \
+             /home/node/.openclaw/workspace/state /home/node/.openclaw/workspace/db \
+             /home/node/.openclaw/tests /home/node/.openclaw/tools /home/node/.openclaw/solution \
     && chown -R node:node /home/node
 
 COPY corpus/ /home/node/.openclaw/corpus/
