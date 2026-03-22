@@ -253,6 +253,7 @@ def get_user_todos() -> List[Dict[str, Any]]:
 # MAIN EXECUTION
 # ============================================================================
 
+
 def main():
     """Main entry point for manual data injection."""
     print("=" * 60)
@@ -286,14 +287,8 @@ def main():
             print(f"     Description: {todo['description'][:50]}...")
     print()
 
-    # Confirm before injection
-    confirm = input("Proceed with injection? (y/n): ").strip().lower()
-    if confirm != 'y':
-        print("❌ Injection cancelled.")
-        return
-
     # Inject todos
-    print("\n" + "-" * 60)
+    print("-" * 60)
     print("Injecting todos...")
     print("-" * 60)
 

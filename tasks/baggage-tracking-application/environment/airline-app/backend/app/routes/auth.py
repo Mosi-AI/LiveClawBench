@@ -35,9 +35,7 @@ def register():
             first_name=data['first_name'],
             last_name=data['last_name'],
             phone=data.get('phone'),
-            date_of_birth=datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date() if data.get('date_of_birth') else None,
-            passport_number=data.get('passport_number'),
-            passport_expiry=datetime.strptime(data['passport_expiry'], '%Y-%m-%d').date() if data.get('passport_expiry') else None
+            date_of_birth=datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date() if data.get('date_of_birth') else None
         )
 
         db.session.add(user)
@@ -184,7 +182,7 @@ def update_profile(current_user):
         data = request.get_json()
 
         # Update allowed fields
-        allowed_fields = ['first_name', 'last_name', 'phone', 'passport_number']
+        allowed_fields = ['first_name', 'last_name', 'phone', 'email']
         for field in allowed_fields:
             if field in data:
                 setattr(current_user, field, data[field])
@@ -192,8 +190,6 @@ def update_profile(current_user):
         # Handle date fields
         if 'date_of_birth' in data:
             current_user.date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
-        if 'passport_expiry' in data:
-            current_user.passport_expiry = datetime.strptime(data['passport_expiry'], '%Y-%m-%d').date()
 
         db.session.commit()
 

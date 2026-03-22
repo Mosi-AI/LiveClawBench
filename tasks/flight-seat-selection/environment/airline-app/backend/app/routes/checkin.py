@@ -129,7 +129,7 @@ def get_eligible_checkins():
     """Get bookings eligible for check-in"""
     try:
         # Use default user for auto-login
-        now = datetime.utcnow()
+        now = datetime.now()
         check_in_window = now + datetime.timedelta(hours=24)
 
         # Find bookings within 24 hours of departure

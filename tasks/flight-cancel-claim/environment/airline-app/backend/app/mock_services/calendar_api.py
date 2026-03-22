@@ -97,7 +97,7 @@ Arrive at the airport at least 2 hours before departure.
         if 'reminder_minutes' in updates:
             event.reminder_minutes = updates['reminder_minutes']
 
-        event.updated_at = datetime.utcnow()
+        event.updated_at = datetime.now()
         db.session.commit()
 
         return event
@@ -144,7 +144,7 @@ Arrive at the airport at least 2 hours before departure.
         Returns:
             list: List of CalendarEvent objects
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now()
         end_time = start_time + timedelta(days=days)
 
         events = CalendarEvent.query.filter(

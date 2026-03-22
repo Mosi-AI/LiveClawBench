@@ -53,17 +53,8 @@ def update_profile():
             user.last_name = data['last_name']
         if 'phone' in data:
             user.phone = data['phone']
-        if 'passport_number' in data:
-            user.passport_number = data['passport_number']
-        if 'passport_expiry' in data:
-            from datetime import datetime
-            try:
-                user.passport_expiry = datetime.strptime(data['passport_expiry'], '%Y-%m-%d').date()
-            except ValueError:
-                return jsonify({
-                    'success': False,
-                    'message': 'Invalid passport_expiry format. Use YYYY-MM-DD'
-                }), 400
+        if 'email' in data:
+            user.email = data['email']
 
         db.session.commit()
 

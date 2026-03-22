@@ -27,17 +27,17 @@ def get_or_create_default_user(injector):
     """Get or create the default user for auto-login."""
     print("Getting/Creating default user for auto-login...")
 
-    default_user = User.query.filter_by(email='default@gkdairlines.com').first()
+    default_user = User.query.filter_by(email='peter.griffin@work.mosi.inc').first()
     if not default_user:
         default_user = injector.create_user(
-            email='default@gkdairlines.com',
+            email='peter.griffin@work.mosi.inc',
             password='default123',
             first_name='Peter',
             last_name='Griffin',
             phone='+1-555-0100',
             is_verified=True
         )
-        print("  Created default user: default@gkdairlines.com")
+        print("  Created default user: peter.griffin@work.mosi.inc")
     else:
         print("  Default user already exists")
 
@@ -56,8 +56,6 @@ def create_test_users(injector):
             'last_name': 'Doe',
             'phone': '+1-555-1001',
             'date_of_birth': '1985-03-15',
-            'passport_number': 'AB1234567',
-            'passport_expiry': '2028-12-31',
             'is_verified': True
         },
         {
@@ -67,8 +65,6 @@ def create_test_users(injector):
             'last_name': 'Smith',
             'phone': '+1-555-1002',
             'date_of_birth': '1990-07-22',
-            'passport_number': 'CD2345678',
-            'passport_expiry': '2027-06-30',
             'is_verified': True
         },
         {
@@ -78,8 +74,6 @@ def create_test_users(injector):
             'last_name': 'Johnson',
             'phone': '+1-555-1003',
             'date_of_birth': '1978-11-08',
-            'passport_number': 'EF3456789',
-            'passport_expiry': '2029-03-15',
             'is_verified': True
         },
         {
@@ -98,8 +92,6 @@ def create_test_users(injector):
             'last_name': 'Brown',
             'phone': '+1-555-1005',
             'date_of_birth': '1988-09-12',
-            'passport_number': 'GH4567890',
-            'passport_expiry': '2026-11-20',
             'is_verified': True
         },
     ]
@@ -124,7 +116,7 @@ def create_flights_with_seats(injector):
     """Create flights with seats for next 60 days."""
     print("\nCreating flights with seats...")
 
-    now = datetime.utcnow()
+    now = datetime.now()
 
     # Airport data
     airports = {
@@ -232,7 +224,7 @@ def create_bookings_for_users(injector, users, flights):
 
     for scenario in booking_scenarios:
         # Find a flight for the scenario
-        target_date = datetime.utcnow() + timedelta(days=scenario['days_offset'])
+        target_date = datetime.now() + timedelta(days=scenario['days_offset'])
 
         # Find a flight close to the target date
         suitable_flight = None
@@ -255,14 +247,13 @@ def create_bookings_for_users(injector, users, flights):
                     'first_name': user.first_name,
                     'last_name': user.last_name,
                     'date_of_birth': '1990-01-01',
-                    'passport_number': user.passport_number if user.passport_number else 'AB1234567',
                     'nationality': 'US'
                 }
             ],
             cabin_class=random.choice(['economy', 'economy', 'economy', 'business']),
             booking_status=scenario['status'],
             checked_in=scenario['checked_in'],
-            check_in_time=datetime.utcnow() if scenario['checked_in'] else None
+            check_in_time=datetime.now() if scenario['checked_in'] else None
         )
 
         # Create payment for confirmed bookings
@@ -285,7 +276,7 @@ def create_announcements(injector):
     """Create airline announcements with current dates."""
     print("\nCreating announcements...")
 
-    now = datetime.utcnow()
+    now = datetime.now()
 
     announcements = [
         {
@@ -420,58 +411,58 @@ def create_faqs(injector):
     print("\nCreating FAQs...")
 
     faqs = [
-        {
-            'question': 'What is the baggage allowance for my flight?',
-            'answer': '''Economy class passengers are allowed one carry-on bag (max 7kg) and one checked bag (max 23kg).
+#         {
+#             'question': 'What is the baggage allowance for my flight?',
+#             'answer': '''Economy class passengers are allowed one carry-on bag (max 7kg) and one checked bag (max 23kg).
 
-Business class passengers can bring two checked bags (max 32kg each).
+# Business class passengers can bring two checked bags (max 32kg each).
 
-First class passengers enjoy three checked bags (max 32kg each).
+# First class passengers enjoy three checked bags (max 32kg each).
 
-Additional baggage can be purchased during booking or at the airport (higher fees apply at airport).''',
-            'category': 'baggage',
-            'display_order': 1
-        },
-        {
-            'question': 'How can I change or cancel my booking?',
-            'answer': '''You can modify or cancel your booking through our website or mobile app up to 24 hours before departure.
+# Additional baggage can be purchased during booking or at the airport (higher fees apply at airport).''',
+#             'category': 'baggage',
+#             'display_order': 1
+#         },
+#         {
+#             'question': 'How can I change or cancel my booking?',
+#             'answer': '''You can modify or cancel your booking through our website or mobile app up to 24 hours before departure.
 
-Cancellation fees:
-- More than 7 days before departure: No fee
-- 3-7 days before departure: $75 fee
-- 24-72 hours before departure: $150 fee
-- Less than 24 hours: No refund available
+# Cancellation fees:
+# - More than 7 days before departure: No fee
+# - 3-7 days before departure: $75 fee
+# - 24-72 hours before departure: $150 fee
+# - Less than 24 hours: No refund available
 
-Refunds for flights cancelled by GKD Airlines are processed automatically within 7-10 business days.''',
-            'category': 'booking',
-            'display_order': 2
-        },
-        {
-            'question': 'When can I check in for my flight?',
-            'answer': '''Online check-in opens 24 hours before your scheduled departure time and closes 2 hours before departure.
+# Refunds for flights cancelled by GKD Airlines are processed automatically within 7-10 business days.''',
+#             'category': 'booking',
+#             'display_order': 2
+#         },
+#         {
+#             'question': 'When can I check in for my flight?',
+#             'answer': '''Online check-in opens 24 hours before your scheduled departure time and closes 2 hours before departure.
 
-Airport check-in counters:
-- International flights: Open 3 hours before departure
-- Domestic flights: Open 2 hours before departure
+# Airport check-in counters:
+# - International flights: Open 3 hours before departure
+# - Domestic flights: Open 2 hours before departure
 
-We recommend checking in online to save time at the airport and select your preferred seat.''',
-            'category': 'check-in',
-            'display_order': 3
-        },
-        {
-            'question': 'What payment methods are accepted?',
-            'answer': '''We accept:
-- All major credit cards (Visa, MasterCard, American Express, Discover)
-- Debit cards with Visa or MasterCard logo
-- PayPal
-- Apple Pay and Google Pay
-- Bank transfers (for bookings made 7+ days in advance)
-- GKD Airlines travel credits and gift cards
+# We recommend checking in online to save time at the airport and select your preferred seat.''',
+#             'category': 'check-in',
+#             'display_order': 3
+#         },
+#         {
+#             'question': 'What payment methods are accepted?',
+#             'answer': '''We accept:
+# - All major credit cards (Visa, MasterCard, American Express, Discover)
+# - Debit cards with Visa or MasterCard logo
+# - PayPal
+# - Apple Pay and Google Pay
+# - Bank transfers (for bookings made 7+ days in advance)
+# - GKD Airlines travel credits and gift cards
 
-Installment payment plans are available for bookings over $500.''',
-            'category': 'payment',
-            'display_order': 4
-        },
+# Installment payment plans are available for bookings over $500.''',
+#             'category': 'payment',
+#             'display_order': 4
+#         },
         {
             'question': 'How do I get a refund for a cancelled flight?',
             'answer': '''If GKD Airlines cancels your flight, you are entitled to a full refund automatically processed to your original payment method within 7-10 business days.
@@ -483,22 +474,22 @@ Options for cancelled flights:
 
 Contact our customer service for assistance with refunds and rebooking.''',
             'category': 'booking',
-            'display_order': 5
+            'display_order': 1
         },
-        {
-            'question': 'Can I select my seat in advance?',
-            'answer': '''Yes! You can select your preferred seat during booking or through "Manage Booking".
+#         {
+#             'question': 'Can I select my seat in advance?',
+#             'answer': '''Yes! You can select your preferred seat during booking or through "Manage Booking".
 
-Seat selection fees:
-- Standard seats: Complimentary (based on availability)
-- Preferred seats (extra legroom): $25-50
-- Exit row seats: $45-75
-- Window and aisle seats: May have additional fees
+# Seat selection fees:
+# - Standard seats: Complimentary (based on availability)
+# - Preferred seats (extra legroom): $25-50
+# - Exit row seats: $45-75
+# - Window and aisle seats: May have additional fees
 
-Business and First class passengers: Complimentary seat selection for all seats.''',
-            'category': 'booking',
-            'display_order': 6
-        },
+# Business and First class passengers: Complimentary seat selection for all seats.''',
+#             'category': 'booking',
+#             'display_order': 6
+#         },
         {
             'question': 'What happens if my flight is delayed?',
             'answer': '''We will notify you via email and SMS about any delays.
@@ -511,7 +502,7 @@ Compensation for delays:
 
 Check your flight status on our website or app for real-time updates.''',
             'category': 'general',
-            'display_order': 7
+            'display_order': 2
         },
         {
             'question': 'How early should I arrive at the airport?',
@@ -527,7 +518,7 @@ International flights:
 
 Peak travel times (holidays, weekends): Add an extra 30-60 minutes.''',
             'category': 'check-in',
-            'display_order': 8
+            'display_order': 5
         },
         {
             'question': 'How do I file a claim for a cancelled flight?',
@@ -549,17 +540,11 @@ Your flight cancellation may qualify for a claim if it was caused by:
 1. **Prepare Your Documentation:**
    - Flight information (flight number, date, departure and arrival cities)
    - Booking reference number
-   - Your personal information (full name, contact details, passenger ID)
+   - Your personal information (full name, contact details)
    - Screenshot of your flight booking confirmation
    - Reason for the claim (detailed explanation of the cancellation impact)
 
-2. **Gather Supporting Documents:**
-   - Receipts for additional expenses incurred due to cancellation (meals, hotel, transportation)
-   - Communication records with airline staff
-   - Boarding passes or e-ticket confirmations
-   - Any other relevant documentation
-
-3. **Submit Your Claim:**
+2. **Submit Your Claim:**
    Send your claim application to our dedicated customer service email:
    **claims@gkdairlines.com**
 
@@ -567,15 +552,15 @@ Your flight cancellation may qualify for a claim if it was caused by:
    - Subject line: "Flight Cancellation Claim - [Booking Reference] - [Flight Number]"
    - Detailed description of the cancellation and its impact
    - All supporting documents as attachments
-   - Your preferred compensation method (refund, travel credit, or bank transfer)
 
-4. **Processing Timeline:**
+3. **Processing Timeline:**
    - Claims are typically reviewed within 5-7 business days
    - Complex cases may take up to 14 business days
    - You will receive email confirmation of your claim receipt
    - Status updates will be sent to your registered email
+   - Our staff will contact you to discuss a specific claim plan. Please see the next section for details on the possible options.
 
-5. **Compensation Options:**
+4. **Compensation Options:**
    - Full refund of ticket price
    - Travel credits with bonus value (up to 10% additional)
    - Reimbursement for documented expenses
@@ -585,11 +570,9 @@ Your flight cancellation may qualify for a claim if it was caused by:
 - Claims must be submitted within 30 days of the cancelled flight
 - Ensure all documents are clear and legible
 - Keep copies of all submitted materials
-- Provide accurate contact information for follow-up
-
-For urgent assistance, contact our 24/7 customer service hotline at 1-800-GKD-HELP.''',
+- Provide accurate contact information for follow-up''',
             'category': 'booking',
-            'display_order': 9
+            'display_order': 4
         },
         {
             'question': 'What should I do if my luggage is lost?',
@@ -620,21 +603,10 @@ If your luggage is confirmed missing, immediately:
 
 After confirming your luggage is lost, file a detailed report on the GKD Airlines official website:
 
-**Website:** www.gkdairlines.com/baggage-tracking
-
-**Information Required:**
-- Flight number and date
-- Your full name and contact information
-- Baggage claim tag number
-- Detailed description of your luggage (color, size, brand, distinctive features)
-- Contents of the luggage (if possible, list major items)
-- Your current address and phone number
-- Email address for notifications
 
 **Step 4: Track Your Report**
 
 After submission:
-- You will receive a tracking number and confirmation email
 - Monitor your report status online 24/7
 - Our system provides real-time updates on the search progress
 
@@ -661,11 +633,9 @@ If your luggage is not found within 72 hours, you may be eligible for:
 - Keep your baggage claim tag safe until your luggage is recovered
 - Save all receipts for essential purchases during the delay
 - Provide accurate and complete contact information
-- Respond promptly to any requests for additional information
-
-For immediate assistance, call our Baggage Services hotline: 1-800-GKD-BAGS (available 24/7)''',
+- Respond promptly to any requests for additional information''',
             'category': 'baggage',
-            'display_order': 10
+            'display_order': 3
         },
     ]
 
@@ -680,20 +650,39 @@ def create_baggage_reports(injector, users, flights):
     """Create baggage tracking reports."""
     print("\nCreating baggage tracking reports...")
 
-    now = datetime.utcnow()
+    now = datetime.now()
+
+    # Create a past flight for the first baggage report (at least 3 months ago)
+    past_flight_time = now - timedelta(days=95)  # About 3 months ago
+    past_flight_data = {
+        'flight_number': 'GKD777',
+        'origin_code': 'JFK',
+        'origin_city': 'New York',
+        'origin_airport': 'John F. Kennedy International Airport',
+        'destination_code': 'LAX',
+        'destination_city': 'Los Angeles',
+        'destination_airport': 'Los Angeles International Airport',
+        'departure_time': past_flight_time,
+        'arrival_time': past_flight_time + timedelta(hours=5, minutes=30),
+        'base_price_economy': 299.99,
+        'aircraft_type': 'Boeing 737',
+        'status': 'landed'
+    }
+    past_flight = injector.create_flight_with_seats(past_flight_data)
+    print(f"  Created past flight: {past_flight.flight_number} for baggage report")
 
     baggage_reports = [
         {
             'user_id': users[0].id,
-            'flight_number': flights[0].flight_number,
-            'flight_time': flights[0].departure_time,
+            'flight_number': past_flight.flight_number,
+            'flight_time': past_flight.departure_time,
             'passenger_name': f'{users[0].first_name} {users[0].last_name}',
             'passenger_phone': users[0].phone,
             'passenger_email': users[0].email,
             'baggage_description': 'Black Samsonite suitcase with red ribbon handle',
             'seat_number': '12A',
             'loss_details': 'Last seen at baggage claim carousel 3 at JFK airport',
-            'status': 'processing'
+            'status': 'processed'
         },
         {
             'user_id': users[1].id,
@@ -721,26 +710,196 @@ def create_baggage_reports(injector, users, flights):
         },
     ]
 
-    for report_data in baggage_reports:
+    # Create the first report with a past created_at timestamp
+    first_report_data = baggage_reports[0]
+    report = BaggageTracking(
+        user_id=first_report_data['user_id'],
+        flight_number=first_report_data['flight_number'],
+        flight_time=first_report_data['flight_time'],
+        passenger_name=first_report_data['passenger_name'],
+        passenger_phone=first_report_data['passenger_phone'],
+        passenger_email=first_report_data['passenger_email'],
+        baggage_description=first_report_data['baggage_description'],
+        seat_number=first_report_data['seat_number'],
+        loss_details=first_report_data['loss_details'],
+        status=first_report_data['status']
+    )
+    # Set created_at to be 3 months ago
+    report.created_at = now - timedelta(days=95)
+    report.updated_at = now - timedelta(days=90)  # Updated 5 days after creation
+    db.session.add(report)
+    db.session.commit()
+    print(f"  Created baggage report for flight {first_report_data['flight_number']} (processed, 3 months old)")
+
+    # Create remaining reports normally
+    for report_data in baggage_reports[1:]:
         injector.create_baggage_report(**report_data)
         print(f"  Created baggage report for flight {report_data['flight_number']}")
 
     print(f"  Total baggage reports created: {len(baggage_reports)}")
 
 
+
+# def create_specific_data(injector):
+#     """
+#     Create a specific flight from JFK to LAX departing the day after tomorrow,
+#     book it for the default user (Peter Griffin), and then delay the flight by 4 hours.
+#     Check for and remove any conflicting flights before creation.
+#     """
+#     print("\nCreating specific JFK to LAX flight and booking for Peter Griffin...")
+
+#     now = datetime.now()
+
+#     # Calculate departure time: day after tomorrow at 10:00 AM
+#     departure_date = now + timedelta(days=2)
+#     departure_time = departure_date.replace(hour=10, minute=0, second=0, microsecond=0)
+
+#     # Flight duration for JFK to LAX is approximately 5.5 hours
+#     flight_duration = timedelta(hours=5, minutes=30)
+#     arrival_time = departure_time + flight_duration
+
+#     flight_number = 'GKD2001'
+#     origin_code = 'JFK'
+#     destination_code = 'LAX'
+
+#     # Check for conflicting flights
+#     print("  Checking for conflicting flights...")
+
+#     # 1. Check for flights with the same flight number
+#     same_flight_number = Flight.query.filter_by(flight_number=flight_number).all()
+
+#     # 2. Check for flights with the same departure time
+#     same_departure_time = Flight.query.filter_by(departure_time=departure_time).all()
+
+#     # 3. Check for flights with same origin/destination on the same day
+#     day_start = departure_time.replace(hour=0, minute=0, second=0, microsecond=0)
+#     day_end = day_start + timedelta(days=1)
+#     same_route_same_day = Flight.query.filter(
+#         Flight.origin_code == origin_code,
+#         Flight.destination_code == destination_code,
+#         Flight.departure_time >= day_start,
+#         Flight.departure_time < day_end
+#     ).all()
+
+#     # Collect all conflicting flights
+#     conflicting_flights = set(same_flight_number + same_departure_time + same_route_same_day)
+
+#     if conflicting_flights:
+#         print(f"  Found {len(conflicting_flights)} conflicting flight(s), removing them...")
+#         for flight in conflicting_flights:
+#             print(f"    Deleting conflicting flight {flight.flight_number} "
+#                   f"(ID: {flight.id}, Departure: {flight.departure_time})")
+#             # Delete associated seats first
+#             Seat.query.filter_by(flight_id=flight.id).delete()
+#             # Delete the flight
+#             db.session.delete(flight)
+#         db.session.commit()
+#         print("  All conflicting flights removed")
+
+#     # Create flight data
+#     flight_data = {
+#         'flight_number': flight_number,
+#         'origin_code': origin_code,
+#         'origin_city': 'New York',
+#         'origin_airport': 'John F. Kennedy International Airport',
+#         'destination_code': destination_code,
+#         'destination_city': 'Los Angeles',
+#         'destination_airport': 'Los Angeles International Airport',
+#         'departure_time': departure_time,
+#         'arrival_time': arrival_time,
+#         'base_price_economy': 349.99,
+#         'base_price_business': 699.99,
+#         'base_price_first': 1049.99,
+#         'aircraft_type': 'Boeing 787',
+#         'status': 'scheduled',
+#         'gate': 'B22',
+#         'terminal': '4'
+#     }
+
+#     # Create the flight with seats
+#     flight = injector.create_flight_with_seats(flight_data)
+#     print(f"  Created flight {flight.flight_number}: JFK->LAX")
+#     print(f"  Original departure: {departure_time.strftime('%Y-%m-%d %H:%M:%S')}")
+#     print(f"  Original arrival: {arrival_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+#     # Get the default user (Peter Griffin)
+#     default_user = User.query.filter_by(email='default@gkdairlines.com').first()
+#     if not default_user:
+#         print("  Warning: Default user not found, creating Peter Griffin...")
+#         default_user = injector.create_user(
+#             email='default@gkdairlines.com',
+#             password='default123',
+#             first_name='Peter',
+#             last_name='Griffin',
+#             phone='+1-555-0100',
+#             is_verified=True
+#         )
+
+#     # Create a booking for Peter Griffin
+#     # Status is 'confirmed' but checked_in is False (no check-in or seat selection yet)
+#     booking = injector.create_booking(
+#         user_id=default_user.id,
+#         flight_id=flight.id,
+#         passengers_data=[
+#             {
+#                 'first_name': default_user.first_name,
+#                 'last_name': default_user.last_name,
+#                 'date_of_birth': '1985-06-15',  # Reasonable date of birth
+#                 'passport_number': 'PG1234567',
+#                 'passport_expiry': '2028-12-31',
+#                 'nationality': 'US'
+#             }
+#         ],
+#         cabin_class='economy',
+#         booking_status='confirmed',
+#         checked_in=False,
+#         check_in_time=None
+#     )
+
+#     # Create payment to complete the booking
+#     payment = injector.create_payment(
+#         booking_id=booking.id,
+#         amount=booking.total_price,
+#         status='completed',
+#         payment_method='credit_card',
+#         card_last_four='4532',
+#         card_type='visa',
+#         card_holder_name=f'{default_user.first_name} {default_user.last_name}'
+#     )
+
+#     print(f"  Created booking: {booking.booking_reference}")
+#     print(f"  Passenger: {default_user.first_name} {default_user.last_name}")
+#     print(f"  Cabin: Economy")
+#     print(f"  Total price: ${booking.total_price:.2f}")
+#     print(f"  Status: {booking.booking_status} (not checked in, no seat selected)")
+
+#     # Delay the flight by 4 hours
+#     delay_duration = timedelta(hours=4)
+#     flight.status = 'delayed'
+#     flight.departure_time = departure_time + delay_duration
+#     flight.arrival_time = arrival_time + delay_duration
+#     db.session.commit()
+
+#     print(f"  Flight status changed to: {flight.status}")
+#     print(f"  Delayed departure: {flight.departure_time.strftime('%Y-%m-%d %H:%M:%S')} (4 hours later)")
+#     print(f"  Delayed arrival: {flight.arrival_time.strftime('%Y-%m-%d %H:%M:%S')} (4 hours later)")
+
+#     return flight
+
+
 def create_specific_data(injector):
     """
-    Create a specific flight from JFK to LAX departing 3 days from now,
+    Create a specific flight from JFK to LAX departing 1 day from now,
     and create a booking for the default user (Peter Griffin) that allows
     booking but not check-in or seat selection yet.
     """
     print("\nCreating specific JFK to LAX flight and booking for Peter Griffin...")
 
-    now = datetime.utcnow()
+    now = datetime.now()
 
-    # Calculate departure time: 3 days from now at 10:00 AM
-    departure_date = now + timedelta(days=3)
-    departure_time = departure_date.replace(hour=10, minute=0, second=0, microsecond=0)
+    # Calculate departure time: 1 day from
+    departure_time = now + timedelta(days=1)
+    # departure_time = departure_date.replace(hour=10, minute=0, second=0, microsecond=0)
 
     # Flight duration for JFK to LAX is approximately 5.5 hours
     flight_duration = timedelta(hours=5, minutes=30)
@@ -769,15 +928,15 @@ def create_specific_data(injector):
     # Create the flight with seats
     flight = injector.create_flight_with_seats(flight_data)
     print(f"  Created flight {flight.flight_number}: JFK->LAX")
-    print(f"  Departure: {departure_time.strftime('%Y-%m-%d %H:%M:%S')} UTC")
-    print(f"  Arrival: {arrival_time.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+    print(f"  Departure: {departure_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"  Arrival: {arrival_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
     # Get the default user (Peter Griffin)
-    default_user = User.query.filter_by(email='default@gkdairlines.com').first()
+    default_user = User.query.filter_by(email='peter.griffin@work.mosi.inc').first()
     if not default_user:
         print("  Warning: Default user not found, creating Peter Griffin...")
         default_user = injector.create_user(
-            email='default@gkdairlines.com',
+            email='peter.griffin@work.mosi.inc',
             password='default123',
             first_name='Peter',
             last_name='Griffin',
@@ -824,6 +983,10 @@ def create_specific_data(injector):
     print(f"  Status: {booking.booking_status} (not checked in, no seat selected)")
 
     return flight
+
+
+
+
 
 
 def main():
@@ -893,7 +1056,7 @@ def main():
         print("\nFlight Status Breakdown:")
         print(f"  Scheduled: {Flight.query.filter_by(status='scheduled').count()}")
 
-        print(f"\nAll dates are relative to current time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        print(f"\nAll dates are relative to current time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 60)
 
 

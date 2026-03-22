@@ -21,7 +21,7 @@ class Booking(BaseModel):
     check_in_time = db.Column(db.DateTime)
 
     # Timestamps
-    booked_at = db.Column(db.DateTime, default=datetime.utcnow)
+    booked_at = db.Column(db.DateTime, default=datetime.now)
 
     # Relationships
     passengers = db.relationship('Passenger', backref='booking', lazy='dynamic', cascade='all, delete-orphan')
@@ -53,13 +53,13 @@ class Booking(BaseModel):
 
         # Check if within 24 hours of departure
         flight = self.flight
-        hours_until_departure = (flight.departure_time - datetime.utcnow()).total_seconds() / 3600
+        hours_until_departure = (flight.departure_time - datetime.now()).total_seconds() / 3600
 
         if hours_until_departure > 24:
             raise ValueError("Check-in only available within 24 hours of departure")
 
         self.checked_in = True
-        self.check_in_time = datetime.utcnow()
+        self.check_in_time = datetime.now()
         self.booking_status = 'checked_in'
         db.session.commit()
 
@@ -109,8 +109,6 @@ class Passenger(BaseModel):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     date_of_birth = db.Column(db.Date, nullable=False)
-    passport_number = db.Column(db.String(20))
-    passport_expiry = db.Column(db.Date)
     nationality = db.Column(db.String(50))
 
     # Special requests
@@ -151,8 +149,6 @@ class Passenger(BaseModel):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'date_of_birth': self.date_of_birth.isoformat() if self.date_of_birth else None,
-            'passport_number': self.passport_number,
-            'passport_expiry': self.passport_expiry.isoformat() if self.passport_expiry else None,
             'nationality': self.nationality,
             'meal_preference': self.meal_preference,
             'special_assistance': self.special_assistance
@@ -207,7 +203,7 @@ class Payment(BaseModel):
 
         self.refund_amount = refund_amount
         self.refund_reason = reason
-        self.refunded_at = datetime.utcnow()
+        self.refunded_at = datetime.now()
         self.payment_status = 'refunded'
         db.session.commit()
 
@@ -267,14 +263,14 @@ class Claim(BaseModel):
         self.claim_status = 'resolved'
         self.resolved_amount = resolved_amount
         self.resolution_notes = notes
-        self.resolved_at = datetime.utcnow()
+        self.resolved_at = datetime.now()
         db.session.commit()
 
     def reject(self, reason):
         """Reject this claim"""
         self.claim_status = 'rejected'
         self.resolution_notes = reason
-        self.resolved_at = datetime.utcnow()
+        self.resolved_at = datetime.now()
         db.session.commit()
 
     def to_dict(self):

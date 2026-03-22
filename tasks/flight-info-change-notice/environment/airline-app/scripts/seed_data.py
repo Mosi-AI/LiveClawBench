@@ -40,8 +40,6 @@ def seed_database():
             last_name='Doe',
             phone='+1234567890',
             date_of_birth='1990-01-15',
-            passport_number='AB1234567',
-            passport_expiry='2028-12-31',
             is_verified=True
         )
 
@@ -55,7 +53,7 @@ def seed_database():
 
         # Create sample flights
         print("Creating sample flights...")
-        now = datetime.utcnow()
+        now = datetime.now()
 
         airports = {
             'JFK': {'city': 'New York', 'airport': 'John F. Kennedy International Airport'},

@@ -54,8 +54,6 @@ class DataInjector:
             last_name=kwargs.get('last_name', 'User'),
             phone=kwargs.get('phone'),
             date_of_birth=datetime.strptime(kwargs['date_of_birth'], '%Y-%m-%d').date() if kwargs.get('date_of_birth') else None,
-            passport_number=kwargs.get('passport_number'),
-            passport_expiry=datetime.strptime(kwargs['passport_expiry'], '%Y-%m-%d').date() if kwargs.get('passport_expiry') else None,
             is_verified=kwargs.get('is_verified', True),
             is_active=kwargs.get('is_active', True)
         )
@@ -249,8 +247,6 @@ class DataInjector:
                 first_name=passenger_data['first_name'],
                 last_name=passenger_data['last_name'],
                 date_of_birth=datetime.strptime(passenger_data['date_of_birth'], '%Y-%m-%d').date(),
-                passport_number=passenger_data.get('passport_number'),
-                passport_expiry=datetime.strptime(passenger_data['passport_expiry'], '%Y-%m-%d').date() if passenger_data.get('passport_expiry') else None,
                 nationality=passenger_data.get('nationality'),
                 meal_preference=passenger_data.get('meal_preference'),
                 special_assistance=passenger_data.get('special_assistance')
@@ -359,7 +355,7 @@ class DataInjector:
             card_type=kwargs.get('card_type', 'visa'),
             card_holder_name=kwargs.get('card_holder_name', 'Test User'),
             transaction_id='TXN' + ''.join(random.choices(string.digits, k=12)),
-            paid_at=datetime.utcnow() if status == 'completed' else None
+            paid_at=datetime.now() if status == 'completed' else None
         )
         self.db.add(payment)
         self.db.commit()

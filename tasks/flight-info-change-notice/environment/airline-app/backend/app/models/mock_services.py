@@ -16,7 +16,7 @@ class EmailNotification(BaseModel):
     body = db.Column(db.Text, nullable=False)
 
     # Status
-    sent_at = db.Column(db.DateTime, default=datetime.utcnow)
+    sent_at = db.Column(db.DateTime, default=datetime.now)
     is_read = db.Column(db.Boolean, default=False, index=True)
 
     def __init__(self, user_id, email_type, recipient_email, subject, body, **kwargs):
@@ -65,8 +65,8 @@ class CalendarEvent(BaseModel):
     reminder_minutes = db.Column(db.Integer, default=60)
 
     # Status
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     def __init__(self, booking_id, user_id, event_id, title, start_time, end_time, **kwargs):
         self.booking_id = booking_id
@@ -108,7 +108,7 @@ class ChatSession(BaseModel):
 
     # Session status
     status = db.Column(db.String(20), default='active', index=True)  # active, closed
-    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    started_at = db.Column(db.DateTime, default=datetime.now)
     ended_at = db.Column(db.DateTime)
 
     # Relationships
@@ -123,7 +123,7 @@ class ChatSession(BaseModel):
     def close(self):
         """Close the chat session"""
         self.status = 'closed'
-        self.ended_at = datetime.utcnow()
+        self.ended_at = datetime.now()
         db.session.commit()
 
     def to_dict(self):
@@ -154,7 +154,7 @@ class ChatMessage(BaseModel):
     sender_name = db.Column(db.String(50))
 
     # Timestamp
-    sent_at = db.Column(db.DateTime, default=datetime.utcnow)
+    sent_at = db.Column(db.DateTime, default=datetime.now)
 
     def __init__(self, session_id, message, sender_type, **kwargs):
         self.session_id = session_id
@@ -191,7 +191,7 @@ class PriceHistory(BaseModel):
     change_reason = db.Column(db.String(50))  # demand, time_based, manual, etc.
 
     # Timestamp
-    changed_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    changed_at = db.Column(db.DateTime, default=datetime.now, index=True)
 
     def __init__(self, flight_id, cabin_class, old_price, new_price, **kwargs):
         self.flight_id = flight_id

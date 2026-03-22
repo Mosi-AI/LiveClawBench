@@ -38,7 +38,7 @@ def create_basic_flow_scenario(injector):
     )
 
     # Create flights
-    now = datetime.utcnow()
+    now = datetime.now()
 
     flights = []
 

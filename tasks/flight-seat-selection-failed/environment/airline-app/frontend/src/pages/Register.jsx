@@ -9,9 +9,7 @@ const Register = () => {
     first_name: '',
     last_name: '',
     phone: '',
-    date_of_birth: '',
-    passport_number: '',
-    passport_expiry: ''
+    date_of_birth: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -122,29 +120,6 @@ const Register = () => {
                 type="date"
                 name="date_of_birth"
                 value={formData.date_of_birth}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Passport Number</label>
-              <input
-                type="text"
-                name="passport_number"
-                value={formData.passport_number}
-                onChange={handleChange}
-                placeholder="AB1234567"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Passport Expiry Date</label>
-              <input
-                type="date"
-                name="passport_expiry"
-                value={formData.passport_expiry}
                 onChange={handleChange}
               />
             </div>

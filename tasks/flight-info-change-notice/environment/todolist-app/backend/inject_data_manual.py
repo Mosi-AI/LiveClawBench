@@ -201,7 +201,8 @@ def get_user_todos() -> List[Dict[str, Any]]:
     """
 
     today = datetime.now()
-    todo_date_str = today + timedelta(days=2).strftime('%Y-%m-%d')
+    todo_date = today + timedelta(days=2)
+    todo_date_str = todo_date.strftime('%Y-%m-%d')
 
     todos = [ ################## TODO: ADD YOUR TODOS HERE ####################
 
@@ -265,14 +266,8 @@ def main():
             print(f"     Description: {todo['description'][:50]}...")
     print()
 
-    # Confirm before injection
-    confirm = input("Proceed with injection? (y/n): ").strip().lower()
-    if confirm != 'y':
-        print("❌ Injection cancelled.")
-        return
-
     # Inject todos
-    print("\n" + "-" * 60)
+    print("-" * 60)
     print("Injecting todos...")
     print("-" * 60)
 

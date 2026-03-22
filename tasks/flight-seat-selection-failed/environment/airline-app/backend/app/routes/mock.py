@@ -185,7 +185,7 @@ def process_payment():
             card_holder_name=data['card_holder'],
             transaction_id=result['transaction_id'],
             payment_gateway_response=result['gateway_response'],
-            paid_at=datetime.utcnow() if result['status'] == 'completed' else None
+            paid_at=datetime.now() if result['status'] == 'completed' else None
         )
         db.session.add(payment)
 

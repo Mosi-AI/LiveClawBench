@@ -11,7 +11,7 @@ class Announcement(BaseModel):
     category = db.Column(db.String(50), nullable=False)  # general, flight, promotion, emergency
     priority = db.Column(db.String(20), default='normal')  # low, normal, high, urgent
     is_active = db.Column(db.Boolean, default=True, index=True)
-    published_at = db.Column(db.DateTime, default=datetime.utcnow)
+    published_at = db.Column(db.DateTime, default=datetime.now)
     expires_at = db.Column(db.DateTime)
 
     def __init__(self, title, content, category, **kwargs):

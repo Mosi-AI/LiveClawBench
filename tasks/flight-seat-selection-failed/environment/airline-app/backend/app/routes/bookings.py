@@ -223,21 +223,11 @@ def create_booking():
                     'message': f'Passenger {idx + 1}: Invalid date_of_birth format. Use YYYY-MM-DD'
                 }), 400
 
-            try:
-                passport_expiry = datetime.strptime(passenger_data['passport_expiry'], '%Y-%m-%d').date() if passenger_data.get('passport_expiry') else None
-            except ValueError:
-                return jsonify({
-                    'success': False,
-                    'message': f'Passenger {idx + 1}: Invalid passport_expiry format. Use YYYY-MM-DD'
-                }), 400
-
             passenger = Passenger(
                 booking_id=booking.id,
                 first_name=passenger_data['first_name'],
                 last_name=passenger_data['last_name'],
                 date_of_birth=date_of_birth,
-                passport_number=passenger_data.get('passport_number'),
-                passport_expiry=passport_expiry,
                 nationality=passenger_data.get('nationality'),
                 meal_preference=passenger_data.get('meal_preference'),
                 special_assistance=passenger_data.get('special_assistance')

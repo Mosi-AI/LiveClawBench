@@ -205,7 +205,7 @@ class FlightStatusHistory(BaseModel):
     new_status = db.Column(db.String(20), nullable=False)
     delay_minutes = db.Column(db.Integer)
     reason = db.Column(db.Text)
-    changed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    changed_at = db.Column(db.DateTime, default=datetime.now)
 
     def to_dict(self):
         """Convert to dictionary"""

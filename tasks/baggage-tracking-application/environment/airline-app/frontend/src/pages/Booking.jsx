@@ -36,8 +36,6 @@ const Booking = () => {
       first_name: '',
       last_name: '',
       date_of_birth: '',
-      passport_number: '',
-      passport_expiry: '',
       nationality: ''
     }));
     setPassengers(initialPassengers);
@@ -241,14 +239,6 @@ const Booking = () => {
                     value={passenger.date_of_birth}
                     onChange={(e) => handlePassengerChange(index, 'date_of_birth', e.target.value)}
                     required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Passport Number</label>
-                  <input
-                    type="text"
-                    value={passenger.passport_number}
-                    onChange={(e) => handlePassengerChange(index, 'passport_number', e.target.value)}
                   />
                 </div>
               </div>

@@ -10,8 +10,8 @@ def create_access_token(user_id, expires_in=None):
     payload = {
         'user_id': user_id,
         'type': 'access',
-        'exp': datetime.utcnow() + expires_in,
-        'iat': datetime.utcnow()
+        'exp': datetime.now() + expires_in,
+        'iat': datetime.now()
     }
     return jwt.encode(payload, current_app.config['JWT_SECRET_KEY'], algorithm='HS256')
 
@@ -21,8 +21,8 @@ def create_refresh_token(user_id):
     payload = {
         'user_id': user_id,
         'type': 'refresh',
-        'exp': datetime.utcnow() + expires_in,
-        'iat': datetime.utcnow()
+        'exp': datetime.now() + expires_in,
+        'iat': datetime.now()
     }
     return jwt.encode(payload, current_app.config['JWT_SECRET_KEY'], algorithm='HS256')
 

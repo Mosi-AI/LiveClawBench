@@ -77,7 +77,7 @@ def create_app(config_name='default'):
         return jsonify({
             'success': True,
             'message': 'Server is running',
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.now().isoformat()
         })
 
     return app
