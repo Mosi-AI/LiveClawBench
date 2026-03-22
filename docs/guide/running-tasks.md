@@ -88,13 +88,35 @@ harbor run -p tasks/watch-shop -a openclaw \
   --ae CUSTOM_API_KEY="$DEEPSEEK_API_KEY"
 ```
 
+**Optional model parameters** — override defaults with additional `--ae` flags:
+
+| `--ae` variable | Default | Purpose |
+|---|---|---|
+| `CUSTOM_CONTEXT_WINDOW` | `128000` | Model context window (tokens) |
+| `CUSTOM_MAX_TOKENS` | `4096` | Max output tokens per response |
+| `CUSTOM_REASONING` | `false` | Enable reasoning/thinking mode (`true`/`1`/`yes`) |
+| `CUSTOM_API` | `openai-completions` | API type (`openai-completions` or `openai-responses`) |
+
+Example with a large-context reasoning model:
+
+```bash
+harbor run -p tasks/watch-shop -a openclaw \
+  -m custom/my-model \
+  -n 1 -o jobs \
+  --ae CUSTOM_BASE_URL="https://api.example.com/v1" \
+  --ae CUSTOM_API_KEY="$MY_API_KEY" \
+  --ae CUSTOM_CONTEXT_WINDOW=256000 \
+  --ae CUSTOM_MAX_TOKENS=16384 \
+  --ae CUSTOM_REASONING=true
+```
+
 **Permanent registration:** If you want a named provider (e.g., `my-provider/model-id`) available without `--ae CUSTOM_BASE_URL`, add it to `harbor/src/harbor/agents/installed/openclaw.py` under `_PROVIDER_CONFIGS`:
 
 ```python
 "my-provider": {
     "baseUrl": "https://api.example.com/v1",
     "api": "openai-completions",
-    "apiKey": "MY_PROVIDER_API_KEY",   # env var name inside the container
+    "apiKey": "${MY_PROVIDER_API_KEY}",   # ${VAR} resolved by OpenClaw env-substitution at runtime
 },
 ```
 

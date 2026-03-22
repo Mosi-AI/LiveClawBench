@@ -59,6 +59,9 @@ VOLCANO_ENGINE_API_KEY=your-key-here
     --ae CUSTOM_BASE_URL="https://api.deepseek.com/v1" \
     --ae CUSTOM_API_KEY="$DEEPSEEK_API_KEY"
   ```
+  Optional flags `CUSTOM_CONTEXT_WINDOW`, `CUSTOM_MAX_TOKENS`, `CUSTOM_REASONING`, and `CUSTOM_API`
+  let you tune model parameters without code changes — see
+  [Running Tasks — Adding a Custom Provider](running-tasks.md#adding-a-custom-provider).
 - **Gemini**: set `GEMINI_API_KEY`
 
 All keys are injected into the agent container via `--ae KEY="$KEY"` at run time.

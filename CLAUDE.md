@@ -57,7 +57,7 @@ Edit `.env` and uncomment the block for your provider. Keys are injected at runt
 | Anthropic | `anthropic/<model-id>` | `ANTHROPIC_API_KEY` |
 | OpenAI | `openai/<model-id>` | `OPENAI_API_KEY` |
 | Gemini | `gemini/<model-id>` | `GEMINI_API_KEY` |
-| Any OpenAI-compatible | `custom/<model-id>` | `CUSTOM_API_KEY` + `CUSTOM_BASE_URL` |
+| Any OpenAI-compatible | `custom/<model-id>` | `CUSTOM_API_KEY` + `CUSTOM_BASE_URL` (+ optional `CUSTOM_CONTEXT_WINDOW` / `CUSTOM_MAX_TOKENS` / `CUSTOM_REASONING` / `CUSTOM_API`) |
 
 ## Running Tasks
 
