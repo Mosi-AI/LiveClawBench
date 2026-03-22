@@ -13,7 +13,7 @@ echo ""
 # ---------------------------------------------------------------------------
 # Step 1: Prerequisite checks
 # ---------------------------------------------------------------------------
-echo "[1/3] Checking prerequisites..."
+echo "[1/4] Checking prerequisites..."
 
 check_cmd() {
     local cmd="$1"
@@ -46,7 +46,7 @@ echo ""
 # ---------------------------------------------------------------------------
 # Step 2: Harbor installation into local .venv (idempotent)
 # ---------------------------------------------------------------------------
-echo "[2/3] Setting up Harbor framework..."
+echo "[2/4] Setting up Harbor framework..."
 
 if [ ! -d "$VENV_DIR" ]; then
     echo "  Creating virtual environment at .venv ..."
@@ -69,9 +69,19 @@ echo "  harbor CLI: $("$HARBOR_BIN" --version 2>&1 | head -1)"
 echo ""
 
 # ---------------------------------------------------------------------------
-# Step 3: .env setup
+# Step 3: Build the shared base Docker image
 # ---------------------------------------------------------------------------
-echo "[3/3] Configuring .env..."
+echo "[3/4] Building liveclawbench-base Docker image..."
+echo "  This is required before running any task (image is local-only, not in a registry)."
+docker build -t liveclawbench-base:latest "$SCRIPT_DIR/docker/base/"
+echo "  liveclawbench-base:latest built successfully."
+
+echo ""
+
+# ---------------------------------------------------------------------------
+# Step 4: .env setup
+# ---------------------------------------------------------------------------
+echo "[4/4] Configuring .env..."
 
 if [ ! -f "$SCRIPT_DIR/.env" ]; then
     cp "$SCRIPT_DIR/.env.example" "$SCRIPT_DIR/.env"

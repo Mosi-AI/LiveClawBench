@@ -119,7 +119,10 @@ Single Python backend; `startup.sh` lives at `/workspace/environment/startup.sh`
 FROM liveclawbench-base:latest
 
 COPY . /workspace/environment/
-RUN cd /workspace/environment/shop-app/backend && pip install --no-cache-dir -r requirements.txt
+# --no-cache-dir: reduce image layer size
+# --break-system-packages: required on Debian Bookworm (PEP 668) — system Python is marked
+#   "externally managed", so plain pip install fails without this flag
+RUN cd /workspace/environment/shop-app/backend && pip install --no-cache-dir --break-system-packages -r requirements.txt
 
 COPY startup.sh /workspace/environment/startup.sh
 RUN chmod +x /workspace/environment/startup.sh
@@ -138,7 +141,9 @@ Python backend + Node.js frontend; `startup.sh` lives at `/workspace/startup.sh`
 FROM liveclawbench-base:latest
 
 COPY . /workspace/environment/
-RUN cd /workspace/environment/your-app/backend && pip install --break-system-packages -r requirements.txt
+# --no-cache-dir: reduce image layer size
+# --break-system-packages: required on Debian Bookworm (PEP 668)
+RUN cd /workspace/environment/your-app/backend && pip install --no-cache-dir --break-system-packages -r requirements.txt
 RUN cd /workspace/environment/your-app/frontend && npm install
 
 COPY startup.sh /workspace/startup.sh
