@@ -10,26 +10,43 @@ import deterministic_checks as dc
 RUBRIC = Path(__file__).with_name("rubric.json")
 INSTRUCTION = dc.ROOT / "instruction.md"
 
-SYSTEM_PROMPT = """You are evaluating a benchmark case for a PKB agent.
+SYSTEM_PROMPT = """You are a strict evaluator for a PKB benchmark case. Be critical — most work has flaws.
 
 Score only the semantic quality of the agent's work. Do not reward formatting, verbosity, or any specific JSON schema.
 Do not infer source quality from file names, ids, or titles. Use only the document contents and how well the agent handled conflicting evidence.
 
 Return JSON only with this shape:
 {
-  "noise_source_identification": 0.0,
+  "reason_quality": 0.0,
   "memory_correction": 0.0,
   "rationales": {
-    "noise_source_identification": "...",
+    "reason_quality": "...",
     "memory_correction": "..."
   }
 }
 
-Scoring rules:
-- Use a 0.0 to 1.0 scale. Prefer 0.0, 0.25, 0.5, 0.75, or 1.0.
-- `noise_source_identification`: Did the agent correctly isolate the misleading/noisy material by content and avoid treating it as reliable signal?
-- `memory_correction`: Did the durable workspace notes actually correct the prior mistaken beliefs and leave a reusable memory update, rather than only producing a transient answer?
-- For `memory_correction`, focus on durable workspace artifacts, not just `output/result.json`.
+Scoring rules — be strict, 1.0 is rare and reserved for exceptional work:
+- Use a 0.0 to 1.0 scale in 0.25 increments.
+
+- `reason_quality`: Are the reasons for each source reliability verdict grounded in SPECIFIC corpus content? Each reason must reference concrete details from the source (quotes, formulas, specific claims) — not just generic descriptions like "this source is reliable because it's well-written."
+  - 1.0: Every reason cites specific content from the source it evaluates (exact claims, formulas, or quoted phrases). No generic filler.
+  - 0.75: Most reasons cite specific content but 1-2 fall back to generic descriptions.
+  - 0.5: Mix of specific and generic reasoning. Some reasons say things like "this source is careful" without citing what makes it careful.
+  - 0.25: Mostly generic labels ("reliable", "misleading") without evidence from the actual source text.
+  - 0.0: No meaningful per-source reasoning.
+
+- `memory_correction`: Did the durable workspace notes correct ALL FOUR prior mistaken beliefs? Check each one independently:
+  1. "beam-search-style speedup trick" → must explicitly clarify it preserves exact distribution via verification
+  2. "high acceptance is enough to guarantee a win" → must explain why acceptance alone is insufficient (draft cost, verification overhead)
+  3. "unsure whether newer variants still need a separate draft model" → must explain self-speculative approaches
+  4. "mixing careful sources with loud secondary takes" → must demonstrate clear source separation, not just list names
+  Score by counting how many of the 4 beliefs are properly corrected:
+  - 1.0: All 4 corrected with specific explanations grounded in corpus evidence
+  - 0.75: 3 of 4 corrected well
+  - 0.5: 2 of 4 corrected well
+  - 0.25: 1 of 4 corrected well
+  - 0.0: No meaningful corrections
+  Focus on durable workspace artifacts, not just `output/result.json`.
 """
 
 
@@ -135,21 +152,9 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
 
 
 def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
-    base_url = (
-        os.environ.get("OPENCLAW_JUDGE_BASE_URL")
-        or os.environ.get("OPENCLAW_ARK_BASE_URL")
-        or "https://ark.cn-beijing.volces.com/api/coding/v3"
-    )
-    model = (
-        os.environ.get("OPENCLAW_JUDGE_MODEL")
-        or os.environ.get("OPENCLAW_ARK_MODEL")
-        or "kimi-k2.5"
-    )
-    api_key = (
-        os.environ.get("OPENCLAW_JUDGE_API_KEY")
-        or os.environ.get("OPENCLAW_ARK_API_KEY")
-        or ""
-    )
+    base_url = os.environ.get("OPENCLAW_JUDGE_BASE_URL") or os.environ.get("OPENCLAW_ARK_BASE_URL") or "https://ark.cn-beijing.volces.com/api/coding/v3"
+    model = os.environ.get("OPENCLAW_JUDGE_MODEL") or "deepseek-v3.2"
+    api_key = os.environ.get("OPENCLAW_JUDGE_API_KEY") or os.environ.get("OPENCLAW_ARK_API_KEY") or ""
     if not api_key:
         raise RuntimeError("OPENCLAW_ARK_API_KEY is not set for LLM judging")
 
@@ -209,7 +214,7 @@ def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="ignore")
             errors.append(f"{mode}: HTTP {exc.code} {body}")
-        except Exception as exc:  # pragma: no cover - network/runtime dependent
+        except Exception as exc:
             errors.append(f"{mode}: {exc}")
 
     raise RuntimeError("LLM judge request failed: " + " | ".join(errors))
@@ -220,7 +225,6 @@ def serialize_json(obj) -> str:
 
 
 def build_prompt(key: dict, result: dict, structural: dict) -> str:
-    corpus_docs = dc.load_corpus_docs()
     durable_paths = dc.gather_durable_artifact_paths(result)
     output_texts = dc.load_output_texts()
 
@@ -235,23 +239,12 @@ def build_prompt(key: dict, result: dict, structural: dict) -> str:
             )
         )
 
-    corpus_sections = []
-    for idx, doc in enumerate(corpus_docs, start=1):
-        corpus_sections.append(
-            "\n".join(
-                [
-                    f"### Document {idx}",
-                    f"path: {doc['path']}",
-                    doc["content"].strip() or "(empty)",
-                ]
-            )
-        )
-
     output_sections = []
     for name, text in output_texts.items():
         output_sections.append(f"### {name}\n{text}")
 
     focus = key.get("judge_focus", {})
+
     prompt_parts = [
         "# Task Prompt",
         dc.read_text(INSTRUCTION).strip() or "(missing instruction)",
@@ -269,9 +262,6 @@ def build_prompt(key: dict, result: dict, structural: dict) -> str:
         )
         or "- (none provided)",
         "",
-        "# Noise-Filtering Goal",
-        str(focus.get("noise_goal", "")).strip(),
-        "",
         "# Agent result.json",
         serialize_json(result),
         "",
@@ -280,9 +270,6 @@ def build_prompt(key: dict, result: dict, structural: dict) -> str:
         "",
         "# Durable Workspace Artifacts",
         "\n\n".join(durable_sections) if durable_sections else "(none)",
-        "",
-        "# Corpus Documents",
-        "\n\n".join(corpus_sections),
     ]
     return "\n".join(prompt_parts).strip() + "\n"
 
@@ -291,8 +278,10 @@ def main() -> None:
     key = load_json(dc.KEY)
     rubric = load_json(RUBRIC)
     result = load_json(dc.OUT / "result.json")
-    structural = dc.structural_scores(result, key)
-    prompt = build_prompt(key, result, structural)
+    aliases = dc.discover_source_aliases()
+    score = dc.structural_scores(result)
+    score.update(dc.source_scores(result, key, aliases))
+    prompt = build_prompt(key, result, score)
 
     (dc.OUT / "llm_judge_prompt.txt").write_text(prompt, encoding="utf-8")
 
@@ -302,11 +291,10 @@ def main() -> None:
     )
 
     score = {
-        "result_contract_valid": structural["result_contract_valid"],
-        "workspace_update": structural["workspace_update"],
-        "noise_source_identification": clamp_score(
-            judge_payload.get("noise_source_identification")
-        ),
+        "result_contract_valid": score["result_contract_valid"],
+        "source_partition_accuracy": score["source_partition_accuracy"],
+        "workspace_update": score["workspace_update"],
+        "reason_quality": clamp_score(judge_payload.get("reason_quality")),
         "memory_correction": clamp_score(judge_payload.get("memory_correction")),
         "judge_rationales": judge_payload.get("rationales", {}),
         "judge_model": debug_payload.get("model"),

@@ -7,7 +7,9 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS sources (
   source_id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
-  reliability TEXT NOT NULL
+  source_url TEXT NOT NULL,
+  reliability TEXT NOT NULL,
+  kind TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS facts (

@@ -1,7 +1,9 @@
 {
-  "result_contract_valid": 0.15,
-  "database_integrity": 0.35,
-  "query_accuracy": 0.2,
-  "evidence_trace": 0.15,
-  "workspace_update": 0.15
+  "result_contract_valid": 0.05,
+  "database_integrity": 0.20,
+  "query_accuracy": 0.20,
+  "browser_trace": 0.10,
+  "workspace_update": 0.10,
+  "integration_reasoning": 0.15,
+  "note_quality": 0.20
 }

@@ -1,19 +1,30 @@
 {
-  "task_id": "pkb_conflict_repair_medium_001",
-  "topic_id": "speculative_decoding",
-  "incorrect_old_claim_ids": [
-    "speculative_is_cache_only",
-    "high_acceptance_implies_general_speedup",
-    "separate_draft_model_always_required"
-  ],
-  "corrected_claim_ids": [
-    "exact_target_preserving_acceleration",
-    "draft_cost_acceptance_and_system_fit",
-    "separate_draft_not_always_required"
-  ],
-  "required_evidence_ids": [
+  "incorrect_hints": {
+    "speculative_is_cache_only": ["cache", "warmup", "cache-only", "cache only", "cache warming"],
+    "high_acceptance_implies_general_speedup": ["acceptance", "generally faster", "always faster", "general speedup"],
+    "separate_draft_model_always_required": ["separate draft", "always required", "always need", "always require"]
+  },
+  "corrected_hints": {
+    "exact_target_preserving_acceleration": ["exact", "preserv", "verification", "target model", "lossless", "target distribution"],
+    "draft_cost_acceptance_and_system_fit": ["draft cost", "system fit", "overhead", "not enough", "not sufficient", "cost plus acceptance"],
+    "separate_draft_not_always_required": ["self-speculative", "not always", "same model", "partial", "self speculative", "layer skip", "reuse"]
+  },
+  "validated_doc_ids": [
     "browser:spec_exact_001",
     "browser:spec_perf_002",
     "browser:self_spec_003"
-  ]
+  ],
+  "judge_focus": {
+    "repair_goal": "Judge whether the agent correctly identified and repaired 3 stale beliefs in workspace memory about speculative decoding, using evidence from local corpus and browser portal.",
+    "memory_seed_beliefs": [
+      "speculative decoding is mostly cache warmup once the draft is in place",
+      "if acceptance is high, it should be generally faster",
+      "I still assume a separate draft model is always required"
+    ],
+    "memory_correction_expectations": [
+      "Cache-only belief must be corrected: speculative decoding preserves the exact target distribution through verification, not merely cache warmup",
+      "Acceptance-implies-speedup belief must be corrected: draft cost, acceptance, and system fit all matter together",
+      "Separate-draft-always-required belief must be corrected: self-speculative variants show a separate draft model is not always needed"
+    ]
+  }
 }

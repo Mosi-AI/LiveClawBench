@@ -1,6 +1,7 @@
 {
-  "result_contract_valid": 0.1,
-  "noise_source_identification": 0.3,
-  "memory_correction": 0.45,
-  "workspace_update": 0.15
+  "result_contract_valid": 0.05,
+  "source_partition_accuracy": 0.30,
+  "workspace_update": 0.05,
+  "reason_quality": 0.30,
+  "memory_correction": 0.30
 }

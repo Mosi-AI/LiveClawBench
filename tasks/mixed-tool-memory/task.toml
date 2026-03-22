@@ -3,10 +3,10 @@ version = "1.0"
 [metadata]
 difficulty = "hard"
 category = "open-world"
-tags = ["documents_knowledge", "browser_web_scraping", "finance_data_analytics"]
+tags = ["documents_knowledge", "browser_web_scraping", "deep_research_report"]
 
 domain = "Documents & Knowledge"
-domains_multi = ["Documents & Knowledge", "Browser & Web Scraping", "Finance & Data Analytics"]
+domains_multi = ["Documents & Knowledge", "Browser & Web Scraping", "Deep Research & Report"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 1   # Cross-Service Dependency

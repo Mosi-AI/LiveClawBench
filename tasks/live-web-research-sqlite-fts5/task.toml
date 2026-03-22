@@ -3,10 +3,10 @@ version = "1.0"
 [metadata]
 difficulty = "hard"
 category = "open-world"
-tags = ["deep_research_report", "browser_web_scraping", "documents_knowledge", "finance_data_analytics", "voice_multimodal"]
+tags = ["deep_research_report", "browser_web_scraping", "documents_knowledge", "voice_multimodal"]
 
 domain = "Deep Research & Report"
-domains_multi = ["Deep Research & Report", "Browser & Web Scraping", "Documents & Knowledge", "Finance & Data Analytics", "Voice & Multimodal"]
+domains_multi = ["Deep Research & Report", "Browser & Web Scraping", "Documents & Knowledge", "Voice & Multimodal"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 1   # Cross-Service Dependency

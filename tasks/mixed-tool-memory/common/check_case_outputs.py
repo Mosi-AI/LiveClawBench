@@ -39,6 +39,11 @@ def has_answer_artifact(output: Path) -> bool:
     return False
 
 
+def has_result_artifact(output: Path) -> bool:
+    path = output / "result.json"
+    return path.is_file() and path.stat().st_size > 0
+
+
 def has_durable_state(workspace: Path) -> bool:
     for candidate in (workspace / "MEMORY.md",):
         if nonempty_text(candidate):
@@ -70,7 +75,7 @@ def has_database(workspace: Path) -> bool:
 
 def has_browser_mock_log(output: Path) -> bool:
     path = output / "browser_mock_access.jsonl"
-    return path.is_file() and path.stat().st_size >= 0
+    return path.is_file() and path.stat().st_size > 0
 
 
 def has_browser_any_log(output: Path) -> bool:
@@ -95,6 +100,7 @@ def main() -> int:
         ),
     )
     parser.add_argument("--require-result", action="store_true")
+    parser.add_argument("--allow-partial", action="store_true")
     parser.add_argument("--require-db", action="store_true")
     parser.add_argument("--require-browser-mock", action="store_true")
     parser.add_argument("--require-browser-any", action="store_true")
@@ -104,7 +110,19 @@ def main() -> int:
     output = root / "output"
     workspace = root / "workspace"
 
-    if args.require_result:
+    if args.allow_partial:
+        any_artifact = (
+            has_result_artifact(output)
+            or has_answer_artifact(output)
+            or has_durable_state(workspace)
+            or has_database(workspace)
+            or has_browser_any_log(output)
+            or has_browser_mock_log(output)
+        )
+        checks = [
+            (any_artifact, "missing any output, workspace, database, or browser artifact"),
+        ]
+    elif args.require_result:
         checks = [
             ((output / "result.json").is_file(), "missing output/result.json"),
             (has_durable_state(workspace), "missing durable workspace state"),
