@@ -149,11 +149,15 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
 
 
 def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
-    base_url = os.environ.get("OPENCLAW_JUDGE_BASE_URL") or os.environ.get("OPENCLAW_ARK_BASE_URL") or "https://ark.cn-beijing.volces.com/api/coding/v3"
-    model = os.environ.get("OPENCLAW_JUDGE_MODEL") or "deepseek-v3.2"
-    api_key = os.environ.get("OPENCLAW_JUDGE_API_KEY") or os.environ.get("OPENCLAW_ARK_API_KEY") or ""
+    base_url = os.environ.get("JUDGE_BASE_URL") or ""
+    model = os.environ.get("JUDGE_MODEL_ID") or ""
+    api_key = os.environ.get("JUDGE_API_KEY") or ""
+    if not base_url:
+        raise RuntimeError("JUDGE_BASE_URL is not set for LLM judging")
+    if not model:
+        raise RuntimeError("JUDGE_MODEL_ID is not set for LLM judging")
     if not api_key:
-        raise RuntimeError("OPENCLAW_ARK_API_KEY is not set for LLM judging")
+        raise RuntimeError("JUDGE_API_KEY is not set for LLM judging")
 
     chat_url = base_url.rstrip("/") + "/chat/completions"
     responses_url = base_url.rstrip("/") + "/responses"
