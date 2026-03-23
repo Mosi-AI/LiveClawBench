@@ -10,3 +10,6 @@ jobs/*
 
 # Node.js dependencies
 **/node_modules/
+
+# Claude Code worktrees and session data
+.claude/
