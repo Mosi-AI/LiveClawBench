@@ -3,10 +3,6 @@ set -euo pipefail
 cd /workspace
 mkdir -p /logs/verifier
 
-python3 /tests/verify.py 2>&1 && PASSED=true || PASSED=false
+# This should output a json into /logs/verifier/reward.json
+python3 /tests/verify.py
 
-if [ "$PASSED" = "true" ]; then
-    echo "1.0" > /logs/verifier/reward.txt
-else
-    echo "0.0" > /logs/verifier/reward.txt
-fi
