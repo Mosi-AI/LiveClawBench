@@ -3,11 +3,12 @@ set -euo pipefail
 cd /workspace
 mkdir -p /logs/verifier
 
-# Run evaluation against the consolidated skill directory
+# Run evaluation (|| true: evaluate.py exits non-zero when score is 0;
+# must not abort before writing reward.txt)
 python3 /tests/evaluate.py \
     --base-dir /workspace \
     --model-output environment/skills/sales-data-pipeline \
-    --output-json /workspace/output/eval_result.json 2>&1 | tee /tmp/eval_output.txt
+    --output-json /workspace/output/eval_result.json 2>&1 | tee /tmp/eval_output.txt || true
 
 # Extract score: "TOTAL SCORE: X / 100" → X/100 as float
 SCORE=$(grep -oP 'TOTAL SCORE:\s*\K[0-9]+' /tmp/eval_output.txt | head -1 || echo "0")

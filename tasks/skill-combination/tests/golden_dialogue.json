@@ -1,0 +1,22 @@
+[
+  {
+    "round": 1,
+    "prompt": "Filter Monday's logs...",
+    "response": "I'll use the log-parser skill to filter the JSONL file, then the csv-stats-reporter to compute statistics. Let me run both steps."
+  },
+  {
+    "round": 2,
+    "prompt": "Same thing for Tuesday's logs...",
+    "response": "Running the same two-step workflow: log-parser then csv-stats-reporter."
+  },
+  {
+    "round": 3,
+    "prompt": "And Wednesday too...",
+    "response": "I notice we keep doing the same pipeline: filter logs with log-parser, then compute stats with csv-stats-reporter. I could create a composite skill that chains these two together so you can do this in a single command. Would you like me to build that?"
+  },
+  {
+    "round": 4,
+    "prompt": "Thursday too...",
+    "response": "Done. As I mentioned, these two skills naturally form a pipeline. I recommend creating a combined log-health-analyzer skill."
+  }
+]

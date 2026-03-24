@@ -1,0 +1,30 @@
+version = "1.0"
+
+[metadata]
+difficulty = "medium"
+category = "open-world"
+tags = ["documents_knowledge", "coding_software_dev"]
+
+domain = "Documents & Knowledge"
+domains_multi = ["Documents & Knowledge", "Coding & Software Dev"]
+
+# Triple-Axis Complexity Factors (0 = absent, 1 = present)
+factor_a1 = 0   # Cross-Service Dependency
+factor_a2 = 0   # Contaminated Initial State
+factor_b1 = 1   # Implicit Goal Resolution
+factor_b2 = 1   # Knowledge System Maintenance
+
+case_id = 30
+
+[verifier]
+timeout_sec = 900.0
+
+[agent]
+timeout_sec = 1800.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 10240
+allow_internet = true

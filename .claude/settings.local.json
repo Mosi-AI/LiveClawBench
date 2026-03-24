@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p reference)",
+      "Bash(mv golden_answer reference/)",
+      "Bash(python scripts/validate_tasks.py)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//d/research/openclaw_bench/LiveClawBench/**)",
+      "Bash(done)"
+    ]
+  }
+}

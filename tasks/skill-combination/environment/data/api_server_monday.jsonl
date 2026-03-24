@@ -1,0 +1,850 @@
+{"timestamp": "2026-03-16T00:02:21", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 18, "status_code": 200, "message": "Cache hit for key user:4817"}
+{"timestamp": "2026-03-16T00:05:41", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 214, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T00:06:47", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 6, "status_code": 404, "message": "Cache hit for key user:5960"}
+{"timestamp": "2026-03-16T00:09:46", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 1961, "status_code": 401, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T00:10:32", "level": "DEBUG", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 38, "status_code": 500, "message": "Cache hit for key user:6458"}
+{"timestamp": "2026-03-16T00:11:12", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 938, "status_code": 400, "message": "Retry attempt 238/3"}
+{"timestamp": "2026-03-16T00:12:12", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 16, "status_code": 500, "message": "Cache hit for key user:4211"}
+{"timestamp": "2026-03-16T00:13:30", "level": "DEBUG", "service": "user-service", "endpoint": "/health", "response_time_ms": 33, "status_code": 404, "message": "Cache hit for key user:7919"}
+{"timestamp": "2026-03-16T00:13:30", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 295, "status_code": 503, "message": "Order created: ORD-65296"}
+{"timestamp": "2026-03-16T00:15:23", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 199, "status_code": 503, "message": "Order created: ORD-60667"}
+{"timestamp": "2026-03-16T00:15:36", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 119, "status_code": 200, "message": "Order created: ORD-68886"}
+{"timestamp": "2026-03-16T00:16:13", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 11, "status_code": 201, "message": "Query executed in 2775ms"}
+{"timestamp": "2026-03-16T00:17:50", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 39, "status_code": 502, "message": "Query executed in 5619ms"}
+{"timestamp": "2026-03-16T00:18:29", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 24, "status_code": 403, "message": "Cache hit for key user:6811"}
+{"timestamp": "2026-03-16T00:18:46", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 39, "status_code": 400, "message": "Connection pool size: 234"}
+{"timestamp": "2026-03-16T00:19:30", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 296, "status_code": 204, "message": "Payment processed"}
+{"timestamp": "2026-03-16T00:21:52", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 47, "status_code": 200, "message": "Cache hit for key user:7810"}
+{"timestamp": "2026-03-16T00:25:53", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 276, "status_code": 500, "message": "Payment processed"}
+{"timestamp": "2026-03-16T00:27:41", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 160, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T00:29:24", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 193, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T00:29:55", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 291, "status_code": 403, "message": "Order created: ORD-96360"}
+{"timestamp": "2026-03-16T00:31:13", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 36, "status_code": 204, "message": "User authenticated"}
+{"timestamp": "2026-03-16T00:31:14", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 497, "status_code": 404, "message": "Retry attempt 440/3"}
+{"timestamp": "2026-03-16T00:37:15", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 23, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T00:37:27", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 201, "status_code": 401, "message": "Connection pool near capacity: 85%"}
+{"timestamp": "2026-03-16T00:39:12", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 38, "status_code": 301, "message": "Cache hit for key user:6507"}
+{"timestamp": "2026-03-16T00:40:44", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 134, "status_code": 404, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T00:42:55", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 205, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T00:43:54", "level": "WARN", "service": "order-service", "endpoint": "/health", "response_time_ms": 916, "status_code": 400, "message": "Slow query detected: 7321ms"}
+{"timestamp": "2026-03-16T00:45:34", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 23, "status_code": 401, "message": "Cache hit for key user:1200"}
+{"timestamp": "2026-03-16T00:48:20", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 511, "status_code": 404, "message": "Slow query detected: 3076ms"}
+{"timestamp": "2026-03-16T00:49:30", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 282, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T00:50:06", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 265, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T00:51:57", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 275, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T00:53:42", "level": "INFO", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 45, "status_code": 503, "message": "Order created: ORD-56179"}
+{"timestamp": "2026-03-16T00:57:00", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 270, "status_code": 500, "message": "Search completed: 449 results"}
+{"timestamp": "2026-03-16T01:00:41", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 4946, "status_code": 500, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T01:01:37", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 42, "status_code": 502, "message": "Query executed in 7064ms"}
+{"timestamp": "2026-03-16T01:03:22", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 182, "status_code": 400, "message": "Payment processed"}
+{"timestamp": "2026-03-16T01:04:04", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 96, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T01:15:44", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 177, "status_code": 404, "message": "Payment processed"}
+{"timestamp": "2026-03-16T01:15:47", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 18, "status_code": 401, "message": "Query executed in 13415ms"}
+{"timestamp": "2026-03-16T01:15:56", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 55, "status_code": 500, "message": "User authenticated"}
+{"timestamp": "2026-03-16T01:18:18", "level": "INFO", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 113, "status_code": 200, "message": "Search completed: 166 results"}
+{"timestamp": "2026-03-16T01:18:26", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 29, "status_code": 204, "message": "Query executed in 11235ms"}
+{"timestamp": "2026-03-16T01:18:38", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 24, "status_code": 200, "message": "Cache hit for key user:5521"}
+{"timestamp": "2026-03-16T01:22:32", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 8, "status_code": 200, "message": "Cache hit for key user:2479"}
+{"timestamp": "2026-03-16T01:25:03", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 57, "status_code": 401, "message": "Payment processed"}
+{"timestamp": "2026-03-16T01:26:23", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 249, "status_code": 403, "message": "User authenticated"}
+{"timestamp": "2026-03-16T01:26:30", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 263, "status_code": 502, "message": "User authenticated"}
+{"timestamp": "2026-03-16T01:27:22", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 9, "status_code": 502, "message": "Connection pool size: 355"}
+{"timestamp": "2026-03-16T01:28:58", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 326, "status_code": 404, "message": "Slow query detected: 11753ms"}
+{"timestamp": "2026-03-16T01:29:03", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 6, "status_code": 400, "message": "Cache hit for key user:6799"}
+{"timestamp": "2026-03-16T01:29:22", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 20, "status_code": 403, "message": "Cache hit for key user:7550"}
+{"timestamp": "2026-03-16T01:30:54", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 57, "status_code": 500, "message": "Search completed: 65 results"}
+{"timestamp": "2026-03-16T01:32:05", "level": "WARN", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 1366, "status_code": 401, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T01:32:21", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 5762, "status_code": 503, "message": "Internal server error: StackOverflow"}
+{"timestamp": "2026-03-16T01:33:02", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 1925, "status_code": 400, "message": "Slow query detected: 199ms"}
+{"timestamp": "2026-03-16T01:41:16", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 224, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T01:41:34", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 637, "status_code": 404, "message": "Slow query detected: 6259ms"}
+{"timestamp": "2026-03-16T01:42:36", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 565, "status_code": 400, "message": "Retry attempt 384/3"}
+{"timestamp": "2026-03-16T01:42:59", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 42, "status_code": 500, "message": "User authenticated"}
+{"timestamp": "2026-03-16T01:44:33", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 1794, "status_code": 429, "message": "Rate limit approaching for IP 192.168.7.46"}
+{"timestamp": "2026-03-16T01:45:08", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 180, "status_code": 401, "message": "Search completed: 182 results"}
+{"timestamp": "2026-03-16T01:49:42", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 212, "status_code": 201, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T01:51:00", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 569, "status_code": 400, "message": "Slow query detected: 5778ms"}
+{"timestamp": "2026-03-16T01:51:04", "level": "INFO", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 134, "status_code": 200, "message": "Order created: ORD-83010"}
+{"timestamp": "2026-03-16T01:51:30", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 143, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T01:51:31", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 251, "status_code": 200, "message": "Search completed: 296 results"}
+{"timestamp": "2026-03-16T01:51:54", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 805, "status_code": 401, "message": "Connection pool near capacity: 88%"}
+{"timestamp": "2026-03-16T01:53:47", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 216, "status_code": 201, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T01:58:14", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 1235, "status_code": 400, "message": "Connection pool near capacity: 74%"}
+{"timestamp": "2026-03-16T02:00:26", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 19, "status_code": 204, "message": "Cache hit for key user:1388"}
+{"timestamp": "2026-03-16T02:01:54", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 46, "status_code": 201, "message": "Query executed in 12106ms"}
+{"timestamp": "2026-03-16T02:04:31", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 29, "status_code": 400, "message": "Query executed in 13386ms"}
+{"timestamp": "2026-03-16T02:06:35", "level": "DEBUG", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 10, "status_code": 200, "message": "Connection pool size: 393"}
+{"timestamp": "2026-03-16T02:07:17", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 28, "status_code": 500, "message": "Connection pool size: 52"}
+{"timestamp": "2026-03-16T02:08:50", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 46, "status_code": 400, "message": "Order created: ORD-47997"}
+{"timestamp": "2026-03-16T02:09:36", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 93, "status_code": 502, "message": "Search completed: 49 results"}
+{"timestamp": "2026-03-16T02:12:28", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 38, "status_code": 502, "message": "Connection pool size: 160"}
+{"timestamp": "2026-03-16T02:13:33", "level": "DEBUG", "service": "user-service", "endpoint": "/health", "response_time_ms": 17, "status_code": 301, "message": "Connection pool size: 384"}
+{"timestamp": "2026-03-16T02:17:36", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 255, "status_code": 200, "message": "Order created: ORD-28408"}
+{"timestamp": "2026-03-16T02:19:10", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 91, "status_code": 204, "message": "Search completed: 51 results"}
+{"timestamp": "2026-03-16T02:20:03", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 162, "status_code": 401, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T02:20:38", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 47, "status_code": 204, "message": "Cache hit for key user:2833"}
+{"timestamp": "2026-03-16T02:20:45", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 42, "status_code": 200, "message": "Order created: ORD-44500"}
+{"timestamp": "2026-03-16T02:21:08", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 26, "status_code": 200, "message": "Order created: ORD-64502"}
+{"timestamp": "2026-03-16T02:23:34", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 561, "status_code": 404, "message": "Connection pool near capacity: 90%"}
+{"timestamp": "2026-03-16T02:25:55", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 180, "status_code": 400, "message": "Search completed: 328 results"}
+{"timestamp": "2026-03-16T02:25:57", "level": "WARN", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 446, "status_code": 429, "message": "Rate limit approaching for IP 192.168.33.11"}
+{"timestamp": "2026-03-16T02:27:40", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 39, "status_code": 404, "message": "Cache hit for key user:3988"}
+{"timestamp": "2026-03-16T02:28:22", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 7302, "status_code": 502, "message": "Internal server error: StackOverflow"}
+{"timestamp": "2026-03-16T02:29:28", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 443, "status_code": 404, "message": "Slow query detected: 6659ms"}
+{"timestamp": "2026-03-16T02:30:01", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 55, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T02:31:21", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 22, "status_code": 404, "message": "User authenticated"}
+{"timestamp": "2026-03-16T02:31:54", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 31, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T02:31:59", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 36, "status_code": 404, "message": "Query executed in 10109ms"}
+{"timestamp": "2026-03-16T02:32:40", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 46, "status_code": 204, "message": "Cache hit for key user:5193"}
+{"timestamp": "2026-03-16T02:33:16", "level": "INFO", "service": "user-service", "endpoint": "/health", "response_time_ms": 196, "status_code": 301, "message": "Search completed: 452 results"}
+{"timestamp": "2026-03-16T02:33:26", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 112, "status_code": 403, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T02:35:57", "level": "ERROR", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 3703, "status_code": 502, "message": "Request failed: status 503"}
+{"timestamp": "2026-03-16T02:36:08", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 147, "status_code": 404, "message": "User authenticated"}
+{"timestamp": "2026-03-16T02:37:08", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 287, "status_code": 403, "message": "User authenticated"}
+{"timestamp": "2026-03-16T02:37:50", "level": "WARN", "service": "user-service", "endpoint": "/health", "response_time_ms": 1684, "status_code": 403, "message": "Rate limit approaching for IP 192.168.16.33"}
+{"timestamp": "2026-03-16T02:40:25", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 123, "status_code": 502, "message": "Order created: ORD-57377"}
+{"timestamp": "2026-03-16T02:42:52", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 18, "status_code": 200, "message": "Cache hit for key user:9784"}
+{"timestamp": "2026-03-16T02:45:17", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 10, "status_code": 403, "message": "Query executed in 4125ms"}
+{"timestamp": "2026-03-16T02:46:38", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 1928, "status_code": 503, "message": "Database connection timeout after 13850ms"}
+{"timestamp": "2026-03-16T02:51:39", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 193, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T02:56:48", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 1483, "status_code": 404, "message": "Connection pool near capacity: 77%"}
+{"timestamp": "2026-03-16T02:59:37", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 159, "status_code": 301, "message": "Search completed: 291 results"}
+{"timestamp": "2026-03-16T03:01:30", "level": "INFO", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 191, "status_code": 502, "message": "User authenticated"}
+{"timestamp": "2026-03-16T03:02:54", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 35, "status_code": 403, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T03:04:00", "level": "DEBUG", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 20, "status_code": 200, "message": "Cache hit for key user:9287"}
+{"timestamp": "2026-03-16T03:04:49", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 107, "status_code": 500, "message": "User authenticated"}
+{"timestamp": "2026-03-16T03:05:42", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 51, "status_code": 200, "message": "Search completed: 352 results"}
+{"timestamp": "2026-03-16T03:05:51", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 1735, "status_code": 404, "message": "Slow query detected: 8297ms"}
+{"timestamp": "2026-03-16T03:06:20", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 93, "status_code": 301, "message": "Search completed: 333 results"}
+{"timestamp": "2026-03-16T03:08:05", "level": "DEBUG", "service": "payment-service", "endpoint": "/health", "response_time_ms": 37, "status_code": 401, "message": "Cache hit for key user:6798"}
+{"timestamp": "2026-03-16T03:09:45", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 237, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T03:09:54", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 31, "status_code": 204, "message": "Query executed in 4383ms"}
+{"timestamp": "2026-03-16T03:11:34", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 31, "status_code": 503, "message": "Search completed: 195 results"}
+{"timestamp": "2026-03-16T03:12:37", "level": "INFO", "service": "order-service", "endpoint": "/health", "response_time_ms": 223, "status_code": 401, "message": "User authenticated"}
+{"timestamp": "2026-03-16T03:12:38", "level": "DEBUG", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 14, "status_code": 401, "message": "Cache hit for key user:4554"}
+{"timestamp": "2026-03-16T03:13:35", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 1836, "status_code": 400, "message": "Slow query detected: 13689ms"}
+{"timestamp": "2026-03-16T03:14:29", "level": "WARN", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 828, "status_code": 403, "message": "Connection pool near capacity: 96%"}
+{"timestamp": "2026-03-16T03:15:25", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 65, "status_code": 502, "message": "Payment processed"}
+{"timestamp": "2026-03-16T03:15:56", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 296, "status_code": 204, "message": "Payment processed"}
+{"timestamp": "2026-03-16T03:17:09", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 40, "status_code": 403, "message": "Connection pool size: 164"}
+{"timestamp": "2026-03-16T03:17:23", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 25, "status_code": 200, "message": "Cache hit for key user:1854"}
+{"timestamp": "2026-03-16T03:17:29", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 45, "status_code": 200, "message": "Connection pool size: 480"}
+{"timestamp": "2026-03-16T03:20:04", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 30, "status_code": 503, "message": "Search completed: 266 results"}
+{"timestamp": "2026-03-16T03:23:46", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 433, "status_code": 404, "message": "Connection pool near capacity: 96%"}
+{"timestamp": "2026-03-16T03:27:11", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 24, "status_code": 204, "message": "Connection pool size: 185"}
+{"timestamp": "2026-03-16T03:29:19", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 93, "status_code": 200, "message": "Order created: ORD-97186"}
+{"timestamp": "2026-03-16T03:31:41", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 265, "status_code": 403, "message": "Search completed: 248 results"}
+{"timestamp": "2026-03-16T03:32:19", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 147, "status_code": 404, "message": "Search completed: 274 results"}
+{"timestamp": "2026-03-16T03:32:49", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 87, "status_code": 502, "message": "User authenticated"}
+{"timestamp": "2026-03-16T03:34:56", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 79, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T03:36:23", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 5, "status_code": 403, "message": "Cache hit for key user:7359"}
+{"timestamp": "2026-03-16T03:43:14", "level": "INFO", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 52, "status_code": 200, "message": "Order created: ORD-15943"}
+{"timestamp": "2026-03-16T03:44:13", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 80, "status_code": 401, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T03:44:33", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 214, "status_code": 404, "message": "Order created: ORD-44039"}
+{"timestamp": "2026-03-16T03:45:54", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 159, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T03:46:33", "level": "DEBUG", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 29, "status_code": 200, "message": "Cache hit for key user:1716"}
+{"timestamp": "2026-03-16T03:47:04", "level": "INFO", "service": "order-service", "endpoint": "/health", "response_time_ms": 251, "status_code": 403, "message": "Search completed: 402 results"}
+{"timestamp": "2026-03-16T03:47:37", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 273, "status_code": 401, "message": "User authenticated"}
+{"timestamp": "2026-03-16T03:51:32", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 6565, "status_code": 503, "message": "Internal server error: NullPointerException"}
+{"timestamp": "2026-03-16T03:53:24", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 33, "status_code": 200, "message": "Cache hit for key user:7234"}
+{"timestamp": "2026-03-16T03:57:20", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 254, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T03:58:38", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 27, "status_code": 404, "message": "Connection pool size: 179"}
+{"timestamp": "2026-03-16T03:59:54", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 75, "status_code": 500, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T04:01:29", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 111, "status_code": 200, "message": "Search completed: 421 results"}
+{"timestamp": "2026-03-16T04:02:20", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 127, "status_code": 201, "message": "Search completed: 492 results"}
+{"timestamp": "2026-03-16T04:05:46", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 98, "status_code": 200, "message": "Search completed: 278 results"}
+{"timestamp": "2026-03-16T04:06:20", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 1871, "status_code": 400, "message": "Slow query detected: 4304ms"}
+{"timestamp": "2026-03-16T04:10:11", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 16, "status_code": 200, "message": "Query executed in 4812ms"}
+{"timestamp": "2026-03-16T04:10:12", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 31, "status_code": 201, "message": "Cache hit for key user:2083"}
+{"timestamp": "2026-03-16T04:10:20", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 386, "status_code": 401, "message": "Connection pool near capacity: 88%"}
+{"timestamp": "2026-03-16T04:10:42", "level": "INFO", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 61, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T04:11:12", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 31, "status_code": 502, "message": "Cache hit for key user:1770"}
+{"timestamp": "2026-03-16T04:11:55", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 11, "status_code": 200, "message": "Connection pool size: 320"}
+{"timestamp": "2026-03-16T04:11:59", "level": "ERROR", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 6272, "status_code": 503, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T04:12:40", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 1654, "status_code": 400, "message": "Slow query detected: 11321ms"}
+{"timestamp": "2026-03-16T04:14:42", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 44, "status_code": 201, "message": "Query executed in 12010ms"}
+{"timestamp": "2026-03-16T04:17:38", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 255, "status_code": 204, "message": "Search completed: 104 results"}
+{"timestamp": "2026-03-16T04:17:53", "level": "DEBUG", "service": "payment-service", "endpoint": "/health", "response_time_ms": 15, "status_code": 503, "message": "Query executed in 11680ms"}
+{"timestamp": "2026-03-16T04:20:55", "level": "WARN", "service": "user-service", "endpoint": "/health", "response_time_ms": 1650, "status_code": 401, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T04:24:13", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 88, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T04:25:44", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 75, "status_code": 204, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T04:26:53", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 1447, "status_code": 400, "message": "Retry attempt 184/3"}
+{"timestamp": "2026-03-16T04:29:32", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 142, "status_code": 401, "message": "Search completed: 82 results"}
+{"timestamp": "2026-03-16T04:33:02", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 218, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T04:38:34", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 50, "status_code": 200, "message": "Connection pool size: 108"}
+{"timestamp": "2026-03-16T04:39:17", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 12, "status_code": 500, "message": "Connection pool size: 414"}
+{"timestamp": "2026-03-16T04:42:41", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 22, "status_code": 403, "message": "Cache hit for key user:2865"}
+{"timestamp": "2026-03-16T04:42:44", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 832, "status_code": 403, "message": "Rate limit approaching for IP 192.168.58.36"}
+{"timestamp": "2026-03-16T04:43:17", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 288, "status_code": 401, "message": "User authenticated"}
+{"timestamp": "2026-03-16T04:45:21", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 170, "status_code": 301, "message": "Order created: ORD-15344"}
+{"timestamp": "2026-03-16T04:48:45", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 130, "status_code": 200, "message": "Search completed: 57 results"}
+{"timestamp": "2026-03-16T04:50:12", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 43, "status_code": 204, "message": "Cache hit for key user:4098"}
+{"timestamp": "2026-03-16T04:51:36", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 265, "status_code": 500, "message": "Search completed: 13 results"}
+{"timestamp": "2026-03-16T04:53:43", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 27, "status_code": 500, "message": "Connection pool size: 25"}
+{"timestamp": "2026-03-16T04:56:17", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 1022, "status_code": 500, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T04:56:47", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 14, "status_code": 503, "message": "Connection pool size: 126"}
+{"timestamp": "2026-03-16T04:57:06", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 49, "status_code": 200, "message": "Search completed: 115 results"}
+{"timestamp": "2026-03-16T05:01:09", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 941, "status_code": 400, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T05:01:45", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 14, "status_code": 204, "message": "Query executed in 899ms"}
+{"timestamp": "2026-03-16T05:04:42", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 111, "status_code": 400, "message": "Search completed: 357 results"}
+{"timestamp": "2026-03-16T05:06:58", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 44, "status_code": 200, "message": "Query executed in 1344ms"}
+{"timestamp": "2026-03-16T05:07:23", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 293, "status_code": 404, "message": "Search completed: 56 results"}
+{"timestamp": "2026-03-16T05:07:57", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 21, "status_code": 403, "message": "Query executed in 13279ms"}
+{"timestamp": "2026-03-16T05:10:20", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 5496, "status_code": 502, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T05:11:04", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 195, "status_code": 503, "message": "User authenticated"}
+{"timestamp": "2026-03-16T05:11:19", "level": "DEBUG", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 43, "status_code": 404, "message": "Query executed in 10109ms"}
+{"timestamp": "2026-03-16T05:12:08", "level": "INFO", "service": "order-service", "endpoint": "/health", "response_time_ms": 104, "status_code": 401, "message": "Order created: ORD-71385"}
+{"timestamp": "2026-03-16T05:12:36", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 103, "status_code": 200, "message": "Search completed: 74 results"}
+{"timestamp": "2026-03-16T05:15:07", "level": "DEBUG", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 33, "status_code": 200, "message": "Cache hit for key user:1568"}
+{"timestamp": "2026-03-16T05:19:25", "level": "DEBUG", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 29, "status_code": 502, "message": "Cache hit for key user:4565"}
+{"timestamp": "2026-03-16T05:22:15", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 25, "status_code": 200, "message": "Connection pool size: 169"}
+{"timestamp": "2026-03-16T05:23:02", "level": "DEBUG", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 11, "status_code": 200, "message": "Connection pool size: 298"}
+{"timestamp": "2026-03-16T05:23:10", "level": "DEBUG", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 50, "status_code": 200, "message": "Cache hit for key user:5561"}
+{"timestamp": "2026-03-16T05:25:20", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 27, "status_code": 503, "message": "Query executed in 7475ms"}
+{"timestamp": "2026-03-16T05:29:32", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 55, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T05:31:40", "level": "INFO", "service": "user-service", "endpoint": "/health", "response_time_ms": 167, "status_code": 200, "message": "Order created: ORD-57059"}
+{"timestamp": "2026-03-16T05:31:52", "level": "WARN", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 360, "status_code": 403, "message": "Retry attempt 419/3"}
+{"timestamp": "2026-03-16T05:37:33", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 43, "status_code": 200, "message": "Query executed in 13677ms"}
+{"timestamp": "2026-03-16T05:37:54", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 14, "status_code": 500, "message": "Connection pool size: 478"}
+{"timestamp": "2026-03-16T05:38:15", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 60, "status_code": 201, "message": "Payment processed"}
+{"timestamp": "2026-03-16T05:39:19", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 58, "status_code": 400, "message": "User authenticated"}
+{"timestamp": "2026-03-16T05:41:26", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 56, "status_code": 503, "message": "User authenticated"}
+{"timestamp": "2026-03-16T05:41:53", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 102, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T05:43:02", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 224, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T05:46:18", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 206, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T05:47:34", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 82, "status_code": 301, "message": "Search completed: 222 results"}
+{"timestamp": "2026-03-16T05:49:40", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 185, "status_code": 404, "message": "User authenticated"}
+{"timestamp": "2026-03-16T05:51:33", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 1741, "status_code": 429, "message": "Connection pool near capacity: 88%"}
+{"timestamp": "2026-03-16T05:51:39", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 144, "status_code": 301, "message": "Search completed: 446 results"}
+{"timestamp": "2026-03-16T05:52:15", "level": "WARN", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 1085, "status_code": 404, "message": "Slow query detected: 2371ms"}
+{"timestamp": "2026-03-16T05:57:28", "level": "INFO", "service": "user-service", "endpoint": "/health", "response_time_ms": 35, "status_code": 200, "message": "Search completed: 479 results"}
+{"timestamp": "2026-03-16T06:00:12", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 3793, "status_code": 502, "message": "Request failed: status 500"}
+{"timestamp": "2026-03-16T06:00:40", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 8279, "status_code": 502, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T06:03:40", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 9313, "status_code": 500, "message": "Database connection timeout after 11928ms"}
+{"timestamp": "2026-03-16T06:04:40", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 281, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T06:11:12", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 31, "status_code": 201, "message": "Connection pool size: 151"}
+{"timestamp": "2026-03-16T06:17:06", "level": "DEBUG", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 26, "status_code": 502, "message": "Cache hit for key user:9873"}
+{"timestamp": "2026-03-16T06:19:27", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 1229, "status_code": 429, "message": "Retry attempt 74/3"}
+{"timestamp": "2026-03-16T06:25:58", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 34, "status_code": 301, "message": "Query executed in 5942ms"}
+{"timestamp": "2026-03-16T06:31:20", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 238, "status_code": 301, "message": "Order created: ORD-56052"}
+{"timestamp": "2026-03-16T06:32:07", "level": "WARN", "service": "payment-service", "endpoint": "/health", "response_time_ms": 481, "status_code": 404, "message": "Retry attempt 458/3"}
+{"timestamp": "2026-03-16T06:34:46", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 40, "status_code": 301, "message": "Query executed in 10369ms"}
+{"timestamp": "2026-03-16T06:35:49", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 1954, "status_code": 403, "message": "Retry attempt 276/3"}
+{"timestamp": "2026-03-16T06:42:57", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 33, "status_code": 401, "message": "Cache hit for key user:4378"}
+{"timestamp": "2026-03-16T06:43:23", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 8, "status_code": 500, "message": "Query executed in 5674ms"}
+{"timestamp": "2026-03-16T06:43:36", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 3043, "status_code": 502, "message": "Internal server error: OutOfMemoryError"}
+{"timestamp": "2026-03-16T06:44:32", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 199, "status_code": 201, "message": "Payment processed"}
+{"timestamp": "2026-03-16T06:44:59", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 65, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T06:46:56", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 237, "status_code": 201, "message": "User authenticated"}
+{"timestamp": "2026-03-16T06:47:34", "level": "DEBUG", "service": "order-service", "endpoint": "/health", "response_time_ms": 44, "status_code": 400, "message": "Query executed in 762ms"}
+{"timestamp": "2026-03-16T06:50:57", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 79, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T06:52:25", "level": "INFO", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 58, "status_code": 403, "message": "User authenticated"}
+{"timestamp": "2026-03-16T06:52:34", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 44, "status_code": 200, "message": "Connection pool size: 327"}
+{"timestamp": "2026-03-16T06:52:58", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 118, "status_code": 200, "message": "Order created: ORD-56025"}
+{"timestamp": "2026-03-16T06:54:04", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 1576, "status_code": 400, "message": "Connection pool near capacity: 74%"}
+{"timestamp": "2026-03-16T06:55:01", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 2134, "status_code": 503, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T06:56:29", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 12, "status_code": 500, "message": "Connection pool size: 269"}
+{"timestamp": "2026-03-16T06:58:36", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 492, "status_code": 404, "message": "Rate limit approaching for IP 192.168.68.192"}
+{"timestamp": "2026-03-16T06:59:34", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 211, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T06:59:34", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 74, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T06:59:56", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 234, "status_code": 502, "message": "User authenticated"}
+{"timestamp": "2026-03-16T07:00:21", "level": "INFO", "service": "order-service", "endpoint": "/health", "response_time_ms": 74, "status_code": 401, "message": "Payment processed"}
+{"timestamp": "2026-03-16T07:01:33", "level": "INFO", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 194, "status_code": 200, "message": "Order created: ORD-86888"}
+{"timestamp": "2026-03-16T07:04:49", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 83, "status_code": 404, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T07:06:42", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 19, "status_code": 502, "message": "Connection pool size: 499"}
+{"timestamp": "2026-03-16T07:10:04", "level": "INFO", "service": "order-service", "endpoint": "/health", "response_time_ms": 86, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T07:11:35", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 49, "status_code": 400, "message": "Cache hit for key user:5720"}
+{"timestamp": "2026-03-16T07:11:51", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 8612, "status_code": 500, "message": "Request failed: status 502"}
+{"timestamp": "2026-03-16T07:11:57", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 113, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T07:13:37", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 260, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T07:15:41", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 78, "status_code": 503, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T07:17:27", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 227, "status_code": 404, "message": "Payment processed"}
+{"timestamp": "2026-03-16T07:19:56", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 22, "status_code": 201, "message": "Connection pool size: 254"}
+{"timestamp": "2026-03-16T07:29:18", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 16, "status_code": 503, "message": "Query executed in 7029ms"}
+{"timestamp": "2026-03-16T07:30:23", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 3634, "status_code": 502, "message": "Request failed: status 500"}
+{"timestamp": "2026-03-16T07:30:39", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 1212, "status_code": 429, "message": "Rate limit approaching for IP 192.168.229.193"}
+{"timestamp": "2026-03-16T07:32:36", "level": "DEBUG", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 50, "status_code": 200, "message": "Connection pool size: 51"}
+{"timestamp": "2026-03-16T07:32:37", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 83, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T07:33:27", "level": "DEBUG", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 7, "status_code": 200, "message": "Query executed in 1598ms"}
+{"timestamp": "2026-03-16T07:34:47", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 38, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T07:35:25", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 41, "status_code": 502, "message": "Connection pool size: 463"}
+{"timestamp": "2026-03-16T07:37:20", "level": "WARN", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 1353, "status_code": 403, "message": "Connection pool near capacity: 71%"}
+{"timestamp": "2026-03-16T07:37:58", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 219, "status_code": 201, "message": "Payment processed"}
+{"timestamp": "2026-03-16T07:38:14", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 49, "status_code": 200, "message": "Connection pool size: 333"}
+{"timestamp": "2026-03-16T07:40:36", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 9, "status_code": 204, "message": "Cache hit for key user:2453"}
+{"timestamp": "2026-03-16T07:41:14", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 24, "status_code": 401, "message": "User authenticated"}
+{"timestamp": "2026-03-16T07:44:05", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 6, "status_code": 503, "message": "Cache hit for key user:2804"}
+{"timestamp": "2026-03-16T07:44:52", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 101, "status_code": 201, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T07:49:29", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 83, "status_code": 503, "message": "Payment processed"}
+{"timestamp": "2026-03-16T07:53:39", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 272, "status_code": 200, "message": "Search completed: 247 results"}
+{"timestamp": "2026-03-16T07:54:06", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 135, "status_code": 502, "message": "Search completed: 476 results"}
+{"timestamp": "2026-03-16T07:58:54", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 5, "status_code": 200, "message": "Cache hit for key user:9515"}
+{"timestamp": "2026-03-16T08:02:45", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 189, "status_code": 301, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T08:03:29", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 158, "status_code": 301, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T08:05:19", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 25, "status_code": 401, "message": "Query executed in 12009ms"}
+{"timestamp": "2026-03-16T08:07:34", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 45, "status_code": 204, "message": "Query executed in 14285ms"}
+{"timestamp": "2026-03-16T08:07:56", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 43, "status_code": 201, "message": "Cache hit for key user:5325"}
+{"timestamp": "2026-03-16T08:08:59", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 100, "status_code": 204, "message": "Order created: ORD-82692"}
+{"timestamp": "2026-03-16T08:11:53", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 24, "status_code": 502, "message": "Query executed in 7840ms"}
+{"timestamp": "2026-03-16T08:12:45", "level": "INFO", "service": "user-service", "endpoint": "/health", "response_time_ms": 173, "status_code": 201, "message": "Payment processed"}
+{"timestamp": "2026-03-16T08:13:42", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 173, "status_code": 301, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T08:14:46", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 13, "status_code": 404, "message": "Cache hit for key user:6452"}
+{"timestamp": "2026-03-16T08:14:56", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 132, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T08:17:30", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 40, "status_code": 500, "message": "Query executed in 6602ms"}
+{"timestamp": "2026-03-16T08:17:51", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 48, "status_code": 502, "message": "Connection pool size: 354"}
+{"timestamp": "2026-03-16T08:22:01", "level": "INFO", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 295, "status_code": 200, "message": "Order created: ORD-73896"}
+{"timestamp": "2026-03-16T08:25:06", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 269, "status_code": 502, "message": "Payment processed"}
+{"timestamp": "2026-03-16T08:37:05", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 256, "status_code": 500, "message": "Payment processed"}
+{"timestamp": "2026-03-16T08:38:41", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 286, "status_code": 500, "message": "User authenticated"}
+{"timestamp": "2026-03-16T08:41:01", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 26, "status_code": 200, "message": "Connection pool size: 340"}
+{"timestamp": "2026-03-16T08:41:36", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 228, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T08:43:58", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 175, "status_code": 503, "message": "User authenticated"}
+{"timestamp": "2026-03-16T08:44:28", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 28, "status_code": 403, "message": "Query executed in 651ms"}
+{"timestamp": "2026-03-16T08:44:48", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 93, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T08:45:11", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 48, "status_code": 403, "message": "Query executed in 5422ms"}
+{"timestamp": "2026-03-16T08:48:50", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 1247, "status_code": 429, "message": "Rate limit approaching for IP 192.168.126.128"}
+{"timestamp": "2026-03-16T08:50:18", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 278, "status_code": 301, "message": "User authenticated"}
+{"timestamp": "2026-03-16T08:51:58", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 95, "status_code": 503, "message": "Payment processed"}
+{"timestamp": "2026-03-16T08:52:24", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 607, "status_code": 404, "message": "Slow query detected: 10961ms"}
+{"timestamp": "2026-03-16T08:54:09", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 6869, "status_code": 503, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T08:54:20", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 4321, "status_code": 502, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T08:54:39", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 42, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T08:55:30", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 9, "status_code": 400, "message": "Connection pool size: 128"}
+{"timestamp": "2026-03-16T08:55:37", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 39, "status_code": 204, "message": "Query executed in 5997ms"}
+{"timestamp": "2026-03-16T08:58:19", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 185, "status_code": 301, "message": "User authenticated"}
+{"timestamp": "2026-03-16T08:58:43", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 161, "status_code": 403, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T09:01:14", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 213, "status_code": 201, "message": "User authenticated"}
+{"timestamp": "2026-03-16T09:05:59", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 1863, "status_code": 401, "message": "Slow query detected: 14245ms"}
+{"timestamp": "2026-03-16T09:07:36", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 94, "status_code": 503, "message": "Order created: ORD-67983"}
+{"timestamp": "2026-03-16T09:10:49", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 78, "status_code": 401, "message": "Order created: ORD-15453"}
+{"timestamp": "2026-03-16T09:10:55", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 3711, "status_code": 502, "message": "Database connection timeout after 10299ms"}
+{"timestamp": "2026-03-16T09:13:27", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 8, "status_code": 200, "message": "Cache hit for key user:8947"}
+{"timestamp": "2026-03-16T09:13:49", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 12, "status_code": 204, "message": "Cache hit for key user:3116"}
+{"timestamp": "2026-03-16T09:14:25", "level": "INFO", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 291, "status_code": 204, "message": "Search completed: 360 results"}
+{"timestamp": "2026-03-16T09:16:35", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 1866, "status_code": 401, "message": "Connection pool near capacity: 81%"}
+{"timestamp": "2026-03-16T09:17:00", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 160, "status_code": 404, "message": "Search completed: 114 results"}
+{"timestamp": "2026-03-16T09:17:32", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 25, "status_code": 401, "message": "Query executed in 13305ms"}
+{"timestamp": "2026-03-16T09:20:03", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 110, "status_code": 200, "message": "Search completed: 382 results"}
+{"timestamp": "2026-03-16T09:21:14", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 181, "status_code": 502, "message": "Search completed: 387 results"}
+{"timestamp": "2026-03-16T09:23:19", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 42, "status_code": 200, "message": "Query executed in 3049ms"}
+{"timestamp": "2026-03-16T09:23:26", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 38, "status_code": 200, "message": "Query executed in 186ms"}
+{"timestamp": "2026-03-16T09:23:27", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 924, "status_code": 404, "message": "Slow query detected: 14526ms"}
+{"timestamp": "2026-03-16T09:25:40", "level": "INFO", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 33, "status_code": 204, "message": "Payment processed"}
+{"timestamp": "2026-03-16T09:26:21", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 19, "status_code": 400, "message": "Connection pool size: 320"}
+{"timestamp": "2026-03-16T09:26:24", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 214, "status_code": 401, "message": "Order created: ORD-29127"}
+{"timestamp": "2026-03-16T09:30:50", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 45, "status_code": 500, "message": "Query executed in 2269ms"}
+{"timestamp": "2026-03-16T09:31:21", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 29, "status_code": 204, "message": "Cache hit for key user:1687"}
+{"timestamp": "2026-03-16T09:35:10", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 48, "status_code": 200, "message": "Connection pool size: 369"}
+{"timestamp": "2026-03-16T09:35:41", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 39, "status_code": 403, "message": "Cache hit for key user:8796"}
+{"timestamp": "2026-03-16T09:36:17", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 3078, "status_code": 502, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T09:39:40", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 170, "status_code": 401, "message": "Payment processed"}
+{"timestamp": "2026-03-16T09:43:52", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 314, "status_code": 404, "message": "Rate limit approaching for IP 192.168.166.201"}
+{"timestamp": "2026-03-16T09:46:00", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 49, "status_code": 503, "message": "Connection pool size: 96"}
+{"timestamp": "2026-03-16T09:48:59", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 293, "status_code": 400, "message": "Payment processed"}
+{"timestamp": "2026-03-16T09:51:15", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 98, "status_code": 200, "message": "Order created: ORD-10680"}
+{"timestamp": "2026-03-16T09:58:39", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 176, "status_code": 200, "message": "Order created: ORD-64819"}
+{"timestamp": "2026-03-16T10:01:07", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 24357, "status_code": 502, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T10:04:57", "level": "ERROR", "service": "user-service", "endpoint": "/health", "response_time_ms": 17871, "status_code": 502, "message": "Request failed: status 502"}
+{"timestamp": "2026-03-16T10:06:22", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 732, "status_code": 201, "message": "Order created: ORD-23909"}
+{"timestamp": "2026-03-16T10:06:58", "level": "INFO", "service": "order-service", "endpoint": "/health", "response_time_ms": 477, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T10:07:59", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 309, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T10:08:36", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 2460, "status_code": 404, "message": "Retry attempt 414/3"}
+{"timestamp": "2026-03-16T10:11:45", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 276, "status_code": 200, "message": "Order created: ORD-20302"}
+{"timestamp": "2026-03-16T10:15:23", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 123, "status_code": 502, "message": "Payment processed"}
+{"timestamp": "2026-03-16T10:18:32", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 612, "status_code": 500, "message": "User authenticated"}
+{"timestamp": "2026-03-16T10:21:23", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 72, "status_code": 503, "message": "Payment processed"}
+{"timestamp": "2026-03-16T10:23:57", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 159, "status_code": 503, "message": "User authenticated"}
+{"timestamp": "2026-03-16T10:24:38", "level": "WARN", "service": "payment-service", "endpoint": "/health", "response_time_ms": 5838, "status_code": 404, "message": "Connection pool near capacity: 84%"}
+{"timestamp": "2026-03-16T10:24:58", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 21429, "status_code": 503, "message": "Request failed: status 502"}
+{"timestamp": "2026-03-16T10:24:58", "level": "ERROR", "service": "payment-service", "endpoint": "/health", "response_time_ms": 8685, "status_code": 502, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T10:25:46", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 3513, "status_code": 403, "message": "Rate limit approaching for IP 192.168.229.222"}
+{"timestamp": "2026-03-16T10:27:28", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 2949, "status_code": 404, "message": "Rate limit approaching for IP 192.168.20.92"}
+{"timestamp": "2026-03-16T10:27:57", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 735, "status_code": 401, "message": "User authenticated"}
+{"timestamp": "2026-03-16T10:28:21", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 3543, "status_code": 429, "message": "Rate limit approaching for IP 192.168.126.248"}
+{"timestamp": "2026-03-16T10:32:04", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 861, "status_code": 400, "message": "Order created: ORD-95302"}
+{"timestamp": "2026-03-16T10:35:30", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 3840, "status_code": 403, "message": "Rate limit approaching for IP 192.168.192.231"}
+{"timestamp": "2026-03-16T10:40:16", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 25599, "status_code": 503, "message": "Request failed: status 502"}
+{"timestamp": "2026-03-16T10:41:05", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 630, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T10:41:06", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 2631, "status_code": 401, "message": "Connection pool near capacity: 90%"}
+{"timestamp": "2026-03-16T10:43:07", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 5523, "status_code": 502, "message": "Request failed: status 500"}
+{"timestamp": "2026-03-16T10:44:25", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 1185, "status_code": 429, "message": "Slow query detected: 3897ms"}
+{"timestamp": "2026-03-16T10:44:39", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 9207, "status_code": 500, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T10:45:24", "level": "WARN", "service": "payment-service", "endpoint": "/health", "response_time_ms": 1755, "status_code": 401, "message": "Retry attempt 148/3"}
+{"timestamp": "2026-03-16T10:46:04", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 4365, "status_code": 404, "message": "Retry attempt 165/3"}
+{"timestamp": "2026-03-16T10:52:50", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 210, "status_code": 503, "message": "User authenticated"}
+{"timestamp": "2026-03-16T10:54:24", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 4938, "status_code": 429, "message": "Connection pool near capacity: 73%"}
+{"timestamp": "2026-03-16T10:54:34", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 3339, "status_code": 503, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T10:57:18", "level": "ERROR", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 4320, "status_code": 503, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T10:57:34", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 147, "status_code": 301, "message": "Cache hit for key user:7797"}
+{"timestamp": "2026-03-16T10:58:13", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 282, "status_code": 403, "message": "Search completed: 79 results"}
+{"timestamp": "2026-03-16T10:59:15", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 66, "status_code": 400, "message": "Query executed in 11400ms"}
+{"timestamp": "2026-03-16T11:00:35", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 29910, "status_code": 500, "message": "Database connection timeout after 3491ms"}
+{"timestamp": "2026-03-16T11:03:31", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 28008, "status_code": 502, "message": "Database connection timeout after 14118ms"}
+{"timestamp": "2026-03-16T11:04:23", "level": "ERROR", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 10740, "status_code": 502, "message": "Internal server error: StackOverflow"}
+{"timestamp": "2026-03-16T11:04:55", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 27576, "status_code": 503, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T11:05:22", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 3357, "status_code": 404, "message": "Rate limit approaching for IP 192.168.173.150"}
+{"timestamp": "2026-03-16T11:06:09", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 4359, "status_code": 429, "message": "Connection pool near capacity: 81%"}
+{"timestamp": "2026-03-16T11:08:47", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 28746, "status_code": 500, "message": "Database connection timeout after 11720ms"}
+{"timestamp": "2026-03-16T11:11:01", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 21390, "status_code": 502, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T11:13:28", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 972, "status_code": 403, "message": "Retry attempt 486/3"}
+{"timestamp": "2026-03-16T11:14:11", "level": "WARN", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 2253, "status_code": 401, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T11:14:42", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 5076, "status_code": 403, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T11:15:41", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 243, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T11:15:47", "level": "WARN", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 1980, "status_code": 401, "message": "Slow query detected: 13802ms"}
+{"timestamp": "2026-03-16T11:18:07", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 10992, "status_code": 503, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T11:19:53", "level": "WARN", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 4968, "status_code": 401, "message": "Connection pool near capacity: 87%"}
+{"timestamp": "2026-03-16T11:20:12", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 4353, "status_code": 403, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T11:26:21", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 819, "status_code": 204, "message": "Search completed: 46 results"}
+{"timestamp": "2026-03-16T11:27:13", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 735, "status_code": 204, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T11:27:30", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 360, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T11:30:33", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 3609, "status_code": 401, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T11:36:23", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 24618, "status_code": 503, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T11:43:22", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 153, "status_code": 401, "message": "Payment processed"}
+{"timestamp": "2026-03-16T11:43:29", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 19587, "status_code": 500, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T11:44:37", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 642, "status_code": 503, "message": "Search completed: 58 results"}
+{"timestamp": "2026-03-16T11:45:49", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 603, "status_code": 200, "message": "Search completed: 488 results"}
+{"timestamp": "2026-03-16T11:50:21", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 3672, "status_code": 429, "message": "Slow query detected: 2295ms"}
+{"timestamp": "2026-03-16T11:51:05", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 25287, "status_code": 500, "message": "Request failed: status 500"}
+{"timestamp": "2026-03-16T11:53:52", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 4329, "status_code": 401, "message": "Retry attempt 334/3"}
+{"timestamp": "2026-03-16T11:54:18", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 2895, "status_code": 429, "message": "Connection pool near capacity: 90%"}
+{"timestamp": "2026-03-16T11:55:45", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 5547, "status_code": 401, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T11:59:01", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 24333, "status_code": 503, "message": "Internal server error: StackOverflow"}
+{"timestamp": "2026-03-16T12:01:47", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 219, "status_code": 403, "message": "User authenticated"}
+{"timestamp": "2026-03-16T12:05:35", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 172, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T12:06:22", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 975, "status_code": 404, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T12:06:50", "level": "ERROR", "service": "user-service", "endpoint": "/health", "response_time_ms": 9666, "status_code": 502, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T12:06:53", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 37, "status_code": 400, "message": "Order created: ORD-54801"}
+{"timestamp": "2026-03-16T12:07:15", "level": "INFO", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 182, "status_code": 200, "message": "Search completed: 280 results"}
+{"timestamp": "2026-03-16T12:08:25", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 63, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T12:08:53", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 255, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T12:10:23", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 8915, "status_code": 503, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T12:11:22", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 1606, "status_code": 401, "message": "Rate limit approaching for IP 192.168.189.69"}
+{"timestamp": "2026-03-16T12:13:13", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 4567, "status_code": 500, "message": "Internal server error: StackOverflow"}
+{"timestamp": "2026-03-16T12:13:25", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 9, "status_code": 200, "message": "Cache hit for key user:5760"}
+{"timestamp": "2026-03-16T12:14:14", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 259, "status_code": 200, "message": "Order created: ORD-34621"}
+{"timestamp": "2026-03-16T12:14:54", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 215, "status_code": 500, "message": "Payment processed"}
+{"timestamp": "2026-03-16T12:16:05", "level": "DEBUG", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 23, "status_code": 200, "message": "Cache hit for key user:3526"}
+{"timestamp": "2026-03-16T12:17:52", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 299, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T12:22:00", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 38, "status_code": 200, "message": "Cache hit for key user:8985"}
+{"timestamp": "2026-03-16T12:23:14", "level": "ERROR", "service": "user-service", "endpoint": "/health", "response_time_ms": 3621, "status_code": 500, "message": "Internal server error: StackOverflow"}
+{"timestamp": "2026-03-16T12:23:37", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 8861, "status_code": 500, "message": "Internal server error: StackOverflow"}
+{"timestamp": "2026-03-16T12:25:04", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 300, "status_code": 500, "message": "User authenticated"}
+{"timestamp": "2026-03-16T12:26:47", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 265, "status_code": 404, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T12:30:42", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 39, "status_code": 201, "message": "Cache hit for key user:8266"}
+{"timestamp": "2026-03-16T12:32:03", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 251, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T12:32:46", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 6638, "status_code": 500, "message": "Request failed: status 502"}
+{"timestamp": "2026-03-16T12:35:24", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 47, "status_code": 403, "message": "Cache hit for key user:1840"}
+{"timestamp": "2026-03-16T12:35:32", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 247, "status_code": 301, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T12:37:19", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 196, "status_code": 404, "message": "Order created: ORD-50383"}
+{"timestamp": "2026-03-16T12:39:03", "level": "DEBUG", "service": "user-service", "endpoint": "/health", "response_time_ms": 9, "status_code": 403, "message": "Connection pool size: 195"}
+{"timestamp": "2026-03-16T12:39:41", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 244, "status_code": 404, "message": "Search completed: 18 results"}
+{"timestamp": "2026-03-16T12:41:50", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 1857, "status_code": 404, "message": "Rate limit approaching for IP 192.168.225.183"}
+{"timestamp": "2026-03-16T12:43:32", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 3188, "status_code": 502, "message": "Internal server error: StackOverflow"}
+{"timestamp": "2026-03-16T12:44:30", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 24, "status_code": 200, "message": "Query executed in 1536ms"}
+{"timestamp": "2026-03-16T12:46:21", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 487, "status_code": 401, "message": "Rate limit approaching for IP 192.168.114.207"}
+{"timestamp": "2026-03-16T12:48:02", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 286, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T12:49:16", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 31, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T12:55:16", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 233, "status_code": 500, "message": "User authenticated"}
+{"timestamp": "2026-03-16T12:56:30", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 14, "status_code": 200, "message": "Cache hit for key user:9497"}
+{"timestamp": "2026-03-16T12:57:49", "level": "INFO", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 23, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T13:00:48", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 5492, "status_code": 503, "message": "Database connection timeout after 3467ms"}
+{"timestamp": "2026-03-16T13:01:00", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 220, "status_code": 500, "message": "Order created: ORD-13071"}
+{"timestamp": "2026-03-16T13:01:28", "level": "INFO", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 38, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T13:02:21", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 164, "status_code": 404, "message": "Order created: ORD-52457"}
+{"timestamp": "2026-03-16T13:03:25", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 134, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T13:06:47", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 913, "status_code": 400, "message": "Connection pool near capacity: 93%"}
+{"timestamp": "2026-03-16T13:07:57", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 9077, "status_code": 503, "message": "Database connection timeout after 2075ms"}
+{"timestamp": "2026-03-16T13:12:30", "level": "INFO", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 116, "status_code": 403, "message": "User authenticated"}
+{"timestamp": "2026-03-16T13:12:52", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 64, "status_code": 500, "message": "Search completed: 142 results"}
+{"timestamp": "2026-03-16T13:15:55", "level": "WARN", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 1220, "status_code": 403, "message": "Connection pool near capacity: 82%"}
+{"timestamp": "2026-03-16T13:16:33", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 69, "status_code": 404, "message": "User authenticated"}
+{"timestamp": "2026-03-16T13:17:01", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 219, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T13:20:55", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 1523, "status_code": 404, "message": "Retry attempt 123/3"}
+{"timestamp": "2026-03-16T13:26:35", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 189, "status_code": 201, "message": "Payment processed"}
+{"timestamp": "2026-03-16T13:28:24", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 14, "status_code": 500, "message": "Query executed in 10890ms"}
+{"timestamp": "2026-03-16T13:29:21", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 41, "status_code": 502, "message": "Cache hit for key user:1815"}
+{"timestamp": "2026-03-16T13:30:21", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 103, "status_code": 204, "message": "User authenticated"}
+{"timestamp": "2026-03-16T13:31:10", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 234, "status_code": 500, "message": "Order created: ORD-98694"}
+{"timestamp": "2026-03-16T13:32:07", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 201, "status_code": 404, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T13:34:28", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 32, "status_code": 204, "message": "Payment processed"}
+{"timestamp": "2026-03-16T13:37:21", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 291, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T13:38:58", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 170, "status_code": 301, "message": "User authenticated"}
+{"timestamp": "2026-03-16T13:40:50", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 294, "status_code": 503, "message": "Search completed: 74 results"}
+{"timestamp": "2026-03-16T13:41:56", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 101, "status_code": 500, "message": "Search completed: 292 results"}
+{"timestamp": "2026-03-16T13:42:53", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 11, "status_code": 200, "message": "Cache hit for key user:8106"}
+{"timestamp": "2026-03-16T13:43:32", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 3042, "status_code": 503, "message": "Internal server error: StackOverflow"}
+{"timestamp": "2026-03-16T13:43:53", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 35, "status_code": 204, "message": "Connection pool size: 223"}
+{"timestamp": "2026-03-16T13:44:46", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 9883, "status_code": 502, "message": "Database connection timeout after 986ms"}
+{"timestamp": "2026-03-16T13:48:40", "level": "INFO", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 299, "status_code": 200, "message": "Search completed: 493 results"}
+{"timestamp": "2026-03-16T13:50:24", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 245, "status_code": 403, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T13:50:27", "level": "INFO", "service": "order-service", "endpoint": "/health", "response_time_ms": 108, "status_code": 500, "message": "Search completed: 304 results"}
+{"timestamp": "2026-03-16T13:51:01", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 196, "status_code": 503, "message": "Order created: ORD-52534"}
+{"timestamp": "2026-03-16T13:51:18", "level": "INFO", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 230, "status_code": 204, "message": "Payment processed"}
+{"timestamp": "2026-03-16T13:52:09", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 39, "status_code": 403, "message": "Search completed: 247 results"}
+{"timestamp": "2026-03-16T13:52:31", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 14, "status_code": 500, "message": "Connection pool size: 414"}
+{"timestamp": "2026-03-16T13:53:54", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 11, "status_code": 204, "message": "Connection pool size: 429"}
+{"timestamp": "2026-03-16T13:56:24", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 88, "status_code": 401, "message": "Order created: ORD-40169"}
+{"timestamp": "2026-03-16T13:56:58", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 1433, "status_code": 400, "message": "Retry attempt 15/3"}
+{"timestamp": "2026-03-16T13:57:17", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 254, "status_code": 200, "message": "Order created: ORD-89869"}
+{"timestamp": "2026-03-16T13:59:47", "level": "DEBUG", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 48, "status_code": 500, "message": "Cache hit for key user:4412"}
+{"timestamp": "2026-03-16T14:00:52", "level": "INFO", "service": "order-service", "endpoint": "/health", "response_time_ms": 267, "status_code": 502, "message": "Search completed: 211 results"}
+{"timestamp": "2026-03-16T14:01:00", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 201, "status_code": 503, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T14:02:00", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 1424, "status_code": 400, "message": "Connection pool near capacity: 86%"}
+{"timestamp": "2026-03-16T14:04:05", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 162, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T14:07:29", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 272, "status_code": 401, "message": "Search completed: 222 results"}
+{"timestamp": "2026-03-16T14:09:53", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 440, "status_code": 401, "message": "Connection pool near capacity: 92%"}
+{"timestamp": "2026-03-16T14:10:57", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 143, "status_code": 404, "message": "User authenticated"}
+{"timestamp": "2026-03-16T14:11:02", "level": "ERROR", "service": "order-service", "endpoint": "/health", "response_time_ms": 9561, "status_code": 500, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T14:12:18", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 195, "status_code": 201, "message": "Search completed: 17 results"}
+{"timestamp": "2026-03-16T14:13:39", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 13, "status_code": 200, "message": "Connection pool size: 415"}
+{"timestamp": "2026-03-16T14:18:02", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 8, "status_code": 204, "message": "Query executed in 12613ms"}
+{"timestamp": "2026-03-16T14:18:08", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 1520, "status_code": 429, "message": "Slow query detected: 1608ms"}
+{"timestamp": "2026-03-16T14:20:15", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 78, "status_code": 400, "message": "User authenticated"}
+{"timestamp": "2026-03-16T14:20:46", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 1909, "status_code": 500, "message": "Database connection timeout after 9917ms"}
+{"timestamp": "2026-03-16T14:22:49", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 61, "status_code": 404, "message": "User authenticated"}
+{"timestamp": "2026-03-16T14:23:46", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 800, "status_code": 401, "message": "Slow query detected: 9513ms"}
+{"timestamp": "2026-03-16T14:25:10", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 177, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T14:26:17", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 12, "status_code": 301, "message": "Connection pool size: 113"}
+{"timestamp": "2026-03-16T14:26:26", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 174, "status_code": 200, "message": "Search completed: 66 results"}
+{"timestamp": "2026-03-16T14:28:28", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 165, "status_code": 404, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T14:28:33", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 218, "status_code": 204, "message": "Search completed: 324 results"}
+{"timestamp": "2026-03-16T14:28:54", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 176, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T14:29:43", "level": "INFO", "service": "user-service", "endpoint": "/health", "response_time_ms": 113, "status_code": 404, "message": "Payment processed"}
+{"timestamp": "2026-03-16T14:31:35", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 5233, "status_code": 500, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T14:32:45", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 171, "status_code": 503, "message": "Search completed: 115 results"}
+{"timestamp": "2026-03-16T14:39:38", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 50, "status_code": 200, "message": "Cache hit for key user:9133"}
+{"timestamp": "2026-03-16T14:39:51", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 10, "status_code": 200, "message": "Query executed in 343ms"}
+{"timestamp": "2026-03-16T14:41:09", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 1977, "status_code": 403, "message": "Rate limit approaching for IP 192.168.109.43"}
+{"timestamp": "2026-03-16T14:41:10", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 127, "status_code": 201, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T14:41:11", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 234, "status_code": 403, "message": "User authenticated"}
+{"timestamp": "2026-03-16T14:43:07", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 110, "status_code": 204, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T14:43:51", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 131, "status_code": 201, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T14:44:25", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 1847, "status_code": 429, "message": "Slow query detected: 2263ms"}
+{"timestamp": "2026-03-16T14:48:38", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 221, "status_code": 301, "message": "Order created: ORD-16463"}
+{"timestamp": "2026-03-16T14:53:19", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 28, "status_code": 200, "message": "Cache hit for key user:8270"}
+{"timestamp": "2026-03-16T14:54:33", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 25, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T14:55:34", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 8126, "status_code": 503, "message": "Request failed: status 502"}
+{"timestamp": "2026-03-16T14:56:02", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 38, "status_code": 500, "message": "Connection pool size: 90"}
+{"timestamp": "2026-03-16T14:56:15", "level": "INFO", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 180, "status_code": 500, "message": "Search completed: 56 results"}
+{"timestamp": "2026-03-16T15:00:33", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 110, "status_code": 400, "message": "User authenticated"}
+{"timestamp": "2026-03-16T15:01:04", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 164, "status_code": 400, "message": "Search completed: 53 results"}
+{"timestamp": "2026-03-16T15:01:48", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 98, "status_code": 403, "message": "Order created: ORD-69454"}
+{"timestamp": "2026-03-16T15:03:56", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 218, "status_code": 400, "message": "Payment processed"}
+{"timestamp": "2026-03-16T15:05:00", "level": "DEBUG", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 31, "status_code": 201, "message": "Cache hit for key user:3344"}
+{"timestamp": "2026-03-16T15:05:56", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 32, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T15:06:43", "level": "INFO", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 263, "status_code": 200, "message": "Order created: ORD-17754"}
+{"timestamp": "2026-03-16T15:07:01", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 4681, "status_code": 503, "message": "Database connection timeout after 1974ms"}
+{"timestamp": "2026-03-16T15:08:40", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 213, "status_code": 500, "message": "Search completed: 206 results"}
+{"timestamp": "2026-03-16T15:09:36", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 67, "status_code": 400, "message": "Order created: ORD-73968"}
+{"timestamp": "2026-03-16T15:10:22", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 47, "status_code": 400, "message": "Connection pool size: 470"}
+{"timestamp": "2026-03-16T15:11:48", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 1276, "status_code": 429, "message": "Connection pool near capacity: 91%"}
+{"timestamp": "2026-03-16T15:15:05", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 203, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T15:15:50", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 240, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T15:16:02", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 189, "status_code": 204, "message": "Order created: ORD-67637"}
+{"timestamp": "2026-03-16T15:16:19", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 80, "status_code": 503, "message": "Payment processed"}
+{"timestamp": "2026-03-16T15:19:41", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 8148, "status_code": 500, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T15:21:22", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 44, "status_code": 201, "message": "Query executed in 5429ms"}
+{"timestamp": "2026-03-16T15:24:30", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 289, "status_code": 500, "message": "Order created: ORD-62923"}
+{"timestamp": "2026-03-16T15:27:21", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 48, "status_code": 200, "message": "Query executed in 8050ms"}
+{"timestamp": "2026-03-16T15:28:43", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 38, "status_code": 301, "message": "Connection pool size: 18"}
+{"timestamp": "2026-03-16T15:29:20", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 21, "status_code": 200, "message": "Cache hit for key user:7723"}
+{"timestamp": "2026-03-16T15:35:41", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 3756, "status_code": 502, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T15:37:36", "level": "ERROR", "service": "payment-service", "endpoint": "/health", "response_time_ms": 1414, "status_code": 502, "message": "Internal server error: NullPointerException"}
+{"timestamp": "2026-03-16T15:39:21", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 210, "status_code": 200, "message": "Order created: ORD-27188"}
+{"timestamp": "2026-03-16T15:40:54", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 161, "status_code": 403, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T15:42:35", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 279, "status_code": 401, "message": "Order created: ORD-59518"}
+{"timestamp": "2026-03-16T15:44:05", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 10, "status_code": 401, "message": "Cache hit for key user:8740"}
+{"timestamp": "2026-03-16T15:44:08", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 209, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T15:44:31", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 60, "status_code": 500, "message": "Search completed: 53 results"}
+{"timestamp": "2026-03-16T15:44:52", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 42, "status_code": 200, "message": "Query executed in 5905ms"}
+{"timestamp": "2026-03-16T15:45:28", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 298, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T15:46:14", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 133, "status_code": 400, "message": "Search completed: 321 results"}
+{"timestamp": "2026-03-16T15:46:55", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 284, "status_code": 502, "message": "User authenticated"}
+{"timestamp": "2026-03-16T15:48:15", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 189, "status_code": 500, "message": "Order created: ORD-28352"}
+{"timestamp": "2026-03-16T15:48:21", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 181, "status_code": 404, "message": "Order created: ORD-17502"}
+{"timestamp": "2026-03-16T15:48:23", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 79, "status_code": 204, "message": "Payment processed"}
+{"timestamp": "2026-03-16T15:50:21", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 1956, "status_code": 404, "message": "Connection pool near capacity: 92%"}
+{"timestamp": "2026-03-16T16:02:29", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 30, "status_code": 204, "message": "Cache hit for key user:5105"}
+{"timestamp": "2026-03-16T16:04:29", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 31, "status_code": 204, "message": "Cache hit for key user:9789"}
+{"timestamp": "2026-03-16T16:05:06", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 47, "status_code": 200, "message": "Cache hit for key user:4368"}
+{"timestamp": "2026-03-16T16:09:28", "level": "DEBUG", "service": "order-service", "endpoint": "/health", "response_time_ms": 34, "status_code": 204, "message": "Query executed in 14515ms"}
+{"timestamp": "2026-03-16T16:12:20", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 69, "status_code": 500, "message": "Search completed: 414 results"}
+{"timestamp": "2026-03-16T16:13:22", "level": "WARN", "service": "payment-service", "endpoint": "/health", "response_time_ms": 920, "status_code": 401, "message": "Connection pool near capacity: 82%"}
+{"timestamp": "2026-03-16T16:14:29", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 77, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T16:15:36", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 135, "status_code": 204, "message": "Order created: ORD-41768"}
+{"timestamp": "2026-03-16T16:16:31", "level": "WARN", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 1850, "status_code": 403, "message": "Connection pool near capacity: 78%"}
+{"timestamp": "2026-03-16T16:20:33", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 266, "status_code": 503, "message": "Payment processed"}
+{"timestamp": "2026-03-16T16:20:44", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 295, "status_code": 301, "message": "User authenticated"}
+{"timestamp": "2026-03-16T16:21:58", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 40, "status_code": 400, "message": "Order created: ORD-48987"}
+{"timestamp": "2026-03-16T16:25:54", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 40, "status_code": 204, "message": "Cache hit for key user:5623"}
+{"timestamp": "2026-03-16T16:27:49", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 269, "status_code": 401, "message": "Search completed: 125 results"}
+{"timestamp": "2026-03-16T16:30:06", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 185, "status_code": 404, "message": "Payment processed"}
+{"timestamp": "2026-03-16T16:32:34", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 56, "status_code": 200, "message": "Search completed: 101 results"}
+{"timestamp": "2026-03-16T16:33:28", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 188, "status_code": 201, "message": "User authenticated"}
+{"timestamp": "2026-03-16T16:33:36", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 1560, "status_code": 502, "message": "Internal server error: NullPointerException"}
+{"timestamp": "2026-03-16T16:33:46", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 193, "status_code": 502, "message": "Search completed: 457 results"}
+{"timestamp": "2026-03-16T16:34:25", "level": "ERROR", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 5770, "status_code": 503, "message": "Internal server error: OutOfMemoryError"}
+{"timestamp": "2026-03-16T16:35:54", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 59, "status_code": 301, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T16:40:01", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 31, "status_code": 204, "message": "Query executed in 1081ms"}
+{"timestamp": "2026-03-16T16:41:48", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 195, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T16:42:40", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 25, "status_code": 403, "message": "Connection pool size: 360"}
+{"timestamp": "2026-03-16T16:43:57", "level": "DEBUG", "service": "user-service", "endpoint": "/health", "response_time_ms": 30, "status_code": 200, "message": "Query executed in 5412ms"}
+{"timestamp": "2026-03-16T16:44:30", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 225, "status_code": 201, "message": "User authenticated"}
+{"timestamp": "2026-03-16T16:45:53", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 260, "status_code": 200, "message": "Order created: ORD-22300"}
+{"timestamp": "2026-03-16T16:46:05", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/search", "response_time_ms": 114, "status_code": 301, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T16:46:40", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 168, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T16:47:33", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 257, "status_code": 204, "message": "User authenticated"}
+{"timestamp": "2026-03-16T16:48:32", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 257, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T16:52:57", "level": "DEBUG", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 36, "status_code": 503, "message": "Connection pool size: 153"}
+{"timestamp": "2026-03-16T16:55:27", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 25, "status_code": 404, "message": "Cache hit for key user:9704"}
+{"timestamp": "2026-03-16T16:57:17", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 268, "status_code": 204, "message": "User authenticated"}
+{"timestamp": "2026-03-16T16:58:02", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 9, "status_code": 200, "message": "Cache hit for key user:6152"}
+{"timestamp": "2026-03-16T16:58:22", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 141, "status_code": 404, "message": "User authenticated"}
+{"timestamp": "2026-03-16T16:58:29", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 46, "status_code": 503, "message": "Query executed in 10261ms"}
+{"timestamp": "2026-03-16T16:59:32", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 86, "status_code": 201, "message": "Search completed: 498 results"}
+{"timestamp": "2026-03-16T17:02:50", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 1725, "status_code": 500, "message": "Request failed: status 500"}
+{"timestamp": "2026-03-16T17:02:53", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 177, "status_code": 200, "message": "Order created: ORD-97416"}
+{"timestamp": "2026-03-16T17:04:24", "level": "DEBUG", "service": "user-service", "endpoint": "/health", "response_time_ms": 11, "status_code": 200, "message": "Connection pool size: 388"}
+{"timestamp": "2026-03-16T17:07:45", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 169, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T17:08:07", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 243, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T17:08:12", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 174, "status_code": 403, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T17:12:30", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 208, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T17:12:40", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 8926, "status_code": 503, "message": "Database connection timeout after 5204ms"}
+{"timestamp": "2026-03-16T17:19:07", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 1070, "status_code": 500, "message": "Request failed: status 503"}
+{"timestamp": "2026-03-16T17:19:20", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 220, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T17:22:04", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 123, "status_code": 404, "message": "Payment processed"}
+{"timestamp": "2026-03-16T17:22:49", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 12, "status_code": 201, "message": "Connection pool size: 428"}
+{"timestamp": "2026-03-16T17:24:20", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 55, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T17:28:57", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 20, "status_code": 201, "message": "Query executed in 4549ms"}
+{"timestamp": "2026-03-16T17:29:27", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 141, "status_code": 301, "message": "Order created: ORD-81146"}
+{"timestamp": "2026-03-16T17:31:02", "level": "WARN", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 659, "status_code": 404, "message": "Slow query detected: 4353ms"}
+{"timestamp": "2026-03-16T17:33:52", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 9, "status_code": 502, "message": "Query executed in 3066ms"}
+{"timestamp": "2026-03-16T17:34:41", "level": "INFO", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 130, "status_code": 200, "message": "Order created: ORD-78461"}
+{"timestamp": "2026-03-16T17:35:21", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 236, "status_code": 503, "message": "Order created: ORD-85748"}
+{"timestamp": "2026-03-16T17:36:12", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 206, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T17:36:23", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 178, "status_code": 200, "message": "Search completed: 210 results"}
+{"timestamp": "2026-03-16T17:37:43", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 31, "status_code": 403, "message": "Cache hit for key user:3332"}
+{"timestamp": "2026-03-16T17:41:04", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 142, "status_code": 403, "message": "Search completed: 197 results"}
+{"timestamp": "2026-03-16T17:46:59", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 69, "status_code": 201, "message": "Search completed: 28 results"}
+{"timestamp": "2026-03-16T17:47:38", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 16, "status_code": 400, "message": "Connection pool size: 194"}
+{"timestamp": "2026-03-16T17:51:37", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 260, "status_code": 401, "message": "Payment processed"}
+{"timestamp": "2026-03-16T17:51:42", "level": "WARN", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 1281, "status_code": 400, "message": "Slow query detected: 1061ms"}
+{"timestamp": "2026-03-16T17:54:14", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 35, "status_code": 403, "message": "Connection pool size: 447"}
+{"timestamp": "2026-03-16T17:54:50", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 35, "status_code": 403, "message": "Query executed in 4585ms"}
+{"timestamp": "2026-03-16T17:55:04", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 262, "status_code": 503, "message": "Order created: ORD-67524"}
+{"timestamp": "2026-03-16T17:55:32", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 5448, "status_code": 503, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T17:56:23", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 21, "status_code": 301, "message": "Query executed in 2409ms"}
+{"timestamp": "2026-03-16T17:58:37", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 252, "status_code": 403, "message": "Order created: ORD-23954"}
+{"timestamp": "2026-03-16T17:59:11", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 113, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T18:01:29", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 257, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T18:03:17", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 15, "status_code": 301, "message": "Connection pool size: 407"}
+{"timestamp": "2026-03-16T18:04:00", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 30, "status_code": 502, "message": "Query executed in 11548ms"}
+{"timestamp": "2026-03-16T18:04:30", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 701, "status_code": 403, "message": "Slow query detected: 2502ms"}
+{"timestamp": "2026-03-16T18:05:07", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 184, "status_code": 204, "message": "Order created: ORD-67961"}
+{"timestamp": "2026-03-16T18:07:03", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 20, "status_code": 204, "message": "User authenticated"}
+{"timestamp": "2026-03-16T18:07:25", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 263, "status_code": 403, "message": "Order created: ORD-75525"}
+{"timestamp": "2026-03-16T18:09:58", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 260, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T18:14:00", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 7, "status_code": 200, "message": "Cache hit for key user:5562"}
+{"timestamp": "2026-03-16T18:17:20", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 888, "status_code": 401, "message": "Connection pool near capacity: 78%"}
+{"timestamp": "2026-03-16T18:20:26", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 12, "status_code": 502, "message": "Cache hit for key user:7759"}
+{"timestamp": "2026-03-16T18:21:29", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 170, "status_code": 301, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T18:22:17", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 21, "status_code": 401, "message": "Query executed in 1414ms"}
+{"timestamp": "2026-03-16T18:22:23", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 1401, "status_code": 400, "message": "Retry attempt 204/3"}
+{"timestamp": "2026-03-16T18:23:51", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 146, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T18:24:52", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 47, "status_code": 500, "message": "Cache hit for key user:3465"}
+{"timestamp": "2026-03-16T18:26:11", "level": "INFO", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 289, "status_code": 204, "message": "Search completed: 448 results"}
+{"timestamp": "2026-03-16T18:27:02", "level": "ERROR", "service": "order-service", "endpoint": "/health", "response_time_ms": 2099, "status_code": 502, "message": "Database connection timeout after 9197ms"}
+{"timestamp": "2026-03-16T18:28:29", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 102, "status_code": 401, "message": "Search completed: 129 results"}
+{"timestamp": "2026-03-16T18:35:22", "level": "DEBUG", "service": "order-service", "endpoint": "/health", "response_time_ms": 16, "status_code": 200, "message": "Cache hit for key user:7814"}
+{"timestamp": "2026-03-16T18:40:01", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 1976, "status_code": 404, "message": "Rate limit approaching for IP 192.168.37.204"}
+{"timestamp": "2026-03-16T18:40:53", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 190, "status_code": 204, "message": "Search completed: 392 results"}
+{"timestamp": "2026-03-16T18:41:10", "level": "DEBUG", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 28, "status_code": 500, "message": "Query executed in 3500ms"}
+{"timestamp": "2026-03-16T18:42:51", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 3330, "status_code": 500, "message": "Database connection timeout after 2768ms"}
+{"timestamp": "2026-03-16T18:44:34", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 249, "status_code": 204, "message": "Order created: ORD-59422"}
+{"timestamp": "2026-03-16T18:45:55", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 1051, "status_code": 403, "message": "Connection pool near capacity: 85%"}
+{"timestamp": "2026-03-16T18:45:57", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 7187, "status_code": 502, "message": "Request failed: status 502"}
+{"timestamp": "2026-03-16T18:46:23", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 51, "status_code": 503, "message": "Search completed: 137 results"}
+{"timestamp": "2026-03-16T18:46:26", "level": "ERROR", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 2490, "status_code": 500, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T18:46:36", "level": "DEBUG", "service": "order-service", "endpoint": "/health", "response_time_ms": 49, "status_code": 401, "message": "Query executed in 10924ms"}
+{"timestamp": "2026-03-16T18:49:54", "level": "INFO", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 127, "status_code": 404, "message": "User authenticated"}
+{"timestamp": "2026-03-16T18:50:19", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 272, "status_code": 204, "message": "Search completed: 4 results"}
+{"timestamp": "2026-03-16T18:55:54", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 34, "status_code": 404, "message": "Connection pool size: 111"}
+{"timestamp": "2026-03-16T18:59:29", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 240, "status_code": 502, "message": "Payment processed"}
+{"timestamp": "2026-03-16T18:59:40", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 69, "status_code": 502, "message": "Payment processed"}
+{"timestamp": "2026-03-16T19:01:03", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 125, "status_code": 502, "message": "Search completed: 446 results"}
+{"timestamp": "2026-03-16T19:01:55", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 230, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T19:02:55", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 26, "status_code": 200, "message": "Cache hit for key user:2922"}
+{"timestamp": "2026-03-16T19:06:59", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 9261, "status_code": 503, "message": "Internal server error: OutOfMemoryError"}
+{"timestamp": "2026-03-16T19:09:11", "level": "INFO", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 237, "status_code": 200, "message": "Search completed: 449 results"}
+{"timestamp": "2026-03-16T19:14:49", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 239, "status_code": 201, "message": "Search completed: 107 results"}
+{"timestamp": "2026-03-16T19:17:23", "level": "DEBUG", "service": "order-service", "endpoint": "/metrics", "response_time_ms": 12, "status_code": 200, "message": "Query executed in 7321ms"}
+{"timestamp": "2026-03-16T19:17:33", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 147, "status_code": 404, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T19:18:29", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 235, "status_code": 404, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T19:18:46", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 188, "status_code": 301, "message": "Payment processed"}
+{"timestamp": "2026-03-16T19:27:40", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 39, "status_code": 301, "message": "Order created: ORD-79603"}
+{"timestamp": "2026-03-16T19:29:38", "level": "DEBUG", "service": "order-service", "endpoint": "/health", "response_time_ms": 27, "status_code": 200, "message": "Query executed in 9625ms"}
+{"timestamp": "2026-03-16T19:30:02", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 43, "status_code": 403, "message": "Query executed in 857ms"}
+{"timestamp": "2026-03-16T19:33:21", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 116, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T19:35:13", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 518, "status_code": 401, "message": "Rate limit approaching for IP 192.168.24.127"}
+{"timestamp": "2026-03-16T19:37:33", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 71, "status_code": 200, "message": "Order created: ORD-63856"}
+{"timestamp": "2026-03-16T19:38:25", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 6829, "status_code": 502, "message": "Request failed: status 503"}
+{"timestamp": "2026-03-16T19:39:39", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 40, "status_code": 301, "message": "Query executed in 2298ms"}
+{"timestamp": "2026-03-16T19:40:14", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 1465, "status_code": 401, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T19:40:19", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 1929, "status_code": 403, "message": "Retry attempt 337/3"}
+{"timestamp": "2026-03-16T19:42:06", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 74, "status_code": 503, "message": "Search completed: 54 results"}
+{"timestamp": "2026-03-16T19:44:56", "level": "DEBUG", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 10, "status_code": 200, "message": "Query executed in 11364ms"}
+{"timestamp": "2026-03-16T19:45:27", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 7, "status_code": 400, "message": "Query executed in 1279ms"}
+{"timestamp": "2026-03-16T19:45:34", "level": "ERROR", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 6867, "status_code": 500, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T19:46:33", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 19, "status_code": 204, "message": "Cache hit for key user:8793"}
+{"timestamp": "2026-03-16T19:47:00", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 239, "status_code": 400, "message": "Search completed: 144 results"}
+{"timestamp": "2026-03-16T19:47:09", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 6442, "status_code": 500, "message": "Internal server error: OutOfMemoryError"}
+{"timestamp": "2026-03-16T19:48:25", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 818, "status_code": 401, "message": "Slow query detected: 6342ms"}
+{"timestamp": "2026-03-16T19:51:39", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 48, "status_code": 204, "message": "Connection pool size: 165"}
+{"timestamp": "2026-03-16T19:53:36", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 70, "status_code": 403, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T19:55:05", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 179, "status_code": 401, "message": "User authenticated"}
+{"timestamp": "2026-03-16T19:55:24", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 138, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T19:57:32", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 44, "status_code": 301, "message": "Connection pool size: 251"}
+{"timestamp": "2026-03-16T19:58:09", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 246, "status_code": 401, "message": "Payment processed"}
+{"timestamp": "2026-03-16T20:01:52", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 153, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T20:03:25", "level": "INFO", "service": "order-service", "endpoint": "/health", "response_time_ms": 114, "status_code": 200, "message": "Order created: ORD-67741"}
+{"timestamp": "2026-03-16T20:04:38", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 158, "status_code": 400, "message": "Order created: ORD-14207"}
+{"timestamp": "2026-03-16T20:05:15", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 174, "status_code": 503, "message": "Search completed: 383 results"}
+{"timestamp": "2026-03-16T20:05:21", "level": "INFO", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 51, "status_code": 201, "message": "Order created: ORD-79352"}
+{"timestamp": "2026-03-16T20:06:09", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 255, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T20:07:01", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 299, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T20:07:45", "level": "ERROR", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 4018, "status_code": 502, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T20:08:00", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 76, "status_code": 403, "message": "Search completed: 305 results"}
+{"timestamp": "2026-03-16T20:11:09", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 1962, "status_code": 400, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T20:14:01", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 1676, "status_code": 400, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T20:17:13", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 50, "status_code": 403, "message": "Query executed in 11850ms"}
+{"timestamp": "2026-03-16T20:17:27", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 1586, "status_code": 401, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T20:18:14", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 5617, "status_code": 500, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T20:19:16", "level": "WARN", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 1481, "status_code": 429, "message": "Slow query detected: 8038ms"}
+{"timestamp": "2026-03-16T20:19:30", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 9, "status_code": 400, "message": "Query executed in 7659ms"}
+{"timestamp": "2026-03-16T20:20:32", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 273, "status_code": 503, "message": "Order created: ORD-33281"}
+{"timestamp": "2026-03-16T20:20:47", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 29, "status_code": 201, "message": "Cache hit for key user:8107"}
+{"timestamp": "2026-03-16T20:24:59", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 205, "status_code": 400, "message": "User authenticated"}
+{"timestamp": "2026-03-16T20:25:27", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 52, "status_code": 401, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T20:26:56", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 249, "status_code": 404, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T20:27:53", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 13, "status_code": 502, "message": "Connection pool size: 5"}
+{"timestamp": "2026-03-16T20:32:38", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 38, "status_code": 401, "message": "Query executed in 1882ms"}
+{"timestamp": "2026-03-16T20:34:07", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 23, "status_code": 401, "message": "Cache hit for key user:1019"}
+{"timestamp": "2026-03-16T20:34:24", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 33, "status_code": 200, "message": "Query executed in 3756ms"}
+{"timestamp": "2026-03-16T20:34:57", "level": "WARN", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 608, "status_code": 400, "message": "Retry attempt 176/3"}
+{"timestamp": "2026-03-16T20:35:45", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 20, "status_code": 204, "message": "Connection pool size: 382"}
+{"timestamp": "2026-03-16T20:35:52", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 8146, "status_code": 500, "message": "Database connection timeout after 412ms"}
+{"timestamp": "2026-03-16T20:38:30", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 45, "status_code": 200, "message": "Cache hit for key user:6052"}
+{"timestamp": "2026-03-16T20:38:38", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 26, "status_code": 200, "message": "Query executed in 10799ms"}
+{"timestamp": "2026-03-16T20:38:50", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 175, "status_code": 201, "message": "Order created: ORD-51333"}
+{"timestamp": "2026-03-16T20:44:24", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 182, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T20:46:02", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 172, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T20:49:32", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 2581, "status_code": 502, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T20:50:14", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 284, "status_code": 301, "message": "Order created: ORD-62288"}
+{"timestamp": "2026-03-16T20:50:17", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 542, "status_code": 400, "message": "Connection pool near capacity: 80%"}
+{"timestamp": "2026-03-16T20:51:34", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 268, "status_code": 400, "message": "Order created: ORD-13416"}
+{"timestamp": "2026-03-16T20:52:58", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 218, "status_code": 404, "message": "Payment processed"}
+{"timestamp": "2026-03-16T20:54:05", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 4932, "status_code": 500, "message": "Database connection timeout after 9475ms"}
+{"timestamp": "2026-03-16T20:57:19", "level": "DEBUG", "service": "api-gateway", "endpoint": "/health", "response_time_ms": 7, "status_code": 200, "message": "Cache hit for key user:2138"}
+{"timestamp": "2026-03-16T20:58:15", "level": "INFO", "service": "payment-service", "endpoint": "/health", "response_time_ms": 292, "status_code": 401, "message": "Payment processed"}
+{"timestamp": "2026-03-16T20:59:56", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 246, "status_code": 500, "message": "User authenticated"}
+{"timestamp": "2026-03-16T21:06:53", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 263, "status_code": 400, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T21:07:36", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 3683, "status_code": 502, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T21:09:28", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 120, "status_code": 403, "message": "Order created: ORD-55123"}
+{"timestamp": "2026-03-16T21:15:02", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 180, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T21:16:09", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 1867, "status_code": 429, "message": "Slow query detected: 12213ms"}
+{"timestamp": "2026-03-16T21:16:19", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 253, "status_code": 404, "message": "Retry attempt 380/3"}
+{"timestamp": "2026-03-16T21:18:53", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 11, "status_code": 502, "message": "Query executed in 12089ms"}
+{"timestamp": "2026-03-16T21:24:18", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 42, "status_code": 200, "message": "Connection pool size: 305"}
+{"timestamp": "2026-03-16T21:27:17", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 36, "status_code": 400, "message": "Query executed in 11163ms"}
+{"timestamp": "2026-03-16T21:29:01", "level": "DEBUG", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 41, "status_code": 204, "message": "Query executed in 3895ms"}
+{"timestamp": "2026-03-16T21:30:29", "level": "INFO", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 145, "status_code": 403, "message": "Search completed: 95 results"}
+{"timestamp": "2026-03-16T21:32:16", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 42, "status_code": 403, "message": "Query executed in 1828ms"}
+{"timestamp": "2026-03-16T21:34:20", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 37, "status_code": 403, "message": "Cache hit for key user:1304"}
+{"timestamp": "2026-03-16T21:38:37", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 34, "status_code": 401, "message": "Cache hit for key user:9189"}
+{"timestamp": "2026-03-16T21:41:27", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 239, "status_code": 500, "message": "Payment processed"}
+{"timestamp": "2026-03-16T21:44:44", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 285, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T21:44:51", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 5724, "status_code": 500, "message": "Database connection timeout after 2749ms"}
+{"timestamp": "2026-03-16T21:45:16", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 46, "status_code": 200, "message": "Query executed in 13676ms"}
+{"timestamp": "2026-03-16T21:45:42", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 299, "status_code": 400, "message": "Rate limit approaching for IP 192.168.52.24"}
+{"timestamp": "2026-03-16T21:46:07", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 242, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T21:46:09", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/orders", "response_time_ms": 277, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T21:48:46", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 40, "status_code": 404, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T21:49:20", "level": "INFO", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 98, "status_code": 204, "message": "User authenticated"}
+{"timestamp": "2026-03-16T21:51:12", "level": "WARN", "service": "order-service", "endpoint": "/health", "response_time_ms": 850, "status_code": 404, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T21:52:30", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 30, "status_code": 200, "message": "Query executed in 5723ms"}
+{"timestamp": "2026-03-16T21:52:47", "level": "ERROR", "service": "order-service", "endpoint": "/health", "response_time_ms": 4287, "status_code": 503, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T21:53:10", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 50, "status_code": 301, "message": "Query executed in 13644ms"}
+{"timestamp": "2026-03-16T21:53:55", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 109, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T21:54:44", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 1981, "status_code": 401, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T21:57:18", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 161, "status_code": 200, "message": "Search completed: 247 results"}
+{"timestamp": "2026-03-16T21:58:04", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 82, "status_code": 301, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T21:59:39", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 224, "status_code": 429, "message": "Deprecated API version used"}
+{"timestamp": "2026-03-16T22:02:38", "level": "DEBUG", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 45, "status_code": 200, "message": "Cache hit for key user:4860"}
+{"timestamp": "2026-03-16T22:02:38", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 264, "status_code": 503, "message": "Payment processed"}
+{"timestamp": "2026-03-16T22:02:58", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 50, "status_code": 200, "message": "Query executed in 9407ms"}
+{"timestamp": "2026-03-16T22:04:00", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 7814, "status_code": 500, "message": "Authentication service unavailable"}
+{"timestamp": "2026-03-16T22:04:02", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 71, "status_code": 503, "message": "Payment processed"}
+{"timestamp": "2026-03-16T22:04:35", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/payments", "response_time_ms": 109, "status_code": 500, "message": "Search completed: 103 results"}
+{"timestamp": "2026-03-16T22:07:59", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 29, "status_code": 200, "message": "Cache hit for key user:3554"}
+{"timestamp": "2026-03-16T22:09:04", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/auth/login", "response_time_ms": 34, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T22:12:04", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 81, "status_code": 500, "message": "Order created: ORD-58571"}
+{"timestamp": "2026-03-16T22:13:39", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 49, "status_code": 500, "message": "Query executed in 9473ms"}
+{"timestamp": "2026-03-16T22:13:54", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 269, "status_code": 503, "message": "Order created: ORD-61417"}
+{"timestamp": "2026-03-16T22:14:18", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 227, "status_code": 401, "message": "Slow query detected: 1729ms"}
+{"timestamp": "2026-03-16T22:16:39", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 135, "status_code": 401, "message": "User authenticated"}
+{"timestamp": "2026-03-16T22:17:26", "level": "WARN", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 590, "status_code": 429, "message": "Rate limit approaching for IP 192.168.88.240"}
+{"timestamp": "2026-03-16T22:19:30", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/notifications", "response_time_ms": 26, "status_code": 502, "message": "User authenticated"}
+{"timestamp": "2026-03-16T22:19:57", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 27, "status_code": 201, "message": "Cache hit for key user:9702"}
+{"timestamp": "2026-03-16T22:27:22", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 277, "status_code": 204, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T22:28:31", "level": "INFO", "service": "payment-service", "endpoint": "/metrics", "response_time_ms": 170, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T22:30:40", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 34, "status_code": 500, "message": "Cache hit for key user:4268"}
+{"timestamp": "2026-03-16T22:33:27", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 124, "status_code": 200, "message": "Order created: ORD-66532"}
+{"timestamp": "2026-03-16T22:37:06", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 193, "status_code": 204, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T22:39:31", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 39, "status_code": 200, "message": "Query executed in 2098ms"}
+{"timestamp": "2026-03-16T22:39:34", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 48, "status_code": 403, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T22:41:44", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/notifications", "response_time_ms": 23, "status_code": 403, "message": "Payment processed"}
+{"timestamp": "2026-03-16T22:42:03", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 5117, "status_code": 503, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T22:43:45", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/users", "response_time_ms": 10, "status_code": 502, "message": "Cache hit for key user:2049"}
+{"timestamp": "2026-03-16T22:47:02", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 39, "status_code": 403, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T22:47:05", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 9, "status_code": 200, "message": "Cache hit for key user:7504"}
+{"timestamp": "2026-03-16T22:47:59", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 168, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T22:49:31", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/orders", "response_time_ms": 21, "status_code": 401, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T22:50:33", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/users", "response_time_ms": 212, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T22:51:08", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 101, "status_code": 503, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T22:53:48", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 1329, "status_code": 429, "message": "Rate limit approaching for IP 192.168.10.128"}
+{"timestamp": "2026-03-16T22:56:00", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 9680, "status_code": 503, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T22:57:42", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 161, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T22:59:30", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/users", "response_time_ms": 32, "status_code": 503, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T22:59:30", "level": "ERROR", "service": "payment-service", "endpoint": "/api/v1/notifications", "response_time_ms": 2702, "status_code": 502, "message": "Database connection timeout after 522ms"}
+{"timestamp": "2026-03-16T23:01:22", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 73, "status_code": 500, "message": "User authenticated"}
+{"timestamp": "2026-03-16T23:05:11", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/payments", "response_time_ms": 131, "status_code": 502, "message": "Payment processed"}
+{"timestamp": "2026-03-16T23:05:45", "level": "WARN", "service": "api-gateway", "endpoint": "/metrics", "response_time_ms": 1173, "status_code": 403, "message": "Rate limit approaching for IP 192.168.211.78"}
+{"timestamp": "2026-03-16T23:06:20", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 262, "status_code": 200, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T23:08:16", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 10, "status_code": 200, "message": "Query executed in 13725ms"}
+{"timestamp": "2026-03-16T23:09:22", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 198, "status_code": 401, "message": "Payment processed"}
+{"timestamp": "2026-03-16T23:09:58", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/products", "response_time_ms": 91, "status_code": 200, "message": "Search completed: 494 results"}
+{"timestamp": "2026-03-16T23:12:20", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/products", "response_time_ms": 35, "status_code": 200, "message": "Connection pool size: 427"}
+{"timestamp": "2026-03-16T23:15:14", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 216, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T23:16:43", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 165, "status_code": 401, "message": "Request processed successfully"}
+{"timestamp": "2026-03-16T23:17:09", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/payments", "response_time_ms": 29, "status_code": 502, "message": "Query executed in 11411ms"}
+{"timestamp": "2026-03-16T23:17:51", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/search", "response_time_ms": 14, "status_code": 200, "message": "Cache hit for key user:7906"}
+{"timestamp": "2026-03-16T23:19:46", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 106, "status_code": 404, "message": "Order created: ORD-20814"}
+{"timestamp": "2026-03-16T23:21:21", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 48, "status_code": 502, "message": "Connection pool size: 227"}
+{"timestamp": "2026-03-16T23:25:23", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/notifications", "response_time_ms": 32, "status_code": 200, "message": "Payment processed"}
+{"timestamp": "2026-03-16T23:25:30", "level": "WARN", "service": "order-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 814, "status_code": 403, "message": "Rate limit approaching for IP 192.168.199.69"}
+{"timestamp": "2026-03-16T23:28:33", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 50, "status_code": 200, "message": "Query executed in 1473ms"}
+{"timestamp": "2026-03-16T23:29:40", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 223, "status_code": 502, "message": "User authenticated"}
+{"timestamp": "2026-03-16T23:31:13", "level": "INFO", "service": "user-service", "endpoint": "/api/v1/search", "response_time_ms": 36, "status_code": 201, "message": "Payment processed"}
+{"timestamp": "2026-03-16T23:32:52", "level": "DEBUG", "service": "user-service", "endpoint": "/metrics", "response_time_ms": 38, "status_code": 200, "message": "Cache hit for key user:9161"}
+{"timestamp": "2026-03-16T23:33:07", "level": "DEBUG", "service": "user-service", "endpoint": "/api/v1/orders", "response_time_ms": 43, "status_code": 400, "message": "Query executed in 3496ms"}
+{"timestamp": "2026-03-16T23:37:38", "level": "INFO", "service": "order-service", "endpoint": "/api/v1/users", "response_time_ms": 268, "status_code": 400, "message": "User authenticated"}
+{"timestamp": "2026-03-16T23:41:54", "level": "INFO", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 288, "status_code": 200, "message": "Search completed: 258 results"}
+{"timestamp": "2026-03-16T23:42:18", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 109, "status_code": 301, "message": "User authenticated"}
+{"timestamp": "2026-03-16T23:43:12", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/payments", "response_time_ms": 154, "status_code": 200, "message": "User authenticated"}
+{"timestamp": "2026-03-16T23:43:25", "level": "ERROR", "service": "order-service", "endpoint": "/api/v1/orders", "response_time_ms": 3024, "status_code": 502, "message": "Internal server error: StackOverflow"}
+{"timestamp": "2026-03-16T23:45:14", "level": "INFO", "service": "payment-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 107, "status_code": 401, "message": "Order created: ORD-43902"}
+{"timestamp": "2026-03-16T23:46:30", "level": "ERROR", "service": "api-gateway", "endpoint": "/api/v1/products", "response_time_ms": 7052, "status_code": 502, "message": "Payment gateway unreachable"}
+{"timestamp": "2026-03-16T23:47:56", "level": "DEBUG", "service": "order-service", "endpoint": "/api/v1/products", "response_time_ms": 37, "status_code": 200, "message": "Connection pool size: 15"}
+{"timestamp": "2026-03-16T23:48:47", "level": "DEBUG", "service": "api-gateway", "endpoint": "/api/v1/search", "response_time_ms": 23, "status_code": 500, "message": "Connection pool size: 116"}
+{"timestamp": "2026-03-16T23:51:02", "level": "DEBUG", "service": "payment-service", "endpoint": "/api/v1/auth/login", "response_time_ms": 47, "status_code": 301, "message": "Connection pool size: 87"}
+{"timestamp": "2026-03-16T23:55:22", "level": "ERROR", "service": "user-service", "endpoint": "/api/v1/auth/refresh", "response_time_ms": 8642, "status_code": 503, "message": "Database connection timeout after 7416ms"}
