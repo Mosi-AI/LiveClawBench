@@ -104,7 +104,7 @@ harbor run --dataset liveclawbench@1.0 -a openclaw \
 ### Check Results
 
 ```bash
-cat jobs/*/logs/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
+cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 ```
 
 ### Common Flags
@@ -215,8 +215,15 @@ tasks/<task-name>/
 
 Tasks use one of three evaluation patterns (verify.py, evaluate.py, or LLM judge); all write a
 scalar 0.0–1.0 score to `/logs/verifier/reward.txt`. The most common pattern is `verify.py`
-which prints `Score: X.X/1.0` with partial credit. See `docs/reference/task-format.md` for
-details on all three patterns.
+which prints `Score: X.X/1.0` with partial credit.
+
+Tasks with sub-dimension scoring additionally write `/logs/verifier/reward.json`. Two conventions
+apply universally: the `reward` key is mandatory (canonical aggregate, `float ∈ [0.0, 1.0]`);
+non-numeric fields must use the `_meta_` prefix (harbor's verifier model enforces
+`dict[str, float | int]` — string values cause a `ValidationError`).
+
+See `docs/reference/task-format.md` for all three evaluation patterns and `docs/reference/jobs-output.md`
+for the full jobs/ output directory layout when debugging results.
 
 ## Triple-Axis Complexity Framework
 
