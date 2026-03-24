@@ -51,9 +51,9 @@ jobs/
         │           └── harbor.jsonl      # Raw session JSONL — one JSON object per message
         │
         ├── verifier/                     # bind-mount → /logs/verifier/ inside container
-        │   ├── reward.txt                # Float reward value written by test.sh (0.0 / 0.5 / 1.0)
-        │   ├── test-stdout.txt           # stdout of test.sh
-        │   └── test-stderr.txt           # stderr of test.sh
+        │   ├── reward.txt                # Float reward value written by test.sh (0.0 / 0.5 / 1.0); present when test.sh uses the text format
+        │   ├── reward.json               # JSON reward written by test.sh; present when test.sh uses the JSON format (e.g. multi-dimensional scores)
+        │   └── test-stdout.txt           # stdout + stderr of test.sh (stderr is redirected via 2>&1)
         │
         └── artifacts/                    # bind-mount → /logs/artifacts/ inside container
                                           # Task-specific outputs (screenshots, exports, etc.)
@@ -114,7 +114,7 @@ Aggregated statistics across all trials in the job.
 
 | JSON path | Meaning |
 |-----------|---------|
-| `stats.evals.<agent>__<model>__<dataset>.reward_stats` | Reward distribution (mean, min, max, std) |
+| `stats.evals.<agent>__<model>__<dataset>.reward_stats` | Reward frequency distribution: `{reward_key: {reward_value: [trial_name, ...]}}`. All reward keys from `rewards` are tracked independently; the conventional key is `"reward"`. |
 | `stats.evals.<agent>__<model>__<dataset>.n_errors` | Count of trials that raised an exception |
 
 ### `<trial-name>/result.json`
@@ -123,7 +123,7 @@ Single trial result.
 
 | JSON path | Meaning |
 |-----------|---------|
-| `verifier_result.rewards.reward` | Final numeric score written by `test.sh` |
+| `verifier_result.rewards` | Dict of all reward keys written by `test.sh` (e.g. `{"reward": 1.0}` for `reward.txt`, or `{"reward": 0.8, "accuracy": 0.9}` for a multi-dimensional `reward.json`). Harbor tracks every key independently. |
 | `exception_info` | Structured exception if Harbor itself crashed during the trial |
 | `agent_result.n_input_tokens` | Input token count reported by the agent |
 | `agent_result.n_output_tokens` | Output token count reported by the agent |
@@ -159,8 +159,14 @@ The raw OpenClaw session file — one JSON object per line. This is the primary 
 ### `verifier/reward.txt`
 
 A single line containing a float (e.g. `1.0`, `0.5`, `0.0`). Written by `test.sh` inside the
-container. If the file is **absent**, the verifier did not run (usually because the agent timed out
-before the environment reached the verification phase).
+container. If the file is **absent**, check for `reward.json` before concluding the verifier did
+not run (the agent may have timed out, or the task uses the JSON format instead).
+
+### `verifier/reward.json`
+
+A JSON object written by `test.sh` when the task uses multi-dimensional scoring (e.g.
+`{"reward": 0.8, "accuracy": 0.9}`). Harbor reads this only when `reward.txt` is absent.
+Every key in the object is tracked independently in `reward_stats`.
 
 ---
 
@@ -171,10 +177,10 @@ before the environment reached the verification phase).
 | Score is 0.0 | `verifier/test-stdout.txt` (what test assertion failed?) | `verifier/reward.txt` to confirm the value was written |
 | `trajectory.json` missing | `agent/openclaw-state/…/harbor.jsonl` exists? | `agent/openclaw.txt` for agent startup errors |
 | Trial has an exception | `<trial>/result.json` → `exception_info` | `trial.log` for the Harbor-layer traceback |
-| Agent never started / timed out | `agent/command-1/return-code.txt` | `agent/command-0/return-code.txt` (setup failure?) |
+| Agent never started / timed out | `agent/command-0/return-code.txt` (config injection failure?) | `agent/command-1/return-code.txt` (main process exit code) |
 | Environment build failed | `trial.log` — search for `DockerBuild` | `agent/install.sh` to inspect the installation script |
 | Token usage is null | `agent/openclaw.txt` — final JSON `usage` field | `harbor.jsonl` — per-message `usage` fields |
-| `verifier/reward.txt` absent | Agent timeout caused verifier phase to be skipped | `trial.log` — confirm whether the verifier phase was reached |
+| `verifier/reward.txt` absent | Check `verifier/reward.json` (task may use JSON format) | If both absent, agent timed out before the verifier phase — confirm via `trial.log` |
 
 ---
 
