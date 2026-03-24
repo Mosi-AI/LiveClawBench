@@ -1,7 +1,7 @@
 version = "1.0"
 
 [metadata]
-difficulty = "easy"
+difficulty = "hard"
 category = "open-world"
 tags = ["devops_env_repair", "coding_software_dev", "browser_web_scraping"]
 
@@ -9,8 +9,8 @@ domain = "DevOps & Env Repair"
 domains_multi = ["DevOps & Env Repair", "Coding & Software Dev", "Browser & Web Scraping"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
-factor_a1 = 0   # Cross-Service Dependency
-factor_a2 = 1   # Contaminated Initial State
+factor_a1 = 1   # Cross-Service Dependency
+factor_a2 = 0   # Contaminated Initial State
 factor_b1 = 0   # Implicit Goal Resolution
 factor_b2 = 0   # Knowledge System Maintenance
 
@@ -20,7 +20,7 @@ case_id = 23
 timeout_sec = 900.0
 
 [agent]
-timeout_sec = 1800.0
+timeout_sec = 1200.0
 
 [environment]
 build_timeout_sec = 600.0

@@ -434,6 +434,11 @@ def main():
     print(f"Answer score: {answer_score['total']}/2")
     print(f"Results written to {reward_output_path}")
 
+    reward_output_path_txt = Path("/logs/verifier/reward.txt")
+    with open(reward_output_path_txt, 'w', encoding='utf-8') as f:
+        f.write(f"{total_score/12:.3f}")
+    print(f"Float score written to {reward_output_path_txt}")
 
+    
 if __name__ == "__main__":
     main()
