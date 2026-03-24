@@ -3,20 +3,8 @@ name: Validate Tasks
 on:
   pull_request:
     branches: [main]
-    paths:
-      - "tasks/**"
-      - "docs/metadata/cases_registry.csv"
-      - "docs/reference/complexity-framework.md"
-      - "scripts/validate_tasks.py"
-      - "scripts/validate_annotations.py"
   push:
     branches: [main]
-    paths:
-      - "tasks/**"
-      - "docs/metadata/cases_registry.csv"
-      - "docs/reference/complexity-framework.md"
-      - "scripts/validate_tasks.py"
-      - "scripts/validate_annotations.py"
 
 jobs:
   validate:
@@ -25,12 +13,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if validation-relevant files changed
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - "tasks/**"
+              - "docs/metadata/cases_registry.csv"
+              - "docs/reference/complexity-framework.md"
+              - "scripts/validate_tasks.py"
+              - "scripts/validate_annotations.py"
+
       - uses: actions/setup-python@v5
+        if: steps.filter.outputs.relevant == 'true'
         with:
           python-version: "3.12"
 
       - name: Validate task structure
+        if: steps.filter.outputs.relevant == 'true'
         run: python scripts/validate_tasks.py
 
       - name: Check annotation consistency
+        if: steps.filter.outputs.relevant == 'true'
         run: python scripts/validate_annotations.py
+
+      - name: Skip (no validation-relevant files changed)
+        if: steps.filter.outputs.relevant == 'false'
+        run: echo "No task/annotation changes detected — skipping validation."
