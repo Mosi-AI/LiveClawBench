@@ -166,7 +166,10 @@ not run (the agent may have timed out, or the task uses the JSON format instead)
 
 A JSON object written by `test.sh` when the task uses multi-dimensional scoring (e.g.
 `{"reward": 0.8, "accuracy": 0.9}`). Harbor reads this only when `reward.txt` is absent.
-Every key in the object is tracked independently in `reward_stats`.
+Every `float | int` key is tracked independently in `reward_stats`. Non-numeric fields must
+use the `_meta_` prefix — harbor's verifier model enforces `dict[str, float | int]` and an
+un-prefixed string value causes a `ValidationError` at parse time. See
+[reward.json rules](../guide/adding-tasks.md#verifypy-contract) in the Adding Tasks guide.
 
 ---
 

@@ -211,7 +211,7 @@ Harbor supports two parallel output files written by `test.sh`:
 **`reward.json` rules:**
 
 1. **`reward` is mandatory** — the canonical aggregate score, `float ∈ [0.0, 1.0]`, normalized weighted sum of all sub-dimensions. This is the key Harbor uses for dataset-level metrics.
-2. **`_meta_` prefix for non-float fields** — any string or nested-object field (rationales, model names, mode flags) must use the `_meta_` prefix. Harbor tracks all `float | int` keys in `reward_stats`; un-prefixed string values would corrupt the aggregation.
+2. **`_meta_` prefix for non-float fields** — any string or nested-object field (rationales, model names, mode flags) must use the `_meta_` prefix. Harbor's `VerifierResult` model enforces `rewards: dict[str, float | int]`; an un-prefixed string value causes a Pydantic `ValidationError` when harbor reads `reward.json` as the sole reward file, aborting the trial with an exception. (When dual-writing, harbor reads `reward.txt` and never parses `reward.json`, so the constraint only matters for json-only tasks — but the prefix is good hygiene regardless.)
 3. **Other `float | int` keys are task-type specific** — sub-dimension scores (e.g. `answer_accuracy`, `contract_valid`, `db_integrity`) are unrestricted. All numeric keys are tracked independently in `reward_stats`; derive `reward` from them via `rubric.json` weights.
 
 `reward.txt` contains only the `reward` value:
