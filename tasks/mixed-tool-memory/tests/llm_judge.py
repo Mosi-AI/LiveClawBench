@@ -151,14 +151,15 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
         return json.loads(response.read().decode("utf-8"))
 
 
+DEFAULT_JUDGE_MODEL = "qwen3-235b-a22b-instruct-2507"
+
+
 def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
     base_url = os.environ.get("JUDGE_BASE_URL") or ""
-    model = os.environ.get("JUDGE_MODEL_ID") or ""
+    model = os.environ.get("JUDGE_MODEL_ID") or DEFAULT_JUDGE_MODEL
     api_key = os.environ.get("JUDGE_API_KEY") or ""
     if not base_url:
         raise RuntimeError("JUDGE_BASE_URL is not set for LLM judging")
-    if not model:
-        raise RuntimeError("JUDGE_MODEL_ID is not set for LLM judging")
     if not api_key:
         raise RuntimeError("JUDGE_API_KEY is not set for LLM judging")
 
@@ -290,16 +291,16 @@ def main() -> None:
         "workspace_update": score["workspace_update"],
         "integration_reasoning": clamp_score(judge_payload.get("integration_reasoning")),
         "note_quality": clamp_score(judge_payload.get("note_quality")),
-        "judge_rationales": judge_payload.get("rationales", {}),
-        "judge_model": debug_payload.get("model"),
-        "judge_mode": debug_payload.get("mode"),
+        "_meta_rationales": judge_payload.get("rationales", {}),
+        "_meta_judge_model": debug_payload.get("model"),
+        "_meta_judge_mode": debug_payload.get("mode"),
     }
-    score["final_score"] = weighted_sum(score, rubric)
+    score["reward"] = weighted_sum(score, rubric)
 
     (dc.ROOT / "reward.json").write_text(
         json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    (dc.ROOT / "reward.txt").write_text(str(score["final_score"]), encoding="utf-8")
+    (dc.ROOT / "reward.txt").write_text(str(score["reward"]), encoding="utf-8")
 
 
 if __name__ == "__main__":
