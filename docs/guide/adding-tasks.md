@@ -191,27 +191,30 @@ Harbor supports two parallel output files written by `test.sh`:
 
 | File | Format | Role |
 |------|--------|------|
-| `/logs/verifier/reward.json` | Structured JSON | Recommended; contains sub-scores, judge rationale, model metadata |
-| `/logs/verifier/reward.txt` | Plain scalar | Legacy; Harbor reads this for ranking |
+| `/logs/verifier/reward.txt` | Plain scalar | Required; Harbor reads this for the final score |
+| `/logs/verifier/reward.json` | Structured JSON | Recommended; sub-dimension scores and metadata for post-hoc analysis |
 
-**Recommended pattern: dual-write.** Write both files in every task. Harbor reads `reward.txt` for the final scalar; `reward.json` is preserved for post-hoc analysis and sub-dimension breakdowns.
+**Recommended pattern: dual-write.** Write both files. `reward.txt` is the authoritative scalar; `reward.json` preserves per-dimension breakdown for analysis. Harbor reads `reward.txt` first; `reward.json` is used as fallback only when `reward.txt` is absent.
 
-`reward.json` schema (extend as needed):
+`reward.json` schema — two hard rules, everything else is task-type specific:
 
 ```json
 {
   "dimension_a": 0.75,
   "dimension_b": 1.0,
-  "judge_rationales": {
-    "dimension_a": "...",
-    "dimension_b": "..."
-  },
-  "judge_model": "kimi-k2.5",
-  "final_score": 0.875
+  "_meta_rationale": "The agent correctly identified ...",
+  "_meta_judge_model": "kimi-k2.5",
+  "reward": 0.875
 }
 ```
 
-`reward.txt` contains only the final scalar:
+**`reward.json` rules:**
+
+1. **`reward` is mandatory** — the canonical aggregate score, `float ∈ [0.0, 1.0]`, normalized weighted sum of all sub-dimensions. This is the key Harbor uses for dataset-level metrics.
+2. **`_meta_` prefix for non-float fields** — any string or nested-object field (rationales, model names, mode flags) must use the `_meta_` prefix. Harbor tracks all `float | int` keys in `reward_stats`; un-prefixed string values would corrupt the aggregation.
+3. **Other `float | int` keys are task-type specific** — sub-dimension scores (e.g. `answer_accuracy`, `contract_valid`, `db_integrity`) are unrestricted. All numeric keys are tracked independently in `reward_stats`; derive `reward` from them via `rubric.json` weights.
+
+`reward.txt` contains only the `reward` value:
 
 ```
 0.875
@@ -227,7 +230,7 @@ Harbor supports two parallel output files written by `test.sh`:
 `test.sh` **must**:
 1. Call `verify.py` (or equivalent scoring logic)
 2. Write the scalar score to `/logs/verifier/reward.txt`
-3. Optionally write structured results to `/logs/verifier/reward.json`
+3. For tasks with sub-dimension scoring, also write `/logs/verifier/reward.json` following the rules above
 
 Scoring convention:
 - `1.0` — task fully completed
@@ -261,17 +264,15 @@ mkdir -p /logs/verifier
 SCORE=$(python3 /tests/verify.py 2>&1 | grep -oP 'Score:\s*\K[0-9.]+' | tail -1)
 echo "$SCORE" > /logs/verifier/reward.txt
 
-# Optional: write structured JSON alongside the scalar
+# Optional: write structured JSON for sub-dimension analysis
 python3 -c "
-import json, sys
+import json
 score = float('$SCORE')
-result = {'final_score': score}
+result = {'reward': score}
 json.dump(result, open('/logs/verifier/reward.json', 'w'), indent=2)
 "
 echo "Verification score: $SCORE"
 ```
-
-> **Note:** `reward.txt` is the legacy contract that Harbor currently uses for ranking. Future versions will migrate fully to `reward.json`. Writing both is recommended for forward compatibility.
 
 ## `solve.sh` — Oracle Baseline
 

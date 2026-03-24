@@ -127,3 +127,34 @@ LiveClawBench tasks use one of three evaluation patterns, each suited to differe
 | **LLM judge** | `test.sh` + `deterministic_checks.py` + `llm_judge.py` + `answer_key.json` + `rubric.json` | Structured JSON → `reward.txt` | Research/complex tasks (6) |
 
 All patterns ultimately write a scalar score to `/logs/verifier/reward.txt`. The `verify.py` pattern is recommended for new tasks (see [Adding Tasks](../guide/adding-tasks.md) for the full contract).
+
+---
+
+### `reward.json` Structure
+
+Tasks that produce sub-dimension scores write `/logs/verifier/reward.json` alongside `reward.txt`. Two rules apply universally; everything else is task-type specific:
+
+| Rule | Description |
+|------|-------------|
+| **`reward` is mandatory** | The canonical aggregate score — `float ∈ [0.0, 1.0]`, normalized weighted sum of all sub-dimensions. Harbor uses this key for dataset-level metrics. |
+| **`_meta_` prefix for non-float fields** | Any string or nested-object field (rationales, model names, mode flags) must carry the `_meta_` prefix. Harbor tracks all `float \| int` keys in `reward_stats`; un-prefixed string values corrupt dataset-level aggregation. |
+
+All other `float | int` keys are unrestricted and task-type specific (e.g. `answer_accuracy`, `contract_valid`, `db_integrity`). Harbor tracks every numeric key independently in `reward_stats`; aggregate `reward` via weights declared in `rubric.json`.
+
+Minimal example:
+
+```json
+{
+  "contract_valid":   1.0,
+  "answer_accuracy":  0.75,
+  "_meta_rationale":  "The agent correctly identified ...",
+  "_meta_judge_model": "kimi-k2.5",
+  "reward":           0.80
+}
+```
+
+`reward.txt` must contain exactly the value of `reward`:
+
+```
+0.8
+```
