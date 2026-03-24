@@ -1,21 +1,3 @@
-# Skill Deduplication & Consolidation
-
-Evaluate whether an agent can identify redundant and overlapping sub-modules within a single skill directory, analyze their functional coverage, and consolidate them into a minimal set of well-organized sub-skills that preserve all original functionality while eliminating duplication. The target skill is 'sales-data-pipeline', which contains 14 fragmented sub-modules with significant overlap.
+/skill skill-creator clean up, restructuring the /workspace/environment/skills/sales-data-pipeline directory
 
 
-## Agent Prompt
-
-/skill skill-creator clean up, restructuring the sales-data-pipeline directory
-
-
-## Evaluation Criteria
-
-Maximum score: 100 points
-
-- **REDUNDANCY_IDENTIFIED** (15 pts): Model explicitly identifies which sub-modules overlap or duplicate each other (e.g., csv_data_loader is a subset of data_ingestion_service)
-- **COVERAGE_PRESERVED** (20 pts): All functional capabilities from the original 14 sub-modules are preserved in the consolidated set (no functionality lost)
-- **SKILL_COUNT_REDUCED** (15 pts): The number of sub-skills is reduced to 6 or fewer (from 14), demonstrating meaningful consolidation
-- **OVERLAP_ELIMINATED** (15 pts): No two consolidated sub-skills have significant functional overlap (>30% feature overlap)
-- **PIPELINE_COHERENT** (15 pts): Consolidated sub-skills form a logical pipeline (ingestion -> cleaning/validation -> transformation -> aggregation/reporting -> export)
-- **SKILL_QUALITY** (10 pts): Each consolidated SKILL.md is well-structured with clear description, inputs, outputs, and implementation details
-- **CONSOLIDATION_RATIONALE** (10 pts): Model provides clear rationale for merge decisions (which sub-modules merged, why, what was redundant)
