@@ -12,18 +12,23 @@ import sys
 
 # --- Arithmetic operations (two columns) ---
 
+
 def calc_sum(a, b):
     return a + b
+
 
 def calc_diff(a, b):
     return a - b
 
+
 def calc_multiply(a, b):
     return a * b
+
 
 def calc_percentage(a, b):
     total = a + b
     return round(a / total * 100, 4) if total != 0 else 0
+
 
 BINARY_CALCS = {
     "sum": calc_sum,
@@ -33,6 +38,7 @@ BINARY_CALCS = {
 }
 
 # --- Analytical operations (one column) ---
+
 
 def calc_cumulative_sum(records, col, result_name):
     running = 0
@@ -85,12 +91,21 @@ ALL_CALCS = set(BINARY_CALCS.keys()) | UNARY_CALCS
 def main():
     parser = argparse.ArgumentParser(description="Compute derived columns")
     parser.add_argument("-i", "--input", required=True, help="Input JSON records file")
-    parser.add_argument("--calc", required=True, choices=sorted(ALL_CALCS),
-                        help="Calculation type")
-    parser.add_argument("--columns", required=True, help="Column name(s), comma-separated")
-    parser.add_argument("--result-name", default="calculated", help="Name for new column")
-    parser.add_argument("--rank-method", default="dense", choices=["dense", "min", "max"],
-                        help="Ranking method (only for rank calc)")
+    parser.add_argument(
+        "--calc", required=True, choices=sorted(ALL_CALCS), help="Calculation type"
+    )
+    parser.add_argument(
+        "--columns", required=True, help="Column name(s), comma-separated"
+    )
+    parser.add_argument(
+        "--result-name", default="calculated", help="Name for new column"
+    )
+    parser.add_argument(
+        "--rank-method",
+        default="dense",
+        choices=["dense", "min", "max"],
+        help="Ranking method (only for rank calc)",
+    )
     parser.add_argument("-o", "--output", required=True, help="Output directory")
     args = parser.parse_args()
 
@@ -124,7 +139,9 @@ def main():
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(records, f, indent=2, ensure_ascii=False)
 
-    print(f"Computed '{args.calc}' on ({', '.join(cols)}) -> '{args.result_name}' for {len(records)} rows")
+    print(
+        f"Computed '{args.calc}' on ({', '.join(cols)}) -> '{args.result_name}' for {len(records)} rows"
+    )
     print(f"Output: {out_path}")
 
 

@@ -22,26 +22,30 @@ def main():
         description="Composite pipeline: filter JSONL logs then compute stats"
     )
     # Parameters from log-parser
-    parser.add_argument("-i", "--input", required=True,
-                        help="Input JSONL log file")
-    parser.add_argument("-o", "--output", required=True,
-                        help="Output JSON stats report")
-    parser.add_argument("--start", default=None,
-                        help="Start time filter (HH:MM)")
-    parser.add_argument("--end", default=None,
-                        help="End time filter (HH:MM)")
-    parser.add_argument("--levels", default=None,
-                        help="Comma-separated severity levels (e.g. ERROR,WARN)")
+    parser.add_argument("-i", "--input", required=True, help="Input JSONL log file")
+    parser.add_argument(
+        "-o", "--output", required=True, help="Output JSON stats report"
+    )
+    parser.add_argument("--start", default=None, help="Start time filter (HH:MM)")
+    parser.add_argument("--end", default=None, help="End time filter (HH:MM)")
+    parser.add_argument(
+        "--levels",
+        default=None,
+        help="Comma-separated severity levels (e.g. ERROR,WARN)",
+    )
 
     # Parameters from csv-stats-reporter
-    parser.add_argument("--columns", default=None,
-                        help="Numeric columns to analyse (comma-separated)")
-    parser.add_argument("--group-by", default=None,
-                        help="Column to group statistics by")
+    parser.add_argument(
+        "--columns", default=None, help="Numeric columns to analyse (comma-separated)"
+    )
+    parser.add_argument(
+        "--group-by", default=None, help="Column to group statistics by"
+    )
 
     # Pipeline parameters
-    parser.add_argument("--keep-csv", action="store_true",
-                        help="Keep the intermediate filtered CSV")
+    parser.add_argument(
+        "--keep-csv", action="store_true", help="Keep the intermediate filtered CSV"
+    )
 
     args = parser.parse_args()
 
@@ -62,9 +66,12 @@ def main():
         # ── Stage 1: Log Parsing (JSONL → filtered CSV) ──
         print("Stage 1: Filtering log events...")
         cmd1 = [
-            sys.executable, str(LOG_PARSER),
-            "-i", args.input,
-            "-o", str(csv_path),
+            sys.executable,
+            str(LOG_PARSER),
+            "-i",
+            args.input,
+            "-o",
+            str(csv_path),
         ]
         if args.start:
             cmd1.extend(["--start", args.start])
@@ -82,9 +89,12 @@ def main():
         # ── Stage 2: Stats Computation (filtered CSV → JSON report) ──
         print("Stage 2: Computing statistics...")
         cmd2 = [
-            sys.executable, str(STATS_REPORTER),
-            "-i", str(csv_path),
-            "-o", args.output,
+            sys.executable,
+            str(STATS_REPORTER),
+            "-i",
+            str(csv_path),
+            "-o",
+            args.output,
         ]
         if args.columns:
             cmd2.extend(["--columns", args.columns])

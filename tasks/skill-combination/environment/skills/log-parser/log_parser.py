@@ -12,8 +12,13 @@ from datetime import datetime
 from pathlib import Path
 
 CSV_COLUMNS = [
-    "timestamp", "level", "service", "endpoint",
-    "response_time_ms", "status_code", "message",
+    "timestamp",
+    "level",
+    "service",
+    "endpoint",
+    "response_time_ms",
+    "status_code",
+    "message",
 ]
 
 
@@ -38,17 +43,23 @@ def extract_time(ts_str: str) -> datetime:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Parse and filter JSONL log files to CSV")
+    parser = argparse.ArgumentParser(
+        description="Parse and filter JSONL log files to CSV"
+    )
     parser.add_argument("-i", "--input", required=True, help="Input .jsonl log file")
     parser.add_argument("-o", "--output", required=True, help="Output CSV file")
     parser.add_argument("--start", default=None, help="Start time filter (HH:MM)")
     parser.add_argument("--end", default=None, help="End time filter (HH:MM)")
-    parser.add_argument("--levels", default=None, help="Comma-separated severity levels")
+    parser.add_argument(
+        "--levels", default=None, help="Comma-separated severity levels"
+    )
     args = parser.parse_args()
 
     start_t = parse_time(args.start) if args.start else None
     end_t = parse_time(args.end) if args.end else None
-    levels = {lv.strip().upper() for lv in args.levels.split(",")} if args.levels else None
+    levels = (
+        {lv.strip().upper() for lv in args.levels.split(",")} if args.levels else None
+    )
 
     input_path = Path(args.input)
     if not input_path.exists():
@@ -98,7 +109,9 @@ def main():
         writer.writeheader()
         writer.writerows(rows)
 
-    print(f"Wrote {len(rows)} events to {args.output} (skipped {skipped} malformed lines)")
+    print(
+        f"Wrote {len(rows)} events to {args.output} (skipped {skipped} malformed lines)"
+    )
 
 
 if __name__ == "__main__":

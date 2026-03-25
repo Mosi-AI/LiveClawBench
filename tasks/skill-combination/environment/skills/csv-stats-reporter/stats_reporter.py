@@ -28,8 +28,16 @@ def percentile(sorted_data: list, p: float) -> float:
 def compute_stats(values: list) -> dict:
     """Compute descriptive statistics for a list of numeric values."""
     if not values:
-        return {"count": 0, "mean": None, "median": None, "std": None,
-                "min": None, "max": None, "p95": None, "p99": None}
+        return {
+            "count": 0,
+            "mean": None,
+            "median": None,
+            "std": None,
+            "min": None,
+            "max": None,
+            "p95": None,
+            "p99": None,
+        }
 
     n = len(values)
     s = sorted(values)
@@ -61,7 +69,9 @@ def main():
     parser = argparse.ArgumentParser(description="Compute CSV column statistics")
     parser.add_argument("-i", "--input", required=True, help="Input CSV file")
     parser.add_argument("-o", "--output", required=True, help="Output JSON report")
-    parser.add_argument("--columns", default=None, help="Columns to analyse (comma-separated)")
+    parser.add_argument(
+        "--columns", default=None, help="Columns to analyse (comma-separated)"
+    )
     parser.add_argument("--group-by", default=None, help="Column to group by")
     args = parser.parse_args()
 
@@ -126,7 +136,9 @@ def main():
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
 
-    print(f"Stats report written to {args.output} ({len(rows)} rows, {len(target_cols)} columns)")
+    print(
+        f"Stats report written to {args.output} ({len(rows)} rows, {len(target_cols)} columns)"
+    )
 
 
 if __name__ == "__main__":

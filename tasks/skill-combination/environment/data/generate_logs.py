@@ -13,23 +13,47 @@ random.seed(42)
 
 SERVICES = ["api-gateway", "user-service", "order-service", "payment-service"]
 ENDPOINTS = [
-    "/api/v1/users", "/api/v1/orders", "/api/v1/payments",
-    "/api/v1/products", "/api/v1/auth/login", "/api/v1/auth/refresh",
-    "/api/v1/search", "/api/v1/notifications", "/health", "/metrics",
+    "/api/v1/users",
+    "/api/v1/orders",
+    "/api/v1/payments",
+    "/api/v1/products",
+    "/api/v1/auth/login",
+    "/api/v1/auth/refresh",
+    "/api/v1/search",
+    "/api/v1/notifications",
+    "/health",
+    "/metrics",
 ]
 LEVELS = ["DEBUG", "INFO", "WARN", "ERROR"]
 STATUS_CODES = [200, 200, 200, 200, 201, 204, 301, 400, 401, 403, 404, 500, 502, 503]
 
 MESSAGES = {
-    "DEBUG": ["Cache hit for key {key}", "Query executed in {ms}ms", "Connection pool size: {n}"],
-    "INFO": ["Request processed successfully", "User authenticated", "Order created: {id}",
-             "Payment processed", "Search completed: {n} results"],
-    "WARN": ["Slow query detected: {ms}ms", "Rate limit approaching for IP {ip}",
-             "Retry attempt {n}/3", "Connection pool near capacity: {pct}%",
-             "Deprecated API version used"],
-    "ERROR": ["Database connection timeout after {ms}ms", "Payment gateway unreachable",
-              "Authentication service unavailable", "Internal server error: {msg}",
-              "Request failed: status {code}"],
+    "DEBUG": [
+        "Cache hit for key {key}",
+        "Query executed in {ms}ms",
+        "Connection pool size: {n}",
+    ],
+    "INFO": [
+        "Request processed successfully",
+        "User authenticated",
+        "Order created: {id}",
+        "Payment processed",
+        "Search completed: {n} results",
+    ],
+    "WARN": [
+        "Slow query detected: {ms}ms",
+        "Rate limit approaching for IP {ip}",
+        "Retry attempt {n}/3",
+        "Connection pool near capacity: {pct}%",
+        "Deprecated API version used",
+    ],
+    "ERROR": [
+        "Database connection timeout after {ms}ms",
+        "Payment gateway unreachable",
+        "Authentication service unavailable",
+        "Internal server error: {msg}",
+        "Request failed: status {code}",
+    ],
 }
 
 
@@ -40,9 +64,11 @@ def gen_message(level: str) -> str:
         ms=random.randint(50, 15000),
         n=random.randint(1, 500),
         id=f"ORD-{random.randint(10000, 99999)}",
-        ip=f"192.168.{random.randint(1,255)}.{random.randint(1,255)}",
+        ip=f"192.168.{random.randint(1, 255)}.{random.randint(1, 255)}",
         pct=random.randint(70, 99),
-        msg=random.choice(["NullPointerException", "OutOfMemoryError", "StackOverflow"]),
+        msg=random.choice(
+            ["NullPointerException", "OutOfMemoryError", "StackOverflow"]
+        ),
         code=random.choice([500, 502, 503]),
     )
 
@@ -108,7 +134,12 @@ DAYS = {
         "anomaly_config": {
             "windows": [
                 # Morning spike: 10-11 AM, higher error rate
-                {"start": 10, "end": 11, "weights": [0.1, 0.3, 0.3, 0.3], "factor": 3.0},
+                {
+                    "start": 10,
+                    "end": 11,
+                    "weights": [0.1, 0.3, 0.3, 0.3],
+                    "factor": 3.0,
+                },
             ]
         },
     },
@@ -118,7 +149,12 @@ DAYS = {
         "anomaly_config": {
             "windows": [
                 # Lunch spike: payment service overload
-                {"start": 12, "end": 13, "weights": [0.05, 0.2, 0.35, 0.4], "factor": 5.0},
+                {
+                    "start": 12,
+                    "end": 13,
+                    "weights": [0.05, 0.2, 0.35, 0.4],
+                    "factor": 5.0,
+                },
             ]
         },
     },
@@ -128,7 +164,12 @@ DAYS = {
         "anomaly_config": {
             "windows": [
                 # Afternoon degradation: slow but no crashes
-                {"start": 14, "end": 16, "weights": [0.15, 0.35, 0.4, 0.1], "factor": 4.0},
+                {
+                    "start": 14,
+                    "end": 16,
+                    "weights": [0.15, 0.35, 0.4, 0.1],
+                    "factor": 4.0,
+                },
             ]
         },
     },
@@ -139,7 +180,12 @@ DAYS = {
             "windows": [
                 # Two separate spikes
                 {"start": 9, "end": 10, "weights": [0.1, 0.2, 0.3, 0.4], "factor": 2.5},
-                {"start": 15, "end": 16, "weights": [0.05, 0.15, 0.3, 0.5], "factor": 6.0},
+                {
+                    "start": 15,
+                    "end": 16,
+                    "weights": [0.05, 0.15, 0.3, 0.5],
+                    "factor": 6.0,
+                },
             ]
         },
     },

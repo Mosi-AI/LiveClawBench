@@ -28,6 +28,7 @@ from typing import Any, Dict, Optional, Tuple
 # A new SKILL.md exists that describes a composite/pipeline skill.
 # ============================================================================
 
+
 def check_composite_skill_created(model_dir: Path) -> Tuple[int, Dict[str, Any]]:
     """Check that a new SKILL.md was created for the composite skill."""
     skill_files = list(model_dir.rglob("SKILL.md"))
@@ -42,12 +43,18 @@ def check_composite_skill_created(model_dir: Path) -> Tuple[int, Dict[str, Any]]
     details["content_length"] = len(skill_content)
 
     # Must have YAML frontmatter with name and description
-    has_frontmatter = bool(re.search(r'^---\s*\n.*?name:\s*\S+.*?\n.*?---', skill_content, re.DOTALL))
-    has_description = bool(re.search(r'description:\s*.+', skill_content))
+    has_frontmatter = bool(
+        re.search(r"^---\s*\n.*?name:\s*\S+.*?\n.*?---", skill_content, re.DOTALL)
+    )
+    has_description = bool(re.search(r"description:\s*.+", skill_content))
 
     # Must mention pipeline/composite/combined concept
-    pipeline_keywords = r'pipelin|combin|composit|chain|orchestrat|two.step|multi.step|workflow'
-    has_pipeline_concept = bool(re.search(pipeline_keywords, skill_content, re.IGNORECASE))
+    pipeline_keywords = (
+        r"pipelin|combin|composit|chain|orchestrat|two.step|multi.step|workflow"
+    )
+    has_pipeline_concept = bool(
+        re.search(pipeline_keywords, skill_content, re.IGNORECASE)
+    )
 
     # Must have some substance (> 200 chars)
     has_substance = len(skill_content) > 200
@@ -80,12 +87,22 @@ def check_composite_skill_created(model_dir: Path) -> Tuple[int, Dict[str, Any]]
 # References log-parser AND csv-stats-reporter but NOT text-sentiment-scorer.
 # ============================================================================
 
+
 def check_correct_skills_selected(model_dir: Path) -> Tuple[int, Dict[str, Any]]:
     """Check that the composite skill references the right sub-skills."""
     # Gather all text content from model_response
     all_text = ""
     for f in model_dir.rglob("*"):
-        if f.is_file() and f.suffix in (".md", ".py", ".sh", ".txt", ".toml", ".yaml", ".yml", ".json"):
+        if f.is_file() and f.suffix in (
+            ".md",
+            ".py",
+            ".sh",
+            ".txt",
+            ".toml",
+            ".yaml",
+            ".yml",
+            ".json",
+        ):
             try:
                 all_text += f.read_text(encoding="utf-8") + "\n"
             except (UnicodeDecodeError, OSError):
@@ -97,13 +114,15 @@ def check_correct_skills_selected(model_dir: Path) -> Tuple[int, Dict[str, Any]]
     text_lower = all_text.lower()
 
     # Check references
-    refs_log_parser = bool(re.search(r'log[-_]?parser', text_lower))
-    refs_stats_reporter = bool(re.search(r'(csv[-_]?)?stats[-_]?reporter', text_lower))
-    refs_sentiment = bool(re.search(r'sentiment[-_]?scorer', text_lower))
+    refs_log_parser = bool(re.search(r"log[-_]?parser", text_lower))
+    refs_stats_reporter = bool(re.search(r"(csv[-_]?)?stats[-_]?reporter", text_lower))
+    refs_sentiment = bool(re.search(r"sentiment[-_]?scorer", text_lower))
 
     # Also check for importing/calling the actual scripts
-    calls_log_parser = bool(re.search(r'log_parser\.py|log-parser/', text_lower))
-    calls_stats_reporter = bool(re.search(r'stats_reporter\.py|csv-stats-reporter/', text_lower))
+    calls_log_parser = bool(re.search(r"log_parser\.py|log-parser/", text_lower))
+    calls_stats_reporter = bool(
+        re.search(r"stats_reporter\.py|csv-stats-reporter/", text_lower)
+    )
 
     checks = {
         "references_log_parser": refs_log_parser,
@@ -117,7 +136,10 @@ def check_correct_skills_selected(model_dir: Path) -> Tuple[int, Dict[str, Any]]
 
     # Core requirement: must reference both correct skills
     if not (refs_log_parser and refs_stats_reporter):
-        return 0, {"checks": details, "reason": "Missing reference to one or both required skills"}
+        return 0, {
+            "checks": details,
+            "reason": "Missing reference to one or both required skills",
+        }
 
     # Penalty for including the distractor
     if refs_sentiment:
@@ -142,6 +164,7 @@ def check_correct_skills_selected(model_dir: Path) -> Tuple[int, Dict[str, Any]]
 # A working implementation script that chains log-parser → csv-stats-reporter.
 # ============================================================================
 
+
 def check_pipeline_implementation(model_dir: Path) -> Tuple[int, Dict[str, Any]]:
     """Check that a pipeline implementation script exists and is reasonable."""
     # Look for Python scripts
@@ -165,40 +188,43 @@ def check_pipeline_implementation(model_dir: Path) -> Tuple[int, Dict[str, Any]]
 
     # 1. Must invoke or import log-parser functionality
     checks["invokes_log_parser"] = bool(
-        re.search(r'log_parser|log-parser|log.parser', impl_lower)
-        or re.search(r'subprocess.*log', impl_lower)
-        or re.search(r'import.*log_parser', impl_lower)
+        re.search(r"log_parser|log-parser|log.parser", impl_lower)
+        or re.search(r"subprocess.*log", impl_lower)
+        or re.search(r"import.*log_parser", impl_lower)
         # Also accept if it reimplements the core logic (jsonl → csv)
-        or (re.search(r'json\.loads', impl_lower) and re.search(r'csv', impl_lower))
+        or (re.search(r"json\.loads", impl_lower) and re.search(r"csv", impl_lower))
     )
 
     # 2. Must invoke or import stats-reporter functionality
     checks["invokes_stats_reporter"] = bool(
-        re.search(r'stats_reporter|stats-reporter|stats.reporter', impl_lower)
-        or re.search(r'subprocess.*stats', impl_lower)
-        or re.search(r'import.*stats_reporter', impl_lower)
+        re.search(r"stats_reporter|stats-reporter|stats.reporter", impl_lower)
+        or re.search(r"subprocess.*stats", impl_lower)
+        or re.search(r"import.*stats_reporter", impl_lower)
         # Also accept reimplementation (csv → stats computation)
-        or (re.search(r'mean|median|percentile', impl_lower) and re.search(r'csv', impl_lower))
+        or (
+            re.search(r"mean|median|percentile", impl_lower)
+            and re.search(r"csv", impl_lower)
+        )
     )
 
     # 3. Must have a sequential flow (step 1 output → step 2 input)
     checks["has_sequential_flow"] = bool(
         # Explicit temp file or piping
-        re.search(r'temp|tmp|intermediate|step.?1.*step.?2|output.*input', impl_lower)
+        re.search(r"temp|tmp|intermediate|step.?1.*step.?2|output.*input", impl_lower)
         # Or subprocess chaining
-        or re.search(r'subprocess\.run.*subprocess\.run', impl_content, re.DOTALL)
+        or re.search(r"subprocess\.run.*subprocess\.run", impl_content, re.DOTALL)
         # Or function call chaining
-        or re.search(r'(filtered|parsed|csv).*=.*\n.*stat', impl_content, re.DOTALL)
+        or re.search(r"(filtered|parsed|csv).*=.*\n.*stat", impl_content, re.DOTALL)
         # Or variable passing between stages
-        or re.search(r'stage|phase|pipeline|chain', impl_lower)
+        or re.search(r"stage|phase|pipeline|chain", impl_lower)
     )
 
     # 4. Has entry point (main, argparse, or if __name__)
     checks["has_entry_point"] = bool(
-        re.search(r'if\s+__name__\s*==', impl_content)
-        or re.search(r'argparse', impl_lower)
-        or re.search(r'def\s+main', impl_lower)
-        or re.search(r'#!/', impl_content)
+        re.search(r"if\s+__name__\s*==", impl_content)
+        or re.search(r"argparse", impl_lower)
+        or re.search(r"def\s+main", impl_lower)
+        or re.search(r"#!/", impl_content)
     )
 
     # 5. Non-trivial implementation (> 30 lines)
@@ -230,6 +256,7 @@ def check_pipeline_implementation(model_dir: Path) -> Tuple[int, Dict[str, Any]]
 # The composite skill exposes a unified CLI with parameters from both sub-skills.
 # ============================================================================
 
+
 def check_unified_interface(model_dir: Path) -> Tuple[int, Dict[str, Any]]:
     """Check that the composite skill has a unified interface."""
     # Read all content from SKILL.md files
@@ -253,14 +280,24 @@ def check_unified_interface(model_dir: Path) -> Tuple[int, Dict[str, Any]]:
     checks = {}
 
     # Parameters from log-parser that should appear in composite
-    checks["has_input_param"] = bool(re.search(r'-i\b|--input|input.*jsonl|log.*file', combined))
-    checks["has_output_param"] = bool(re.search(r'-o\b|--output|output.*json|report.*file', combined))
-    checks["has_time_range"] = bool(re.search(r'--start|--end|time.?range|start.?time|end.?time', combined))
-    checks["has_severity_filter"] = bool(re.search(r'--levels?|severity|error.*warn|log.?level', combined))
+    checks["has_input_param"] = bool(
+        re.search(r"-i\b|--input|input.*jsonl|log.*file", combined)
+    )
+    checks["has_output_param"] = bool(
+        re.search(r"-o\b|--output|output.*json|report.*file", combined)
+    )
+    checks["has_time_range"] = bool(
+        re.search(r"--start|--end|time.?range|start.?time|end.?time", combined)
+    )
+    checks["has_severity_filter"] = bool(
+        re.search(r"--levels?|severity|error.*warn|log.?level", combined)
+    )
 
     # Parameters from csv-stats-reporter
-    checks["has_columns_or_metrics"] = bool(re.search(r'--columns?|--metrics?|response.?time|numeric', combined))
-    checks["has_group_by"] = bool(re.search(r'--group|group.?by|service', combined))
+    checks["has_columns_or_metrics"] = bool(
+        re.search(r"--columns?|--metrics?|response.?time|numeric", combined)
+    )
+    checks["has_group_by"] = bool(re.search(r"--group|group.?by|service", combined))
 
     details = {k: "PASS" if v else "FAIL" for k, v in checks.items()}
 
@@ -286,7 +323,10 @@ def check_unified_interface(model_dir: Path) -> Tuple[int, Dict[str, Any]]:
 # The agent proactively proposes the combination before the explicit prompt.
 # ============================================================================
 
-def check_proactive_proposal(dialogue_path: Optional[Path]) -> Tuple[int, Dict[str, Any]]:
+
+def check_proactive_proposal(
+    dialogue_path: Optional[Path],
+) -> Tuple[int, Dict[str, Any]]:
     """
     Check dialogue for proactive skill-combination proposal.
 
@@ -295,7 +335,9 @@ def check_proactive_proposal(dialogue_path: Optional[Path]) -> Tuple[int, Dict[s
     in round 5.
     """
     if dialogue_path is None or not dialogue_path.exists():
-        return 0, {"reason": "No dialogue file provided or found; cannot assess proactiveness"}
+        return 0, {
+            "reason": "No dialogue file provided or found; cannot assess proactiveness"
+        }
 
     dialogue_text = dialogue_path.read_text(encoding="utf-8")
 
@@ -311,13 +353,16 @@ def check_proactive_proposal(dialogue_path: Optional[Path]) -> Tuple[int, Dict[s
                     response = r.get("response", r.get("assistant", ""))
                     early_text += str(response) + "\n"
 
-            proposal_pattern = r'combin|compos|chain|pipeline|merge.*skill|create.*skill.*both|unified.*skill|single.*step|orchestrat'
+            proposal_pattern = r"combin|compos|chain|pipeline|merge.*skill|create.*skill.*both|unified.*skill|single.*step|orchestrat"
             found = bool(re.search(proposal_pattern, early_text, re.IGNORECASE))
 
             if found:
                 return 15, {"proactive": True, "found_in": "rounds 1-4"}
             else:
-                return 0, {"proactive": False, "reason": "No combination proposal found in rounds 1-4"}
+                return 0, {
+                    "proactive": False,
+                    "reason": "No combination proposal found in rounds 1-4",
+                }
     except (json.JSONDecodeError, TypeError):
         pass
 
@@ -338,7 +383,7 @@ def check_proactive_proposal(dialogue_path: Optional[Path]) -> Tuple[int, Dict[s
             round5_pos = pos
 
     early_text = dialogue_text[:round5_pos]
-    proposal_pattern = r'combin|compos|chain|pipeline|merge.*skill|create.*(?:new|composite|combined).*skill|unif(?:y|ied).*skill|single.*step|orchestrat'
+    proposal_pattern = r"combin|compos|chain|pipeline|merge.*skill|create.*(?:new|composite|combined).*skill|unif(?:y|ied).*skill|single.*step|orchestrat"
     found = bool(re.search(proposal_pattern, early_text, re.IGNORECASE))
 
     if found:
@@ -347,15 +392,22 @@ def check_proactive_proposal(dialogue_path: Optional[Path]) -> Tuple[int, Dict[s
         # Check if it was proposed at all (even in round 5) — partial credit
         late_found = bool(re.search(proposal_pattern, dialogue_text, re.IGNORECASE))
         if late_found:
-            return 5, {"proactive": False, "proposed_after_prompt": True,
-                       "reason": "Combination proposed only after explicit prompt"}
-        return 0, {"proactive": False, "reason": "No combination proposal found in dialogue"}
+            return 5, {
+                "proactive": False,
+                "proposed_after_prompt": True,
+                "reason": "Combination proposed only after explicit prompt",
+            }
+        return 0, {
+            "proactive": False,
+            "reason": "No combination proposal found in dialogue",
+        }
 
 
 # ============================================================================
 # Criterion 6: INTERFACE_ADAPTATION (15 pts)
 # The implementation handles the format bridge between the two skills.
 # ============================================================================
+
 
 def check_interface_adaptation(model_dir: Path) -> Tuple[int, Dict[str, Any]]:
     """Check that the implementation handles the CSV interface between skills."""
@@ -381,44 +433,52 @@ def check_interface_adaptation(model_dir: Path) -> Tuple[int, Dict[str, Any]]:
 
     # 1. Handles intermediate CSV file (temp file, named intermediate, or in-memory)
     checks["intermediate_handling"] = bool(
-        re.search(r'temp|tmp|intermediate|_filtered|_parsed', impl_lower)
-        or re.search(r'tempfile|mkstemp|namedtemporary', impl_lower)
-        or re.search(r'stringio|bytesio|buffer', impl_lower)
+        re.search(r"temp|tmp|intermediate|_filtered|_parsed", impl_lower)
+        or re.search(r"tempfile|mkstemp|namedtemporary", impl_lower)
+        or re.search(r"stringio|bytesio|buffer", impl_lower)
     )
 
     # 2. Cleanup of intermediate files (or uses temp directory)
     checks["cleanup_or_temp"] = bool(
-        re.search(r'os\.remove|os\.unlink|shutil\.rmtree|cleanup|finally.*delete|atexit', impl_lower)
-        or re.search(r'tempfile|with.*temp|contextmanager', impl_lower)
+        re.search(
+            r"os\.remove|os\.unlink|shutil\.rmtree|cleanup|finally.*delete|atexit",
+            impl_lower,
+        )
+        or re.search(r"tempfile|with.*temp|contextmanager", impl_lower)
         # Or explicitly keeps the intermediate as a feature
-        or re.search(r'keep.*intermediate|save.*filtered|--keep', impl_lower)
+        or re.search(r"keep.*intermediate|save.*filtered|--keep", impl_lower)
     )
 
     # 3. Error handling for the pipeline (what if step 1 fails?)
     checks["error_handling"] = bool(
-        re.search(r'try.*except|returncode|check=true|raise|if.*error|if.*fail', impl_lower)
-        or re.search(r'sys\.exit|stderr|logging\.error', impl_lower)
+        re.search(
+            r"try.*except|returncode|check=true|raise|if.*error|if.*fail", impl_lower
+        )
+        or re.search(r"sys\.exit|stderr|logging\.error", impl_lower)
     )
 
     # 4. Correct data flow: JSONL → CSV → JSON
     checks["correct_data_flow"] = bool(
         # Must handle both JSONL input and JSON output
-        re.search(r'jsonl|json.?lines?', impl_lower)
-        and re.search(r'\.csv', impl_lower)
-        and re.search(r'json', impl_lower)
+        re.search(r"jsonl|json.?lines?", impl_lower)
+        and re.search(r"\.csv", impl_lower)
+        and re.search(r"json", impl_lower)
     )
 
     # 5. Passes the right output format between steps
     checks["output_format_bridge"] = bool(
         # The CSV output from step 1 becomes the CSV input for step 2
-        re.search(r'(-o|output).*csv.*(-i|input).*csv', impl_lower)
-        or re.search(r'csv.*output.*csv.*input', impl_lower)
-        or re.search(r'step.*1.*csv.*step.*2', impl_lower)
+        re.search(r"(-o|output).*csv.*(-i|input).*csv", impl_lower)
+        or re.search(r"csv.*output.*csv.*input", impl_lower)
+        or re.search(r"step.*1.*csv.*step.*2", impl_lower)
         # Or subprocess calls with matching -o and -i args
-        or (re.search(r'log_parser.*-o', impl_lower) and re.search(r'stats_reporter.*-i', impl_lower))
+        or (
+            re.search(r"log_parser.*-o", impl_lower)
+            and re.search(r"stats_reporter.*-i", impl_lower)
+        )
         # Or function-level passing
-        or re.search(r'filtered.*=.*\n.*stats.*filtered', all_impl, re.DOTALL)
-        or re.search(r'csv_path|csv_file|filtered_path', impl_lower)
+        or re.search(r"filtered.*=.*\n.*stats.*filtered", all_impl, re.DOTALL)
+        or re.search(r"csv_path|csv_file|filtered_path", impl_lower)
     )
 
     details = {k: "PASS" if v else "FAIL" for k, v in checks.items()}
@@ -441,6 +501,7 @@ def check_interface_adaptation(model_dir: Path) -> Tuple[int, Dict[str, Any]]:
 # ============================================================================
 # Main evaluation
 # ============================================================================
+
 
 def evaluate(model_output: str, dialogue_file: Optional[str] = None) -> Dict[str, Any]:
     """Run full evaluation across all criteria."""
@@ -478,15 +539,18 @@ def main():
         description="Evaluate skill-combination benchmark case"
     )
     parser.add_argument(
-        "--model-output", required=True,
+        "--model-output",
+        required=True,
         help="Path to model_response/ directory",
     )
     parser.add_argument(
-        "--dialogue", default=None,
+        "--dialogue",
+        default=None,
         help="Path to dialogue/conversation log file (for proactiveness check)",
     )
     parser.add_argument(
-        "--output-json", default="",
+        "--output-json",
+        default="",
         help="Write results to JSON file",
     )
     args = parser.parse_args()
@@ -512,9 +576,16 @@ def main():
     }
 
     for crit_id, data in results["criteria"].items():
-        status = "PASS" if data["score"] == max_points.get(crit_id, 0) else \
-                 "PARTIAL" if data["score"] > 0 else "FAIL"
-        print(f"  [{status:>7}] {crit_id}: {data['score']}/{max_points.get(crit_id, '?')}")
+        status = (
+            "PASS"
+            if data["score"] == max_points.get(crit_id, 0)
+            else "PARTIAL"
+            if data["score"] > 0
+            else "FAIL"
+        )
+        print(
+            f"  [{status:>7}] {crit_id}: {data['score']}/{max_points.get(crit_id, '?')}"
+        )
 
     print("-" * 60)
     print(f"  TOTAL: {results['total_score']} / {results['max_score']}")

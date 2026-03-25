@@ -11,22 +11,61 @@ import sys
 from pathlib import Path
 
 POSITIVE_WORDS = {
-    "good", "great", "excellent", "wonderful", "fantastic", "amazing",
-    "love", "happy", "pleased", "impressive", "outstanding", "perfect",
-    "brilliant", "superb", "delighted", "awesome", "best", "fast",
-    "reliable", "efficient", "smooth", "easy", "helpful",
+    "good",
+    "great",
+    "excellent",
+    "wonderful",
+    "fantastic",
+    "amazing",
+    "love",
+    "happy",
+    "pleased",
+    "impressive",
+    "outstanding",
+    "perfect",
+    "brilliant",
+    "superb",
+    "delighted",
+    "awesome",
+    "best",
+    "fast",
+    "reliable",
+    "efficient",
+    "smooth",
+    "easy",
+    "helpful",
 }
 
 NEGATIVE_WORDS = {
-    "bad", "terrible", "horrible", "awful", "poor", "worst",
-    "hate", "angry", "disappointed", "frustrating", "broken", "slow",
-    "unreliable", "difficult", "confusing", "error", "fail", "crash",
-    "bug", "issue", "problem", "complaint", "unusable", "annoying",
+    "bad",
+    "terrible",
+    "horrible",
+    "awful",
+    "poor",
+    "worst",
+    "hate",
+    "angry",
+    "disappointed",
+    "frustrating",
+    "broken",
+    "slow",
+    "unreliable",
+    "difficult",
+    "confusing",
+    "error",
+    "fail",
+    "crash",
+    "bug",
+    "issue",
+    "problem",
+    "complaint",
+    "unusable",
+    "annoying",
 }
 
 
 def score_sentence(sentence: str) -> float:
-    words = set(re.findall(r'\b\w+\b', sentence.lower()))
+    words = set(re.findall(r"\b\w+\b", sentence.lower()))
     pos = len(words & POSITIVE_WORDS)
     neg = len(words & NEGATIVE_WORDS)
     total = pos + neg
@@ -48,7 +87,7 @@ def main():
         sys.exit(1)
 
     text = input_path.read_text(encoding="utf-8")
-    sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
+    sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
 
     scored = []
     for s in sentences:
@@ -56,9 +95,13 @@ def main():
 
     scores = [s["score"] for s in scored]
     overall = round(sum(scores) / len(scores), 2) if scores else 0.0
-    confidence = round(min(1.0, len([s for s in scores if s != 0]) / max(len(scores), 1)), 2)
+    confidence = round(
+        min(1.0, len([s for s in scores if s != 0]) / max(len(scores), 1)), 2
+    )
 
-    label = "positive" if overall > 0.1 else ("negative" if overall < -0.1 else "neutral")
+    label = (
+        "positive" if overall > 0.1 else ("negative" if overall < -0.1 else "neutral")
+    )
 
     report = {
         "source": str(input_path),
