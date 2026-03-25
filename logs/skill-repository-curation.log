@@ -1,0 +1,17 @@
+OpenClaw log not found at jobs/2026-03-25__05-23-20/skill-repository-curation__Utix2PJ/agent/agent/openclaw.txt
+  1/1 Mean: 0.520 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0:11:53 0:00:00Results written to jobs/2026-03-25__05-23-20/result.json
+        openclaw (kimi-k2.5) on adhoc         
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Metric              ┃ Value                ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━┩
+│ Agent               │ openclaw (kimi-k2.5) │
+│ Dataset             │ adhoc                │
+│ Trials              │ 1                    │
+│ Errors              │ 0                    │
+│                     │                      │
+│ Mean                │ 0.520                │
+│                     │                      │
+│ Reward Distribution │                      │
+│   reward = 0.52     │ 1                    │
+└─────────────────────┴──────────────────────┘
+
