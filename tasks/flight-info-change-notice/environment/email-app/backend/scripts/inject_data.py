@@ -4,25 +4,26 @@ Data injection script for single-user email application.
 Creates simulated senders/recipients and injects emails into peter's inbox and sent items.
 """
 
-import sys
 import os
+import sys
 
 # Add parent directory to path to import models
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import app, db
-from models import User, Email
 from datetime import datetime, timedelta
+
+from app import app, db
+from models import Email, User
 
 
 def get_or_create_peter():
     """Get or create the main user (peter)."""
     print("Getting/Creating main user (peter)...")
 
-    peter = User.query.filter_by(username='peter').first()
+    peter = User.query.filter_by(username="peter").first()
     if not peter:
-        peter = User(username='peter', email='peter.griffin@email.app')
-        peter.set_password('password123')
+        peter = User(username="peter", email="peter.griffin@email.app")
+        peter.set_password("password123")
         db.session.add(peter)
         db.session.commit()
         print("  Created user: peter (peter.griffin@email.app)")
@@ -37,26 +38,26 @@ def create_simulated_senders():
     print("\nCreating simulated senders...")
 
     senders_data = [
-        {'username': 'john.smith', 'email': 'john.smith@gmail.com'},
-        {'username': 'sarah.jones', 'email': 'sarah.jones@zai.org'},
-        {'username': 'mike.wilson', 'email': 'mike.wilson@work.mosi.inc'},
-        {'username': 'lisa.chen', 'email': 'lisa.chen@hitech.com'},
-        {'username': 'david.brown', 'email': 'david.brown@outlook.com'},
-        {'username': 'lau.pai', 'email': 'lau@coop-division.parrot-ai.org'},
-        {'username': 'gkd.airline', 'email': 'noreply@gkdairline.com'},
+        {"username": "john.smith", "email": "john.smith@gmail.com"},
+        {"username": "sarah.jones", "email": "sarah.jones@zai.org"},
+        {"username": "mike.wilson", "email": "mike.wilson@work.mosi.inc"},
+        {"username": "lisa.chen", "email": "lisa.chen@hitech.com"},
+        {"username": "david.brown", "email": "david.brown@outlook.com"},
+        {"username": "lau.pai", "email": "lau@coop-division.parrot-ai.org"},
+        {"username": "gkd.airline", "email": "noreply@gkdairline.com"},
     ]
 
     created_senders = []
     for sender_data in senders_data:
         # Check if sender already exists
-        existing = User.query.filter_by(username=sender_data['username']).first()
+        existing = User.query.filter_by(username=sender_data["username"]).first()
         if existing:
             print(f"  Sender '{sender_data['username']}' already exists, skipping...")
             created_senders.append(existing)
             continue
 
-        sender = User(username=sender_data['username'], email=sender_data['email'])
-        sender.set_password('password123')  # Default password for simulated users
+        sender = User(username=sender_data["username"], email=sender_data["email"])
+        sender.set_password("password123")  # Default password for simulated users
         db.session.add(sender)
         created_senders.append(sender)
         print(f"  Created sender: {sender_data['username']} ({sender_data['email']})")
@@ -71,9 +72,9 @@ def create_inbox_emails(peter, senders):
 
     inbox_emails = [
         {
-            'sender': senders[6],  # gkd.airline
-            'subject': 'Flight Delay Notice - GKD Airline',
-            'body': '''Dear Passenger,
+            "sender": senders[6],  # gkd.airline
+            "subject": "Flight Delay Notice - GKD Airline",
+            "body": """Dear Passenger,
 
 We sincerely apologize for the approximately 4-hour delay of your booked flight GKD2001 due to weather conditions.
 
@@ -109,14 +110,14 @@ We deeply apologize for any inconvenience this may cause and appreciate your pat
 Best regards,
 GKD Airline Customer Service Team
 
-[This is an automated message. Please do not reply directly to this email.]''',
-            'days_ago': 0,
-            'is_read': False
+[This is an automated message. Please do not reply directly to this email.]""",
+            "days_ago": 0,
+            "is_read": False,
         },
         {
-            'sender': senders[0],  # john.smith
-            'subject': 'Project Proposal Review',
-            'body': '''Hi Peter,
+            "sender": senders[0],  # john.smith
+            "subject": "Project Proposal Review",
+            "body": """Hi Peter,
 
 I hope this email finds you well. I wanted to follow up on the project proposal we discussed last week.
 
@@ -131,14 +132,14 @@ Looking forward to your feedback.
 
 Best regards,
 John Smith
-Project Manager''',
-            'days_ago': 5,
-            'is_read': True
+Project Manager""",
+            "days_ago": 5,
+            "is_read": True,
         },
         {
-            'sender': senders[1],  # sarah.jones
-            'subject': 'Meeting Scheduled: Quarterly Review',
-            'body': '''Dear Peter,
+            "sender": senders[1],  # sarah.jones
+            "subject": "Meeting Scheduled: Quarterly Review",
+            "body": """Dear Peter,
 
 This is a confirmation that your quarterly review meeting has been scheduled for:
 
@@ -151,14 +152,14 @@ Please come prepared with your Q1 achievements and Q2 goals. If you need to resc
 
 Best,
 Sarah Jones
-HR Department''',
-            'days_ago': 3,
-            'is_read': False
+HR Department""",
+            "days_ago": 3,
+            "is_read": False,
         },
         {
-            'sender': senders[2],  # mike.wilson
-            'subject': 'Re: Technical Architecture Discussion',
-            'body': '''Hey Peter,
+            "sender": senders[2],  # mike.wilson
+            "subject": "Re: Technical Architecture Discussion",
+            "body": """Hey Peter,
 
 Thanks for the detailed analysis on the microservices architecture. I've reviewed your suggestions and I think we should proceed with the following approach:
 
@@ -169,14 +170,14 @@ Thanks for the detailed analysis on the microservices architecture. I've reviewe
 I've discussed this with the team and everyone is on board. Let's sync up early next week to create a detailed implementation plan.
 
 Cheers,
-Mike''',
-            'days_ago': 2,
-            'is_read': True
+Mike""",
+            "days_ago": 2,
+            "is_read": True,
         },
         {
-            'sender': senders[3],  # lisa.chen
-            'subject': 'New Feature Request - User Dashboard',
-            'body': '''Hi Peter,
+            "sender": senders[3],  # lisa.chen
+            "subject": "New Feature Request - User Dashboard",
+            "body": """Hi Peter,
 
 I'm writing to request a new feature for our user dashboard. Based on customer feedback, we've identified the following requirements:
 
@@ -193,14 +194,14 @@ Could you provide an estimate on development time and any technical constraints 
 
 Thanks,
 Lisa Chen
-Product Manager''',
-            'days_ago': 1,
-            'is_read': False
+Product Manager""",
+            "days_ago": 1,
+            "is_read": False,
         },
         {
-            'sender': senders[5],  # lau
-            'subject': 'Partnership Inquiry - Customized High-Fidelity Dataset for AI Voice Synthesis',
-            'body': '''Hi Peter,
+            "sender": senders[5],  # lau
+            "subject": "Partnership Inquiry - Customized High-Fidelity Dataset for AI Voice Synthesis",
+            "body": """Hi Peter,
 
 I hope this email finds you well.
 
@@ -220,14 +221,14 @@ Best regards,
 
 Lau
 Leader of Co-operation Division
-Parrot AI''',
-            'days_ago': 1,
-            'is_read': False
+Parrot AI""",
+            "days_ago": 1,
+            "is_read": False,
         },
         {
-            'sender': senders[4],  # david.brown
-            'subject': 'Invoice #INV-2026-0342 - Due March 25',
-            'body': '''Dear Peter Griffin,
+            "sender": senders[4],  # david.brown
+            "subject": "Invoice #INV-2026-0342 - Due March 25",
+            "body": """Dear Peter Griffin,
 
 Please find attached the invoice for services rendered in February 2026.
 
@@ -249,23 +250,23 @@ Thank you for your business.
 Best regards,
 David Brown
 Finance Department
-Creative Agency Inc.''',
-            'days_ago': 0,
-            'is_read': False
+Creative Agency Inc.""",
+            "days_ago": 0,
+            "is_read": False,
         },
     ]
 
     created_count = 0
     for email_data in inbox_emails:
         email = Email(
-            sender_id=email_data['sender'].id,
+            sender_id=email_data["sender"].id,
             recipient_id=peter.id,
             recipient_email=peter.email,
-            subject=email_data['subject'],
-            body=email_data['body'],
-            folder='inbox',
-            is_read=email_data['is_read'],
-            created_at=datetime.utcnow() - timedelta(days=email_data['days_ago'])
+            subject=email_data["subject"],
+            body=email_data["body"],
+            folder="inbox",
+            is_read=email_data["is_read"],
+            created_at=datetime.utcnow() - timedelta(days=email_data["days_ago"]),
         )
         db.session.add(email)
         created_count += 1
@@ -281,9 +282,9 @@ def create_sent_emails(peter):
 
     sent_emails = [
         {
-            'recipient_email': 'client@bigcorporation.com',
-            'subject': 'Proposal Submission - Q2 Partnership',
-            'body': '''Dear Client,
+            "recipient_email": "client@bigcorporation.com",
+            "subject": "Proposal Submission - Q2 Partnership",
+            "body": """Dear Client,
 
 Thank you for the opportunity to submit our proposal for the Q2 partnership initiative.
 
@@ -301,13 +302,13 @@ Looking forward to your response.
 
 Best regards,
 Peter Griffin
-Business Development Manager''',
-            'days_ago': 7,
+Business Development Manager""",
+            "days_ago": 7,
         },
         {
-            'recipient_email': 'hr@techcompany.io',
-            'subject': 'Re: Job Application - Senior Developer Position',
-            'body': '''Dear HR Team,
+            "recipient_email": "hr@techcompany.io",
+            "subject": "Re: Job Application - Senior Developer Position",
+            "body": """Dear HR Team,
 
 Thank you for reaching out regarding the Senior Developer position at TechCompany.
 
@@ -323,13 +324,13 @@ I've attached my updated resume and portfolio for your reference. Please let me 
 Thank you for your consideration.
 
 Best regards,
-Peter Griffin''',
-            'days_ago': 4,
+Peter Griffin""",
+            "days_ago": 4,
         },
         {
-            'recipient_email': 'support@software-vendor.com',
-            'subject': 'Technical Support Request - License Issue',
-            'body': '''Hello Support Team,
+            "recipient_email": "support@software-vendor.com",
+            "subject": "Technical Support Request - License Issue",
+            "body": """Hello Support Team,
 
 I'm experiencing an issue with my software license and would appreciate your assistance.
 
@@ -348,13 +349,13 @@ Steps Already Tried:
 I've been unable to use the software for the past 2 days, which is impacting my work. Could you please help resolve this issue as soon as possible?
 
 Thank you,
-Peter Griffin''',
-            'days_ago': 2,
+Peter Griffin""",
+            "days_ago": 2,
         },
         {
-            'recipient_email': 'team@startup-incubator.org',
-            'subject': 'Monthly Progress Report - March 2026',
-            'body': '''Hi Team,
+            "recipient_email": "team@startup-incubator.org",
+            "subject": "Monthly Progress Report - March 2026",
+            "body": """Hi Team,
 
 Here's our monthly progress report for March 2026:
 
@@ -380,13 +381,13 @@ Full report attached. Let me know if you have any questions.
 
 Best,
 Peter Griffin
-Founder & CEO''',
-            'days_ago': 1,
+Founder & CEO""",
+            "days_ago": 1,
         },
         {
-            'recipient_email': 'friend.personal@email.com',
-            'subject': 'Re: Weekend Plans',
-            'body': '''Hey!
+            "recipient_email": "friend.personal@email.com",
+            "subject": "Re: Weekend Plans",
+            "body": """Hey!
 
 Sounds like a great plan! I'm definitely up for the hiking trip on Saturday.
 
@@ -399,8 +400,8 @@ I can bring some snacks and water for everyone. Also, I have an extra backpack i
 
 Looking forward to it!
 
-Peter''',
-            'days_ago': 0,
+Peter""",
+            "days_ago": 0,
         },
     ]
 
@@ -409,12 +410,12 @@ Peter''',
         email = Email(
             sender_id=peter.id,
             recipient_id=None,  # External recipient
-            recipient_email=email_data['recipient_email'],
-            subject=email_data['subject'],
-            body=email_data['body'],
-            folder='sent',
+            recipient_email=email_data["recipient_email"],
+            subject=email_data["subject"],
+            body=email_data["body"],
+            folder="sent",
             is_read=True,  # Sent emails are marked as read
-            created_at=datetime.utcnow() - timedelta(days=email_data['days_ago'])
+            created_at=datetime.utcnow() - timedelta(days=email_data["days_ago"]),
         )
         db.session.add(email)
         created_count += 1
@@ -451,10 +452,16 @@ def main():
         print("\nSummary:")
         print(f"  Total Users: {User.query.count()}")
         print(f"  Total Emails: {Email.query.count()}")
-        print(f"\n  Peter's Inbox: {Email.query.filter_by(recipient_id=peter.id, folder='inbox').count()}")
-        print(f"  Peter's Sent: {Email.query.filter_by(sender_id=peter.id, folder='sent').count()}")
-        print(f"  Unread Emails: {Email.query.filter_by(recipient_id=peter.id, folder='inbox', is_read=False).count()}")
+        print(
+            f"\n  Peter's Inbox: {Email.query.filter_by(recipient_id=peter.id, folder='inbox').count()}"
+        )
+        print(
+            f"  Peter's Sent: {Email.query.filter_by(sender_id=peter.id, folder='sent').count()}"
+        )
+        print(
+            f"  Unread Emails: {Email.query.filter_by(recipient_id=peter.id, folder='inbox', is_read=False).count()}"
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

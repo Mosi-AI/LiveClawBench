@@ -26,8 +26,13 @@ def try_numeric(value: str):
         return value
 
 
-def parse_csv(input_path: str, delimiter: str = ",", encoding: str = "utf-8",
-              quote_char: str = '"', comment_prefix: str = "#") -> tuple:
+def parse_csv(
+    input_path: str,
+    delimiter: str = ",",
+    encoding: str = "utf-8",
+    quote_char: str = '"',
+    comment_prefix: str = "#",
+) -> tuple:
     """Parse a CSV file into a list of dicts, skipping comment lines."""
     records = []
     skipped = 0
@@ -42,8 +47,10 @@ def parse_csv(input_path: str, delimiter: str = ",", encoding: str = "utf-8",
 
     # Re-parse from filtered lines
     import io
-    reader = csv.DictReader(io.StringIO("".join(lines)), delimiter=delimiter,
-                            quotechar=quote_char)
+
+    reader = csv.DictReader(
+        io.StringIO("".join(lines)), delimiter=delimiter, quotechar=quote_char
+    )
     for row in reader:
         record = {k: try_numeric(v) for k, v in row.items()}
         records.append(record)
@@ -53,20 +60,30 @@ def parse_csv(input_path: str, delimiter: str = ",", encoding: str = "utf-8",
 def main():
     parser = argparse.ArgumentParser(description="Parse CSV files into JSON records")
     parser.add_argument("-i", "--input", required=True, help="Input CSV file path")
-    parser.add_argument("-d", "--delimiter", default=",", help="Column delimiter (default: ,)")
+    parser.add_argument(
+        "-d", "--delimiter", default=",", help="Column delimiter (default: ,)"
+    )
     parser.add_argument("-e", "--encoding", default="utf-8", help="File encoding")
-    parser.add_argument("-q", "--quote-char", default='"', help="Quote character (default: \")")
-    parser.add_argument("--comment-prefix", default="#", help="Comment line prefix (default: #)")
+    parser.add_argument(
+        "-q", "--quote-char", default='"', help='Quote character (default: ")'
+    )
+    parser.add_argument(
+        "--comment-prefix", default="#", help="Comment line prefix (default: #)"
+    )
     parser.add_argument("-o", "--output", required=True, help="Output directory")
     args = parser.parse_args()
 
     if args.delimiter not in SUPPORTED_DELIMITERS:
-        print(f"Error: unsupported delimiter '{args.delimiter}'. "
-              f"Use one of: {SUPPORTED_DELIMITERS}", file=sys.stderr)
+        print(
+            f"Error: unsupported delimiter '{args.delimiter}'. "
+            f"Use one of: {SUPPORTED_DELIMITERS}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
-    records, skipped = parse_csv(args.input, args.delimiter, args.encoding,
-                                  args.quote_char, args.comment_prefix)
+    records, skipped = parse_csv(
+        args.input, args.delimiter, args.encoding, args.quote_char, args.comment_prefix
+    )
 
     os.makedirs(args.output, exist_ok=True)
     out_path = os.path.join(args.output, "parsed_data.json")

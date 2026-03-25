@@ -1,0 +1,42 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.py"
+      - "pyproject.toml"
+      - ".pre-commit-config.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "**/*.py"
+      - "pyproject.toml"
+      - ".pre-commit-config.yaml"
+
+jobs:
+  ruff:
+    name: ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv pip install ruff==0.15.7
+      - name: Lint
+        run: ruff check .
+      - name: Format check
+        run: ruff format --check .
+
+  ty:
+    name: ty
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv pip install ty==0.0.25
+      - name: Type check scripts/
+        run: ty check scripts/

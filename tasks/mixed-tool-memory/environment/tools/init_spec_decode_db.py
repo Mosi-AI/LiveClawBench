@@ -3,7 +3,6 @@ import sqlite3
 import sys
 from pathlib import Path
 
-
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS sources (
   source_id TEXT PRIMARY KEY,
@@ -27,7 +26,9 @@ CREATE TABLE IF NOT EXISTS qa_answers (
 
 
 def main() -> int:
-    target = Path(sys.argv[1] if len(sys.argv) > 1 else "workspace/db/spec_decode_knowledge.db")
+    target = Path(
+        sys.argv[1] if len(sys.argv) > 1 else "workspace/db/spec_decode_knowledge.db"
+    )
     target.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(target)
     try:

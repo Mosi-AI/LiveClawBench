@@ -44,7 +44,9 @@ def row_to_doc(row: sqlite3.Row) -> Dict[str, object]:
 class BrowserMockHandler(BaseHTTPRequestHandler):
     site_title: str = "Browser Mock"
     home_title: str = "Browser Mock"
-    home_description: str = "This sidecar-backed site simulates a searchable internal knowledge portal."
+    home_description: str = (
+        "This sidecar-backed site simulates a searchable internal knowledge portal."
+    )
     search_placeholder: str = "Search the portal"
     query_examples: List[str] = []
     db_path: Path = Path("/tmp/browser_mock.sqlite")
@@ -154,7 +156,9 @@ class BrowserMockHandler(BaseHTTPRequestHandler):
 
     def render_home(self) -> str:
         query_examples = BrowserMockHandler.query_examples
-        items = "".join(f"<li><code>{html.escape(str(item))}</code></li>" for item in query_examples)
+        items = "".join(
+            f"<li><code>{html.escape(str(item))}</code></li>" for item in query_examples
+        )
         home_title = html.escape(BrowserMockHandler.home_title)
         home_description = html.escape(BrowserMockHandler.home_description)
         search_placeholder = html.escape(BrowserMockHandler.search_placeholder)
@@ -173,7 +177,9 @@ class BrowserMockHandler(BaseHTTPRequestHandler):
 """,
         )
 
-    def render_search(self, query: str, sid: str, results: List[Dict[str, object]]) -> str:
+    def render_search(
+        self, query: str, sid: str, results: List[Dict[str, object]]
+    ) -> str:
         if results:
             cards = []
             for rank, doc in enumerate(results, start=1):
@@ -214,8 +220,13 @@ class BrowserMockHandler(BaseHTTPRequestHandler):
         )
 
     def render_doc(self, doc: Dict[str, object], sid: str, rank: str) -> str:
-        body_html = "".join(f"<p>{html.escape(str(part))}</p>" for part in doc.get("body", []))
-        tags = "".join(f"<span class=\"pill\">{html.escape(str(tag))}</span>" for tag in doc.get("tags", []))
+        body_html = "".join(
+            f"<p>{html.escape(str(part))}</p>" for part in doc.get("body", [])
+        )
+        tags = "".join(
+            f'<span class="pill">{html.escape(str(tag))}</span>'
+            for tag in doc.get("tags", [])
+        )
         session_html = ""
         if sid:
             session_html = f"""
@@ -369,8 +380,12 @@ def main() -> None:
             row["key"]: row["value"]
             for row in conn.execute("SELECT key, value FROM metadata").fetchall()
         }
-        BrowserMockHandler.site_title = metadata.get("site_title", BrowserMockHandler.site_title)
-        BrowserMockHandler.home_title = metadata.get("home_title", BrowserMockHandler.site_title)
+        BrowserMockHandler.site_title = metadata.get(
+            "site_title", BrowserMockHandler.site_title
+        )
+        BrowserMockHandler.home_title = metadata.get(
+            "home_title", BrowserMockHandler.site_title
+        )
         BrowserMockHandler.home_description = metadata.get(
             "home_description",
             BrowserMockHandler.home_description,

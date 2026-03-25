@@ -1,0 +1,45 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+exclude = [
+    ".venv",
+    ".claude",
+    # Task fixture files: intentionally varied/broken content for agent tasks
+    "tasks/skill-dependency-fix/environment/skills",
+    "tasks/skill-repository-curation/environment/.skill_snapshot",
+    "tasks/skill-repository-curation/environment/skills",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+# E501 (line-too-long) is enforced by the formatter where possible; unfixable string literals are excluded
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Flask/SQLAlchemy model packages: db must be initialized before model imports (E402),
+# and __init__.py re-exports are intentionally unused in the file itself (F401)
+"**/models/__init__.py" = ["E402", "F401"]
+# Environment scripts use sys.path.insert before imports (Docker path setup),
+# and task env code contains legitimate dead assignments (auth stubs, unused counters, etc.)
+"**/environment/**/*.py" = ["E402", "F841"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["scripts"]
+
+# --- dev dependencies (install with: uv sync --group dev) ---
+[dependency-groups]
+dev = [
+    "ruff==0.15.7",
+    "ty==0.0.25",
+    "pre-commit>=3.0",
+]
+
+# --- ty ---
+[tool.ty.environment]
+python-version = "3.12"
+
+[tool.ty.src]
+# TODO: expand to tasks/*/tests/ once verify.py files no longer use Docker-only import paths
+#   (verify.py runs sys.path.insert(0, "/workspace/environment/...") which only exists in-container)
+include = ["scripts"]

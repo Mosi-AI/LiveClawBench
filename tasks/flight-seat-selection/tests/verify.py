@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Verify flight-seat-selection task: check seat selected for booked flight"""
+
 import sys
+
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
-from app import create_app, db
-from models import Booking, Seat
+from app import create_app
+from models import Booking
 
 app = create_app()
+
 
 def check():
     with app.app_context():
@@ -15,6 +18,7 @@ def check():
             return 1.0
         print("FAIL: No checked-in booking found")
         return 0.0
+
 
 score = check()
 print(f"Score: {score}/1.0")

@@ -258,6 +258,49 @@ docker build -t liveclawbench-base:latest docker/base/
 
 - `capability_dimension` field is deprecated — `validate_tasks.py` flags it as an error; do not add to new tasks
 
+## Code Quality
+
+All Python is formatted and linted with **ruff**, and `scripts/` is type-checked with **ty**.
+
+### Manual checks (without pre-commit)
+
+```bash
+# Install tools (one-time)
+uv pip install ruff ty
+
+# Format all Python in-place
+ruff format .
+
+# Lint (auto-fix safe issues)
+ruff check --fix .
+
+# Type-check infrastructure scripts
+ty check scripts/
+```
+
+### Set up pre-commit (recommended for contributors)
+
+```bash
+uv pip install pre-commit
+pre-commit install      # hooks run automatically on git commit — replaces manual checks above
+```
+
+### Scope
+
+| Target | ruff | ty |
+|---|---|---|
+| `scripts/` | ✓ | ✓ |
+| `tasks/*/tests/` | ✓ | future (TODO) |
+| `tasks/*/common/` | ✓ | — |
+| `tasks/*/environment/` | ✓ | — |
+| `tasks/skill-dependency-fix/environment/skills/` | excluded (intentional fixture) | — |
+| `tasks/skill-repository-curation/environment/.skill_snapshot/` | excluded (intentional fixture) | — |
+| `tasks/skill-repository-curation/environment/skills/` | excluded (intentional fixture) | — |
+
+> **ty and `tasks/*/tests/`**: `verify.py` files use `sys.path.insert(0, "/workspace/environment/...")` which
+> only resolves inside Docker containers, so ty cannot check them in CI without Docker. Tracked as a TODO in
+> `pyproject.toml`.
+
 ## Ground Truth Numbers (verified from task.toml)
 
 29 implemented tasks: A1=10, A2=6, B1=4, B2=10. Including planned `skill-combination` (case_id=30): B2=11.

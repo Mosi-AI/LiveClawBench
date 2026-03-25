@@ -34,7 +34,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 def _sha256(text: str) -> str:
@@ -71,6 +71,7 @@ def read_json(path: Path) -> Any:
 
 # ── Criterion 1: SKILL_REVISED ────────────────────────────────────────
 
+
 def check_skill_revised(
     baseline_hash: str,
     search_dirs: List[Path],
@@ -87,7 +88,7 @@ def check_skill_revised(
     # Prefer SKILL.md under interaction_pattern_analyzer/, fall back to any SKILL.md
     prioritized = sorted(
         candidates,
-        key=lambda p: (0 if "interaction_pattern_analyzer" in str(p) else 1),
+        key=lambda p: 0 if "interaction_pattern_analyzer" in str(p) else 1,
     )
 
     for cand in prioritized:
@@ -114,6 +115,7 @@ def check_skill_revised(
 
 # ── Criterion 2: REVISION_CORRECT ─────────────────────────────────────
 
+
 def check_revision_correct(
     baseline_hash: str,
     search_dirs: List[Path],
@@ -129,7 +131,7 @@ def check_revision_correct(
     # Prefer SKILL.md under interaction_pattern_analyzer/, fall back to any SKILL.md
     prioritized = sorted(
         candidates,
-        key=lambda p: (0 if "interaction_pattern_analyzer" in str(p) else 1),
+        key=lambda p: 0 if "interaction_pattern_analyzer" in str(p) else 1,
     )
 
     for cand in prioritized:
@@ -157,6 +159,7 @@ def check_revision_correct(
 
 
 # ── Criterion 3: PATTERN_DISCOVERED ───────────────────────────────────
+
 
 def check_pattern_discovered(
     search_dirs: List[Path],
@@ -199,6 +202,7 @@ def check_pattern_discovered(
 
 
 # ── Main ──────────────────────────────────────────────────────────────
+
 
 def evaluate(
     baseline_path: Path,
@@ -276,7 +280,9 @@ def main():
     print("=" * 60)
     for c in report["criteria"]:
         status = "PASS" if c["passed"] else "FAIL"
-        print(f"  [{status}] {c['criterion']:.<30} {c['points']:>2} / {c['max_points']}")
+        print(
+            f"  [{status}] {c['criterion']:.<30} {c['points']:>2} / {c['max_points']}"
+        )
         print(f"         {c['detail']}")
     print("-" * 60)
     print(f"  TOTAL: {report['total_score']} / {report['max_score']}")

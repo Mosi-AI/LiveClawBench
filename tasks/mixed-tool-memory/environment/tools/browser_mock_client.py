@@ -83,7 +83,10 @@ def render_page(url: str):
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--base-url", default=os.environ.get("BROWSER_MOCK_BASE_URL", "http://127.0.0.1:8123"))
+    parser.add_argument(
+        "--base-url",
+        default=os.environ.get("BROWSER_MOCK_BASE_URL", "http://127.0.0.1:8123"),
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     search_parser = subparsers.add_parser("search")

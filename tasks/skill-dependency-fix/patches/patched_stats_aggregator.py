@@ -83,11 +83,19 @@ def main():
     parser = argparse.ArgumentParser(description="Compute aggregate statistics")
     parser.add_argument("-i", "--input", required=True, help="Input JSON records file")
     parser.add_argument("-g", "--group-by", required=True, help="Column to group by")
-    parser.add_argument("-v", "--value-column", required=True, help="Numeric column to aggregate")
-    parser.add_argument("--metrics", default="mean,median,sum,count,min,max",
-                        help="Comma-separated metrics (default: mean,median,sum,count,min,max)")
-    parser.add_argument("--percentiles", default="25,75",
-                        help="Comma-separated percentile values (default: 25,75)")
+    parser.add_argument(
+        "-v", "--value-column", required=True, help="Numeric column to aggregate"
+    )
+    parser.add_argument(
+        "--metrics",
+        default="mean,median,sum,count,min,max",
+        help="Comma-separated metrics (default: mean,median,sum,count,min,max)",
+    )
+    parser.add_argument(
+        "--percentiles",
+        default="25,75",
+        help="Comma-separated percentile values (default: 25,75)",
+    )
     parser.add_argument("-o", "--output", required=True, help="Output directory")
     args = parser.parse_args()
 
@@ -97,12 +105,17 @@ def main():
     metrics = [m.strip() for m in args.metrics.split(",")]
     invalid = [m for m in metrics if m not in ALL_METRICS]
     if invalid:
-        print(f"Error: unknown metrics: {invalid}. Available: {ALL_METRICS}", file=sys.stderr)
+        print(
+            f"Error: unknown metrics: {invalid}. Available: {ALL_METRICS}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     percentiles_list = [int(p.strip()) for p in args.percentiles.split(",")]
 
-    result = aggregate(records, args.group_by, args.value_column, metrics, percentiles_list)
+    result = aggregate(
+        records, args.group_by, args.value_column, metrics, percentiles_list
+    )
 
     os.makedirs(args.output, exist_ok=True)
     out_path = os.path.join(args.output, "stats_report.json")
@@ -110,7 +123,9 @@ def main():
         json.dump(result, f, indent=2, ensure_ascii=False)
 
     n_groups = len(result["groups"])
-    print(f"Aggregated {len(records)} records into {n_groups} groups by '{args.group_by}'")
+    print(
+        f"Aggregated {len(records)} records into {n_groups} groups by '{args.group_by}'"
+    )
     print(f"Metrics: {metrics}")
     if "percentile" in metrics:
         print(f"Percentiles: {percentiles_list}")

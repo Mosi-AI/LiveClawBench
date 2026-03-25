@@ -10,7 +10,6 @@ Checks:
 """
 
 import csv
-import re
 import sys
 import tomllib
 from pathlib import Path
@@ -132,7 +131,9 @@ def compare_sources(
     for task_name, toml_ann in toml_data.items():
         fw_ann = framework_data.get(task_name)
         if fw_ann is None:
-            errors.append(f"[toml↔framework] {task_name}: missing from complexity-framework.md")
+            errors.append(
+                f"[toml↔framework] {task_name}: missing from complexity-framework.md"
+            )
             continue
         for key in check_keys:
             if toml_ann.get(key) != fw_ann.get(key):
@@ -144,7 +145,9 @@ def compare_sources(
     # Check toml tasks against CSV (CSV uses snake_case names)
     for task_name, toml_ann in toml_data.items():
         # CSV may use either hyphen or underscore naming
-        csv_name = task_name.replace("-", "_") if task_name not in csv_data else task_name
+        csv_name = (
+            task_name.replace("-", "_") if task_name not in csv_data else task_name
+        )
         csv_ann = csv_data.get(task_name) or csv_data.get(csv_name)
         if csv_ann is None:
             errors.append(f"[toml↔csv] {task_name}: missing from cases_registry.csv")
@@ -163,7 +166,9 @@ def compare_sources(
             csv_entry = csv_data.get(case_name) or csv_data.get(csv_name)
             if csv_entry and csv_entry.get("status") == "planned":
                 continue
-            errors.append(f"[framework→toml] {case_name}: in framework but no task directory (planned?)")
+            errors.append(
+                f"[framework→toml] {case_name}: in framework but no task directory (planned?)"
+            )
 
     return errors
 
@@ -187,15 +192,15 @@ def print_summary(toml_data: dict[str, dict]) -> None:
             diff_counts[diff] += 1
 
     total = len(toml_data)
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"Summary Statistics (from {total} task.toml files)")
-    print(f"{'='*50}")
-    print(f"\nFactor Distribution:")
+    print(f"{'=' * 50}")
+    print("\nFactor Distribution:")
     for factor, count in factor_counts.items():
         pct = count / total * 100 if total else 0
         print(f"  {factor}: {count} ({pct:.1f}%)")
 
-    print(f"\nDifficulty Distribution:")
+    print("\nDifficulty Distribution:")
     for diff, count in diff_counts.items():
         print(f"  {diff}: {count}")
 

@@ -18,7 +18,6 @@ import re
 import sys
 from pathlib import Path
 
-
 # ---------------------------------------------------------------------------
 # Which files we check (mid-level + top-level only; bottom-level is patched)
 # ---------------------------------------------------------------------------
@@ -54,10 +53,18 @@ def lower(text: str) -> str:
 
 PARAM_CHECKS = [
     # (param_keyword, must_appear_in_files, source_description)
-    ("quote-char",      ["data-loader", "top"],          "csv-parser → data-loader, top"),
-    ("comment-prefix",  ["data-loader", "top"],          "csv-parser → data-loader, top"),
-    ("rank-method",     ["data-transformer", "top"],     "column-calculator → data-transformer, top"),
-    ("percentiles",     ["report-renderer", "top"],      "stats-aggregator → report-renderer, top"),
+    ("quote-char", ["data-loader", "top"], "csv-parser → data-loader, top"),
+    ("comment-prefix", ["data-loader", "top"], "csv-parser → data-loader, top"),
+    (
+        "rank-method",
+        ["data-transformer", "top"],
+        "column-calculator → data-transformer, top",
+    ),
+    (
+        "percentiles",
+        ["report-renderer", "top"],
+        "stats-aggregator → report-renderer, top",
+    ),
 ]
 
 
@@ -89,7 +96,12 @@ def check_param_propagated(content: dict) -> tuple:
     else:
         score = 0
 
-    return score, {"found": found, "total": total, "ratio": round(ratio, 2), "details": details}
+    return score, {
+        "found": found,
+        "total": total,
+        "ratio": round(ratio, 2),
+        "details": details,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -100,23 +112,37 @@ def check_param_propagated(content: dict) -> tuple:
 STALE_CHECKS = [
     # (stale_pattern, file_key, description)
     # data-loader still says "comma and tab" only
-    (r"supports?\s+(only\s+)?comma\s+(and|&)\s+tab", "data-loader",
-     "data-loader still says 'comma and tab' only"),
+    (
+        r"supports?\s+(only\s+)?comma\s+(and|&)\s+tab",
+        "data-loader",
+        "data-loader still says 'comma and tab' only",
+    ),
     # data-loader says other delimiters not supported
-    (r"other\s+delimiters\s+are\s+not\s+(currently\s+)?supported", "data-loader",
-     "data-loader still says other delimiters not supported"),
+    (
+        r"other\s+delimiters\s+are\s+not\s+(currently\s+)?supported",
+        "data-loader",
+        "data-loader still says other delimiters not supported",
+    ),
     # data-transformer still lists 'ratio' as available
-    (r"\bratio\b.*\bcol_a\s*/\s*col_b\b", "data-transformer",
-     "data-transformer still shows ratio formula"),
+    (
+        r"\bratio\b.*\bcol_a\s*/\s*col_b\b",
+        "data-transformer",
+        "data-transformer still shows ratio formula",
+    ),
     # top-level still has '--calc ratio' in examples
-    (r"--calc\s+ratio", "top",
-     "top-level example still uses '--calc ratio'"),
+    (r"--calc\s+ratio", "top", "top-level example still uses '--calc ratio'"),
     # top-level delimiter description only mentions comma and tab
-    (r"supports?\s+comma\s+\(`,`\)\s+and\s+tab", "top",
-     "top-level still says 'comma and tab' for delimiter"),
+    (
+        r"supports?\s+comma\s+\(`,`\)\s+and\s+tab",
+        "top",
+        "top-level still says 'comma and tab' for delimiter",
+    ),
     # report-renderer says "six metrics are the complete set"
-    (r"six\s+metrics\s+are\s+the\s+complete\s+set", "report-renderer",
-     "report-renderer still says 'six metrics are the complete set'"),
+    (
+        r"six\s+metrics\s+are\s+the\s+complete\s+set",
+        "report-renderer",
+        "report-renderer still says 'six metrics are the complete set'",
+    ),
 ]
 
 
@@ -146,7 +172,12 @@ def check_stale_removed(content: dict) -> tuple:
     else:
         score = 0
 
-    return score, {"fixed": fixed, "total": total, "ratio": round(ratio, 2), "details": details}
+    return score, {
+        "fixed": fixed,
+        "total": total,
+        "ratio": round(ratio, 2),
+        "details": details,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -157,16 +188,28 @@ def check_stale_removed(content: dict) -> tuple:
 CAPABILITY_CHECKS = [
     # (keyword, must_appear_in_files, description)
     # csv-parser: pipe and semicolon delimiters
-    ("pipe",            ["data-loader"],              "pipe delimiter in data-loader"),
-    ("|",               ["data-loader", "top"],       "pipe char in data-loader/top"),
-    (";",               ["data-loader", "top"],       "semicolon char in data-loader/top"),
+    ("pipe", ["data-loader"], "pipe delimiter in data-loader"),
+    ("|", ["data-loader", "top"], "pipe char in data-loader/top"),
+    (";", ["data-loader", "top"], "semicolon char in data-loader/top"),
     # column-calculator: new calc types
-    ("percentage",      ["data-transformer", "top"],  "percentage calc in data-transformer/top"),
-    ("cumulative_sum",  ["data-transformer", "top"],  "cumulative_sum calc in data-transformer/top"),
-    ("rank",            ["data-transformer", "top"],  "rank calc in data-transformer/top"),
+    (
+        "percentage",
+        ["data-transformer", "top"],
+        "percentage calc in data-transformer/top",
+    ),
+    (
+        "cumulative_sum",
+        ["data-transformer", "top"],
+        "cumulative_sum calc in data-transformer/top",
+    ),
+    ("rank", ["data-transformer", "top"], "rank calc in data-transformer/top"),
     # stats-aggregator: new metrics
-    ("percentile",      ["report-renderer", "top"],   "percentile metric in report-renderer/top"),
-    ("mode",            ["report-renderer", "top"],   "mode metric in report-renderer/top"),
+    (
+        "percentile",
+        ["report-renderer", "top"],
+        "percentile metric in report-renderer/top",
+    ),
+    ("mode", ["report-renderer", "top"], "mode metric in report-renderer/top"),
 ]
 
 
@@ -198,7 +241,12 @@ def check_new_capability_doc(content: dict) -> tuple:
     else:
         score = 0
 
-    return score, {"found": found, "total": total, "ratio": round(ratio, 2), "details": details}
+    return score, {
+        "found": found,
+        "total": total,
+        "ratio": round(ratio, 2),
+        "details": details,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -208,13 +256,13 @@ def check_new_capability_doc(content: dict) -> tuple:
 
 SCHEMA_CHECKS = [
     # (keyword, file_keys, description)
-    ("metadata",        ["report-renderer", "top"],  "metadata field in report-renderer/top"),
-    ("timestamp",       ["report-renderer", "top"],  "timestamp in report-renderer/top"),
-    ("total_rows",      ["report-renderer"],         "total_rows in report-renderer"),
-    ("group_count",     ["report-renderer"],         "group_count in report-renderer"),
-    ("metrics_computed", ["report-renderer"],         "metrics_computed in report-renderer"),
-    ("percentile_25",   ["report-renderer"],         "percentile_25 example in report-renderer"),
-    ("percentile_75",   ["report-renderer"],         "percentile_75 example in report-renderer"),
+    ("metadata", ["report-renderer", "top"], "metadata field in report-renderer/top"),
+    ("timestamp", ["report-renderer", "top"], "timestamp in report-renderer/top"),
+    ("total_rows", ["report-renderer"], "total_rows in report-renderer"),
+    ("group_count", ["report-renderer"], "group_count in report-renderer"),
+    ("metrics_computed", ["report-renderer"], "metrics_computed in report-renderer"),
+    ("percentile_25", ["report-renderer"], "percentile_25 example in report-renderer"),
+    ("percentile_75", ["report-renderer"], "percentile_75 example in report-renderer"),
 ]
 
 
@@ -246,13 +294,19 @@ def check_output_schema_updated(content: dict) -> tuple:
     else:
         score = 0
 
-    return score, {"found": found, "total": total, "ratio": round(ratio, 2), "details": details}
+    return score, {
+        "found": found,
+        "total": total,
+        "ratio": round(ratio, 2),
+        "details": details,
+    }
 
 
 # ---------------------------------------------------------------------------
 # Criterion 5: VERSION_BUMPED (10 pts)
 # Mid-level and top-level version numbers have changed from 1.0.0.
 # ---------------------------------------------------------------------------
+
 
 def check_version_bumped(content: dict) -> tuple:
     """Check that version numbers have been updated."""
@@ -261,7 +315,7 @@ def check_version_bumped(content: dict) -> tuple:
 
     for key in ["top", "data-loader", "data-transformer", "report-renderer"]:
         text = content.get(key, "")
-        match = re.search(r'version:\s*(\S+)', text)
+        match = re.search(r"version:\s*(\S+)", text)
         if match:
             ver = match.group(1)
             if ver != "1.0.0":
@@ -289,15 +343,22 @@ def check_version_bumped(content: dict) -> tuple:
 # Top-level code examples no longer use deprecated features.
 # ---------------------------------------------------------------------------
 
+
 def check_code_example_fixed(content: dict) -> tuple:
     """Check that code examples in top-level are updated."""
     top = content.get("top", "")
     checks = {
-        "no_ratio_in_example": not bool(re.search(r'--calc\s+ratio', top)),
-        "has_new_calc_example": bool(re.search(r'--calc\s+(percentage|cumulative_sum|rank)', top)),
-        "delimiter_example_updated": bool(re.search(r'-d\s+"?\|"?', top)) or bool(re.search(r'-d\s+"\|"', top)) or bool(re.search(r"-d\s+'?\|'?", top)),
-        "has_percentiles_example": bool(re.search(r'--percentiles', top)),
-        "has_comment_prefix_example": bool(re.search(r'--comment-prefix', top, re.IGNORECASE)),
+        "no_ratio_in_example": not bool(re.search(r"--calc\s+ratio", top)),
+        "has_new_calc_example": bool(
+            re.search(r"--calc\s+(percentage|cumulative_sum|rank)", top)
+        ),
+        "delimiter_example_updated": bool(re.search(r'-d\s+"?\|"?', top))
+        or bool(re.search(r'-d\s+"\|"', top))
+        or bool(re.search(r"-d\s+'?\|'?", top)),
+        "has_percentiles_example": bool(re.search(r"--percentiles", top)),
+        "has_comment_prefix_example": bool(
+            re.search(r"--comment-prefix", top, re.IGNORECASE)
+        ),
     }
 
     passed = sum(1 for v in checks.values() if v)
@@ -315,14 +376,19 @@ def check_code_example_fixed(content: dict) -> tuple:
     else:
         score = 0
 
-    return score, {"checks": {k: "PASS" if v else "FAIL" for k, v in checks.items()},
-                   "passed": passed, "total": total, "ratio": round(ratio, 2)}
+    return score, {
+        "checks": {k: "PASS" if v else "FAIL" for k, v in checks.items()},
+        "passed": passed,
+        "total": total,
+        "ratio": round(ratio, 2),
+    }
 
 
 # ---------------------------------------------------------------------------
 # Criterion 7: CROSS_CUTTING (10 pts)
 # Awareness that stats-aggregator output changes affect format-writer/report-renderer.
 # ---------------------------------------------------------------------------
+
 
 def check_cross_cutting(content: dict) -> tuple:
     """Check cross-module awareness."""
@@ -334,8 +400,8 @@ def check_cross_cutting(content: dict) -> tuple:
 
     # format-writer awareness: report-renderer or top mentions that format-writer
     # handles the metadata section
-    checks["rr_format_writer_handles_metadata"] = (
-        "metadata" in rr and ("format" in rr or "writer" in rr)
+    checks["rr_format_writer_handles_metadata"] = "metadata" in rr and (
+        "format" in rr or "writer" in rr
     )
 
     # top-level output schema includes metadata
@@ -345,8 +411,8 @@ def check_cross_cutting(content: dict) -> tuple:
     # data-transformer acknowledges ratio removal
     dt = lower(content.get("data-transformer", ""))
     checks["dt_ratio_removal_noted"] = (
-        ("removed" in dt or "deprecated" in dt or "no longer" in dt) and "ratio" in dt
-    )
+        "removed" in dt or "deprecated" in dt or "no longer" in dt
+    ) and "ratio" in dt
 
     passed = sum(1 for v in checks.values() if v)
     total = len(checks)
@@ -361,13 +427,18 @@ def check_cross_cutting(content: dict) -> tuple:
     else:
         score = 0
 
-    return score, {"checks": {k: "PASS" if v else "FAIL" for k, v in checks.items()},
-                   "passed": passed, "total": total, "ratio": round(ratio, 2)}
+    return score, {
+        "checks": {k: "PASS" if v else "FAIL" for k, v in checks.items()},
+        "passed": passed,
+        "total": total,
+        "ratio": round(ratio, 2),
+    }
 
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def evaluate(model_output: str) -> dict:
     """Run full evaluation."""
@@ -382,27 +453,36 @@ def evaluate(model_output: str) -> dict:
     }
 
     criteria_funcs = [
-        ("PARAM_PROPAGATED",      20, check_param_propagated),
-        ("STALE_REMOVED",         15, check_stale_removed),
-        ("NEW_CAPABILITY_DOC",    20, check_new_capability_doc),
+        ("PARAM_PROPAGATED", 20, check_param_propagated),
+        ("STALE_REMOVED", 15, check_stale_removed),
+        ("NEW_CAPABILITY_DOC", 20, check_new_capability_doc),
         ("OUTPUT_SCHEMA_UPDATED", 15, check_output_schema_updated),
-        ("VERSION_BUMPED",        10, check_version_bumped),
-        ("CODE_EXAMPLE_FIXED",    10, check_code_example_fixed),
-        ("CROSS_CUTTING",         10, check_cross_cutting),
+        ("VERSION_BUMPED", 10, check_version_bumped),
+        ("CODE_EXAMPLE_FIXED", 10, check_code_example_fixed),
+        ("CROSS_CUTTING", 10, check_cross_cutting),
     ]
 
     for crit_id, max_pts, func in criteria_funcs:
         score, details = func(content)
-        results["criteria"][crit_id] = {"score": score, "max": max_pts, "details": details}
+        results["criteria"][crit_id] = {
+            "score": score,
+            "max": max_pts,
+            "details": details,
+        }
         results["total_score"] += score
 
     return results
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Evaluate skill hierarchy change propagation")
-    parser.add_argument("--model-output", required=True,
-                        help="Path to report-generator-pipeline skill directory")
+    parser = argparse.ArgumentParser(
+        description="Evaluate skill hierarchy change propagation"
+    )
+    parser.add_argument(
+        "--model-output",
+        required=True,
+        help="Path to report-generator-pipeline skill directory",
+    )
     parser.add_argument("--output-json", default="", help="Write results to JSON file")
     args = parser.parse_args()
 
@@ -415,9 +495,9 @@ def main():
             json.dump(results, f, indent=2, ensure_ascii=False)
         print(f"\nResults written to {args.output_json}")
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"TOTAL SCORE: {results['total_score']} / {results['max_score']}")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
 
     return 0 if results["total_score"] > 0 else 1
 

@@ -4,11 +4,12 @@ Data injection script for case synthesis.
 Generates and injects various types of todo items into the database for testing.
 """
 
-import sqlite3
-import random
-from datetime import datetime, timedelta
-from typing import List, Dict, Any
 import argparse
+import random
+import sqlite3
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
 from config import DATABASE_PATH
 
 
@@ -17,40 +18,104 @@ class DataGenerator:
 
     # Data pools for realistic test data
     TITLES = {
-        'work': [
-            "Team meeting", "Project deadline", "Code review", "Client call",
-            "Sprint planning", "Documentation update", "Bug fix", "Feature implementation",
-            "Performance review", "Training session", "Workshop", "Presentation",
-            "Quarterly report", "Budget meeting", "Strategy session"
+        "work": [
+            "Team meeting",
+            "Project deadline",
+            "Code review",
+            "Client call",
+            "Sprint planning",
+            "Documentation update",
+            "Bug fix",
+            "Feature implementation",
+            "Performance review",
+            "Training session",
+            "Workshop",
+            "Presentation",
+            "Quarterly report",
+            "Budget meeting",
+            "Strategy session",
         ],
-        'personal': [
-            "Grocery shopping", "Doctor appointment", "Gym session", "Call mom",
-            "Pay bills", "Car maintenance", "Home cleaning", "Laundry",
-            "Haircut appointment", "Dentist visit", "Vet appointment", "Shopping",
-            "Cook dinner", "Movie night", "Family gathering"
+        "personal": [
+            "Grocery shopping",
+            "Doctor appointment",
+            "Gym session",
+            "Call mom",
+            "Pay bills",
+            "Car maintenance",
+            "Home cleaning",
+            "Laundry",
+            "Haircut appointment",
+            "Dentist visit",
+            "Vet appointment",
+            "Shopping",
+            "Cook dinner",
+            "Movie night",
+            "Family gathering",
         ],
-        'events': [
-            "Birthday party", "Anniversary dinner", "Graduation ceremony", "Wedding",
-            "Conference", "Networking event", "Concert", "Sports game",
-            "Festival", "Exhibition opening", "Book launch", "Charity event"
+        "events": [
+            "Birthday party",
+            "Anniversary dinner",
+            "Graduation ceremony",
+            "Wedding",
+            "Conference",
+            "Networking event",
+            "Concert",
+            "Sports game",
+            "Festival",
+            "Exhibition opening",
+            "Book launch",
+            "Charity event",
         ],
-        'tasks': [
-            "Review contract", "Submit application", "Return library books",
-            "Organize files", "Backup data", "Update software", "Clean inbox",
-            "Plan vacation", "Research purchase", "Compare options", "Write report"
-        ]
+        "tasks": [
+            "Review contract",
+            "Submit application",
+            "Return library books",
+            "Organize files",
+            "Backup data",
+            "Update software",
+            "Clean inbox",
+            "Plan vacation",
+            "Research purchase",
+            "Compare options",
+            "Write report",
+        ],
     }
 
     LOCATIONS = [
-        "Office", "Conference Room A", "Conference Room B", "Home", "Coffee Shop",
-        "Downtown", "Airport", "Gym", "Hospital", "School", "Park", "Mall",
-        "Restaurant", "Library", "Community Center", "Online/Remote"
+        "Office",
+        "Conference Room A",
+        "Conference Room B",
+        "Home",
+        "Coffee Shop",
+        "Downtown",
+        "Airport",
+        "Gym",
+        "Hospital",
+        "School",
+        "Park",
+        "Mall",
+        "Restaurant",
+        "Library",
+        "Community Center",
+        "Online/Remote",
     ]
 
     PERSONS = [
-        "John Smith", "Sarah Johnson", "Mike Brown", "Emily Davis", "Chris Wilson",
-        "Lisa Anderson", "David Lee", "Jennifer Martinez", "Robert Taylor", "Amanda Thomas",
-        "Team", "Client", "Boss", "Family", "Friends"
+        "John Smith",
+        "Sarah Johnson",
+        "Mike Brown",
+        "Emily Davis",
+        "Chris Wilson",
+        "Lisa Anderson",
+        "David Lee",
+        "Jennifer Martinez",
+        "Robert Taylor",
+        "Amanda Thomas",
+        "Team",
+        "Client",
+        "Boss",
+        "Family",
+        "Friends",
     ]
 
     DESCRIPTIONS = [
@@ -68,7 +133,7 @@ class DataGenerator:
         "Requires travel",
         "Remote participation available",
         "Childcare arranged",
-        "Reservation confirmed"
+        "Reservation confirmed",
     ]
 
     def __init__(self):
@@ -97,18 +162,23 @@ class DataGenerator:
         title = random.choice(self.TITLES[category])
 
         todo = {
-            'title': title,
-            'date': date if date else self.generate_date(),
-            'time': self.generate_time() if random.random() > 0.3 else None,
-            'location': random.choice(self.LOCATIONS) if random.random() > 0.4 else None,
-            'person': random.choice(self.PERSONS) if random.random() > 0.5 else None,
-            'description': random.choice(self.DESCRIPTIONS) if random.random() > 0.4 else None
+            "title": title,
+            "date": date if date else self.generate_date(),
+            "time": self.generate_time() if random.random() > 0.3 else None,
+            "location": random.choice(self.LOCATIONS)
+            if random.random() > 0.4
+            else None,
+            "person": random.choice(self.PERSONS) if random.random() > 0.5 else None,
+            "description": random.choice(self.DESCRIPTIONS)
+            if random.random() > 0.4
+            else None,
         }
 
         return todo
 
-    def generate_batch(self, count: int, category: str = None,
-                      date_range: tuple = None) -> List[Dict[str, Any]]:
+    def generate_batch(
+        self, count: int, category: str = None, date_range: tuple = None
+    ) -> List[Dict[str, Any]]:
         """Generate a batch of todo items."""
         todos = []
 
@@ -127,7 +197,9 @@ class DataGenerator:
 
         return todos
 
-    def generate_daily_pattern(self, date: str, count_range: tuple = (2, 5)) -> List[Dict[str, Any]]:
+    def generate_daily_pattern(
+        self, date: str, count_range: tuple = (2, 5)
+    ) -> List[Dict[str, Any]]:
         """Generate todos for a specific date with realistic daily patterns."""
         count = random.randint(*count_range)
         todos = []
@@ -138,28 +210,33 @@ class DataGenerator:
 
         return todos
 
-    def generate_recurring_pattern(self, title: str, start_date: datetime,
-                                   occurrences: int = 10, frequency: str = 'weekly') -> List[Dict[str, Any]]:
+    def generate_recurring_pattern(
+        self,
+        title: str,
+        start_date: datetime,
+        occurrences: int = 10,
+        frequency: str = "weekly",
+    ) -> List[Dict[str, Any]]:
         """Generate recurring todo items."""
         todos = []
 
         for i in range(occurrences):
-            if frequency == 'daily':
+            if frequency == "daily":
                 date = start_date + timedelta(days=i)
-            elif frequency == 'weekly':
+            elif frequency == "weekly":
                 date = start_date + timedelta(weeks=i)
-            elif frequency == 'monthly':
-                date = start_date + timedelta(days=30*i)
+            elif frequency == "monthly":
+                date = start_date + timedelta(days=30 * i)
             else:
                 date = start_date + timedelta(weeks=i)
 
             todo = {
-                'title': title,
-                'date': date.strftime("%Y-%m-%d"),
-                'time': self.generate_time(),
-                'location': random.choice(self.LOCATIONS),
-                'person': None,
-                'description': f"Recurring {frequency} task"
+                "title": title,
+                "date": date.strftime("%Y-%m-%d"),
+                "time": self.generate_time(),
+                "location": random.choice(self.LOCATIONS),
+                "person": None,
+                "description": f"Recurring {frequency} task",
             }
             todos.append(todo)
 
@@ -182,17 +259,20 @@ class DataInjector:
 
         for todo in todos:
             try:
-                cursor.execute('''
+                cursor.execute(
+                    """
                     INSERT INTO todos (title, date, time, location, person, description)
                     VALUES (?, ?, ?, ?, ?, ?)
-                ''', (
-                    todo['title'],
-                    todo['date'],
-                    todo.get('time'),
-                    todo.get('location'),
-                    todo.get('person'),
-                    todo.get('description')
-                ))
+                """,
+                    (
+                        todo["title"],
+                        todo["date"],
+                        todo.get("time"),
+                        todo.get("location"),
+                        todo.get("person"),
+                        todo.get("description"),
+                    ),
+                )
                 inserted_count += 1
 
                 if verbose:
@@ -211,13 +291,16 @@ class DataInjector:
         todos = self.generator.generate_batch(count)
         return self.inject_todos(todos, verbose)
 
-    def inject_category_batch(self, category: str, count: int, verbose: bool = True) -> int:
+    def inject_category_batch(
+        self, category: str, count: int, verbose: bool = True
+    ) -> int:
         """Inject todos of a specific category."""
         todos = self.generator.generate_batch(count, category=category)
         return self.inject_todos(todos, verbose)
 
-    def inject_date_range_batch(self, count: int, start_date: str, end_date: str,
-                                verbose: bool = True) -> int:
+    def inject_date_range_batch(
+        self, count: int, start_date: str, end_date: str, verbose: bool = True
+    ) -> int:
         """Inject todos within a specific date range."""
         start = datetime.strptime(start_date, "%Y-%m-%d")
         end = datetime.strptime(end_date, "%Y-%m-%d")
@@ -225,18 +308,26 @@ class DataInjector:
         todos = self.generator.generate_batch(count, date_range=(start, end))
         return self.inject_todos(todos, verbose)
 
-    def inject_recurring_pattern(self, title: str, start_date: str,
-                                 occurrences: int = 10, frequency: str = 'weekly',
-                                 verbose: bool = True) -> int:
+    def inject_recurring_pattern(
+        self,
+        title: str,
+        start_date: str,
+        occurrences: int = 10,
+        frequency: str = "weekly",
+        verbose: bool = True,
+    ) -> int:
         """Inject recurring todo items."""
         start = datetime.strptime(start_date, "%Y-%m-%d")
-        todos = self.generator.generate_recurring_pattern(title, start, occurrences, frequency)
+        todos = self.generator.generate_recurring_pattern(
+            title, start, occurrences, frequency
+        )
         return self.inject_todos(todos, verbose)
 
-    def inject_month_distribution(self, month: str, total_todos: int,
-                                  verbose: bool = True) -> int:
+    def inject_month_distribution(
+        self, month: str, total_todos: int, verbose: bool = True
+    ) -> int:
         """Inject todos distributed across a month."""
-        year, month_num = map(int, month.split('-'))
+        year, month_num = map(int, month.split("-"))
 
         # Calculate days in month
         if month_num == 12:
@@ -263,7 +354,10 @@ class DataInjector:
             # Add more to reach target
             extra = self.generator.generate_batch(
                 total_todos - len(all_todos),
-                date_range=(datetime(year, month_num, 1), next_month - timedelta(days=1))
+                date_range=(
+                    datetime(year, month_num, 1),
+                    next_month - timedelta(days=1),
+                ),
             )
             all_todos.extend(extra)
 
@@ -277,7 +371,7 @@ class DataInjector:
 
         conn = sqlite3.connect(self.database_path)
         cursor = conn.cursor()
-        cursor.execute('DELETE FROM todos')
+        cursor.execute("DELETE FROM todos")
         deleted_count = cursor.rowcount
         conn.commit()
         conn.close()
@@ -289,7 +383,7 @@ class DataInjector:
 def main():
     """Main entry point for data injection script."""
     parser = argparse.ArgumentParser(
-        description='Inject synthetic data into the todo database for case synthesis',
+        description="Inject synthetic data into the todo database for case synthesis",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -310,34 +404,63 @@ Examples:
 
   # Clear all todos
   python inject_data.py --clear
-        """
+        """,
     )
 
     # Injection modes
-    parser.add_argument('--random', type=int, metavar='COUNT',
-                       help='Inject COUNT random todos')
-    parser.add_argument('--category', type=str, choices=['work', 'personal', 'events', 'tasks'],
-                       help='Category of todos to generate')
-    parser.add_argument('--count', type=int, default=20,
-                       help='Number of todos to inject (default: 20)')
-    parser.add_argument('--date-range', type=str, nargs=2, metavar=('START', 'END'),
-                       help='Inject todos within date range (YYYY-MM-DD YYYY-MM-DD)')
-    parser.add_argument('--month', type=str, metavar='YYYY-MM',
-                       help='Inject todos distributed across a month')
-    parser.add_argument('--recurring', type=str, metavar='TITLE',
-                       help='Inject recurring todos with given title')
-    parser.add_argument('--start', type=str, metavar='YYYY-MM-DD',
-                       help='Start date for recurring todos')
-    parser.add_argument('--frequency', type=str, choices=['daily', 'weekly', 'monthly'],
-                       default='weekly', help='Frequency for recurring todos (default: weekly)')
-    parser.add_argument('--occurrences', type=int, default=10,
-                       help='Number of recurring occurrences (default: 10)')
+    parser.add_argument(
+        "--random", type=int, metavar="COUNT", help="Inject COUNT random todos"
+    )
+    parser.add_argument(
+        "--category",
+        type=str,
+        choices=["work", "personal", "events", "tasks"],
+        help="Category of todos to generate",
+    )
+    parser.add_argument(
+        "--count", type=int, default=20, help="Number of todos to inject (default: 20)"
+    )
+    parser.add_argument(
+        "--date-range",
+        type=str,
+        nargs=2,
+        metavar=("START", "END"),
+        help="Inject todos within date range (YYYY-MM-DD YYYY-MM-DD)",
+    )
+    parser.add_argument(
+        "--month",
+        type=str,
+        metavar="YYYY-MM",
+        help="Inject todos distributed across a month",
+    )
+    parser.add_argument(
+        "--recurring",
+        type=str,
+        metavar="TITLE",
+        help="Inject recurring todos with given title",
+    )
+    parser.add_argument(
+        "--start", type=str, metavar="YYYY-MM-DD", help="Start date for recurring todos"
+    )
+    parser.add_argument(
+        "--frequency",
+        type=str,
+        choices=["daily", "weekly", "monthly"],
+        default="weekly",
+        help="Frequency for recurring todos (default: weekly)",
+    )
+    parser.add_argument(
+        "--occurrences",
+        type=int,
+        default=10,
+        help="Number of recurring occurrences (default: 10)",
+    )
 
     # Utility options
-    parser.add_argument('--clear', action='store_true',
-                       help='Delete all todos from database')
-    parser.add_argument('--quiet', action='store_true',
-                       help='Suppress detailed output')
+    parser.add_argument(
+        "--clear", action="store_true", help="Delete all todos from database"
+    )
+    parser.add_argument("--quiet", action="store_true", help="Suppress detailed output")
 
     args = parser.parse_args()
 
@@ -360,8 +483,12 @@ Examples:
 
     elif args.date_range:
         start_date, end_date = args.date_range
-        count = injector.inject_date_range_batch(args.count, start_date, end_date, verbose)
-        print(f"\n✅ Successfully injected {count} todos from {start_date} to {end_date}")
+        count = injector.inject_date_range_batch(
+            args.count, start_date, end_date, verbose
+        )
+        print(
+            f"\n✅ Successfully injected {count} todos from {start_date} to {end_date}"
+        )
 
     elif args.month:
         count = injector.inject_month_distribution(args.month, args.count, verbose)
@@ -380,5 +507,5 @@ Examples:
         parser.print_help()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
