@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Verify washer_shop: check order for prod_0074 (4.6+ portable washer)"""
-import json, sys
+
+import json
+import sys
 
 score = 0.0
 orders_path = "/tmp/mosi_shop_orders.json"
@@ -10,7 +12,11 @@ try:
     with open(orders_path) as f:
         orders = json.load(f)
     for order in orders:
-        if order.get("order_id") == "ORD000008" and order["items"][0]["id"] == "prod_0074" and order["status"] == "Pending Shipment":
+        if (
+            order.get("order_id") == "ORD000008"
+            and order["items"][0]["id"] == "prod_0074"
+            and order["status"] == "Pending Shipment"
+        ):
             score = 1.0
             break
 except FileNotFoundError:

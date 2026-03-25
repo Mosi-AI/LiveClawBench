@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Verify vue-project-build-bug-fix-hard: check answer_file.txt with 7 metrics."""
-import json, sys
+
+import json
+import sys
 
 answer_path = "/workspace/output/answer_file.txt"
 score = 0

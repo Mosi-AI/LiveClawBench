@@ -163,8 +163,14 @@ def structural_scores(result: dict, key: dict) -> dict[str, float]:
     else:
         contract = 0.0
 
-    listed_valid = [path for path in listed_artifact_paths(result) if is_modified_from_seed(path)]
-    modified_durable_paths = [path for path in gather_durable_artifact_paths(result) if is_modified_from_seed(path)]
+    listed_valid = [
+        path for path in listed_artifact_paths(result) if is_modified_from_seed(path)
+    ]
+    modified_durable_paths = [
+        path
+        for path in gather_durable_artifact_paths(result)
+        if is_modified_from_seed(path)
+    ]
     if listed_valid:
         workspace = 1.0
     elif modified_durable_paths:
@@ -183,13 +189,20 @@ def main() -> None:
     result = load_json(OUT / "result.json")
     payload = {
         "scores": structural_scores(result, key),
-        "durable_artifacts": [str(workspace_relpath(path)) for path in gather_durable_artifact_paths(result)],
+        "durable_artifacts": [
+            str(workspace_relpath(path))
+            for path in gather_durable_artifact_paths(result)
+        ],
         "modified_durable_artifacts": [
-            str(workspace_relpath(path)) for path in gather_durable_artifact_paths(result) if is_modified_from_seed(path)
+            str(workspace_relpath(path))
+            for path in gather_durable_artifact_paths(result)
+            if is_modified_from_seed(path)
         ],
         "output_texts": sorted(load_output_texts().keys()),
     }
-    (OUT / "structural_checks.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    (OUT / "structural_checks.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 if __name__ == "__main__":

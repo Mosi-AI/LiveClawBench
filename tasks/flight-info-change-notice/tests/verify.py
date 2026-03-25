@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Verify flight-info-change-notice: check notification emails sent to travelers"""
+
 import sys
+
 sys.path.insert(0, "/workspace/environment/email-app/backend")
-from app import app, db
+from app import app
 from models import Email
 
 TARGET_EMAILS = [
@@ -11,6 +13,7 @@ TARGET_EMAILS = [
     "karre8523@outlook.com",
     "gaeuala@outlook.com",
 ]
+
 
 def check():
     score = 0.0
@@ -23,6 +26,7 @@ def check():
             else:
                 print(f"FAIL: No email to {target}")
     return score
+
 
 score = check()
 total = len(TARGET_EMAILS)

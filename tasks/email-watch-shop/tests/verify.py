@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Verify email_watch_shop: check order for prod_0068 after reading email"""
-import json, sys
+
+import json
+import sys
 
 score = 0.0
 orders_path = "/tmp/mosi_shop_orders.json"
@@ -10,7 +12,11 @@ try:
     with open(orders_path) as f:
         orders = json.load(f)
     for order in orders:
-        if order.get("order_id") == "ORD000008" and order["items"][0]["id"] == "prod_0068" and order["status"] == "Pending Shipment":
+        if (
+            order.get("order_id") == "ORD000008"
+            and order["items"][0]["id"] == "prod_0068"
+            and order["status"] == "Pending Shipment"
+        ):
             score = 1.0
             break
 except FileNotFoundError:

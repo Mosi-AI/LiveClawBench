@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Parse test output and calculate score for blog-site-from-scratch."""
-import re, sys
+
+import re
+import sys
 
 output_path = "/workspace/output/test_output.txt"
 try:

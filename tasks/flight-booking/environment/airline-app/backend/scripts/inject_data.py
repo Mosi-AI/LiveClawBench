@@ -5,37 +5,38 @@ Creates simulated users, flights, bookings, and other airline-related data.
 All dates are current-time-sensitive to avoid data staleness.
 """
 
-import sys
 import os
+import sys
 
 # Add parent directory to path to import models
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import create_app, db
-from app.models.user import User
-from app.models.flight import Flight, Seat
-from app.models.booking import Booking, Passenger, Payment
-from app.models.announcement import Announcement
-from app.models.faq import FAQ
-from app.models.baggage import BaggageTracking
-from app.data_injection import DataInjector
-from datetime import datetime, timedelta
 import random
+from datetime import datetime, timedelta
+
+from app import create_app, db
+from app.data_injection import DataInjector
+from app.models.announcement import Announcement
+from app.models.baggage import BaggageTracking
+from app.models.booking import Booking, Payment
+from app.models.faq import FAQ
+from app.models.flight import Flight, Seat
+from app.models.user import User
 
 
 def get_or_create_default_user(injector):
     """Get or create the default user for auto-login."""
     print("Getting/Creating default user for auto-login...")
 
-    default_user = User.query.filter_by(email='default@gkdairlines.com').first()
+    default_user = User.query.filter_by(email="default@gkdairlines.com").first()
     if not default_user:
         default_user = injector.create_user(
-            email='default@gkdairlines.com',
-            password='default123',
-            first_name='Peter',
-            last_name='Griffin',
-            phone='+1-555-0100',
-            is_verified=True
+            email="default@gkdairlines.com",
+            password="default123",
+            first_name="Peter",
+            last_name="Griffin",
+            phone="+1-555-0100",
+            is_verified=True,
         )
         print("  Created default user: default@gkdairlines.com")
     else:
@@ -50,64 +51,64 @@ def create_test_users(injector):
 
     users_data = [
         {
-            'email': 'john.doe@email.com',
-            'password': 'password123',
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'phone': '+1-555-1001',
-            'date_of_birth': '1985-03-15',
-            'passport_number': 'AB1234567',
-            'passport_expiry': '2028-12-31',
-            'is_verified': True
+            "email": "john.doe@email.com",
+            "password": "password123",
+            "first_name": "John",
+            "last_name": "Doe",
+            "phone": "+1-555-1001",
+            "date_of_birth": "1985-03-15",
+            "passport_number": "AB1234567",
+            "passport_expiry": "2028-12-31",
+            "is_verified": True,
         },
         {
-            'email': 'jane.smith@email.com',
-            'password': 'password123',
-            'first_name': 'Jane',
-            'last_name': 'Smith',
-            'phone': '+1-555-1002',
-            'date_of_birth': '1990-07-22',
-            'passport_number': 'CD2345678',
-            'passport_expiry': '2027-06-30',
-            'is_verified': True
+            "email": "jane.smith@email.com",
+            "password": "password123",
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "phone": "+1-555-1002",
+            "date_of_birth": "1990-07-22",
+            "passport_number": "CD2345678",
+            "passport_expiry": "2027-06-30",
+            "is_verified": True,
         },
         {
-            'email': 'mike.johnson@email.com',
-            'password': 'password123',
-            'first_name': 'Mike',
-            'last_name': 'Johnson',
-            'phone': '+1-555-1003',
-            'date_of_birth': '1978-11-08',
-            'passport_number': 'EF3456789',
-            'passport_expiry': '2029-03-15',
-            'is_verified': True
+            "email": "mike.johnson@email.com",
+            "password": "password123",
+            "first_name": "Mike",
+            "last_name": "Johnson",
+            "phone": "+1-555-1003",
+            "date_of_birth": "1978-11-08",
+            "passport_number": "EF3456789",
+            "passport_expiry": "2029-03-15",
+            "is_verified": True,
         },
         {
-            'email': 'sarah.williams@email.com',
-            'password': 'password123',
-            'first_name': 'Sarah',
-            'last_name': 'Williams',
-            'phone': '+1-555-1004',
-            'date_of_birth': '1992-05-30',
-            'is_verified': True
+            "email": "sarah.williams@email.com",
+            "password": "password123",
+            "first_name": "Sarah",
+            "last_name": "Williams",
+            "phone": "+1-555-1004",
+            "date_of_birth": "1992-05-30",
+            "is_verified": True,
         },
         {
-            'email': 'david.brown@email.com',
-            'password': 'password123',
-            'first_name': 'David',
-            'last_name': 'Brown',
-            'phone': '+1-555-1005',
-            'date_of_birth': '1988-09-12',
-            'passport_number': 'GH4567890',
-            'passport_expiry': '2026-11-20',
-            'is_verified': True
+            "email": "david.brown@email.com",
+            "password": "password123",
+            "first_name": "David",
+            "last_name": "Brown",
+            "phone": "+1-555-1005",
+            "date_of_birth": "1988-09-12",
+            "passport_number": "GH4567890",
+            "passport_expiry": "2026-11-20",
+            "is_verified": True,
         },
     ]
 
     created_users = []
     for user_data in users_data:
         # Check if user already exists
-        existing = User.query.filter_by(email=user_data['email']).first()
+        existing = User.query.filter_by(email=user_data["email"]).first()
         if existing:
             print(f"  User '{user_data['email']}' already exists, skipping...")
             created_users.append(existing)
@@ -128,37 +129,136 @@ def create_flights_with_seats(injector):
 
     # Airport data
     airports = {
-        'JFK': {'city': 'New York', 'airport': 'John F. Kennedy International Airport'},
-        'LAX': {'city': 'Los Angeles', 'airport': 'Los Angeles International Airport'},
-        'SFO': {'city': 'San Francisco', 'airport': 'San Francisco International Airport'},
-        'SEA': {'city': 'Seattle', 'airport': 'Seattle-Tacoma International Airport'},
-        'MIA': {'city': 'Miami', 'airport': 'Miami International Airport'},
-        'ORD': {'city': 'Chicago', 'airport': 'O\'Hare International Airport'},
-        'DFW': {'city': 'Dallas', 'airport': 'Dallas/Fort Worth International Airport'},
-        'BOS': {'city': 'Boston', 'airport': 'Logan International Airport'},
-        'ATL': {'city': 'Atlanta', 'airport': 'Hartsfield-Jackson Atlanta International Airport'},
-        'DEN': {'city': 'Denver', 'airport': 'Denver International Airport'},
-        'PHX': {'city': 'Phoenix', 'airport': 'Phoenix Sky Harbor International Airport'},
-        'LAS': {'city': 'Las Vegas', 'airport': 'McCarran International Airport'},
+        "JFK": {"city": "New York", "airport": "John F. Kennedy International Airport"},
+        "LAX": {"city": "Los Angeles", "airport": "Los Angeles International Airport"},
+        "SFO": {
+            "city": "San Francisco",
+            "airport": "San Francisco International Airport",
+        },
+        "SEA": {"city": "Seattle", "airport": "Seattle-Tacoma International Airport"},
+        "MIA": {"city": "Miami", "airport": "Miami International Airport"},
+        "ORD": {"city": "Chicago", "airport": "O'Hare International Airport"},
+        "DFW": {"city": "Dallas", "airport": "Dallas/Fort Worth International Airport"},
+        "BOS": {"city": "Boston", "airport": "Logan International Airport"},
+        "ATL": {
+            "city": "Atlanta",
+            "airport": "Hartsfield-Jackson Atlanta International Airport",
+        },
+        "DEN": {"city": "Denver", "airport": "Denver International Airport"},
+        "PHX": {
+            "city": "Phoenix",
+            "airport": "Phoenix Sky Harbor International Airport",
+        },
+        "LAS": {"city": "Las Vegas", "airport": "McCarran International Airport"},
     }
 
     # Flight configurations
     flight_configs = [
-        {'origin': 'JFK', 'dest': 'LAX', 'hours': 6, 'price': 299.99, 'times': [6, 10, 14, 18]},
-        {'origin': 'LAX', 'dest': 'SFO', 'hours': 1.5, 'price': 149.99, 'times': [7, 11, 15, 19]},
-        {'origin': 'SFO', 'dest': 'SEA', 'hours': 2, 'price': 199.99, 'times': [8, 12, 16, 20]},
-        {'origin': 'JFK', 'dest': 'MIA', 'hours': 3, 'price': 179.99, 'times': [7, 11, 15, 19]},
-        {'origin': 'ORD', 'dest': 'DFW', 'hours': 2.5, 'price': 159.99, 'times': [6, 10, 14, 18]},
-        {'origin': 'BOS', 'dest': 'ATL', 'hours': 2.5, 'price': 189.99, 'times': [7, 11, 15]},
-        {'origin': 'SEA', 'dest': 'DEN', 'hours': 2.5, 'price': 209.99, 'times': [8, 12, 16]},
-        {'origin': 'LAX', 'dest': 'JFK', 'hours': 5, 'price': 279.99, 'times': [6, 10, 14, 18]},
-        {'origin': 'MIA', 'dest': 'JFK', 'hours': 3, 'price': 169.99, 'times': [7, 11, 15, 19]},
-        {'origin': 'ATL', 'dest': 'BOS', 'hours': 2.5, 'price': 179.99, 'times': [8, 12, 16]},
-        {'origin': 'DFW', 'dest': 'PHX', 'hours': 2, 'price': 139.99, 'times': [7, 11, 15, 19]},
-        {'origin': 'LAS', 'dest': 'LAX', 'hours': 1, 'price': 99.99, 'times': [6, 10, 14, 18, 22]},
-        {'origin': 'DEN', 'dest': 'ORD', 'hours': 2, 'price': 159.99, 'times': [7, 11, 15, 19]},
-        {'origin': 'PHX', 'dest': 'SEA', 'hours': 3, 'price': 189.99, 'times': [8, 12, 16]},
-        {'origin': 'JFK', 'dest': 'BOS', 'hours': 1.5, 'price': 129.99, 'times': [6, 10, 14, 18, 22]},
+        {
+            "origin": "JFK",
+            "dest": "LAX",
+            "hours": 6,
+            "price": 299.99,
+            "times": [6, 10, 14, 18],
+        },
+        {
+            "origin": "LAX",
+            "dest": "SFO",
+            "hours": 1.5,
+            "price": 149.99,
+            "times": [7, 11, 15, 19],
+        },
+        {
+            "origin": "SFO",
+            "dest": "SEA",
+            "hours": 2,
+            "price": 199.99,
+            "times": [8, 12, 16, 20],
+        },
+        {
+            "origin": "JFK",
+            "dest": "MIA",
+            "hours": 3,
+            "price": 179.99,
+            "times": [7, 11, 15, 19],
+        },
+        {
+            "origin": "ORD",
+            "dest": "DFW",
+            "hours": 2.5,
+            "price": 159.99,
+            "times": [6, 10, 14, 18],
+        },
+        {
+            "origin": "BOS",
+            "dest": "ATL",
+            "hours": 2.5,
+            "price": 189.99,
+            "times": [7, 11, 15],
+        },
+        {
+            "origin": "SEA",
+            "dest": "DEN",
+            "hours": 2.5,
+            "price": 209.99,
+            "times": [8, 12, 16],
+        },
+        {
+            "origin": "LAX",
+            "dest": "JFK",
+            "hours": 5,
+            "price": 279.99,
+            "times": [6, 10, 14, 18],
+        },
+        {
+            "origin": "MIA",
+            "dest": "JFK",
+            "hours": 3,
+            "price": 169.99,
+            "times": [7, 11, 15, 19],
+        },
+        {
+            "origin": "ATL",
+            "dest": "BOS",
+            "hours": 2.5,
+            "price": 179.99,
+            "times": [8, 12, 16],
+        },
+        {
+            "origin": "DFW",
+            "dest": "PHX",
+            "hours": 2,
+            "price": 139.99,
+            "times": [7, 11, 15, 19],
+        },
+        {
+            "origin": "LAS",
+            "dest": "LAX",
+            "hours": 1,
+            "price": 99.99,
+            "times": [6, 10, 14, 18, 22],
+        },
+        {
+            "origin": "DEN",
+            "dest": "ORD",
+            "hours": 2,
+            "price": 159.99,
+            "times": [7, 11, 15, 19],
+        },
+        {
+            "origin": "PHX",
+            "dest": "SEA",
+            "hours": 3,
+            "price": 189.99,
+            "times": [8, 12, 16],
+        },
+        {
+            "origin": "JFK",
+            "dest": "BOS",
+            "hours": 1.5,
+            "price": 129.99,
+            "times": [6, 10, 14, 18, 22],
+        },
     ]
 
     flight_number = 100
@@ -167,28 +267,31 @@ def create_flights_with_seats(injector):
     # Create flights for next 60 days
     for day_offset in range(60):
         for config in flight_configs:
-            origin = config['origin']
-            dest = config['dest']
+            origin = config["origin"]
+            dest = config["dest"]
 
             # Create flights at different times of day
-            for hour in config['times']:
+            for hour in config["times"]:
                 # Skip some flights randomly to make it more realistic
                 if random.random() < 0.3:
                     continue
 
                 flight_data = {
-                    'flight_number': f'GKD{flight_number}',
-                    'origin_code': origin,
-                    'origin_city': airports[origin]['city'],
-                    'origin_airport': airports[origin]['airport'],
-                    'destination_code': dest,
-                    'destination_city': airports[dest]['city'],
-                    'destination_airport': airports[dest]['airport'],
-                    'departure_time': now + timedelta(days=day_offset, hours=hour),
-                    'arrival_time': now + timedelta(days=day_offset, hours=hour + config['hours']),
-                    'base_price_economy': config['price'],
-                    'aircraft_type': random.choice(['Boeing 737', 'Boeing 787', 'Airbus A320', 'Airbus A321']),
-                    'status': 'scheduled'
+                    "flight_number": f"GKD{flight_number}",
+                    "origin_code": origin,
+                    "origin_city": airports[origin]["city"],
+                    "origin_airport": airports[origin]["airport"],
+                    "destination_code": dest,
+                    "destination_city": airports[dest]["city"],
+                    "destination_airport": airports[dest]["airport"],
+                    "departure_time": now + timedelta(days=day_offset, hours=hour),
+                    "arrival_time": now
+                    + timedelta(days=day_offset, hours=hour + config["hours"]),
+                    "base_price_economy": config["price"],
+                    "aircraft_type": random.choice(
+                        ["Boeing 737", "Boeing 787", "Airbus A320", "Airbus A321"]
+                    ),
+                    "status": "scheduled",
                 }
 
                 flight = injector.create_flight_with_seats(flight_data)
@@ -208,43 +311,41 @@ def create_bookings_for_users(injector, users, flights):
     # Create different types of bookings
     booking_scenarios = [
         # Past bookings (completed trips)
-        {'days_offset': -30, 'status': 'confirmed', 'checked_in': True, 'user_idx': 0},
-        {'days_offset': -20, 'status': 'confirmed', 'checked_in': True, 'user_idx': 1},
-        {'days_offset': -15, 'status': 'confirmed', 'checked_in': True, 'user_idx': 2},
-
+        {"days_offset": -30, "status": "confirmed", "checked_in": True, "user_idx": 0},
+        {"days_offset": -20, "status": "confirmed", "checked_in": True, "user_idx": 1},
+        {"days_offset": -15, "status": "confirmed", "checked_in": True, "user_idx": 2},
         # Current bookings (upcoming trips within next week)
-        {'days_offset': 2, 'status': 'confirmed', 'checked_in': False, 'user_idx': 0},
-        {'days_offset': 5, 'status': 'confirmed', 'checked_in': False, 'user_idx': 1},
-        {'days_offset': 7, 'status': 'confirmed', 'checked_in': False, 'user_idx': 3},
-
+        {"days_offset": 2, "status": "confirmed", "checked_in": False, "user_idx": 0},
+        {"days_offset": 5, "status": "confirmed", "checked_in": False, "user_idx": 1},
+        {"days_offset": 7, "status": "confirmed", "checked_in": False, "user_idx": 3},
         # Future bookings (trips in 2-4 weeks)
-        {'days_offset': 14, 'status': 'confirmed', 'checked_in': False, 'user_idx': 2},
-        {'days_offset': 21, 'status': 'confirmed', 'checked_in': False, 'user_idx': 4},
-        {'days_offset': 28, 'status': 'confirmed', 'checked_in': False, 'user_idx': 0},
-
+        {"days_offset": 14, "status": "confirmed", "checked_in": False, "user_idx": 2},
+        {"days_offset": 21, "status": "confirmed", "checked_in": False, "user_idx": 4},
+        {"days_offset": 28, "status": "confirmed", "checked_in": False, "user_idx": 0},
         # Cancelled bookings
-        {'days_offset': 10, 'status': 'cancelled', 'checked_in': False, 'user_idx': 3},
-        {'days_offset': 25, 'status': 'cancelled', 'checked_in': False, 'user_idx': 1},
-
+        {"days_offset": 10, "status": "cancelled", "checked_in": False, "user_idx": 3},
+        {"days_offset": 25, "status": "cancelled", "checked_in": False, "user_idx": 1},
         # Pending payment
-        {'days_offset': 12, 'status': 'pending', 'checked_in': False, 'user_idx': 2},
+        {"days_offset": 12, "status": "pending", "checked_in": False, "user_idx": 2},
     ]
 
     for scenario in booking_scenarios:
         # Find a flight for the scenario
-        target_date = datetime.utcnow() + timedelta(days=scenario['days_offset'])
+        target_date = datetime.utcnow() + timedelta(days=scenario["days_offset"])
 
         # Find a flight close to the target date
         suitable_flight = None
         for flight in flights:
-            if abs((flight.departure_time - target_date).total_seconds()) < 86400:  # Within 1 day
+            if (
+                abs((flight.departure_time - target_date).total_seconds()) < 86400
+            ):  # Within 1 day
                 suitable_flight = flight
                 break
 
         if not suitable_flight:
             continue
 
-        user = users[scenario['user_idx'] % len(users)]
+        user = users[scenario["user_idx"] % len(users)]
 
         # Create booking
         booking = injector.create_booking(
@@ -252,26 +353,28 @@ def create_bookings_for_users(injector, users, flights):
             flight_id=suitable_flight.id,
             passengers_data=[
                 {
-                    'first_name': user.first_name,
-                    'last_name': user.last_name,
-                    'date_of_birth': '1990-01-01',
-                    'passport_number': user.passport_number if user.passport_number else 'AB1234567',
-                    'nationality': 'US'
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "date_of_birth": "1990-01-01",
+                    "passport_number": user.passport_number
+                    if user.passport_number
+                    else "AB1234567",
+                    "nationality": "US",
                 }
             ],
-            cabin_class=random.choice(['economy', 'economy', 'economy', 'business']),
-            booking_status=scenario['status'],
-            checked_in=scenario['checked_in'],
-            check_in_time=datetime.utcnow() if scenario['checked_in'] else None
+            cabin_class=random.choice(["economy", "economy", "economy", "business"]),
+            booking_status=scenario["status"],
+            checked_in=scenario["checked_in"],
+            check_in_time=datetime.utcnow() if scenario["checked_in"] else None,
         )
 
         # Create payment for confirmed bookings
-        if scenario['status'] in ['confirmed', 'cancelled']:
-            payment_status = 'completed' if scenario['status'] == 'confirmed' else 'refunded'
+        if scenario["status"] in ["confirmed", "cancelled"]:
+            payment_status = (
+                "completed" if scenario["status"] == "confirmed" else "refunded"
+            )
             injector.create_payment(
-                booking_id=booking.id,
-                amount=booking.total_price,
-                status=payment_status
+                booking_id=booking.id, amount=booking.total_price, status=payment_status
             )
 
         booking_count += 1
@@ -289,11 +392,11 @@ def create_announcements(injector):
 
     announcements = [
         {
-            'title': f'Spring Travel Deals - Book Now for March-April {now.year}!',
-            'content': f'''GKD Airlines is excited to announce special spring travel deals!
+            "title": f"Spring Travel Deals - Book Now for March-April {now.year}!",
+            "content": f"""GKD Airlines is excited to announce special spring travel deals!
 
 Take advantage of our limited-time offers:
-- 25% off all domestic flights booked before {(now + timedelta(days=7)).strftime('%B %d')}
+- 25% off all domestic flights booked before {(now + timedelta(days=7)).strftime("%B %d")}
 - Free seat selection on bookings over $300
 - Double miles on all international routes
 
@@ -302,16 +405,16 @@ Popular destinations on sale:
 - Chicago to Miami starting at $179
 - Seattle to Denver starting at $159
 
-Book by {(now + timedelta(days=14)).strftime('%B %d, %Y')} to lock in these rates!
+Book by {(now + timedelta(days=14)).strftime("%B %d, %Y")} to lock in these rates!
 
-Terms and conditions apply. Limited availability.''',
-            'category': 'promotion',
-            'priority': 'high',
-            'expires_at': now + timedelta(days=30)
+Terms and conditions apply. Limited availability.""",
+            "category": "promotion",
+            "priority": "high",
+            "expires_at": now + timedelta(days=30),
         },
         {
-            'title': 'Enhanced Mobile Check-In Experience',
-            'content': '''We've upgraded our mobile check-in system!
+            "title": "Enhanced Mobile Check-In Experience",
+            "content": """We've upgraded our mobile check-in system!
 
 New features include:
 - Streamlined interface for faster check-in
@@ -322,13 +425,13 @@ New features include:
 
 Download our app or check in through our website 24 hours before departure.
 
-Available now on iOS and Android.''',
-            'category': 'general',
-            'priority': 'normal'
+Available now on iOS and Android.""",
+            "category": "general",
+            "priority": "normal",
         },
         {
-            'title': f'Flight Schedule Update - {now.strftime("%B %Y")}',
-            'content': f'''Please note the following schedule adjustments effective {(now + timedelta(days=7)).strftime('%B %d, %Y')}:
+            "title": f"Flight Schedule Update - {now.strftime('%B %Y')}",
+            "content": f"""Please note the following schedule adjustments effective {(now + timedelta(days=7)).strftime("%B %d, %Y")}:
 
 New Routes Added:
 - JFK to Las Vegas: Daily flights
@@ -336,19 +439,19 @@ New Routes Added:
 - Seattle to Boston: Weekend service
 
 Discontinued Routes:
-- Miami to Dallas: Last flight on {(now + timedelta(days=14)).strftime('%B %d')}
+- Miami to Dallas: Last flight on {(now + timedelta(days=14)).strftime("%B %d")}
 
 Schedule Changes:
 - JFK-LAX morning departure moved from 6:00 AM to 6:30 AM
 - Additional late-night flights added on Fridays and Sundays
 
-We apologize for any inconvenience and appreciate your understanding.''',
-            'category': 'flight',
-            'priority': 'normal'
+We apologize for any inconvenience and appreciate your understanding.""",
+            "category": "flight",
+            "priority": "normal",
         },
         {
-            'title': 'New Premium Economy Class Available',
-            'content': '''Introducing Premium Economy - the perfect balance of comfort and value!
+            "title": "New Premium Economy Class Available",
+            "content": """Introducing Premium Economy - the perfect balance of comfort and value!
 
 Premium Economy benefits:
 - 6 inches of extra legroom
@@ -362,13 +465,13 @@ Available now on select routes:
 - All transcontinental flights
 - International routes from JFK, LAX, and SFO
 
-Upgrade from just $79 per segment.''',
-            'category': 'promotion',
-            'priority': 'low'
+Upgrade from just $79 per segment.""",
+            "category": "promotion",
+            "priority": "low",
         },
         {
-            'title': 'Important: Enhanced Security Measures',
-            'content': f'''Effective {(now + timedelta(days=3)).strftime('%B %d, %Y')}, GKD Airlines will implement enhanced security measures at all airports.
+            "title": "Important: Enhanced Security Measures",
+            "content": f"""Effective {(now + timedelta(days=3)).strftime("%B %d, %Y")}, GKD Airlines will implement enhanced security measures at all airports.
 
 What you need to know:
 - Arrive at least 2.5 hours before domestic flights
@@ -382,13 +485,13 @@ Tips for faster screening:
 - Empty pockets before screening
 - Follow TSA PreCheck guidelines if enrolled
 
-Your safety is our top priority.''',
-            'category': 'general',
-            'priority': 'urgent'
+Your safety is our top priority.""",
+            "category": "general",
+            "priority": "urgent",
         },
         {
-            'title': 'Partnership Announcement: Hotel Discounts',
-            'content': '''GKD Airlines has partnered with leading hotel chains to bring you exclusive discounts!
+            "title": "Partnership Announcement: Hotel Discounts",
+            "content": """GKD Airlines has partnered with leading hotel chains to bring you exclusive discounts!
 
 Partner hotels offering 15-25% off:
 - Marriott Hotels & Resorts
@@ -402,9 +505,9 @@ How to book:
 3. Access exclusive member rates
 4. Earn bonus miles on hotel stays
 
-Valid for bookings made within 30 days of your flight.''',
-            'category': 'promotion',
-            'priority': 'low'
+Valid for bookings made within 30 days of your flight.""",
+            "category": "promotion",
+            "priority": "low",
         },
     ]
 
@@ -421,20 +524,20 @@ def create_faqs(injector):
 
     faqs = [
         {
-            'question': 'What is the baggage allowance for my flight?',
-            'answer': '''Economy class passengers are allowed one carry-on bag (max 7kg) and one checked bag (max 23kg).
+            "question": "What is the baggage allowance for my flight?",
+            "answer": """Economy class passengers are allowed one carry-on bag (max 7kg) and one checked bag (max 23kg).
 
 Business class passengers can bring two checked bags (max 32kg each).
 
 First class passengers enjoy three checked bags (max 32kg each).
 
-Additional baggage can be purchased during booking or at the airport (higher fees apply at airport).''',
-            'category': 'baggage',
-            'display_order': 1
+Additional baggage can be purchased during booking or at the airport (higher fees apply at airport).""",
+            "category": "baggage",
+            "display_order": 1,
         },
         {
-            'question': 'How can I change or cancel my booking?',
-            'answer': '''You can modify or cancel your booking through our website or mobile app up to 24 hours before departure.
+            "question": "How can I change or cancel my booking?",
+            "answer": """You can modify or cancel your booking through our website or mobile app up to 24 hours before departure.
 
 Cancellation fees:
 - More than 7 days before departure: No fee
@@ -442,25 +545,25 @@ Cancellation fees:
 - 24-72 hours before departure: $150 fee
 - Less than 24 hours: No refund available
 
-Refunds for flights cancelled by GKD Airlines are processed automatically within 7-10 business days.''',
-            'category': 'booking',
-            'display_order': 2
+Refunds for flights cancelled by GKD Airlines are processed automatically within 7-10 business days.""",
+            "category": "booking",
+            "display_order": 2,
         },
         {
-            'question': 'When can I check in for my flight?',
-            'answer': '''Online check-in opens 24 hours before your scheduled departure time and closes 2 hours before departure.
+            "question": "When can I check in for my flight?",
+            "answer": """Online check-in opens 24 hours before your scheduled departure time and closes 2 hours before departure.
 
 Airport check-in counters:
 - International flights: Open 3 hours before departure
 - Domestic flights: Open 2 hours before departure
 
-We recommend checking in online to save time at the airport and select your preferred seat.''',
-            'category': 'check-in',
-            'display_order': 3
+We recommend checking in online to save time at the airport and select your preferred seat.""",
+            "category": "check-in",
+            "display_order": 3,
         },
         {
-            'question': 'What payment methods are accepted?',
-            'answer': '''We accept:
+            "question": "What payment methods are accepted?",
+            "answer": """We accept:
 - All major credit cards (Visa, MasterCard, American Express, Discover)
 - Debit cards with Visa or MasterCard logo
 - PayPal
@@ -468,26 +571,26 @@ We recommend checking in online to save time at the airport and select your pref
 - Bank transfers (for bookings made 7+ days in advance)
 - GKD Airlines travel credits and gift cards
 
-Installment payment plans are available for bookings over $500.''',
-            'category': 'payment',
-            'display_order': 4
+Installment payment plans are available for bookings over $500.""",
+            "category": "payment",
+            "display_order": 4,
         },
         {
-            'question': 'How do I get a refund for a cancelled flight?',
-            'answer': '''If GKD Airlines cancels your flight, you are entitled to a full refund automatically processed to your original payment method within 7-10 business days.
+            "question": "How do I get a refund for a cancelled flight?",
+            "answer": """If GKD Airlines cancels your flight, you are entitled to a full refund automatically processed to your original payment method within 7-10 business days.
 
 Options for cancelled flights:
 1. Full refund to original payment method
 2. Travel credits for future flights with a 10% bonus value
 3. Rebooking on the next available flight at no extra cost
 
-Contact our customer service for assistance with refunds and rebooking.''',
-            'category': 'booking',
-            'display_order': 5
+Contact our customer service for assistance with refunds and rebooking.""",
+            "category": "booking",
+            "display_order": 5,
         },
         {
-            'question': 'Can I select my seat in advance?',
-            'answer': '''Yes! You can select your preferred seat during booking or through "Manage Booking".
+            "question": "Can I select my seat in advance?",
+            "answer": """Yes! You can select your preferred seat during booking or through "Manage Booking".
 
 Seat selection fees:
 - Standard seats: Complimentary (based on availability)
@@ -495,13 +598,13 @@ Seat selection fees:
 - Exit row seats: $45-75
 - Window and aisle seats: May have additional fees
 
-Business and First class passengers: Complimentary seat selection for all seats.''',
-            'category': 'booking',
-            'display_order': 6
+Business and First class passengers: Complimentary seat selection for all seats.""",
+            "category": "booking",
+            "display_order": 6,
         },
         {
-            'question': 'What happens if my flight is delayed?',
-            'answer': '''We will notify you via email and SMS about any delays.
+            "question": "What happens if my flight is delayed?",
+            "answer": """We will notify you via email and SMS about any delays.
 
 Compensation for delays:
 - Delays under 2 hours: No compensation
@@ -509,13 +612,13 @@ Compensation for delays:
 - Delays over 4 hours (airline fault): Compensation up to $200 depending on flight distance
 - Overnight delays: Hotel accommodation provided
 
-Check your flight status on our website or app for real-time updates.''',
-            'category': 'general',
-            'display_order': 7
+Check your flight status on our website or app for real-time updates.""",
+            "category": "general",
+            "display_order": 7,
         },
         {
-            'question': 'How early should I arrive at the airport?',
-            'answer': '''Recommended arrival times:
+            "question": "How early should I arrive at the airport?",
+            "answer": """Recommended arrival times:
 
 Domestic flights:
 - Without checked bags: 90 minutes before departure
@@ -525,13 +628,13 @@ International flights:
 - Standard: 3 hours before departure
 - With TSA PreCheck: 2.5 hours before departure
 
-Peak travel times (holidays, weekends): Add an extra 30-60 minutes.''',
-            'category': 'check-in',
-            'display_order': 8
+Peak travel times (holidays, weekends): Add an extra 30-60 minutes.""",
+            "category": "check-in",
+            "display_order": 8,
         },
         {
-            'question': 'How do I file a claim for a cancelled flight?',
-            'answer': '''If your flight was cancelled by GKD Airlines under circumstances that qualify for compensation, you may file a claim for reimbursement or additional compensation.
+            "question": "How do I file a claim for a cancelled flight?",
+            "answer": """If your flight was cancelled by GKD Airlines under circumstances that qualify for compensation, you may file a claim for reimbursement or additional compensation.
 
 **Qualifying Circumstances for Flight Cancellation Claims:**
 
@@ -587,13 +690,13 @@ Your flight cancellation may qualify for a claim if it was caused by:
 - Keep copies of all submitted materials
 - Provide accurate contact information for follow-up
 
-For urgent assistance, contact our 24/7 customer service hotline at 1-800-GKD-HELP.''',
-            'category': 'booking',
-            'display_order': 9
+For urgent assistance, contact our 24/7 customer service hotline at 1-800-GKD-HELP.""",
+            "category": "booking",
+            "display_order": 9,
         },
         {
-            'question': 'What should I do if my luggage is lost?',
-            'answer': '''If you discover that your luggage is missing, please follow these steps:
+            "question": "What should I do if my luggage is lost?",
+            "answer": """If you discover that your luggage is missing, please follow these steps:
 
 **Step 1: At the Airport**
 
@@ -663,9 +766,9 @@ If your luggage is not found within 72 hours, you may be eligible for:
 - Provide accurate and complete contact information
 - Respond promptly to any requests for additional information
 
-For immediate assistance, call our Baggage Services hotline: 1-800-GKD-BAGS (available 24/7)''',
-            'category': 'baggage',
-            'display_order': 10
+For immediate assistance, call our Baggage Services hotline: 1-800-GKD-BAGS (available 24/7)""",
+            "category": "baggage",
+            "display_order": 10,
         },
     ]
 
@@ -684,40 +787,40 @@ def create_baggage_reports(injector, users, flights):
 
     baggage_reports = [
         {
-            'user_id': users[0].id,
-            'flight_number': flights[0].flight_number,
-            'flight_time': flights[0].departure_time,
-            'passenger_name': f'{users[0].first_name} {users[0].last_name}',
-            'passenger_phone': users[0].phone,
-            'passenger_email': users[0].email,
-            'baggage_description': 'Black Samsonite suitcase with red ribbon handle',
-            'seat_number': '12A',
-            'loss_details': 'Last seen at baggage claim carousel 3 at JFK airport',
-            'status': 'processing'
+            "user_id": users[0].id,
+            "flight_number": flights[0].flight_number,
+            "flight_time": flights[0].departure_time,
+            "passenger_name": f"{users[0].first_name} {users[0].last_name}",
+            "passenger_phone": users[0].phone,
+            "passenger_email": users[0].email,
+            "baggage_description": "Black Samsonite suitcase with red ribbon handle",
+            "seat_number": "12A",
+            "loss_details": "Last seen at baggage claim carousel 3 at JFK airport",
+            "status": "processing",
         },
         {
-            'user_id': users[1].id,
-            'flight_number': flights[5].flight_number,
-            'flight_time': flights[5].departure_time,
-            'passenger_name': f'{users[1].first_name} {users[1].last_name}',
-            'passenger_phone': users[1].phone,
-            'passenger_email': users[1].email,
-            'baggage_description': 'Blue hard-shell suitcase with TSA lock',
-            'seat_number': '8F',
-            'loss_details': 'Bag did not arrive at final destination',
-            'status': 'located'
+            "user_id": users[1].id,
+            "flight_number": flights[5].flight_number,
+            "flight_time": flights[5].departure_time,
+            "passenger_name": f"{users[1].first_name} {users[1].last_name}",
+            "passenger_phone": users[1].phone,
+            "passenger_email": users[1].email,
+            "baggage_description": "Blue hard-shell suitcase with TSA lock",
+            "seat_number": "8F",
+            "loss_details": "Bag did not arrive at final destination",
+            "status": "located",
         },
         {
-            'user_id': users[2].id,
-            'flight_number': flights[10].flight_number,
-            'flight_time': flights[10].departure_time,
-            'passenger_name': f'{users[2].first_name} {users[2].last_name}',
-            'passenger_phone': users[2].phone,
-            'passenger_email': users[2].email,
-            'baggage_description': 'Grey duffel bag with golf club tag',
-            'seat_number': '22C',
-            'loss_details': 'Missing after connecting flight',
-            'status': 'delivered'
+            "user_id": users[2].id,
+            "flight_number": flights[10].flight_number,
+            "flight_time": flights[10].departure_time,
+            "passenger_name": f"{users[2].first_name} {users[2].last_name}",
+            "passenger_phone": users[2].phone,
+            "passenger_email": users[2].email,
+            "baggage_description": "Grey duffel bag with golf club tag",
+            "seat_number": "22C",
+            "loss_details": "Missing after connecting flight",
+            "status": "delivered",
         },
     ]
 
@@ -754,14 +857,16 @@ def create_specific_data(injector):
     end_of_day = next_monday + timedelta(days=1)
 
     existing_flights = Flight.query.filter(
-        Flight.origin_code == 'JFK',
-        Flight.destination_code == 'LAX',
+        Flight.origin_code == "JFK",
+        Flight.destination_code == "LAX",
         Flight.departure_time >= start_of_day,
-        Flight.departure_time < end_of_day
+        Flight.departure_time < end_of_day,
     ).all()
 
     if existing_flights:
-        print(f"  Found {len(existing_flights)} existing JFK-LAX flights on next Monday, removing them...")
+        print(
+            f"  Found {len(existing_flights)} existing JFK-LAX flights on next Monday, removing them..."
+        )
         for flight in existing_flights:
             db.session.delete(flight)
         db.session.commit()
@@ -775,28 +880,32 @@ def create_specific_data(injector):
 
         # Create reasonable flight data
         flight_data = {
-            'flight_number': f'GKD{1000 + i}',
-            'origin_code': 'JFK',
-            'origin_city': 'New York',
-            'origin_airport': 'John F. Kennedy International Airport',
-            'destination_code': 'LAX',
-            'destination_city': 'Los Angeles',
-            'destination_airport': 'Los Angeles International Airport',
-            'departure_time': departure_time,
-            'arrival_time': arrival_time,
-            'base_price_economy': 299.99 + (i * 50),  # Reasonable variable pricing
-            'aircraft_type': 'Boeing 737' if i % 2 == 0 else 'Airbus A320',
-            'status': 'scheduled',
-            'gate': f'{chr(64 + i)}{i * 2}',  # Gates: A2, B4, C6, D8, E10
-            'terminal': '4'
+            "flight_number": f"GKD{1000 + i}",
+            "origin_code": "JFK",
+            "origin_city": "New York",
+            "origin_airport": "John F. Kennedy International Airport",
+            "destination_code": "LAX",
+            "destination_city": "Los Angeles",
+            "destination_airport": "Los Angeles International Airport",
+            "departure_time": departure_time,
+            "arrival_time": arrival_time,
+            "base_price_economy": 299.99 + (i * 50),  # Reasonable variable pricing
+            "aircraft_type": "Boeing 737" if i % 2 == 0 else "Airbus A320",
+            "status": "scheduled",
+            "gate": f"{chr(64 + i)}{i * 2}",  # Gates: A2, B4, C6, D8, E10
+            "terminal": "4",
         }
 
         flight = injector.create_flight_with_seats(flight_data)
         created_flights.append(flight)
-        print(f"  Created flight {flight.flight_number}: JFK->LAX departing at {departure_time.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+        print(
+            f"  Created flight {flight.flight_number}: JFK->LAX departing at {departure_time.strftime('%Y-%m-%d %H:%M:%S')} UTC"
+        )
 
     print(f"  Total flights created: {len(created_flights)}")
-    print(f"  All flights are scheduled for: {next_monday.strftime('%Y-%m-%d')} (Monday of next week)")
+    print(
+        f"  All flights are scheduled for: {next_monday.strftime('%Y-%m-%d')} (Monday of next week)"
+    )
 
     return created_flights
 
@@ -808,7 +917,7 @@ def main():
     print("=" * 60)
 
     # Create Flask app
-    app = create_app('development')
+    app = create_app("development")
 
     with app.app_context():
         # Initialize data injector
@@ -860,17 +969,23 @@ def main():
         print(f"  Total Baggage Reports: {BaggageTracking.query.count()}")
 
         print("\nBooking Status Breakdown:")
-        print(f"  Confirmed: {Booking.query.filter_by(booking_status='confirmed').count()}")
+        print(
+            f"  Confirmed: {Booking.query.filter_by(booking_status='confirmed').count()}"
+        )
         print(f"  Pending: {Booking.query.filter_by(booking_status='pending').count()}")
-        print(f"  Cancelled: {Booking.query.filter_by(booking_status='cancelled').count()}")
+        print(
+            f"  Cancelled: {Booking.query.filter_by(booking_status='cancelled').count()}"
+        )
         print(f"  Checked In: {Booking.query.filter_by(checked_in=True).count()}")
 
         print("\nFlight Status Breakdown:")
         print(f"  Scheduled: {Flight.query.filter_by(status='scheduled').count()}")
 
-        print(f"\nAll dates are relative to current time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        print(
+            f"\nAll dates are relative to current time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
+        )
         print("=" * 60)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
