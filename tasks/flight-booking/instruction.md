@@ -1,1 +1,1 @@
-Please help me book an economy class flight from JFK to LAX next Monday on the GKD airline website (http://localhost:5173/, open it in browser). Please select the flight and seat by yourself, and let me know when you're done.
+Please help me book an economy class flight from JFK to LAX next Monday on the GKD airline website (http://localhost:5173/, open it in browser). My date of birth is 1985-12-11. Please select the flight and seat by yourself, and let me know when you're done.

@@ -8,8 +8,7 @@ const Profile = () => {
     first_name: '',
     last_name: '',
     phone: '',
-    passport_number: '',
-    passport_expiry: ''
+    email: ''
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -20,8 +19,7 @@ const Profile = () => {
         first_name: user.first_name || '',
         last_name: user.last_name || '',
         phone: user.phone || '',
-        passport_number: user.passport_number || '',
-        passport_expiry: user.passport_expiry ? user.passport_expiry.split('T')[0] : ''
+        email: user.email || ''
       });
     }
   }, [user]);
@@ -129,33 +127,14 @@ const Profile = () => {
             />
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-              Passport Number:
-            </label>
-            <input
-              type="text"
-              name="passport_number"
-              value={formData.passport_number}
-              onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '14px'
-              }}
-            />
-          </div>
-
           <div style={{ marginBottom: '30px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
-              Passport Expiry:
+              Email:
             </label>
             <input
-              type="date"
-              name="passport_expiry"
-              value={formData.passport_expiry}
+              type="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
               style={{
                 width: '100%',

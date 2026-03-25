@@ -7,7 +7,9 @@ python3 run.py > /tmp/airline-backend.log 2>&1 &
 
 # Start airline-app frontend
 cd /workspace/environment/airline-app/frontend
-npm run dev -- --host 0.0.0.0 > /tmp/airline-frontend.log 2>&1 &
+
+# npm run dev -- --host 0.0.0.0 > /tmp/airline-frontend.log 2>&1 &
+npm run dev > /tmp/airline-frontend.log 2>&1 &
 
 # Wait for services to start
 sleep 5

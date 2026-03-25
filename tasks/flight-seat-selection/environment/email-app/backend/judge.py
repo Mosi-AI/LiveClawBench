@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Test script to check for email with specific recipient_email"""
 
-from app import app
+from app import app, db
 from models import Email
-
 
 def check_email_by_recipient(recipient_email):
     """
@@ -30,7 +29,6 @@ def check_email_by_recipient(recipient_email):
             print(f"✗ No email record found with recipient_email: {recipient_email}")
             return False
 
-
-if __name__ == "__main__":
-    target_email = "mary.lee@work.mosi.inc"
+if __name__ == '__main__':
+    target_email = 'mary.lee@work.mosi.inc'
     check_email_by_recipient(target_email)

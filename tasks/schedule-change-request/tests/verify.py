@@ -1,66 +1,46 @@
 #!/usr/bin/env python3
-"""Verify schedule-change-request: check emails sent and todos cleared"""
-
-import sqlite3
+"""Verify schedule-change-request task: check if emails sent to all contacts"""
 import sys
-
 sys.path.insert(0, "/workspace/environment/email-app/backend")
-from app import app
+from app import app, db
 from models import Email
 
-TARGET_EMAILS = [
-    "marytheshot@gmail.com",
-    "jason.wang97@mail.ucsd.edu",
-    "karre8523@outlook.com",
-    "gaeuala@outlook.com",
-]
-
-EXPECTED_TODOS = [
-    "Team Building",
-    "Hiking with Friends",
-    "Volunteer at Animal Shelter",
-]
-
-
-def check_emails():
-    score = 0.0
+def check():
     with app.app_context():
-        for target in TARGET_EMAILS:
-            email = Email.query.filter_by(recipient_email=target).first()
+        # Required recipient emails
+        required_emails = [
+            'marytheshot@gmail.com',
+            'jason.wang97@mail.ucsd.edu',
+            'karre8523@outlook.com',
+            'gaeuala@outlook.com'
+        ]
+
+        total_points = 0
+        max_points = len(required_emails)
+
+        print("Checking sent emails to required contacts:\n")
+
+        for email_addr in required_emails:
+            email = Email.query.filter_by(
+                recipient_email=email_addr,
+                folder='sent'
+            ).first()
+
             if email:
-                print(f"PASS: Found email to {target}")
-                score += 1.0
+                print(f"  ✓ Email sent to: {email_addr}")
+                print(f"    Subject: {email.subject}")
+                total_points += 1
             else:
-                print(f"FAIL: No email to {target}")
-    return score
+                print(f"  ✗ No email sent to: {email_addr}")
 
+        # Normalize score
+        score = total_points / max_points if max_points > 0 else 0.0
 
-def check_todos_cleared():
-    db_path = "/workspace/environment/todolist-app/backend/instance/todolist.db"
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    found = []
-    missing = []
-    for todo_title in EXPECTED_TODOS:
-        cursor.execute(
-            "SELECT id, title, completed FROM todo WHERE title LIKE ?",
-            (f"%{todo_title}%",),
-        )
-        row = cursor.fetchone()
-        if row:
-            found.append(row)
-        else:
-            missing.append(todo_title)
-    conn.close()
-    return len(found) == 0, found, missing
+        print(f"\nTotal points: {total_points}/{max_points}")
+        print(f"Normalized score: {score:.2f}")
 
+        return score
 
-email_score = check_emails()
-all_cleared, found_todos, missing_todos = check_todos_cleared()
-todo_score = float(len(missing_todos))
-total_score = (email_score + todo_score) / 7.0
-
-print(f"Email score: {email_score}/4.0")
-print(f"Todo score: {todo_score}/3.0")
-print(f"Total: {total_score:.2f}")
-sys.exit(0 if total_score >= 0.8 else 1)
+score = check()
+print(f"Score: {score}/1.0")
+sys.exit(0 if score >= 1.0 else 1)

@@ -238,12 +238,13 @@ const MyBookings = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              {booking.booking_status === 'confirmed' && (
+              {booking.booking_status === 'confirmed' && !booking.checked_in && (
                 <>
                   <button
                     className="btn-primary"
                     onClick={() => window.location.href = `/seat-selection/${booking.booking_reference}`}
                     style={{ flex: '1', minWidth: '150px' }}
+                    disabled={booking.passengers?.every(p => p.seat)}
                   >
                     💺 Select Seats
                   </button>
@@ -264,7 +265,7 @@ const MyBookings = () => {
                 </>
               )}
 
-              {booking.booking_status === 'checked_in' && (
+              {(booking.booking_status === 'checked_in' || (booking.booking_status === 'confirmed' && booking.checked_in)) && (
                 <button
                   className="btn-primary"
                   onClick={() => window.location.href = `/checkin?booking=${booking.booking_reference}`}
