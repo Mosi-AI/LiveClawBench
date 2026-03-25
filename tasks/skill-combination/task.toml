@@ -11,7 +11,7 @@ domains_multi = ["Documents & Knowledge", "Coding & Software Dev"]
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 0   # Cross-Service Dependency
 factor_a2 = 0   # Contaminated Initial State
-factor_b1 = 1   # Implicit Goal Resolution
+factor_b1 = 0   # Implicit Goal Resolution
 factor_b2 = 1   # Knowledge System Maintenance
 
 case_id = 30
