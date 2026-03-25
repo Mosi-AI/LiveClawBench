@@ -23,7 +23,6 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
-
 # ============================================================================
 # Criterion 1: COMPOSITE_SKILL_CREATED (20 pts)
 # A new SKILL.md exists that describes a composite/pipeline skill.
