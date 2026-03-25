@@ -27,6 +27,14 @@ ignore = ["E501"]
 [tool.ruff.lint.isort]
 known-first-party = ["scripts"]
 
+# --- dev dependencies (install with: uv pip install --group dev) ---
+[dependency-groups]
+dev = [
+    "ruff==0.15.7",
+    "ty==0.0.25",
+    "pre-commit>=3.0",
+]
+
 # --- ty ---
 [tool.ty.environment]
 python-version = "3.12"
