@@ -14,7 +14,6 @@ The evaluation script verifies Skill execution via audit log + _trace field in o
 from __future__ import annotations
 
 import hashlib
-import inspect
 import json
 import os
 import time

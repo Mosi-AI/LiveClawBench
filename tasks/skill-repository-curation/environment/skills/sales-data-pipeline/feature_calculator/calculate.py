@@ -16,7 +16,7 @@ def add_margin_features(df, revenue_col="revenue", cost_col="cost"):
     if revenue_col in df.columns and cost_col in df.columns:
         df["profit"] = df[revenue_col] - df[cost_col]
         df["margin_pct"] = (df["profit"] / df[revenue_col]).replace([float("inf"), -float("inf")], 0).fillna(0)
-        print(f"  Added 'profit' and 'margin_pct'")
+        print("  Added 'profit' and 'margin_pct'")
     return df
 
 

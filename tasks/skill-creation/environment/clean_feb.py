@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import csv
 import re
-from datetime import datetime
 from collections import OrderedDict
 
 def parse_date(date_str):
@@ -90,8 +89,8 @@ def main():
     
     print(f"Cleaned data saved to: {output_file}")
     print(f"Total rows processed: {len(rows)}")
-    print(f"Empty rows removed: 3")
-    print(f"Duplicate order_ids removed: 2")
+    print("Empty rows removed: 3")
+    print("Duplicate order_ids removed: 2")
 
 if __name__ == '__main__':
     main()

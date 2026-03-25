@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import csv
 import re
-from datetime import datetime
-from collections import OrderedDict
 
 def parse_date(date_str):
     """Parse various date formats and return YYYY-MM-DD string."""

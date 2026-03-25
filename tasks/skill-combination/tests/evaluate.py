@@ -18,11 +18,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 
 # ============================================================================
@@ -204,7 +203,7 @@ def check_pipeline_implementation(model_dir: Path) -> Tuple[int, Dict[str, Any]]
     )
 
     # 5. Non-trivial implementation (> 30 lines)
-    line_count = len([l for l in impl_content.splitlines() if l.strip()])
+    line_count = len([ln for ln in impl_content.splitlines() if ln.strip()])
     checks["non_trivial"] = line_count >= 20
 
     details["checks"] = {k: "PASS" if v else "FAIL" for k, v in checks.items()}

@@ -89,7 +89,7 @@ def main():
     
     print(f"Cleaned data saved to: {output_file}")
     print(f"Total rows processed: {len(rows)}")
-    print(f"Duplicate order_ids removed: 3")
+    print("Duplicate order_ids removed: 3")
 
 if __name__ == '__main__':
     main()

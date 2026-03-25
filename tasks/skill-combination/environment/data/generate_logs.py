@@ -6,7 +6,7 @@ Each day has different anomaly patterns to make the analysis interesting.
 
 import json
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 random.seed(42)

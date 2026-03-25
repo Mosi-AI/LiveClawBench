@@ -48,7 +48,7 @@ def main():
 
     start_t = parse_time(args.start) if args.start else None
     end_t = parse_time(args.end) if args.end else None
-    levels = {l.strip().upper() for l in args.levels.split(",")} if args.levels else None
+    levels = {lv.strip().upper() for lv in args.levels.split(",")} if args.levels else None
 
     input_path = Path(args.input)
     if not input_path.exists():

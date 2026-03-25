@@ -5,7 +5,6 @@ import argparse
 import json
 import os
 import re
-import sys
 
 
 def parse_expr(expr: str):
