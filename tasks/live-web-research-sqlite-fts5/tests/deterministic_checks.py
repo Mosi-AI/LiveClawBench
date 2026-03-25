@@ -48,8 +48,15 @@ def artifact_paths_valid(result: dict) -> float:
             candidate.relative_to(WORK.resolve())
         except ValueError:
             continue
-        if candidate.is_file() and candidate.suffix == ".md" and candidate.stat().st_size > 0:
-            if candidate.parent == WORK and candidate.name in IGNORED_WORKSPACE_ROOT_FILES:
+        if (
+            candidate.is_file()
+            and candidate.suffix == ".md"
+            and candidate.stat().st_size > 0
+        ):
+            if (
+                candidate.parent == WORK
+                and candidate.name in IGNORED_WORKSPACE_ROOT_FILES
+            ):
                 continue
             valid += 1
     return 1.0 if valid >= 1 else 0.0
@@ -57,7 +64,11 @@ def artifact_paths_valid(result: dict) -> float:
 
 def read_trace_text() -> str:
     parts = []
-    for path in (OUT / "browser_requests.json", OUT / "browser_tabs.json", OUT / "agent_response.json"):
+    for path in (
+        OUT / "browser_requests.json",
+        OUT / "browser_tabs.json",
+        OUT / "agent_response.json",
+    ):
         if path.exists():
             parts.append(path.read_text(encoding="utf-8", errors="ignore"))
     return "\n".join(parts).lower()
@@ -79,7 +90,9 @@ def database_integrity_score(db_path: Path, key: dict) -> float:
     try:
         tables = {
             row[0]
-            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+            )
             if isinstance(row[0], str)
         }
         if not {"sources", "facts", "qa_answers"}.issubset(tables):
@@ -94,7 +107,10 @@ def database_integrity_score(db_path: Path, key: dict) -> float:
             for row in conn.execute("SELECT question_id, answer FROM qa_answers")
             if row and row[0] is not None
         }
-        expected = {normalize(k): normalize(v) for k, v in key.get("required_fact_values", {}).items()}
+        expected = {
+            normalize(k): normalize(v)
+            for k, v in key.get("required_fact_values", {}).items()
+        }
         fact_hits = 0
         qa_hits = 0
         for question_id, expected_value in expected.items():
@@ -118,9 +134,21 @@ def main() -> None:
     trace_text = read_trace_text()
 
     db_path = WORK / "db" / "spec_decode_live.db"
-    required_fields = {"task_id", "topic_id", "db_path", "required_urls", "query_answers", "updated_artifacts"}
+    required_fields = {
+        "task_id",
+        "topic_id",
+        "db_path",
+        "required_urls",
+        "query_answers",
+        "updated_artifacts",
+    }
     score = {}
-    score["result_contract_valid"] = 1.0 if required_fields.issubset(result.keys()) and normalize(result.get("db_path")) == normalize(key.get("db_path")) else 0.0
+    score["result_contract_valid"] = (
+        1.0
+        if required_fields.issubset(result.keys())
+        and normalize(result.get("db_path")) == normalize(key.get("db_path"))
+        else 0.0
+    )
     score["database_integrity"] = database_integrity_score(db_path, key)
 
     expected_answers = key.get("required_fact_values", {})
@@ -140,7 +168,9 @@ def main() -> None:
     score["workspace_update"] = artifact_paths_valid(result)
     score["final_score"] = weighted_sum(score, rubric)
 
-    (ROOT / "reward.json").write_text(json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8")
+    (ROOT / "reward.json").write_text(
+        json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     (ROOT / "reward.txt").write_text(str(score["final_score"]), encoding="utf-8")
 
 

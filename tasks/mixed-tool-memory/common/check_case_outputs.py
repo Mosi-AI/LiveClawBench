@@ -88,7 +88,12 @@ def has_browser_any_log(output: Path) -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--root", default=os.environ.get("OPENCLAW_WORKSPACE_ROOT", str(Path.home() / ".openclaw")))
+    parser.add_argument(
+        "--root",
+        default=os.environ.get(
+            "OPENCLAW_WORKSPACE_ROOT", str(Path.home() / ".openclaw")
+        ),
+    )
     parser.add_argument("--require-result", action="store_true")
     parser.add_argument("--require-db", action="store_true")
     parser.add_argument("--require-browser-mock", action="store_true")
@@ -106,14 +111,21 @@ def main() -> int:
         ]
     else:
         checks = [
-            (has_answer_artifact(output), "missing output/summary.md, output/final.md, or output/answer.md"),
+            (
+                has_answer_artifact(output),
+                "missing output/summary.md, output/final.md, or output/answer.md",
+            ),
             (has_durable_state(workspace), "missing durable workspace state"),
         ]
 
     if args.require_db:
-        checks.append((has_database(workspace), "missing workspace/db/*.db or *.sqlite"))
+        checks.append(
+            (has_database(workspace), "missing workspace/db/*.db or *.sqlite")
+        )
     if args.require_browser_mock:
-        checks.append((has_browser_mock_log(output), "missing output/browser_mock_access.jsonl"))
+        checks.append(
+            (has_browser_mock_log(output), "missing output/browser_mock_access.jsonl")
+        )
     if args.require_browser_any:
         checks.append((has_browser_any_log(output), "missing browser activity log"))
 

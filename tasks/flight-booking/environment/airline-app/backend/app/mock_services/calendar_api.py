@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime, timedelta
+
 from app.models import db
 from app.models.mock_services import CalendarEvent
+
 
 class MockCalendarAPI:
     """Mock calendar API simulating Google Calendar"""
@@ -32,13 +34,13 @@ class MockCalendarAPI:
 Flight Booking Reference: {booking.booking_reference}
 Flight: {flight.flight_number}
 Route: {flight.origin_city} ({flight.origin_code}) → {flight.destination_city} ({flight.destination_code})
-Departure: {flight.departure_time.strftime('%Y-%m-%d %H:%M')}
-Arrival: {flight.arrival_time.strftime('%Y-%m-%d %H:%M')}
+Departure: {flight.departure_time.strftime("%Y-%m-%d %H:%M")}
+Arrival: {flight.arrival_time.strftime("%Y-%m-%d %H:%M")}
 Aircraft: {flight.aircraft_type}
 Cabin Class: {booking.cabin_class.title()}
 Passengers: {booking.passengers.count()}
-Gate: {flight.gate or 'TBD'}
-Terminal: {flight.terminal or 'TBD'}
+Gate: {flight.gate or "TBD"}
+Terminal: {flight.terminal or "TBD"}
 
 Check-in opens 24 hours before departure.
 Arrive at the airport at least 2 hours before departure.
@@ -59,7 +61,7 @@ Arrive at the airport at least 2 hours before departure.
             start_time=flight.departure_time,
             end_time=flight.arrival_time,
             location=location,
-            reminder_minutes=reminder_minutes
+            reminder_minutes=reminder_minutes,
         )
 
         db.session.add(event)
@@ -84,18 +86,18 @@ Arrive at the airport at least 2 hours before departure.
             return None
 
         # Update allowed fields
-        if 'title' in updates:
-            event.title = updates['title']
-        if 'description' in updates:
-            event.description = updates['description']
-        if 'start_time' in updates:
-            event.start_time = updates['start_time']
-        if 'end_time' in updates:
-            event.end_time = updates['end_time']
-        if 'location' in updates:
-            event.location = updates['location']
-        if 'reminder_minutes' in updates:
-            event.reminder_minutes = updates['reminder_minutes']
+        if "title" in updates:
+            event.title = updates["title"]
+        if "description" in updates:
+            event.description = updates["description"]
+        if "start_time" in updates:
+            event.start_time = updates["start_time"]
+        if "end_time" in updates:
+            event.end_time = updates["end_time"]
+        if "location" in updates:
+            event.location = updates["location"]
+        if "reminder_minutes" in updates:
+            event.reminder_minutes = updates["reminder_minutes"]
 
         event.updated_at = datetime.utcnow()
         db.session.commit()
@@ -147,11 +149,15 @@ Arrive at the airport at least 2 hours before departure.
         start_time = datetime.utcnow()
         end_time = start_time + timedelta(days=days)
 
-        events = CalendarEvent.query.filter(
-            CalendarEvent.user_id == user_id,
-            CalendarEvent.start_time >= start_time,
-            CalendarEvent.start_time <= end_time
-        ).order_by(CalendarEvent.start_time).all()
+        events = (
+            CalendarEvent.query.filter(
+                CalendarEvent.user_id == user_id,
+                CalendarEvent.start_time >= start_time,
+                CalendarEvent.start_time <= end_time,
+            )
+            .order_by(CalendarEvent.start_time)
+            .all()
+        )
 
         return events
 
@@ -170,10 +176,10 @@ Arrive at the airport at least 2 hours before departure.
         if existing_event:
             # Update existing event
             flight = booking.flight
-            return self.update_event(booking, {
-                'start_time': flight.departure_time,
-                'end_time': flight.arrival_time
-            })
+            return self.update_event(
+                booking,
+                {"start_time": flight.departure_time, "end_time": flight.arrival_time},
+            )
         else:
             # Create new event
             return self.create_event(booking)

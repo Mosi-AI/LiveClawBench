@@ -93,7 +93,10 @@ def extract_chat_text(payload: dict) -> str:
         if isinstance(content, list):
             parts = []
             for item in content:
-                if isinstance(item, dict) and item.get("type") in {"text", "output_text"}:
+                if isinstance(item, dict) and item.get("type") in {
+                    "text",
+                    "output_text",
+                }:
                     parts.append(str(item.get("text", "")))
             return "\n".join(parts)
     return ""
@@ -132,9 +135,21 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
 
 
 def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
-    base_url = os.environ.get("OPENCLAW_JUDGE_BASE_URL") or os.environ.get("OPENCLAW_ARK_BASE_URL") or "https://ark.cn-beijing.volces.com/api/coding/v3"
-    model = os.environ.get("OPENCLAW_JUDGE_MODEL") or os.environ.get("OPENCLAW_ARK_MODEL") or "kimi-k2.5"
-    api_key = os.environ.get("OPENCLAW_JUDGE_API_KEY") or os.environ.get("OPENCLAW_ARK_API_KEY") or ""
+    base_url = (
+        os.environ.get("OPENCLAW_JUDGE_BASE_URL")
+        or os.environ.get("OPENCLAW_ARK_BASE_URL")
+        or "https://ark.cn-beijing.volces.com/api/coding/v3"
+    )
+    model = (
+        os.environ.get("OPENCLAW_JUDGE_MODEL")
+        or os.environ.get("OPENCLAW_ARK_MODEL")
+        or "kimi-k2.5"
+    )
+    api_key = (
+        os.environ.get("OPENCLAW_JUDGE_API_KEY")
+        or os.environ.get("OPENCLAW_ARK_API_KEY")
+        or ""
+    )
     if not api_key:
         raise RuntimeError("OPENCLAW_ARK_API_KEY is not set for LLM judging")
 
@@ -163,8 +178,14 @@ def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
                 "temperature": 0,
                 "max_output_tokens": 1200,
                 "input": [
-                    {"role": "system", "content": [{"type": "input_text", "text": system_prompt}]},
-                    {"role": "user", "content": [{"type": "input_text", "text": user_prompt}]},
+                    {
+                        "role": "system",
+                        "content": [{"type": "input_text", "text": system_prompt}],
+                    },
+                    {
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": user_prompt}],
+                    },
                 ],
             },
             extract_responses_text,
@@ -178,7 +199,12 @@ def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
             text = extractor(raw)
             parsed = parse_json_blob(text)
             if parsed:
-                return parsed, {"mode": mode, "url": url, "model": model, "raw_response": raw}
+                return parsed, {
+                    "mode": mode,
+                    "url": url,
+                    "model": model,
+                    "raw_response": raw,
+                }
             errors.append(f"{mode}: response did not contain valid JSON")
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="ignore")
@@ -234,10 +260,14 @@ def build_prompt(key: dict, result: dict, structural: dict) -> str:
         serialize_json(structural),
         "",
         "# Prior Memory Beliefs To Correct",
-        "\n".join(f"- {item}" for item in focus.get("memory_seed_beliefs", [])) or "- (none provided)",
+        "\n".join(f"- {item}" for item in focus.get("memory_seed_beliefs", []))
+        or "- (none provided)",
         "",
         "# What Good Correction Looks Like",
-        "\n".join(f"- {item}" for item in focus.get("memory_correction_expectations", [])) or "- (none provided)",
+        "\n".join(
+            f"- {item}" for item in focus.get("memory_correction_expectations", [])
+        )
+        or "- (none provided)",
         "",
         "# Noise-Filtering Goal",
         str(focus.get("noise_goal", "")).strip(),
@@ -267,12 +297,16 @@ def main() -> None:
     (dc.OUT / "llm_judge_prompt.txt").write_text(prompt, encoding="utf-8")
 
     judge_payload, debug_payload = call_judge(SYSTEM_PROMPT, prompt)
-    (dc.OUT / "llm_judge_response.json").write_text(json.dumps(debug_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    (dc.OUT / "llm_judge_response.json").write_text(
+        json.dumps(debug_payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     score = {
         "result_contract_valid": structural["result_contract_valid"],
         "workspace_update": structural["workspace_update"],
-        "noise_source_identification": clamp_score(judge_payload.get("noise_source_identification")),
+        "noise_source_identification": clamp_score(
+            judge_payload.get("noise_source_identification")
+        ),
         "memory_correction": clamp_score(judge_payload.get("memory_correction")),
         "judge_rationales": judge_payload.get("rationales", {}),
         "judge_model": debug_payload.get("model"),
@@ -280,7 +314,9 @@ def main() -> None:
     }
     score["final_score"] = weighted_sum(score, rubric)
 
-    (dc.ROOT / "reward.json").write_text(json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8")
+    (dc.ROOT / "reward.json").write_text(
+        json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     (dc.ROOT / "reward.txt").write_text(str(score["final_score"]), encoding="utf-8")
 
 

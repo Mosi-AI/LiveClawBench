@@ -19,18 +19,25 @@ import re
 import sys
 from pathlib import Path
 
-
 # ---------------------------------------------------------------------------
 # Ground truth data
 # ---------------------------------------------------------------------------
 
 ORIGINAL_SKILLS = [
-    "csv_data_loader", "excel_data_reader", "data_ingestion_service",
-    "null_value_processor", "data_deduplicator", "data_cleaning_toolkit",
-    "schema_validator", "business_rule_checker",
-    "numeric_normalizer", "feature_calculator",
-    "data_aggregator", "summary_report_generator",
-    "csv_export_writer", "multi_format_exporter",
+    "csv_data_loader",
+    "excel_data_reader",
+    "data_ingestion_service",
+    "null_value_processor",
+    "data_deduplicator",
+    "data_cleaning_toolkit",
+    "schema_validator",
+    "business_rule_checker",
+    "numeric_normalizer",
+    "feature_calculator",
+    "data_aggregator",
+    "summary_report_generator",
+    "csv_export_writer",
+    "multi_format_exporter",
 ]
 
 # Functional capabilities that must be preserved (keywords to search for in SKILL.md)
@@ -90,6 +97,7 @@ OVERLAP_PAIRS = [
 # ---------------------------------------------------------------------------
 # Scoring helpers
 # ---------------------------------------------------------------------------
+
 
 def read_skill_md(skill_dir: Path) -> str:
     """Read SKILL.md from a skill directory."""
@@ -195,8 +203,7 @@ def check_coverage_preserved(output_dir: Path, consolidated_skills: list) -> tup
 
     total_caps = sum(len(caps) for caps in REQUIRED_CAPABILITIES.values())
     found_count = sum(
-        sum(1 for v in caps.values() if v)
-        for caps in found_capabilities.values()
+        sum(1 for v in caps.values() if v) for caps in found_capabilities.values()
     )
 
     ratio = found_count / total_caps
@@ -244,7 +251,7 @@ def check_overlap_eliminated(consolidated_skills: list) -> tuple:
     skill_keywords = {}
     for skill_dir in consolidated_skills:
         content = read_skill_md(skill_dir)
-        words = set(re.findall(r'\b[a-z]{4,}\b', content))
+        words = set(re.findall(r"\b[a-z]{4,}\b", content))
         skill_keywords[skill_dir.name] = words
 
     overlapping_pairs = []
@@ -259,10 +266,12 @@ def check_overlap_eliminated(consolidated_skills: list) -> tuple:
             union = len(a | b)
             jaccard = intersection / union if union > 0 else 0
             if jaccard > 0.30:
-                overlapping_pairs.append({
-                    "pair": [names[i], names[j]],
-                    "jaccard_similarity": round(jaccard, 3),
-                })
+                overlapping_pairs.append(
+                    {
+                        "pair": [names[i], names[j]],
+                        "jaccard_similarity": round(jaccard, 3),
+                    }
+                )
 
     if not overlapping_pairs:
         score = 15
@@ -411,6 +420,7 @@ def check_consolidation_rationale(conversation_log: str) -> tuple:
 # Main
 # ---------------------------------------------------------------------------
 
+
 def evaluate(base_dir: str, model_output: str, conversation_log: str = "") -> dict:
     """Run full evaluation and return results."""
     output = Path(model_output)
@@ -461,7 +471,11 @@ def evaluate(base_dir: str, model_output: str, conversation_log: str = "") -> di
         s, d = check_consolidation_rationale(conversation_log)
     else:
         s, d = 0, {"note": "No conversation log provided; skipping"}
-    results["criteria"]["CONSOLIDATION_RATIONALE"] = {"score": s, "max": 10, "details": d}
+    results["criteria"]["CONSOLIDATION_RATIONALE"] = {
+        "score": s,
+        "max": 10,
+        "details": d,
+    }
     results["total_score"] += s
 
     return results
@@ -470,9 +484,14 @@ def evaluate(base_dir: str, model_output: str, conversation_log: str = "") -> di
 def main():
     parser = argparse.ArgumentParser(description="Evaluate skill consolidation")
     parser.add_argument("--base-dir", required=True, help="Base directory of the case")
-    parser.add_argument("--model-output", required=True,
-                        help="Path to the skill directory (e.g. environment/skills/sales-data-pipeline)")
-    parser.add_argument("--conversation-log", default="", help="Path to conversation log file")
+    parser.add_argument(
+        "--model-output",
+        required=True,
+        help="Path to the skill directory (e.g. environment/skills/sales-data-pipeline)",
+    )
+    parser.add_argument(
+        "--conversation-log", default="", help="Path to conversation log file"
+    )
     parser.add_argument("--output-json", default="", help="Write results to JSON file")
     args = parser.parse_args()
 
@@ -490,9 +509,9 @@ def main():
             json.dump(results, f, indent=2, ensure_ascii=False)
         print(f"\nResults written to {args.output_json}")
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"TOTAL SCORE: {results['total_score']} / {results['max_score']}")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
 
     return 0 if results["total_score"] > 0 else 1
 

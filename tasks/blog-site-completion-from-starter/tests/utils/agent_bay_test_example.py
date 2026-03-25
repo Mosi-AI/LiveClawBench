@@ -1,10 +1,13 @@
-from agentbay import AgentBay, CreateSessionParams
-import os
 import json
+import os
 import subprocess
 
+from agentbay import AgentBay, CreateSessionParams
 
-def run_conversation(session, command: str, cwd: str=None, timeout_ms: int = 500000) -> str:
+
+def run_conversation(
+    session, command: str, cwd: str = None, timeout_ms: int = 500000
+) -> str:
     """Execute command and return output. Prints the command before execution and result after."""
     print(f"[CMD]: {command}")
     result = session.command.run(command, timeout_ms=timeout_ms, cwd=cwd)
@@ -18,7 +21,9 @@ def run_conversation(session, command: str, cwd: str=None, timeout_ms: int = 500
         raise RuntimeError(error_msg)
 
 
-def run_command(session, command: str, cwd: str=None, timeout_ms: int = 500000) -> str:
+def run_command(
+    session, command: str, cwd: str = None, timeout_ms: int = 500000
+) -> str:
     """Execute command and return output. Prints the command before execution and result after."""
     print(f"[CMD]: {command}")
     result = session.command.run(command, timeout_ms=timeout_ms, cwd=cwd)
@@ -33,19 +38,22 @@ def run_command(session, command: str, cwd: str=None, timeout_ms: int = 500000) 
 
 
 # 1.初始化agentbay session
-os.environ['AGENTBAY_API_KEY'] = 'akm-fc80dd86-705a-4689-be1a-f1e2e2798cc7'
+os.environ["AGENTBAY_API_KEY"] = "akm-fc80dd86-705a-4689-be1a-f1e2e2798cc7"
 agent_bay = AgentBay()
-session = agent_bay.create(CreateSessionParams(image_id="openclaw-linux-ubuntu-2204")).session
+session = agent_bay.create(
+    CreateSessionParams(image_id="openclaw-linux-ubuntu-2204")
+).session
 
 
 # 2.部署环境（上传文件/安装service）
-subprocess.run(["tar", "-zcvf", "/tmp/environment.tar.gz", "environment"]) # 压缩需要上传的环境文件夹
+subprocess.run(
+    ["tar", "-zcvf", "/tmp/environment.tar.gz", "environment"]
+)  # 压缩需要上传的环境文件夹
 upload_result = session.file_system.upload_file(
-    local_path="/tmp/environment.tar.gz",
-    remote_path="/tmp/environment.tar.gz"
+    local_path="/tmp/environment.tar.gz", remote_path="/tmp/environment.tar.gz"
 )
 if upload_result.success:
-    print(f"Upload successful!")
+    print("Upload successful!")
     print(f"   Bytes sent: {upload_result.bytes_sent}")
     print(f"   HTTP status: {upload_result.http_status}")
     print(f"   Remote path: {upload_result.path}")
@@ -57,15 +65,29 @@ run_command(session, "python3 --version")
 run_command(session, "python3 -m pip install --upgrade pip")
 
 # 安装web shop的前后端并启动
-run_command(session, "pip install -r requirements.txt", cwd="/tmp/environment/shop-app/backend")
+run_command(
+    session, "pip install -r requirements.txt", cwd="/tmp/environment/shop-app/backend"
+)
 run_command(session, "bash start.sh > shop.log 2>&1 &", cwd="/tmp/environment/shop-app")
 
 # 安装email app的前后端并启动
-run_command(session, "pip install -r requirements.txt", cwd="/tmp/environment/email-app/backend")
-run_command(session, "python3 scripts/inject_data.py", cwd="/tmp/environment/email-app/backend") # 初始化数据库 & 注入数据
-run_command(session, "python3 app.py > email-backend.log 2>&1 &", cwd="/tmp/environment/email-app/backend")
+run_command(
+    session, "pip install -r requirements.txt", cwd="/tmp/environment/email-app/backend"
+)
+run_command(
+    session, "python3 scripts/inject_data.py", cwd="/tmp/environment/email-app/backend"
+)  # 初始化数据库 & 注入数据
+run_command(
+    session,
+    "python3 app.py > email-backend.log 2>&1 &",
+    cwd="/tmp/environment/email-app/backend",
+)
 run_command(session, "npm install", cwd="/tmp/environment/email-app/frontend")
-run_command(session, "npm run dev > email-frontend.log 2>&1 &", cwd="/tmp/environment/email-app/frontend")
+run_command(
+    session,
+    "npm run dev > email-frontend.log 2>&1 &",
+    cwd="/tmp/environment/email-app/frontend",
+)
 
 
 # 3.运行任务对话
@@ -116,16 +138,19 @@ with open(config_path, "w") as f:
     json.dump(config, f, indent=2)
 print("done")
 """
-run_command(session, f'python3 -c \'{python_script}\'')
-run_command(session, 'openclaw gateway restart')
-run_command(session, 'openclaw --version')
-run_command(session, 'openclaw browser --browser-profile openclaw start')
-run_command(session, 'openclaw browser status')
+run_command(session, f"python3 -c '{python_script}'")
+run_command(session, "openclaw gateway restart")
+run_command(session, "openclaw --version")
+run_command(session, "openclaw browser --browser-profile openclaw start")
+run_command(session, "openclaw browser status")
 
 # 提取任务提示词并创建对话
 with open("instruction.md", "r", encoding="utf-8") as file:
     task_inst = file.read()
-run_conversation(session, f"openclaw agent --session-id test-001 -m \"{task_inst}\" --json --timeout 300")
+run_conversation(
+    session,
+    f'openclaw agent --session-id test-001 -m "{task_inst}" --json --timeout 300',
+)
 
 
 # 4.运行结束后验证结果并打分
@@ -152,10 +177,12 @@ if os.path.isfile("/tmp/mosi_shop_orders.json"):
 print(flag)
 
 """
-result = run_command(session, f'python3 -c \'{judge_python_script}\'', cwd="/tmp")
+result = run_command(session, f"python3 -c '{judge_python_script}'", cwd="/tmp")
 score = 0.0
-if "Successul" in result: score += 1.0
-elif "Half" in result: score += 0.5
+if "Successul" in result:
+    score += 1.0
+elif "Half" in result:
+    score += 0.5
 print(f"Final Score: {score}/1.0")
 
 with open("../result.jsonl", "a") as file:

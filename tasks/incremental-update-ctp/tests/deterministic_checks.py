@@ -53,8 +53,15 @@ def artifact_paths_valid(result: dict) -> float:
             candidate.relative_to(WORK.resolve())
         except ValueError:
             continue
-        if candidate.is_file() and candidate.suffix == ".md" and candidate.stat().st_size > 0:
-            if candidate.parent == WORK and candidate.name in IGNORED_WORKSPACE_ROOT_FILES:
+        if (
+            candidate.is_file()
+            and candidate.suffix == ".md"
+            and candidate.stat().st_size > 0
+        ):
+            if (
+                candidate.parent == WORK
+                and candidate.name in IGNORED_WORKSPACE_ROOT_FILES
+            ):
                 continue
             valid += 1
     return 1.0 if valid >= 1 else 0.0
@@ -90,19 +97,45 @@ def main() -> None:
         "evidence_source_ids",
         "updated_artifacts",
     }
-    score["result_contract_valid"] = 1.0 if required_fields.issubset(result.keys()) else 0.0
+    score["result_contract_valid"] = (
+        1.0 if required_fields.issubset(result.keys()) else 0.0
+    )
 
     delta_hits = 0
-    delta_hits += 1 if normalize_set(result.get("preserved_claim_ids")) == normalize_set(key.get("preserved_claim_ids")) else 0
-    delta_hits += 1 if normalize_set(result.get("updated_claim_ids")) == normalize_set(key.get("updated_claim_ids")) else 0
-    delta_hits += 1 if normalize_set(result.get("removed_claim_ids")) == normalize_set(key.get("removed_claim_ids")) else 0
+    delta_hits += (
+        1
+        if normalize_set(result.get("preserved_claim_ids"))
+        == normalize_set(key.get("preserved_claim_ids"))
+        else 0
+    )
+    delta_hits += (
+        1
+        if normalize_set(result.get("updated_claim_ids"))
+        == normalize_set(key.get("updated_claim_ids"))
+        else 0
+    )
+    delta_hits += (
+        1
+        if normalize_set(result.get("removed_claim_ids"))
+        == normalize_set(key.get("removed_claim_ids"))
+        else 0
+    )
     score["delta_accuracy"] = round(delta_hits / 3, 4)
-    score["replacement_accuracy"] = replacement_score(result.get("replacement_claims"), key.get("replacement_claims", {}))
-    score["source_usage"] = 1.0 if normalize_set(result.get("evidence_source_ids")) == normalize_set(key.get("evidence_source_ids")) else 0.0
+    score["replacement_accuracy"] = replacement_score(
+        result.get("replacement_claims"), key.get("replacement_claims", {})
+    )
+    score["source_usage"] = (
+        1.0
+        if normalize_set(result.get("evidence_source_ids"))
+        == normalize_set(key.get("evidence_source_ids"))
+        else 0.0
+    )
     score["workspace_update"] = artifact_paths_valid(result)
     score["final_score"] = weighted_sum(score, rubric)
 
-    (ROOT / "reward.json").write_text(json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8")
+    (ROOT / "reward.json").write_text(
+        json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     (ROOT / "reward.txt").write_text(str(score["final_score"]), encoding="utf-8")
 
 

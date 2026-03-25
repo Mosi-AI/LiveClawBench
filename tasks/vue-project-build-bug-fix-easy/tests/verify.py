@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify vue-project-build-bug-fix-easy: check answer_total_growth.txt exists."""
+
 import sys
 
 answer_path = "/workspace/output/answer_total_growth.txt"

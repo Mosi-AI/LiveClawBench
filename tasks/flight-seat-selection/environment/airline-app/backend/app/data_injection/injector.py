@@ -5,17 +5,23 @@ This module provides a standardized API for injecting test data into the databas
 enabling automated testing programs to create test cases efficiently.
 """
 
-from datetime import datetime, timedelta
-from app.models import db
-from app.models.user import User
-from app.models.flight import Flight, Seat, FlightStatusHistory
-from app.models.booking import Booking, Passenger, Payment, Claim
-from app.models.mock_services import EmailNotification, CalendarEvent, ChatSession, ChatMessage
-from app.models.announcement import Announcement
-from app.models.faq import FAQ
-from app.models.baggage import BaggageTracking
 import random
 import string
+from datetime import datetime, timedelta
+
+from app.models import db
+from app.models.announcement import Announcement
+from app.models.baggage import BaggageTracking
+from app.models.booking import Booking, Claim, Passenger, Payment
+from app.models.faq import FAQ
+from app.models.flight import Flight, FlightStatusHistory, Seat
+from app.models.mock_services import (
+    CalendarEvent,
+    ChatMessage,
+    ChatSession,
+    EmailNotification,
+)
+from app.models.user import User
 
 
 class DataInjector:
@@ -50,14 +56,20 @@ class DataInjector:
         user = User(
             email=email,
             password=password,
-            first_name=kwargs.get('first_name', 'Test'),
-            last_name=kwargs.get('last_name', 'User'),
-            phone=kwargs.get('phone'),
-            date_of_birth=datetime.strptime(kwargs['date_of_birth'], '%Y-%m-%d').date() if kwargs.get('date_of_birth') else None,
-            passport_number=kwargs.get('passport_number'),
-            passport_expiry=datetime.strptime(kwargs['passport_expiry'], '%Y-%m-%d').date() if kwargs.get('passport_expiry') else None,
-            is_verified=kwargs.get('is_verified', True),
-            is_active=kwargs.get('is_active', True)
+            first_name=kwargs.get("first_name", "Test"),
+            last_name=kwargs.get("last_name", "User"),
+            phone=kwargs.get("phone"),
+            date_of_birth=datetime.strptime(kwargs["date_of_birth"], "%Y-%m-%d").date()
+            if kwargs.get("date_of_birth")
+            else None,
+            passport_number=kwargs.get("passport_number"),
+            passport_expiry=datetime.strptime(
+                kwargs["passport_expiry"], "%Y-%m-%d"
+            ).date()
+            if kwargs.get("passport_expiry")
+            else None,
+            is_verified=kwargs.get("is_verified", True),
+            is_active=kwargs.get("is_active", True),
         )
         self.db.add(user)
         self.db.commit()
@@ -81,8 +93,16 @@ class DataInjector:
 
     # ============ FLIGHT INJECTION ============
 
-    def create_flight(self, flight_number, origin_code, destination_code,
-                     departure_time, arrival_time, base_price_economy, **kwargs):
+    def create_flight(
+        self,
+        flight_number,
+        origin_code,
+        destination_code,
+        departure_time,
+        arrival_time,
+        base_price_economy,
+        **kwargs,
+    ):
         """
         Create a flight with all details
 
@@ -100,28 +120,34 @@ class DataInjector:
         """
         # Parse datetime if string
         if isinstance(departure_time, str):
-            departure_time = datetime.strptime(departure_time, '%Y-%m-%d %H:%M:%S')
+            departure_time = datetime.strptime(departure_time, "%Y-%m-%d %H:%M:%S")
         if isinstance(arrival_time, str):
-            arrival_time = datetime.strptime(arrival_time, '%Y-%m-%d %H:%M:%S')
+            arrival_time = datetime.strptime(arrival_time, "%Y-%m-%d %H:%M:%S")
 
         flight = Flight(
             flight_number=flight_number,
-            airline=kwargs.get('airline', 'GKD Airlines'),
+            airline=kwargs.get("airline", "GKD Airlines"),
             origin_code=origin_code,
-            origin_city=kwargs.get('origin_city', f'{origin_code} City'),
-            origin_airport=kwargs.get('origin_airport', f'{origin_code} International Airport'),
+            origin_city=kwargs.get("origin_city", f"{origin_code} City"),
+            origin_airport=kwargs.get(
+                "origin_airport", f"{origin_code} International Airport"
+            ),
             destination_code=destination_code,
-            destination_city=kwargs.get('destination_city', f'{destination_code} City'),
-            destination_airport=kwargs.get('destination_airport', f'{destination_code} International Airport'),
+            destination_city=kwargs.get("destination_city", f"{destination_code} City"),
+            destination_airport=kwargs.get(
+                "destination_airport", f"{destination_code} International Airport"
+            ),
             departure_time=departure_time,
             arrival_time=arrival_time,
             base_price_economy=base_price_economy,
-            base_price_business=kwargs.get('base_price_business', base_price_economy * 2),
-            base_price_first=kwargs.get('base_price_first', base_price_economy * 3),
-            aircraft_type=kwargs.get('aircraft_type', 'Boeing 737'),
-            status=kwargs.get('status', 'scheduled'),
-            gate=kwargs.get('gate'),
-            terminal=kwargs.get('terminal')
+            base_price_business=kwargs.get(
+                "base_price_business", base_price_economy * 2
+            ),
+            base_price_first=kwargs.get("base_price_first", base_price_economy * 3),
+            aircraft_type=kwargs.get("aircraft_type", "Boeing 737"),
+            status=kwargs.get("status", "scheduled"),
+            gate=kwargs.get("gate"),
+            terminal=kwargs.get("terminal"),
         )
         self.db.add(flight)
         self.db.commit()
@@ -164,19 +190,32 @@ class DataInjector:
         # Default seat configuration
         if seats_config is None:
             seats_config = {
-                'economy': {'rows': 30, 'seats_per_row': 6, 'price': flight.base_price_economy},
-                'business': {'rows': 5, 'seats_per_row': 4, 'price': flight.base_price_business or flight.base_price_economy * 2},
-                'first': {'rows': 2, 'seats_per_row': 4, 'price': flight.base_price_first or flight.base_price_economy * 3}
+                "economy": {
+                    "rows": 30,
+                    "seats_per_row": 6,
+                    "price": flight.base_price_economy,
+                },
+                "business": {
+                    "rows": 5,
+                    "seats_per_row": 4,
+                    "price": flight.base_price_business
+                    or flight.base_price_economy * 2,
+                },
+                "first": {
+                    "rows": 2,
+                    "seats_per_row": 4,
+                    "price": flight.base_price_first or flight.base_price_economy * 3,
+                },
             }
 
         # Create seats for each cabin class
-        seat_letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L']
+        seat_letters = ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L"]
 
         row_offset = 1
         for cabin_class, config in seats_config.items():
-            rows = config['rows']
-            seats_per_row = config['seats_per_row']
-            price = config['price']
+            rows = config["rows"]
+            seats_per_row = config["seats_per_row"]
+            price = config["price"]
 
             for row in range(row_offset, row_offset + rows):
                 for i in range(seats_per_row):
@@ -184,8 +223,8 @@ class DataInjector:
                     seat_number = f"{row}{seat_letter}"
 
                     # Determine seat characteristics
-                    is_window = seat_letter in ['A', 'F', 'L']
-                    is_aisle = seat_letter in ['C', 'D', 'G', 'H']
+                    is_window = seat_letter in ["A", "F", "L"]
+                    is_aisle = seat_letter in ["C", "D", "G", "H"]
                     has_extra_legroom = row in [1, 12, 13]  # Exit rows
 
                     seat = Seat(
@@ -198,7 +237,7 @@ class DataInjector:
                         is_aisle=is_aisle,
                         has_extra_legroom=has_extra_legroom,
                         row_number=row,
-                        seat_letter=seat_letter
+                        seat_letter=seat_letter,
                     )
                     self.db.add(seat)
 
@@ -223,10 +262,10 @@ class DataInjector:
             Booking: Created booking object
         """
         flight = Flight.query.get(flight_id)
-        cabin_class = kwargs.get('cabin_class', 'economy')
+        cabin_class = kwargs.get("cabin_class", "economy")
 
         # Calculate total price
-        base_price = getattr(flight, f'base_price_{cabin_class}')
+        base_price = getattr(flight, f"base_price_{cabin_class}")
         total_price = base_price * len(passengers_data)
 
         # Create booking
@@ -235,9 +274,9 @@ class DataInjector:
             flight_id=flight_id,
             cabin_class=cabin_class,
             total_price=total_price,
-            booking_status=kwargs.get('booking_status', 'pending'),
-            checked_in=kwargs.get('checked_in', False),
-            check_in_time=kwargs.get('check_in_time')
+            booking_status=kwargs.get("booking_status", "pending"),
+            checked_in=kwargs.get("checked_in", False),
+            check_in_time=kwargs.get("check_in_time"),
         )
         self.db.add(booking)
         self.db.flush()  # Get booking ID
@@ -246,14 +285,20 @@ class DataInjector:
         for passenger_data in passengers_data:
             passenger = Passenger(
                 booking_id=booking.id,
-                first_name=passenger_data['first_name'],
-                last_name=passenger_data['last_name'],
-                date_of_birth=datetime.strptime(passenger_data['date_of_birth'], '%Y-%m-%d').date(),
-                passport_number=passenger_data.get('passport_number'),
-                passport_expiry=datetime.strptime(passenger_data['passport_expiry'], '%Y-%m-%d').date() if passenger_data.get('passport_expiry') else None,
-                nationality=passenger_data.get('nationality'),
-                meal_preference=passenger_data.get('meal_preference'),
-                special_assistance=passenger_data.get('special_assistance')
+                first_name=passenger_data["first_name"],
+                last_name=passenger_data["last_name"],
+                date_of_birth=datetime.strptime(
+                    passenger_data["date_of_birth"], "%Y-%m-%d"
+                ).date(),
+                passport_number=passenger_data.get("passport_number"),
+                passport_expiry=datetime.strptime(
+                    passenger_data["passport_expiry"], "%Y-%m-%d"
+                ).date()
+                if passenger_data.get("passport_expiry")
+                else None,
+                nationality=passenger_data.get("nationality"),
+                meal_preference=passenger_data.get("meal_preference"),
+                special_assistance=passenger_data.get("special_assistance"),
             )
             self.db.add(passenger)
 
@@ -272,48 +317,54 @@ class DataInjector:
             Booking: Created booking with payment
         """
         # Get or create user
-        user_email = booking_data.get('user_email')
+        user_email = booking_data.get("user_email")
         user = User.query.filter_by(email=user_email).first()
         if not user:
             user = self.create_user(
                 email=user_email,
-                password=booking_data.get('user_password', 'password123'),
-                first_name=booking_data.get('first_name', 'Test'),
-                last_name=booking_data.get('last_name', 'User')
+                password=booking_data.get("user_password", "password123"),
+                first_name=booking_data.get("first_name", "Test"),
+                last_name=booking_data.get("last_name", "User"),
             )
 
         # Get or create flight
-        flight_number = booking_data.get('flight_number')
+        flight_number = booking_data.get("flight_number")
         flight = Flight.query.filter_by(flight_number=flight_number).first()
         if not flight:
             # Create a test flight
-            flight = self.create_flight_with_seats({
-                'flight_number': flight_number,
-                'origin_code': booking_data.get('origin', 'JFK'),
-                'destination_code': booking_data.get('destination', 'LAX'),
-                'departure_time': booking_data.get('departure_time', datetime.now() + timedelta(days=7)),
-                'arrival_time': booking_data.get('arrival_time', datetime.now() + timedelta(days=7, hours=5)),
-                'base_price_economy': booking_data.get('price', 299.99)
-            })
+            flight = self.create_flight_with_seats(
+                {
+                    "flight_number": flight_number,
+                    "origin_code": booking_data.get("origin", "JFK"),
+                    "destination_code": booking_data.get("destination", "LAX"),
+                    "departure_time": booking_data.get(
+                        "departure_time", datetime.now() + timedelta(days=7)
+                    ),
+                    "arrival_time": booking_data.get(
+                        "arrival_time", datetime.now() + timedelta(days=7, hours=5)
+                    ),
+                    "base_price_economy": booking_data.get("price", 299.99),
+                }
+            )
 
         # Create booking
         booking = self.create_booking(
             user_id=user.id,
             flight_id=flight.id,
-            passengers_data=booking_data.get('passengers', [{}]),
-            cabin_class=booking_data.get('cabin_class', 'economy')
+            passengers_data=booking_data.get("passengers", [{}]),
+            cabin_class=booking_data.get("cabin_class", "economy"),
         )
 
         # Create payment
         if payment_data:
             payment = self.create_payment(
                 booking_id=booking.id,
-                amount=payment_data.get('amount', booking.total_price),
-                status=payment_data.get('status', 'completed')
+                amount=payment_data.get("amount", booking.total_price),
+                status=payment_data.get("status", "completed"),
             )
             booking.payment = payment
-            if payment.payment_status == 'completed':
-                booking.booking_status = 'confirmed'
+            if payment.payment_status == "completed":
+                booking.booking_status = "confirmed"
             self.db.commit()
 
         return booking
@@ -336,7 +387,7 @@ class DataInjector:
 
     # ============ PAYMENT INJECTION ============
 
-    def create_payment(self, booking_id, amount, status='completed', **kwargs):
+    def create_payment(self, booking_id, amount, status="completed", **kwargs):
         """
         Create a payment record
 
@@ -352,14 +403,14 @@ class DataInjector:
         payment = Payment(
             booking_id=booking_id,
             amount=amount,
-            currency=kwargs.get('currency', 'USD'),
-            payment_method=kwargs.get('payment_method', 'credit_card'),
+            currency=kwargs.get("currency", "USD"),
+            payment_method=kwargs.get("payment_method", "credit_card"),
             payment_status=status,
-            card_last_four=kwargs.get('card_last_four', '4242'),
-            card_type=kwargs.get('card_type', 'visa'),
-            card_holder_name=kwargs.get('card_holder_name', 'Test User'),
-            transaction_id='TXN' + ''.join(random.choices(string.digits, k=12)),
-            paid_at=datetime.utcnow() if status == 'completed' else None
+            card_last_four=kwargs.get("card_last_four", "4242"),
+            card_type=kwargs.get("card_type", "visa"),
+            card_holder_name=kwargs.get("card_holder_name", "Test User"),
+            transaction_id="TXN" + "".join(random.choices(string.digits, k=12)),
+            paid_at=datetime.utcnow() if status == "completed" else None,
         )
         self.db.add(payment)
         self.db.commit()
@@ -384,11 +435,11 @@ class DataInjector:
             booking_id=booking_id,
             claim_type=claim_type,
             claim_amount=claim_amount,
-            claim_reason=kwargs.get('claim_reason', 'Test claim'),
-            claim_status=kwargs.get('claim_status', 'pending'),
-            resolution_notes=kwargs.get('resolution_notes'),
-            resolved_amount=kwargs.get('resolved_amount'),
-            resolved_at=kwargs.get('resolved_at')
+            claim_reason=kwargs.get("claim_reason", "Test claim"),
+            claim_status=kwargs.get("claim_status", "pending"),
+            resolution_notes=kwargs.get("resolution_notes"),
+            resolved_amount=kwargs.get("resolved_amount"),
+            resolved_at=kwargs.get("resolved_at"),
         )
         self.db.add(claim)
         self.db.commit()
@@ -431,12 +482,12 @@ class DataInjector:
         """
         email = EmailNotification(
             user_id=user_id,
-            booking_id=kwargs.get('booking_id'),
+            booking_id=kwargs.get("booking_id"),
             email_type=email_type,
-            recipient_email=kwargs.get('recipient_email', 'test@example.com'),
-            subject=kwargs.get('subject', f'Test {email_type}'),
-            body=kwargs.get('body', 'Test email body'),
-            is_read=kwargs.get('is_read', False)
+            recipient_email=kwargs.get("recipient_email", "test@example.com"),
+            subject=kwargs.get("subject", f"Test {email_type}"),
+            body=kwargs.get("body", "Test email body"),
+            is_read=kwargs.get("is_read", False),
         )
         self.db.add(email)
         self.db.commit()
@@ -463,11 +514,11 @@ class DataInjector:
             booking_id=booking_id,
             user_id=booking.user_id,
             event_id=str(uuid.uuid4()),
-            title=kwargs.get('title', f"Flight {booking.flight.flight_number}"),
-            description=kwargs.get('description', 'Test calendar event'),
-            start_time=kwargs.get('start_time', booking.flight.departure_time),
-            end_time=kwargs.get('end_time', booking.flight.arrival_time),
-            location=kwargs.get('location', booking.flight.origin_airport)
+            title=kwargs.get("title", f"Flight {booking.flight.flight_number}"),
+            description=kwargs.get("description", "Test calendar event"),
+            start_time=kwargs.get("start_time", booking.flight.departure_time),
+            end_time=kwargs.get("end_time", booking.flight.arrival_time),
+            location=kwargs.get("location", booking.flight.origin_airport),
         )
         self.db.add(event)
         self.db.commit()
@@ -531,6 +582,7 @@ class DataInjector:
             scenario_name (str): Name of scenario to load
         """
         from app.data_injection.scenarios import load_scenario
+
         load_scenario(self, scenario_name)
 
     def create_full_booking_flow(self, user_data, flight_data, passengers_data):
@@ -553,16 +605,10 @@ class DataInjector:
 
         # Create booking
         booking = self.create_booking(
-            user_id=user.id,
-            flight_id=flight.id,
-            passengers_data=passengers_data
+            user_id=user.id, flight_id=flight.id, passengers_data=passengers_data
         )
 
-        return {
-            'user': user,
-            'flight': flight,
-            'booking': booking
-        }
+        return {"user": user, "flight": flight, "booking": booking}
 
     # ============ QUERY HELPERS ============
 
@@ -602,8 +648,7 @@ class DataInjector:
             list: List of Flight objects
         """
         return Flight.query.filter_by(
-            origin_code=origin,
-            destination_code=destination
+            origin_code=origin, destination_code=destination
         ).all()
 
     # ============ ANNOUNCEMENT INJECTION ============
@@ -625,9 +670,9 @@ class DataInjector:
             title=title,
             content=content,
             category=category,
-            priority=kwargs.get('priority', 'normal'),
-            is_active=kwargs.get('is_active', True),
-            expires_at=kwargs.get('expires_at')
+            priority=kwargs.get("priority", "normal"),
+            is_active=kwargs.get("is_active", True),
+            expires_at=kwargs.get("expires_at"),
         )
         self.db.add(announcement)
         self.db.commit()
@@ -652,8 +697,8 @@ class DataInjector:
             question=question,
             answer=answer,
             category=category,
-            display_order=kwargs.get('display_order', 0),
-            is_active=kwargs.get('is_active', True)
+            display_order=kwargs.get("display_order", 0),
+            is_active=kwargs.get("is_active", True),
         )
         self.db.add(faq)
         self.db.commit()
@@ -661,9 +706,17 @@ class DataInjector:
 
     # ============ BAGGAGE TRACKING INJECTION ============
 
-    def create_baggage_report(self, user_id, flight_number, flight_time,
-                             passenger_name, passenger_phone, passenger_email,
-                             baggage_description, **kwargs):
+    def create_baggage_report(
+        self,
+        user_id,
+        flight_number,
+        flight_time,
+        passenger_name,
+        passenger_phone,
+        passenger_email,
+        baggage_description,
+        **kwargs,
+    ):
         """
         Create a baggage tracking report
 
@@ -682,7 +735,7 @@ class DataInjector:
         """
         # Parse datetime if string
         if isinstance(flight_time, str):
-            flight_time = datetime.strptime(flight_time, '%Y-%m-%d %H:%M:%S')
+            flight_time = datetime.strptime(flight_time, "%Y-%m-%d %H:%M:%S")
 
         report = BaggageTracking(
             user_id=user_id,
@@ -692,11 +745,11 @@ class DataInjector:
             passenger_phone=passenger_phone,
             passenger_email=passenger_email,
             baggage_description=baggage_description,
-            seat_number=kwargs.get('seat_number'),
-            loss_details=kwargs.get('loss_details'),
-            status=kwargs.get('status', 'processing'),
-            location=kwargs.get('location'),
-            booking_id=kwargs.get('booking_id')
+            seat_number=kwargs.get("seat_number"),
+            loss_details=kwargs.get("loss_details"),
+            status=kwargs.get("status", "processing"),
+            location=kwargs.get("location"),
+            booking_id=kwargs.get("booking_id"),
         )
         self.db.add(report)
         self.db.commit()
@@ -712,18 +765,18 @@ class DataInjector:
             User: Default user object
         """
         # Check if default user already exists
-        default_user = User.query.filter_by(email='default@gkdairlines.com').first()
+        default_user = User.query.filter_by(email="default@gkdairlines.com").first()
         if default_user:
             return default_user
 
         user = User(
-            email='default@gkdairlines.com',
-            password='default123',
-            first_name='Peter',
-            last_name='Griffin',
-            phone='+1-555-0100',
+            email="default@gkdairlines.com",
+            password="default123",
+            first_name="Peter",
+            last_name="Griffin",
+            phone="+1-555-0100",
             is_verified=True,
-            is_active=True
+            is_active=True,
         )
         self.db.add(user)
         self.db.commit()

@@ -27,7 +27,7 @@ from typing import Any, Dict, Optional
 # ---------------------------------------------------------------------------
 _BENCH_DIR = os.environ.get(
     "SH2_BENCH_DIR",
-    str(Path(__file__).resolve().parents[1]),   # default: skill_dir/../ = bench root
+    str(Path(__file__).resolve().parents[1]),  # default: skill_dir/../ = bench root
 )
 AUDIT_LOG_PATH = Path(_BENCH_DIR) / "output" / "skill_audit.jsonl"
 
@@ -89,8 +89,12 @@ def log_invocation(
         "skill_hash": _hash_file(skill_path),
         "skill_version": version,
         "pid": os.getpid(),
-        "payload_keys": list(payload.keys()) if isinstance(payload, dict) else str(type(payload)),
-        "target_files": payload.get("target_files", []) if isinstance(payload, dict) else [],
+        "payload_keys": list(payload.keys())
+        if isinstance(payload, dict)
+        else str(type(payload)),
+        "target_files": payload.get("target_files", [])
+        if isinstance(payload, dict)
+        else [],
         "caller": _caller_info(),
     }
     if extra:

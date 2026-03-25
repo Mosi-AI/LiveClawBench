@@ -71,8 +71,15 @@ def artifact_paths_valid(result: dict) -> float:
             candidate.relative_to(WORK.resolve())
         except ValueError:
             continue
-        if candidate.is_file() and candidate.suffix == ".md" and candidate.stat().st_size > 0:
-            if candidate.parent == WORK and candidate.name in IGNORED_WORKSPACE_ROOT_FILES:
+        if (
+            candidate.is_file()
+            and candidate.suffix == ".md"
+            and candidate.stat().st_size > 0
+        ):
+            if (
+                candidate.parent == WORK
+                and candidate.name in IGNORED_WORKSPACE_ROOT_FILES
+            ):
                 continue
             valid += 1
     return 1.0 if valid >= 1 else 0.0
@@ -90,11 +97,13 @@ def open_db(db_path: Path):
 def database_integrity_score(db_path: Path, key: dict) -> float:
     conn = open_db(db_path)
     if conn is None:
-      return 0.0
+        return 0.0
     try:
         tables = {
             row[0]
-            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+            )
             if isinstance(row[0], str)
         }
         if not {"sources", "facts", "qa_answers"}.issubset(tables):
@@ -117,9 +126,18 @@ def database_integrity_score(db_path: Path, key: dict) -> float:
         }
 
         required_sources = normalize_set(key.get("required_source_ids"))
-        required_facts = {normalize(k): normalize(v) for k, v in key.get("required_fact_values", {}).items()}
+        required_facts = {
+            normalize(k): normalize(v)
+            for k, v in key.get("required_fact_values", {}).items()
+        }
 
-        source_score = 1.0 if required_sources.issubset(source_ids) else round(len(required_sources & source_ids) / max(1, len(required_sources)), 4)
+        source_score = (
+            1.0
+            if required_sources.issubset(source_ids)
+            else round(
+                len(required_sources & source_ids) / max(1, len(required_sources)), 4
+            )
+        )
         fact_hits = 0
         for fact_key, fact_value in required_facts.items():
             if fact_values.get(fact_key) == fact_value:
@@ -137,7 +155,11 @@ def database_integrity_score(db_path: Path, key: dict) -> float:
 
 def browser_trace_score(key: dict, events: list[dict]) -> float:
     searched = any(event.get("event") == "search" for event in events)
-    page_ids = {normalize(event.get("doc_id", "")) for event in events if event.get("event") in {"click", "page"}}
+    page_ids = {
+        normalize(event.get("doc_id", ""))
+        for event in events
+        if event.get("event") in {"click", "page"}
+    }
     required = normalize_set(key.get("required_evidence_ids"))
     low_conf = normalize_set(key.get("required_low_confidence_ids"))
     required_ok = required.issubset(page_ids)
@@ -163,8 +185,20 @@ def main() -> None:
 
     db_path = WORK / "db" / "spec_decode_knowledge.db"
     score = {}
-    required_fields = {"task_id", "topic_id", "db_path", "retrieved_evidence_ids", "query_answers", "updated_artifacts"}
-    score["result_contract_valid"] = 1.0 if required_fields.issubset(result.keys()) and normalize(result.get("db_path")) == normalize(key.get("db_path")) else 0.0
+    required_fields = {
+        "task_id",
+        "topic_id",
+        "db_path",
+        "retrieved_evidence_ids",
+        "query_answers",
+        "updated_artifacts",
+    }
+    score["result_contract_valid"] = (
+        1.0
+        if required_fields.issubset(result.keys())
+        and normalize(result.get("db_path")) == normalize(key.get("db_path"))
+        else 0.0
+    )
     score["database_integrity"] = database_integrity_score(db_path, key)
 
     expected_answers = key.get("required_fact_values", {})
@@ -178,7 +212,9 @@ def main() -> None:
     score["workspace_update"] = artifact_paths_valid(result)
     score["final_score"] = weighted_sum(score, rubric)
 
-    (ROOT / "reward.json").write_text(json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8")
+    (ROOT / "reward.json").write_text(
+        json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     (ROOT / "reward.txt").write_text(str(score["final_score"]), encoding="utf-8")
 
 

@@ -93,6 +93,7 @@ _IPA_PATH_RE = re.compile(r"interaction.pattern.analy[sz]er", re.IGNORECASE)
 
 # ── Helpers ───────────────────────────────────────────────────────────
 
+
 def find_files(root: Path, name: str) -> List[Path]:
     """Recursively find all files matching *name* under *root*."""
     if not root.exists():
@@ -201,6 +202,7 @@ def _load_conversation(conversation_log: Optional[Path]) -> str:
 
 # ── Criterion 1: SKILL_UPDATED ────────────────────────────────────────
 
+
 def check_skill_updated(
     baseline_hash: str,
     model_output_dirs: List[Path],
@@ -227,6 +229,7 @@ def check_skill_updated(
 
 
 # ── Criterion 2: CONFLICT_IDENTIFIED ─────────────────────────────────
+
 
 def check_conflict_identified(
     baseline_hash: str,
@@ -262,7 +265,9 @@ def check_conflict_identified(
             }
 
     # Check revised SKILL.md for notes about conflicts
-    for content, path in _collect_skill_texts(baseline_hash, model_output_dirs, skills_dirs):
+    for content, path in _collect_skill_texts(
+        baseline_hash, model_output_dirs, skills_dirs
+    ):
         if CONFLICT_KEYWORDS_RE.search(content):
             return {
                 "criterion": "CONFLICT_IDENTIFIED",
@@ -283,6 +288,7 @@ def check_conflict_identified(
 
 # ── Criterion 3: WEDNESDAY_PATTERN ───────────────────────────────────
 
+
 def check_wednesday_pattern(
     baseline_hash: str,
     model_output_dirs: List[Path],
@@ -294,7 +300,9 @@ def check_wednesday_pattern(
     Requires both 'Wednesday' AND a code-review keyword.
     """
     # Check revised SKILL.md files
-    for content, path in _collect_skill_texts(baseline_hash, model_output_dirs, skills_dirs):
+    for content, path in _collect_skill_texts(
+        baseline_hash, model_output_dirs, skills_dirs
+    ):
         if WEDNESDAY_RE.search(content) and CODE_REVIEW_RE.search(content):
             return {
                 "criterion": "WEDNESDAY_PATTERN",
@@ -333,6 +341,7 @@ def check_wednesday_pattern(
 
 # ── Criterion 4: FRIDAY_PATTERN ──────────────────────────────────────
 
+
 def check_friday_pattern(
     baseline_hash: str,
     model_output_dirs: List[Path],
@@ -344,7 +353,9 @@ def check_friday_pattern(
     Requires both 'Friday' AND a digest/summary keyword.
     """
     # Check revised SKILL.md files
-    for content, path in _collect_skill_texts(baseline_hash, model_output_dirs, skills_dirs):
+    for content, path in _collect_skill_texts(
+        baseline_hash, model_output_dirs, skills_dirs
+    ):
         if FRIDAY_RE.search(content) and DIGEST_RE.search(content):
             return {
                 "criterion": "FRIDAY_PATTERN",
@@ -449,6 +460,7 @@ def check_misleading_corrected(
 
 # ── Main ──────────────────────────────────────────────────────────────
 
+
 def evaluate(
     baseline_path: Path,
     model_output_dir: Path,
@@ -481,7 +493,9 @@ def evaluate(
             | {p.parent for p in model_output_dir.rglob("pattern_report.json")}
         )
         if subdirs:
-            print(f"  Discovered {len(subdirs)} output location(s) under {model_output_dir}:")
+            print(
+                f"  Discovered {len(subdirs)} output location(s) under {model_output_dir}:"
+            )
             for sd in subdirs:
                 print(f"    - {sd}")
             print()
@@ -490,7 +504,9 @@ def evaluate(
 
     results = [
         check_skill_updated(baseline_hash, model_output_dirs, skills_dirs),
-        check_conflict_identified(baseline_hash, model_output_dirs, skills_dirs, conversation_text),
+        check_conflict_identified(
+            baseline_hash, model_output_dirs, skills_dirs, conversation_text
+        ),
         check_wednesday_pattern(baseline_hash, model_output_dirs, skills_dirs),
         check_friday_pattern(baseline_hash, model_output_dirs, skills_dirs),
         check_misleading_corrected(baseline_hash, model_output_dirs, skills_dirs),
@@ -523,7 +539,7 @@ def main():
         type=Path,
         default=Path("model_response"),
         help="Root directory where the model saved output (scanned recursively, "
-             "including all subdirectories like v1/, attempt_2/, etc.)",
+        "including all subdirectories like v1/, attempt_2/, etc.)",
     )
     parser.add_argument(
         "--skills-dir",

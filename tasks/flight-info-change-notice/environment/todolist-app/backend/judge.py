@@ -8,6 +8,7 @@ have been removed.
 import sqlite3
 import sys
 from datetime import datetime, timedelta
+
 from config import DATABASE_PATH
 
 
@@ -20,23 +21,23 @@ def get_expected_todos():
     today = datetime.now()
     days_until_sunday = 6 - today.weekday()
     sunday_date = today + timedelta(days=days_until_sunday)
-    sunday_str = sunday_date.strftime('%Y-%m-%d')
+    sunday_str = sunday_date.strftime("%Y-%m-%d")
 
     return [
         {
-            'title': 'Game party w/ my old friends',
-            'date': sunday_str,
-            'time': '10:00',
+            "title": "Game party w/ my old friends",
+            "date": sunday_str,
+            "time": "10:00",
         },
         {
-            'title': 'Morning run',
-            'date': sunday_str,
-            'time': '7:00',
+            "title": "Morning run",
+            "date": sunday_str,
+            "time": "7:00",
         },
         {
-            'title': 'Book club meeting',
-            'date': sunday_str,
-            'time': '19:00',
+            "title": "Book club meeting",
+            "date": sunday_str,
+            "time": "19:00",
         },
     ]
 
@@ -57,21 +58,26 @@ def check_todos_cleared():
     missing_todos = []
 
     for todo in expected_todos:
-        cursor.execute('''
+        cursor.execute(
+            """
             SELECT id, title, date, time
             FROM todos
             WHERE title = ? AND date = ? AND time = ?
-        ''', (todo['title'], todo['date'], todo['time']))
+        """,
+            (todo["title"], todo["date"], todo["time"]),
+        )
 
         result = cursor.fetchone()
 
         if result:
-            found_todos.append({
-                'id': result[0],
-                'title': result[1],
-                'date': result[2],
-                'time': result[3]
-            })
+            found_todos.append(
+                {
+                    "id": result[0],
+                    "title": result[1],
+                    "date": result[2],
+                    "time": result[3],
+                }
+            )
         else:
             missing_todos.append(todo)
 
@@ -124,5 +130,5 @@ def main():
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

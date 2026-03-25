@@ -2,26 +2,27 @@
 Standalone E-Commerce Mock Backend Application
 FastAPI backend service for product search and display
 """
+
 import json
 import os
-from math import ceil
-from typing import List, Dict, Any, Optional, Tuple
-import tempfile
-from datetime import datetime
 import re
+import tempfile
 from collections import Counter
+from datetime import datetime
+from math import ceil
+from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 app = FastAPI(
     title="E-Commerce Mosi Shop",
     description="E-Commerce Simulation API",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # CORS configuration
@@ -51,6 +52,7 @@ ORDERS_FILE = os.path.join(tempfile.gettempdir(), "mosi_shop_orders.json")
 
 class Product(BaseModel):
     """Product data model"""
+
     id: str
     title: str
     price: float
@@ -68,6 +70,7 @@ class Product(BaseModel):
 
 class CartItem(BaseModel):
     """Cart item model"""
+
     id: str
     title: str
     price: float
@@ -78,6 +81,7 @@ class CartItem(BaseModel):
 
 class User(BaseModel):
     """User data model"""
+
     username: str
     gender: str
     address: str
@@ -87,6 +91,7 @@ class User(BaseModel):
 
 class OrderItem(BaseModel):
     """Order item model"""
+
     product_id: str
     title: str
     price: float
@@ -96,6 +101,7 @@ class OrderItem(BaseModel):
 
 class Order(BaseModel):
     """Order data model"""
+
     order_id: str
     user_id: str
     items: List[OrderItem]
@@ -114,7 +120,7 @@ def load_sample_products() -> List[Dict[str, Any]]:
         return []
 
     try:
-        with open(sample_file, 'r', encoding='utf-8') as f:
+        with open(sample_file, "r", encoding="utf-8") as f:
             products = json.load(f)
             print(f"Successfully loaded {len(products)} products")
             return products
@@ -130,16 +136,16 @@ def load_cart() -> List[Dict[str, Any]]:
     """Load cart from temporary file"""
     if os.path.exists(CART_FILE):
         try:
-            with open(CART_FILE, 'r', encoding='utf-8') as f:
+            with open(CART_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except:
+        except Exception:
             return []
     return []
 
 
 def save_cart(cart: List[Dict[str, Any]]):
     """Save cart to temporary file"""
-    with open(CART_FILE, 'w', encoding='utf-8') as f:
+    with open(CART_FILE, "w", encoding="utf-8") as f:
         json.dump(cart, f, indent=2, ensure_ascii=False)
 
 
@@ -162,26 +168,20 @@ def initialize_user():
                 {
                     "type": "gift card",
                     "account": "GIFT-****-****-7892",
-                    "balance": "$50.00"
+                    "balance": "$50.00",
                 },
-                {
-                    "type": "paypal account",
-                    "account": "peter.griffin@email.com"
-                },
-                {
-                    "type": "credit card",
-                    "account": "Visa ending in 4532"
-                }
-            ]
+                {"type": "paypal account", "account": "peter.griffin@email.com"},
+                {"type": "credit card", "account": "Visa ending in 4532"},
+            ],
         }
-        with open(USER_FILE, 'w', encoding='utf-8') as f:
+        with open(USER_FILE, "w", encoding="utf-8") as f:
             json.dump(user_data, f, indent=2, ensure_ascii=False)
         return user_data
 
     try:
-        with open(USER_FILE, 'r', encoding='utf-8') as f:
+        with open(USER_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except Exception:
         return {
             "username": "Peter Griffin",
             "gender": "Male",
@@ -192,17 +192,11 @@ def initialize_user():
                 {
                     "type": "gift card",
                     "account": "GIFT-****-****-7892",
-                    "balance": "$50.00"
+                    "balance": "$50.00",
                 },
-                {
-                    "type": "paypal account",
-                    "account": "peter.griffin@email.com"
-                },
-                {
-                    "type": "credit card",
-                    "account": "Visa ending in 4532"
-                }
-            ]
+                {"type": "paypal account", "account": "peter.griffin@email.com"},
+                {"type": "credit card", "account": "Visa ending in 4532"},
+            ],
         }
 
 
@@ -220,19 +214,54 @@ def initialize_orders():
         orders = []
 
         # Find specific products for diverse orders
-        product_map = {p['id']: p for p in all_products}
+        product_map = {p["id"]: p for p in all_products}
 
         # Select diverse products: stapler, toilet paper, washer
         # Order them so washer gets ORD000005 (3rd position when sorted by ID desc)
         # Order ID descending: ORD000007, ORD000006, ORD000005, ORD000004, ORD000003, ORD000002, ORD000001
         order_configs = [
-            {"product_id": "prod_0009", "order_num": 7, "days_ago": 0, "status": "Delivered"},          # Stapler - ORD000007 (1st)
-            {"product_id": "prod_0017", "order_num": 6, "days_ago": 1, "status": "Pending Shipment"},    # Toilet Paper - ORD000006 (2nd)
-            {"product_id": "prod_0031", "order_num": 5, "days_ago": 2, "status": "Shipped"},             # Washer - ORD000005 (3rd)
-            {"product_id": "prod_0015", "order_num": 4, "days_ago": 3, "status": "Delivered"},           # Stapler - ORD000004 (4th)
-            {"product_id": "prod_0018", "order_num": 3, "days_ago": 5, "status": "Completed"},           # Toilet Paper - ORD000003 (5th)
-            {"product_id": "prod_0020", "order_num": 2, "days_ago": 7, "status": "Pending Shipment"},    # Toilet Paper - ORD000002 (6th)
-            {"product_id": "prod_0001", "order_num": 1, "days_ago": 10, "status": "Shipped"},            # Toothpaste - ORD000001 (7th)
+            {
+                "product_id": "prod_0009",
+                "order_num": 7,
+                "days_ago": 0,
+                "status": "Delivered",
+            },  # Stapler - ORD000007 (1st)
+            {
+                "product_id": "prod_0017",
+                "order_num": 6,
+                "days_ago": 1,
+                "status": "Pending Shipment",
+            },  # Toilet Paper - ORD000006 (2nd)
+            {
+                "product_id": "prod_0031",
+                "order_num": 5,
+                "days_ago": 2,
+                "status": "Shipped",
+            },  # Washer - ORD000005 (3rd)
+            {
+                "product_id": "prod_0015",
+                "order_num": 4,
+                "days_ago": 3,
+                "status": "Delivered",
+            },  # Stapler - ORD000004 (4th)
+            {
+                "product_id": "prod_0018",
+                "order_num": 3,
+                "days_ago": 5,
+                "status": "Completed",
+            },  # Toilet Paper - ORD000003 (5th)
+            {
+                "product_id": "prod_0020",
+                "order_num": 2,
+                "days_ago": 7,
+                "status": "Pending Shipment",
+            },  # Toilet Paper - ORD000002 (6th)
+            {
+                "product_id": "prod_0001",
+                "order_num": 1,
+                "days_ago": 10,
+                "status": "Shipped",
+            },  # Toothpaste - ORD000001 (7th)
         ]
 
         for config in order_configs:
@@ -245,36 +274,36 @@ def initialize_orders():
 
             # Each order contains only one item
             order_item = {
-                "product_id": product['id'],
-                "title": product['title'],
-                "price": product['price'],
+                "product_id": product["id"],
+                "title": product["title"],
+                "price": product["price"],
                 "quantity": 1,
-                "image_url": product['image_url']
+                "image_url": product["image_url"],
             }
 
             order = {
                 "order_id": f"ORD{str(config['order_num']).zfill(6)}",
                 "user_id": "Peter Griffin",
                 "items": [order_item],
-                "total_amount": round(product['price'], 2),
+                "total_amount": round(product["price"], 2),
                 "status": config["status"],
                 "create_time": order_date.strftime("%Y-%m-%d %H:%M:%S"),
-                "shipping_address": "1234 Innovation Drive, San Francisco, CA 94105, USA"
+                "shipping_address": "1234 Innovation Drive, San Francisco, CA 94105, USA",
             }
             orders.append(order)
 
         # Sort by order_id (descending - newest/highest ID first)
-        orders.sort(key=lambda x: x['order_id'], reverse=True)
+        orders.sort(key=lambda x: x["order_id"], reverse=True)
 
-        with open(ORDERS_FILE, 'w', encoding='utf-8') as f:
+        with open(ORDERS_FILE, "w", encoding="utf-8") as f:
             json.dump(orders, f, indent=2, ensure_ascii=False)
 
         return orders
 
     try:
-        with open(ORDERS_FILE, 'r', encoding='utf-8') as f:
+        with open(ORDERS_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except Exception:
         return []
 
 
@@ -295,7 +324,7 @@ def calculate_relevance_score(product: Dict[str, Any], query: str) -> float:
         return 0.0
 
     query_lower = query.lower().strip()
-    title = product.get('title', '').lower()
+    title = product.get("title", "").lower()
 
     if not title:
         return 0.0
@@ -307,8 +336,8 @@ def calculate_relevance_score(product: Dict[str, Any], query: str) -> float:
         score += 100.0
 
     # Tokenize query and title
-    query_words = re.findall(r'\w+', query_lower)
-    title_words = re.findall(r'\w+', title)
+    query_words = re.findall(r"\w+", query_lower)
+    title_words = re.findall(r"\w+", title)
 
     if not query_words or not title_words:
         return score
@@ -325,7 +354,9 @@ def calculate_relevance_score(product: Dict[str, Any], query: str) -> float:
             # Position bonus: earlier in title = higher score
             positions = [i for i, t_word in enumerate(title_words) if t_word == q_word]
             if positions:
-                position_bonus = max(0, 10 - positions[0])  # Max 10 points for first position
+                position_bonus = max(
+                    0, 10 - positions[0]
+                )  # Max 10 points for first position
                 score += 20 + position_bonus
 
     # Partial word matches (substring)
@@ -347,22 +378,20 @@ def calculate_relevance_score(product: Dict[str, Any], query: str) -> float:
             score += min(freq * 5, 20)  # Max 20 points per word
 
     # Product quality boosts
-    rating = product.get('rating', 0)
+    rating = product.get("rating", 0)
     score += rating * 2  # Max ~10 points from rating
 
-    if product.get('best_seller'):
+    if product.get("best_seller"):
         score += 15
 
-    if product.get('overall_pick'):
+    if product.get("overall_pick"):
         score += 15
 
     return score
 
 
 def search_products(
-    products: List[Dict[str, Any]],
-    query: str,
-    min_relevance: float = 10.0
+    products: List[Dict[str, Any]], query: str, min_relevance: float = 10.0
 ) -> List[Tuple[Dict[str, Any], float]]:
     """
     Search products based on query and return products with relevance scores.
@@ -392,7 +421,7 @@ def filter_and_sort_products(
     max_price: Optional[float] = None,
     min_rating: Optional[float] = None,
     sort_by: str = "similarity",
-    use_search: bool = True
+    use_search: bool = True,
 ) -> List[Dict[str, Any]]:
     """
     Filter and sort products.
@@ -412,39 +441,41 @@ def filter_and_sort_products(
         # Search and get relevance scores
         scored_products = search_products(products, query, min_relevance=10.0)
         # Extract just the products (without scores for now)
-        products_with_scores = {p['id']: score for p, score in scored_products}
+        products_with_scores = {p["id"]: score for p, score in scored_products}
         products = [p for p, score in scored_products]
 
         # If no results found, try with lower threshold
         if not products:
             scored_products = search_products(products, query, min_relevance=0.0)
-            products_with_scores = {p['id']: score for p, score in scored_products}
+            products_with_scores = {p["id"]: score for p, score in scored_products}
             products = [p for p, score in scored_products]
     else:
         products_with_scores = {}
 
     # Step 2: Apply filters
     if min_price is not None:
-        products = [p for p in products if p.get('price', 0) >= min_price]
+        products = [p for p in products if p.get("price", 0) >= min_price]
     if max_price is not None:
-        products = [p for p in products if p.get('price', 0) <= max_price]
+        products = [p for p in products if p.get("price", 0) <= max_price]
     if min_rating is not None:
-        products = [p for p in products if p.get('rating', 0) >= min_rating]
+        products = [p for p in products if p.get("rating", 0) >= min_rating]
 
     # Step 3: Sort
-    if sort_by == 'similarity':
+    if sort_by == "similarity":
         # Sort by relevance score (already sorted from search, but re-sort after filtering)
         if products_with_scores:
-            products.sort(key=lambda x: products_with_scores.get(x['id'], 0), reverse=True)
+            products.sort(
+                key=lambda x: products_with_scores.get(x["id"], 0), reverse=True
+            )
         else:
             # Fallback: sort by rating if no search performed
-            products.sort(key=lambda x: x.get('rating', 0), reverse=True)
-    elif sort_by == 'price_asc':
-        products.sort(key=lambda x: x.get('price', 0))
-    elif sort_by == 'price_desc':
-        products.sort(key=lambda x: x.get('price', 0), reverse=True)
-    elif sort_by == 'rating':
-        products.sort(key=lambda x: x.get('rating', 0), reverse=True)
+            products.sort(key=lambda x: x.get("rating", 0), reverse=True)
+    elif sort_by == "price_asc":
+        products.sort(key=lambda x: x.get("price", 0))
+    elif sort_by == "price_desc":
+        products.sort(key=lambda x: x.get("price", 0), reverse=True)
+    elif sort_by == "rating":
+        products.sort(key=lambda x: x.get("rating", 0), reverse=True)
 
     return products
 
@@ -463,7 +494,7 @@ async def search(
     page: int = Query(1, ge=1, description="Page number"),
     min_price: Optional[float] = Query(None, description="Minimum price"),
     max_price: Optional[float] = Query(None, description="Maximum price"),
-    min_rating: Optional[float] = Query(None, description="Minimum rating")
+    min_rating: Optional[float] = Query(None, description="Minimum rating"),
 ):
     """Search products page"""
     query = q
@@ -481,12 +512,14 @@ async def search(
             max_price=max_price,
             min_rating=min_rating,
             sort_by=sort_by,
-            use_search=True
+            use_search=True,
         )
 
         # Pagination
         total_products = len(all_results)
-        total_pages = ceil(total_products / PRODUCTS_PER_PAGE) if total_products > 0 else 0
+        total_pages = (
+            ceil(total_products / PRODUCTS_PER_PAGE) if total_products > 0 else 0
+        )
 
         start_idx = (page - 1) * PRODUCTS_PER_PAGE
         end_idx = start_idx + PRODUCTS_PER_PAGE
@@ -507,8 +540,8 @@ async def search(
             "total_pages": total_pages,
             "min_price": min_price,
             "max_price": max_price,
-            "min_rating": min_rating
-        }
+            "min_rating": min_rating,
+        },
     )
 
 
@@ -516,15 +549,10 @@ async def search(
 async def cart_page(request: Request):
     """Cart page"""
     cart_items = load_cart()
-    total = sum(item['price'] * item['quantity'] for item in cart_items)
+    total = sum(item["price"] * item["quantity"] for item in cart_items)
 
     return templates.TemplateResponse(
-        "cart.html",
-        {
-            "request": request,
-            "cart_items": cart_items,
-            "total": total
-        }
+        "cart.html", {"request": request, "cart_items": cart_items, "total": total}
     )
 
 
@@ -535,7 +563,7 @@ async def get_products(
     page: int = Query(1, ge=1, description="Page number"),
     min_price: Optional[float] = Query(None, description="Minimum price"),
     max_price: Optional[float] = Query(None, description="Maximum price"),
-    min_rating: Optional[float] = Query(None, description="Minimum rating")
+    min_rating: Optional[float] = Query(None, description="Minimum rating"),
 ):
     """Get product list API"""
     all_products = load_sample_products()
@@ -548,7 +576,7 @@ async def get_products(
         max_price=max_price,
         min_rating=min_rating,
         sort_by=sort,
-        use_search=True
+        use_search=True,
     )
 
     # Pagination
@@ -564,7 +592,7 @@ async def get_products(
         "total_products": total_products,
         "total_pages": total_pages,
         "current_page": page,
-        "products_per_page": PRODUCTS_PER_PAGE
+        "products_per_page": PRODUCTS_PER_PAGE,
     }
 
 
@@ -574,7 +602,7 @@ async def get_product_detail(product_id: str):
     all_products = load_sample_products()
 
     for product in all_products:
-        if product.get('id') == product_id:
+        if product.get("id") == product_id:
             return product
 
     return {"error": "Product not found"}, 404
@@ -584,13 +612,13 @@ async def get_product_detail(product_id: str):
 async def add_to_cart(request: Request):
     """Add product to cart API"""
     body = await request.json()
-    product_id = body.get('product_id')
+    product_id = body.get("product_id")
 
     # Get product details
     all_products = load_sample_products()
     product = None
     for p in all_products:
-        if p['id'] == product_id:
+        if p["id"] == product_id:
             product = p
             break
 
@@ -603,23 +631,25 @@ async def add_to_cart(request: Request):
     # Check if product already in cart
     existing_item = None
     for item in cart:
-        if item['id'] == product_id:
+        if item["id"] == product_id:
             existing_item = item
             break
 
     if existing_item:
         # Update quantity
-        existing_item['quantity'] += 1
+        existing_item["quantity"] += 1
     else:
         # Add new item
-        cart.append({
-            "id": product['id'],
-            "title": product['title'],
-            "price": product['price'],
-            "rating": product['rating'],
-            "image_url": product['image_url'],
-            "quantity": 1
-        })
+        cart.append(
+            {
+                "id": product["id"],
+                "title": product["title"],
+                "price": product["price"],
+                "rating": product["rating"],
+                "image_url": product["image_url"],
+                "quantity": 1,
+            }
+        )
 
     # Save cart
     save_cart(cart)
@@ -627,7 +657,7 @@ async def add_to_cart(request: Request):
     return {
         "success": True,
         "message": f"Added {product['title'][:50]}... to cart",
-        "cart_count": sum(item['quantity'] for item in cart)
+        "cart_count": sum(item["quantity"] for item in cart),
     }
 
 
@@ -635,12 +665,12 @@ async def add_to_cart(request: Request):
 async def get_cart():
     """Get cart items API"""
     cart = load_cart()
-    total = sum(item['price'] * item['quantity'] for item in cart)
+    total = sum(item["price"] * item["quantity"] for item in cart)
 
     return {
         "items": cart,
         "total": total,
-        "count": sum(item['quantity'] for item in cart)
+        "count": sum(item["quantity"] for item in cart),
     }
 
 
@@ -648,13 +678,13 @@ async def get_cart():
 async def remove_from_cart(product_id: str):
     """Remove product from cart API"""
     cart = load_cart()
-    cart = [item for item in cart if item['id'] != product_id]
+    cart = [item for item in cart if item["id"] != product_id]
     save_cart(cart)
 
     return {
         "success": True,
         "message": "Item removed from cart",
-        "cart_count": sum(item['quantity'] for item in cart)
+        "cart_count": sum(item["quantity"] for item in cart),
     }
 
 
@@ -662,17 +692,17 @@ async def remove_from_cart(product_id: str):
 async def update_cart_quantity(request: Request):
     """Update cart item quantity API"""
     body = await request.json()
-    product_id = body.get('product_id')
-    quantity = body.get('quantity', 1)
+    product_id = body.get("product_id")
+    quantity = body.get("quantity", 1)
 
     cart = load_cart()
 
     for item in cart:
-        if item['id'] == product_id:
+        if item["id"] == product_id:
             if quantity <= 0:
                 cart.remove(item)
             else:
-                item['quantity'] = quantity
+                item["quantity"] = quantity
             break
 
     save_cart(cart)
@@ -680,7 +710,7 @@ async def update_cart_quantity(request: Request):
     return {
         "success": True,
         "message": "Cart updated",
-        "cart_count": sum(item['quantity'] for item in cart)
+        "cart_count": sum(item["quantity"] for item in cart),
     }
 
 
@@ -706,30 +736,32 @@ async def checkout():
     user = initialize_user()
 
     # Generate new order ID
-    existing_ids = [int(o['order_id'].replace('ORD', '')) for o in orders]
+    existing_ids = [int(o["order_id"].replace("ORD", "")) for o in orders]
     new_order_num = max(existing_ids) + 1 if existing_ids else 1
     order_id = f"ORD{str(new_order_num).zfill(6)}"
 
     # Create order from cart
-    total_amount = sum(item['price'] * item['quantity'] for item in cart)
+    total_amount = sum(item["price"] * item["quantity"] for item in cart)
 
     order = {
         "order_id": order_id,
-        "user_id": user['username'],
+        "user_id": user["username"],
         "items": cart,
         "total_amount": round(total_amount, 2),
         "status": "Pending Shipment",  # New orders start as Pending Shipment
         "create_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "shipping_address": user.get('address', '1234 Innovation Drive, San Francisco, CA 94105, USA')
+        "shipping_address": user.get(
+            "address", "1234 Innovation Drive, San Francisco, CA 94105, USA"
+        ),
     }
 
     orders.append(order)
 
     # Sort by order_id (descending - newest/highest ID first)
-    orders.sort(key=lambda x: x['order_id'], reverse=True)
+    orders.sort(key=lambda x: x["order_id"], reverse=True)
 
     # Save orders
-    with open(ORDERS_FILE, 'w', encoding='utf-8') as f:
+    with open(ORDERS_FILE, "w", encoding="utf-8") as f:
         json.dump(orders, f, indent=2, ensure_ascii=False)
 
     # Clear cart
@@ -738,7 +770,7 @@ async def checkout():
     return {
         "success": True,
         "message": "Order placed successfully!",
-        "order_id": order_id
+        "order_id": order_id,
     }
 
 
@@ -759,8 +791,8 @@ async def get_user():
 async def update_user(request: Request):
     """Update user information"""
     body = await request.json()
-    field = body.get('field')
-    value = body.get('value')
+    field = body.get("field")
+    value = body.get("value")
 
     if not field or not value:
         return {"success": False, "message": "Field and value are required"}
@@ -769,7 +801,7 @@ async def update_user(request: Request):
     user = initialize_user()
 
     # Validate field name
-    allowed_fields = ['username', 'gender', 'email', 'phone', 'address']
+    allowed_fields = ["username", "gender", "email", "phone", "address"]
     if field not in allowed_fields:
         return {"success": False, "message": "Invalid field"}
 
@@ -777,7 +809,7 @@ async def update_user(request: Request):
     user[field] = value
 
     # Save updated user data
-    with open(USER_FILE, 'w', encoding='utf-8') as f:
+    with open(USER_FILE, "w", encoding="utf-8") as f:
         json.dump(user, f, indent=2, ensure_ascii=False)
 
     return {"success": True, "message": f"{field} updated successfully"}
@@ -795,11 +827,7 @@ async def profile_page(request: Request):
     """User profile page"""
     user = initialize_user()
     return templates.TemplateResponse(
-        "profile.html",
-        {
-            "request": request,
-            "user": user
-        }
+        "profile.html", {"request": request, "user": user}
     )
 
 
@@ -809,12 +837,7 @@ async def orders_page(request: Request):
     user = initialize_user()
     orders = initialize_orders()
     return templates.TemplateResponse(
-        "orders.html",
-        {
-            "request": request,
-            "user": user,
-            "orders": orders
-        }
+        "orders.html", {"request": request, "user": user, "orders": orders}
     )
 
 
@@ -826,7 +849,7 @@ async def request_return(order_id: str):
     # Find the order
     order_found = None
     for order in orders:
-        if order['order_id'] == order_id:
+        if order["order_id"] == order_id:
             order_found = order
             break
 
@@ -834,19 +857,24 @@ async def request_return(order_id: str):
         return {"success": False, "message": "Order not found"}
 
     # Check if order status allows return (Pending Shipment, Delivered, Shipped, or Completed)
-    if order_found['status'] not in ['Pending Shipment', 'Delivered', 'Shipped', 'Completed']:
+    if order_found["status"] not in [
+        "Pending Shipment",
+        "Delivered",
+        "Shipped",
+        "Completed",
+    ]:
         return {"success": False, "message": "This order cannot be returned"}
 
     # Update order status to 'Returning'
-    order_found['status'] = 'Returning'
+    order_found["status"] = "Returning"
 
     # Save updated orders
-    with open(ORDERS_FILE, 'w', encoding='utf-8') as f:
+    with open(ORDERS_FILE, "w", encoding="utf-8") as f:
         json.dump(orders, f, indent=2, ensure_ascii=False)
 
     return {
         "success": True,
-        "message": "Return request received. Customer service will contact you regarding the return."
+        "message": "Return request received. Customer service will contact you regarding the return.",
     }
 
 
@@ -858,7 +886,7 @@ async def confirm_delivery(order_id: str):
     # Find the order
     order_found = None
     for order in orders:
-        if order['order_id'] == order_id:
+        if order["order_id"] == order_id:
             order_found = order
             break
 
@@ -866,24 +894,22 @@ async def confirm_delivery(order_id: str):
         return {"success": False, "message": "Order not found"}
 
     # Check if order status is 'Delivered'
-    if order_found['status'] != 'Delivered':
+    if order_found["status"] != "Delivered":
         return {"success": False, "message": "Only delivered orders can be confirmed"}
 
     # Update order status to 'Completed'
-    order_found['status'] = 'Completed'
+    order_found["status"] = "Completed"
 
     # Save updated orders
-    with open(ORDERS_FILE, 'w', encoding='utf-8') as f:
+    with open(ORDERS_FILE, "w", encoding="utf-8") as f:
         json.dump(orders, f, indent=2, ensure_ascii=False)
 
-    return {
-        "success": True,
-        "message": "Order confirmed as completed."
-    }
+    return {"success": True, "message": "Order confirmed as completed."}
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import uvicorn
+
     print("=" * 60)
     print("E-Commerce Mosi Shop Backend")
     print("=" * 60)
