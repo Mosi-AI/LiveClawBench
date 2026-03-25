@@ -5,22 +5,23 @@ Creates simulated users, flights, bookings, and other airline-related data.
 All dates are current-time-sensitive to avoid data staleness.
 """
 
-import sys
 import os
+import sys
 
 # Add parent directory to path to import models
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import create_app, db
-from app.models.user import User
-from app.models.flight import Flight, Seat
-from app.models.booking import Booking, Passenger, Payment
-from app.models.announcement import Announcement
-from app.models.faq import FAQ
-from app.models.baggage import BaggageTracking
-from app.data_injection import DataInjector
-from datetime import datetime, timedelta
 import random
+from datetime import datetime, timedelta
+
+from app import create_app, db
+from app.data_injection import DataInjector
+from app.models.announcement import Announcement
+from app.models.baggage import BaggageTracking
+from app.models.booking import Booking, Passenger, Payment
+from app.models.faq import FAQ
+from app.models.flight import Flight, Seat
+from app.models.user import User
 
 
 def get_or_create_default_user(injector):
@@ -1075,13 +1076,13 @@ def create_specific_data(injector):
 
     print(f"  Created booking: {booking.booking_reference}")
     print(f"  Passenger: {default_user.first_name} {default_user.last_name}")
-    print(f"  Cabin: Economy")
+    print("  Cabin: Economy")
     print(f"  Total price: ${booking.total_price:.2f}")
     print(f"  Status: {booking.booking_status} (not checked in, no seat selected)")
 
     # Fill all window seats in economy class
     # Window seats have seat letters A, F, or L
-    print(f"\n  Filling all window seats in economy class...")
+    print("\n  Filling all window seats in economy class...")
 
     window_seats = Seat.query.filter_by(
         flight_id=flight.id,
@@ -1099,7 +1100,7 @@ def create_specific_data(injector):
         test_user = injector.create_user(
             email=f'windowseat.user{idx+1}@test.com',
             password='password123',
-            first_name=f'Window',
+            first_name='Window',
             last_name=f'Passenger{idx+1}',
             phone=f'+1-555-{2000+idx:04d}',
             is_verified=True

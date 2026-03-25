@@ -1,8 +1,9 @@
-from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
+
 from app.models import db
 from app.models.booking import Booking
 from app.models.flight import Seat
+from flask import Blueprint, jsonify
 
 checkin_bp = Blueprint('checkin', __name__)
 

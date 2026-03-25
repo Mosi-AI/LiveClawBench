@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Verify flight-seat-selection-failed task: check if user informed about upgrade fee"""
 import sys
+
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
 sys.path.insert(0, "/workspace/environment/email-app/backend")
-from app import create_app
-from app.models.user import User
-from app.models.flight import Flight, Seat
-from app.models.booking import Booking, Passenger
-from models import Email
 import json
+
+from app import create_app
+from app.models.booking import Booking, Passenger
+from app.models.flight import Flight, Seat
+from app.models.user import User
 
 
 def check():
@@ -56,8 +57,7 @@ def check():
     SESSION_LOG_PATH = "/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"
     last_content = None
     with open(SESSION_LOG_PATH, "r") as file:
-        steps = [json.loads(line) for line in file]
-        # find the last
+        # find the last response
 
         for line in file:
             line = line.strip()
@@ -71,9 +71,9 @@ def check():
 
             if data.get("role") == "assistant":
                 last_content = data.get("content")
-            
+
         if "350" in last_content:
-            print(f"  ✓ Found response containing upgrade fee '350'")
+            print("  ✓ Found response containing upgrade fee '350'")
             return 1.0
 
     print("FAIL: No response found informing user about upgrade fee '350'")

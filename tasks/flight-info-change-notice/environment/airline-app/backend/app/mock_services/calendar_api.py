@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime, timedelta
+
 from app.models import db
 from app.models.mock_services import CalendarEvent
+
 
 class MockCalendarAPI:
     """Mock calendar API simulating Google Calendar"""

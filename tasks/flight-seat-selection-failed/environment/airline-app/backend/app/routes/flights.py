@@ -1,8 +1,8 @@
-from flask import Blueprint, request, jsonify
 from datetime import datetime
+
 from app.models import db
 from app.models.flight import Flight, Seat
-from app.utils.auth import token_required
+from flask import Blueprint, jsonify, request
 
 flights_bp = Blueprint('flights', __name__)
 

@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 """Seed database with initial test data"""
-import sys
 import os
+import sys
 from datetime import datetime, timedelta
 
 # Add backend directory to path
 backend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'backend')
 sys.path.insert(0, backend_dir)
 
-from app import create_app, db
-from app.models.user import User
-from app.models.flight import Flight, Seat
-from app.models.booking import Booking, Passenger
+from app import create_app
 from app.data_injection import DataInjector
+from app.models.flight import Flight
+
 
 def seed_database():
     """Seed database with sample data"""
@@ -247,11 +246,11 @@ def seed_database():
         print("\n" + "="*60)
         print("Database seeding completed successfully!")
         print("="*60)
-        print(f"Created:")
+        print("Created:")
         print(f"  - 1 default user (Peter Griffin, ID={default_user.id})")
-        print(f"  - 2 test users")
+        print("  - 2 test users")
         print(f"  - {flight_number - 100} flights")
-        print(f"  - 1 booking")
+        print("  - 1 booking")
         print(f"  - {len(announcements)} announcements")
         print(f"  - {len(faqs)} FAQs")
         print(f"  - {len(baggage_reports)} baggage reports")

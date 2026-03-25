@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Verify schedule-change-request task: check if emails sent to all contacts"""
 import sys
+
 sys.path.insert(0, "/workspace/environment/email-app/backend")
-from app import app, db
+from app import app
 from models import Email
+
 
 def check():
     with app.app_context():

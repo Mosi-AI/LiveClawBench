@@ -1,6 +1,7 @@
-from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
-from app.models import db, BaseModel
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from app.models import BaseModel, db
+
 
 class User(BaseModel):
     """User model for authentication and profile"""

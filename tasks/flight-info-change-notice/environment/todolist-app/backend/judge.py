@@ -8,6 +8,7 @@ have been removed.
 import sqlite3
 import sys
 from datetime import datetime, timedelta
+
 from config import DATABASE_PATH
 
 

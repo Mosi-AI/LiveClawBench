@@ -1,9 +1,15 @@
-from flask import Blueprint, request, jsonify
-from datetime import datetime
 import time
+from datetime import datetime
+
 from app.models import db
 from app.models.booking import Booking, Payment
-from app.models.mock_services import EmailNotification, CalendarEvent, ChatSession, ChatMessage
+from app.models.mock_services import (
+    CalendarEvent,
+    ChatMessage,
+    ChatSession,
+    EmailNotification,
+)
+from flask import Blueprint, jsonify, request
 
 mock_bp = Blueprint('mock', __name__)
 
@@ -245,6 +251,7 @@ def create_chat_session():
     """Create new chat session"""
     try:
         import uuid
+
         from app.mock_services.chat_bot import MockChatBot
 
         # Use default user for auto-login

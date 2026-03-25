@@ -1,5 +1,5 @@
 import random
-from app.models import db
+
 
 class MockChatBot:
     """Mock customer support chat bot"""

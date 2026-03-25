@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Verify flight-seat-selection task: check if seat selected and checked in"""
 import sys
+
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
 from app import create_app
-from app.models.user import User
-from app.models.flight import Flight, Seat
 from app.models.booking import Booking, Passenger
+from app.models.flight import Flight, Seat
+from app.models.user import User
+
 
 def check():
     app = create_app('development')
@@ -63,10 +65,10 @@ def check():
 
         # Check check-in status (0.3 points)
         if booking.checked_in:
-            print(f"  ✓ Checked in")
+            print("  ✓ Checked in")
             score += 0.3
         else:
-            print(f"  ✗ Not checked in")
+            print("  ✗ Not checked in")
 
         print(f"\nFinal score: {score:.2f}")
         return min(score, 1.0)

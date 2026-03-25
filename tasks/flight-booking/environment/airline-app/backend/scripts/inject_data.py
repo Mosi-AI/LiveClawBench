@@ -5,22 +5,23 @@ Creates simulated users, flights, bookings, and other airline-related data.
 All dates are current-time-sensitive to avoid data staleness.
 """
 
-import sys
 import os
+import sys
 
 # Add parent directory to path to import models
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import create_app, db
-from app.models.user import User
-from app.models.flight import Flight, Seat
-from app.models.booking import Booking, Passenger, Payment
-from app.models.announcement import Announcement
-from app.models.faq import FAQ
-from app.models.baggage import BaggageTracking
-from app.data_injection import DataInjector
-from datetime import datetime, timedelta
 import random
+from datetime import datetime, timedelta
+
+from app import create_app, db
+from app.data_injection import DataInjector
+from app.models.announcement import Announcement
+from app.models.baggage import BaggageTracking
+from app.models.booking import Booking, Payment
+from app.models.faq import FAQ
+from app.models.flight import Flight, Seat
+from app.models.user import User
 
 
 def get_or_create_default_user(injector):

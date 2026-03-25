@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Verify flight-booking task: check if flight booked correctly"""
 import sys
+
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
-from app import create_app
-from app.models.user import User
-from app.models.flight import Flight
-from app.models.booking import Booking
 from datetime import datetime, timedelta
+
+from app import create_app
+from app.models.booking import Booking
+from app.models.user import User
+
 
 def check():
     app = create_app('development')

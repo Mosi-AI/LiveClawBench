@@ -1,10 +1,16 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from models import db, User, Email, Attachment
-from datetime import datetime
 import os
 import uuid
+from datetime import datetime
+
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    get_jwt_identity,
+    jwt_required,
+)
+from models import Attachment, Email, User, db
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)

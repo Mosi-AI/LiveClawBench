@@ -1,8 +1,8 @@
-from flask import Blueprint, request, jsonify
 from datetime import datetime
+
 from app.models import db
 from app.models.baggage import BaggageTracking
-from app.models.user import User
+from flask import Blueprint, jsonify, request
 
 baggage_bp = Blueprint('baggage', __name__)
 

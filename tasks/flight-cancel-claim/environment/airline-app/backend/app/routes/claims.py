@@ -1,7 +1,7 @@
-from flask import Blueprint, request, jsonify
-from datetime import datetime
+
 from app.models import db
 from app.models.booking import Booking, Claim
+from flask import Blueprint, jsonify, request
 
 claims_bp = Blueprint('claims', __name__)
 

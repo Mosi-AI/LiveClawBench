@@ -1,8 +1,9 @@
-from flask import Blueprint, request, jsonify
 from datetime import datetime
+
 from app.models import db
 from app.models.user import User
 from app.utils.auth import create_access_token, create_refresh_token, token_required
+from flask import Blueprint, jsonify, request
 
 auth_bp = Blueprint('auth', __name__)
 

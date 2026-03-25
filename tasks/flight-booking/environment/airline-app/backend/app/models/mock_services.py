@@ -1,5 +1,6 @@
 from datetime import datetime
-from app.models import db, BaseModel
+
+from app.models import BaseModel, db
 
 
 class EmailNotification(BaseModel):

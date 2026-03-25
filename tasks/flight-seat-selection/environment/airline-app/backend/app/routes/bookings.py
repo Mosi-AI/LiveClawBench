@@ -1,10 +1,10 @@
-from flask import Blueprint, request, jsonify
-from datetime import datetime
 import logging
+from datetime import datetime
+
 from app.models import db
-from app.models.user import User
+from app.models.booking import Booking, Passenger
 from app.models.flight import Flight, Seat
-from app.models.booking import Booking, Passenger, Payment
+from flask import Blueprint, jsonify, request
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

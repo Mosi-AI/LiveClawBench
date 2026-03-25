@@ -5,17 +5,23 @@ This module provides a standardized API for injecting test data into the databas
 enabling automated testing programs to create test cases efficiently.
 """
 
-from datetime import datetime, timedelta
-from app.models import db
-from app.models.user import User
-from app.models.flight import Flight, Seat, FlightStatusHistory
-from app.models.booking import Booking, Passenger, Payment, Claim
-from app.models.mock_services import EmailNotification, CalendarEvent, ChatSession, ChatMessage
-from app.models.announcement import Announcement
-from app.models.faq import FAQ
-from app.models.baggage import BaggageTracking
 import random
 import string
+from datetime import datetime, timedelta
+
+from app.models import db
+from app.models.announcement import Announcement
+from app.models.baggage import BaggageTracking
+from app.models.booking import Booking, Claim, Passenger, Payment
+from app.models.faq import FAQ
+from app.models.flight import Flight, FlightStatusHistory, Seat
+from app.models.mock_services import (
+    CalendarEvent,
+    ChatMessage,
+    ChatSession,
+    EmailNotification,
+)
+from app.models.user import User
 
 
 class DataInjector:

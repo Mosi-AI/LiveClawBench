@@ -1,6 +1,5 @@
-from flask import Blueprint, request, jsonify
-from app.models import db
 from app.models.faq import FAQ
+from flask import Blueprint, jsonify, request
 
 faq_bp = Blueprint('faq', __name__)
 

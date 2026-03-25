@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Database initialization script"""
-import sys
 import os
+import sys
 
 # Add backend directory to path
 backend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'backend')
 sys.path.insert(0, backend_dir)
 
 from app import create_app, db
+
 
 def init_db():
     """Initialize database"""

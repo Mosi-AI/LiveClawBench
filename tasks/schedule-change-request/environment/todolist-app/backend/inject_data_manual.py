@@ -5,8 +5,9 @@ Allows users to define todo items manually in code with full control over each f
 """
 
 import sqlite3
-from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 from config import DATABASE_PATH
 
 

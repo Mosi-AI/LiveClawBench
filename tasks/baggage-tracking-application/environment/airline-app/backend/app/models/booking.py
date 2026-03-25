@@ -1,7 +1,9 @@
-from datetime import datetime
 import random
 import string
-from app.models import db, BaseModel
+from datetime import datetime
+
+from app.models import BaseModel, db
+
 
 class Booking(BaseModel):
     """Booking model connecting users, flights, and passengers"""

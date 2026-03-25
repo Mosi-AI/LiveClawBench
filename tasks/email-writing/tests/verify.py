@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Verify email-writing task: check email sent to mary.lee@work.mosi.inc"""
 import sys
+
 sys.path.insert(0, "/workspace/environment/email-app/backend")
-from app import app, db
+from app import app
 from models import Email
+
 
 def check():
     with app.app_context():

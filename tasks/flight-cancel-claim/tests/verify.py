@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Verify flight-cancel-claim task: check if claim email sent correctly"""
 import sys
+
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
 sys.path.insert(0, "/workspace/environment/email-app/backend")
 from app import create_app
-from app.models.user import User
-from app.models.flight import Flight
 from app.models.booking import Booking
+from app.models.flight import Flight
+from app.models.user import User
 from models import Email
+
 
 def check():
     airline_app = create_app('development')
@@ -70,7 +72,7 @@ def check():
                 print(f"  ✓ Contains departure time: {dep_time_str}")
                 total_points += 1
             else:
-                print(f"  ✗ Missing departure time")
+                print("  ✗ Missing departure time")
 
             # 3. Departure city
             if flight.origin_city.lower() in email_content:
@@ -95,10 +97,10 @@ def check():
 
             # 6. Name (Peter Griffin)
             if "peter griffin" in email_content:
-                print(f"  ✓ Contains name: Peter Griffin")
+                print("  ✓ Contains name: Peter Griffin")
                 total_points += 1
             else:
-                print(f"  ✗ Missing name: Peter Griffin")
+                print("  ✗ Missing name: Peter Griffin")
 
             # 7. Email address
             if peter.email.lower() in email_content:
@@ -116,10 +118,10 @@ def check():
 
             # 9. Image attachment
             if claim_email.attachments and len(claim_email.attachments) > 0:
-                print(f"  ✓ Contains attachment(s)")
+                print("  ✓ Contains attachment(s)")
                 total_points += 1
             else:
-                print(f"  ✗ Missing attachment")
+                print("  ✗ Missing attachment")
 
             # Normalize score
             score = total_points / max_points

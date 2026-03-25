@@ -1,6 +1,8 @@
+from datetime import datetime
+
 import jwt
-from datetime import datetime, timedelta
 from flask import current_app
+
 
 def create_access_token(user_id, expires_in=None):
     """Create JWT access token"""
@@ -39,7 +41,9 @@ def decode_token(token):
 def token_required(f):
     """Decorator to require valid token for route"""
     from functools import wraps
-    from flask import request, jsonify
+
+    from flask import jsonify, request
+
     from app.models.user import User
 
     @wraps(f)

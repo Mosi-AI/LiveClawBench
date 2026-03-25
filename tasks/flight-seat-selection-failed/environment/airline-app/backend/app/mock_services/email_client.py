@@ -1,6 +1,8 @@
 from datetime import datetime
+
 from app.models import db
 from app.models.mock_services import EmailNotification
+
 
 class MockEmailClient:
     """Mock email client for testing"""

@@ -1,6 +1,7 @@
 """Test Scenarios Module"""
 from app.data_injection.scenarios.basic_flow import create_basic_flow_scenario
 
+
 def load_scenario(injector, scenario_name):
     """
     Load a pre-defined test scenario

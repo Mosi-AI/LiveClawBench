@@ -1,7 +1,7 @@
-from flask import Blueprint, request, jsonify
 from datetime import datetime
-from app.models import db
+
 from app.models.announcement import Announcement
+from flask import Blueprint, jsonify, request
 
 announcements_bp = Blueprint('announcements', __name__)
 

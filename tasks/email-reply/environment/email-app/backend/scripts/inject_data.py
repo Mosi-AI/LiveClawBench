@@ -4,15 +4,16 @@ Data injection script for single-user email application.
 Creates simulated senders/recipients and injects emails into peter's inbox and sent items.
 """
 
-import sys
 import os
+import sys
 
 # Add parent directory to path to import models
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import app, db
-from models import User, Email
 from datetime import datetime, timedelta
+
+from app import app, db
+from models import Email, User
 
 
 def get_or_create_peter():

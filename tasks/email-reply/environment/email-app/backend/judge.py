@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Test script to check for email with specific recipient_email"""
 
-from app import app, db
+from app import app
 from models import Email
+
 
 def check_email_by_recipient(recipient_email):
     """

@@ -1,7 +1,9 @@
 from flask import Flask
 from flask_cors import CORS
+
 from app.models import db
 from app.utils import init_utils
+
 
 def create_app(config_name='default'):
     """Application factory"""
@@ -24,16 +26,16 @@ def create_app(config_name='default'):
         os.makedirs(instance_path)
 
     # Register blueprints
+    from app.routes.announcements import announcements_bp
     from app.routes.auth import auth_bp
-    from app.routes.flights import flights_bp
+    from app.routes.baggage import baggage_bp
     from app.routes.bookings import bookings_bp
     from app.routes.checkin import checkin_bp
     from app.routes.claims import claims_bp
-    from app.routes.mock import mock_bp
-    from app.routes.announcements import announcements_bp
     from app.routes.faq import faq_bp
-    from app.routes.baggage import baggage_bp
+    from app.routes.flights import flights_bp
     from app.routes.info import info_bp
+    from app.routes.mock import mock_bp
     from app.routes.profile import profile_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -72,8 +74,9 @@ def create_app(config_name='default'):
 
     @app.route('/health')
     def health():
-        from flask import jsonify
         from datetime import datetime
+
+        from flask import jsonify
         return jsonify({
             'success': True,
             'message': 'Server is running',

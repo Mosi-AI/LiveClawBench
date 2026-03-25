@@ -1,7 +1,6 @@
 import sqlite3
-import json
 from contextlib import contextmanager
-from datetime import datetime
+
 from config import DATABASE_PATH
 
 

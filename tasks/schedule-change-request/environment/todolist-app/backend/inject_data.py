@@ -4,11 +4,12 @@ Data injection script for case synthesis.
 Generates and injects various types of todo items into the database for testing.
 """
 
-import sqlite3
-import random
-from datetime import datetime, timedelta
-from typing import List, Dict, Any
 import argparse
+import random
+import sqlite3
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
 from config import DATABASE_PATH
 
 

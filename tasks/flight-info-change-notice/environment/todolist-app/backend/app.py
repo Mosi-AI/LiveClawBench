@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """Flask application with REST API endpoints for todo management."""
-from flask import Flask, request, jsonify
-from flask_cors import CORS
 import re
+
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 from models import (
     create_todo,
+    delete_todo,
+    get_all_todos,
+    get_month_summary,
     get_todo_by_id,
     get_todos_by_date,
     get_todos_by_date_range,
     get_todos_by_month,
-    get_all_todos,
+    init_db,
     update_todo,
-    delete_todo,
-    get_month_summary,
-    init_db
 )
 
 app = Flask(__name__)

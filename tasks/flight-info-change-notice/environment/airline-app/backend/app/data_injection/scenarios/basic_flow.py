@@ -1,6 +1,7 @@
 """Basic Flow Test Scenario"""
 from datetime import datetime, timedelta
 
+
 def create_basic_flow_scenario(injector):
     """
     Creates a basic booking flow scenario with:

@@ -1,5 +1,7 @@
 from datetime import datetime
-from app.models import db, BaseModel
+
+from app.models import BaseModel, db
+
 
 class Flight(BaseModel):
     """Flight model with all flight details"""

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Verify baggage-tracking-application task: check baggage report submitted correctly"""
 import sys
+
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
 from app import create_app
-from app.models.user import User
 from app.models.baggage import BaggageTracking
+from app.models.user import User
+
 
 def check():
     app = create_app('development')
@@ -61,18 +63,18 @@ def check():
         # Check for "20-inch"
         max_points += 1
         if "20-inch" in desc or "20 inch" in desc:
-            print(f"  ✓ baggage_description contains '20-inch'")
+            print("  ✓ baggage_description contains '20-inch'")
             total_points += 1
         else:
-            print(f"  ✗ baggage_description missing '20-inch'")
+            print("  ✗ baggage_description missing '20-inch'")
 
         # Check for "black"
         max_points += 1
         if "black" in desc:
-            print(f"  ✓ baggage_description contains 'black'")
+            print("  ✓ baggage_description contains 'black'")
             total_points += 1
         else:
-            print(f"  ✗ baggage_description missing 'black'")
+            print("  ✗ baggage_description missing 'black'")
 
         # Normalize score
         score = total_points / max_points if max_points > 0 else 0.0
