@@ -131,8 +131,22 @@ def score_parse_answer_file(local_answer_file):
         'matched': True
     })
 
-    with open(local_answer_file, "r") as f:
-        result_json = json.load(f)
+    # Read and parse answer file
+    try:
+        with open(local_answer_file, "r") as f:
+            result_json = json.load(f)
+    except Exception as e:
+        details = []
+        details.append({
+            'item': 'answer_file_valid_json',
+            'description': 'Answer file is valid JSON format',
+            'score': 0,
+            'matched': False,
+            'error': str(e)
+        })
+        total = sum(d['score'] for d in details)
+        return {'total': total, 'details': details}
+
     print("Result String is :", result_json)
 
     # Scoring point 2: Total Growth correct
@@ -345,8 +359,6 @@ def main():
     # In Harbor environment with openclaw base image, log files are typically in:
     log_file_path = Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl")
     # Fallback paths to check
-
-    os.system("echo $OPENCLAW_STATE_DIR")
 
     fallback_log_paths = [
         Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),

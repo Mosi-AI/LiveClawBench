@@ -333,6 +333,7 @@ def score_parse_answer_file(answer_file_path: str) -> dict:
         with open(answer_file_path, "r") as f:
             result_json = json.load(f)
     except Exception as e:
+        details = []
         details.append({
             'item': 'answer_file_valid_json',
             'description': 'Answer file is valid JSON format',
@@ -384,8 +385,6 @@ def main():
     # In Harbor environment with openclaw base image, log files are typically in:
     log_file_path = Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl")
     # Fallback paths to check
-
-    os.system("echo $OPENCLAW_STATE_DIR")
 
     fallback_log_paths = [
         Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
