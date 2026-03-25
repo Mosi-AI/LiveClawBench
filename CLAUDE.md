@@ -262,11 +262,11 @@ docker build -t liveclawbench-base:latest docker/base/
 
 All Python is formatted and linted with **ruff**, and `scripts/` is type-checked with **ty**.
 
-### Local self-test (run before every commit)
+### Manual checks (without pre-commit)
 
 ```bash
 # Install tools (one-time)
-pip install ruff ty
+uv pip install ruff ty
 
 # Format all Python in-place
 ruff format .
@@ -281,8 +281,8 @@ ty check scripts/
 ### Set up pre-commit (recommended for contributors)
 
 ```bash
-pip install pre-commit
-pre-commit install      # hooks run automatically on git commit
+uv pip install pre-commit
+pre-commit install      # hooks run automatically on git commit — replaces manual checks above
 ```
 
 ### Scope

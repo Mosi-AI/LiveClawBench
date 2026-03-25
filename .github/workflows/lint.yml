@@ -20,10 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.12"
-      - run: pip install ruff==0.15.7
+      - run: uv pip install --system ruff==0.15.7
       - name: Lint
         run: ruff check .
       - name: Format check
@@ -34,9 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.12"
-      - run: pip install ty==0.0.25
+      - run: uv pip install --system ty==0.0.25
       - name: Type check scripts/
         run: ty check scripts/

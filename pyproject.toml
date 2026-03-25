@@ -20,14 +20,15 @@ ignore = ["E501"]
 # Flask/SQLAlchemy model packages: db must be initialized before model imports (E402),
 # and __init__.py re-exports are intentionally unused in the file itself (F401)
 "**/models/__init__.py" = ["E402", "F401"]
-# Environment scripts use sys.path.insert before imports (Docker path setup),
-# and data injection scripts often discard return values of side-effecting calls
-"**/environment/**/*.py" = ["E402", "F841"]
+# Environment scripts use sys.path.insert before imports (Docker path setup)
+"**/environment/**/*.py" = ["E402"]
+# Data injection scripts often discard return values of side-effecting calls
+"**/environment/**/scripts/*.py" = ["F841"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["scripts"]
 
-# --- dev dependencies (install with: uv pip install --group dev) ---
+# --- dev dependencies (install with: uv sync --group dev) ---
 [dependency-groups]
 dev = [
     "ruff==0.15.7",
