@@ -148,7 +148,7 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
         return json.loads(response.read().decode("utf-8"))
 
 
-DEFAULT_JUDGE_MODEL = "qwen3-235b-a22b-instruct-2507"
+DEFAULT_JUDGE_MODEL = "deepseek-v3.2"
 
 
 def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
