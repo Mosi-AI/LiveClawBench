@@ -3,10 +3,5 @@ set -euo pipefail
 
 cd /workspace
 
-# Multi-round dialogue execution
-# Round 1
-openclaw agent -m "Are there any operations that can be automated recently, according to potential patterns within the interaction history in /workspace/environment/history.json?"
-
-# Round 2
-openclaw agent -m "Please update the skills according to the pattern you discovered, and save the updated skills in /workspace/output"
-
+# Single-round dialogue execution
+openclaw agent -m "Analyze the interaction history in /workspace/environment/history.json to discover any repeating patterns that could be automated. Then update the interaction_pattern_analyzer skill to reflect the patterns you found, and save the updated skill files (including the revised SKILL.md) to /workspace/output."

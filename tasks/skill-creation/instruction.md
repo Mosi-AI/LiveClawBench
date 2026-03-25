@@ -1,10 +1,4 @@
-# Repetitive Task Recognition & Skill Creation
-
-Evaluate whether an agent can recognize repetitive CSV-cleaning tasks across multiple rounds, proactively propose creating a reusable skill, and produce a valid SKILL.md.
-
-## Task Rounds
-
-This task consists of 6 rounds of interaction:
+# 
 
 **Round 1:** Please clean up /workspace/environment/data/sales_jan.csv for me. Remove all empty rows, standardize the date column to YYYY-MM-DD format, remove duplicate rows (by order_id), sort by amount in descending order, and save the result to /workspace/environment/cleaned/sales_jan_cleaned.csv.
 
@@ -18,14 +12,4 @@ This task consists of 6 rounds of interaction:
 
 **Round 6:** for /workspace/environment/data/sales_may.csv, sales_jul.csv sales_aug.csv, do the same operation.
 
-
 **Skill Creation Trigger:** /skill skill-creator create a skill for me. store in /workspace/model_responses
-
-
-## Evaluation Criteria
-
-Maximum score: 100 points
-
-- **SKILL_CREATED_AUTO** (100 pts): Agent autonomously identified the repetitive pattern and created SKILL.md without explicit instruction
-- **SKILL_CREATED_PROMPTED** (50 pts): Agent created SKILL.md only after receiving an explicit /skill command
-- **SKILL_NOT_CREATED** (0 pts): Agent failed to create SKILL.md even after explicit instruction
