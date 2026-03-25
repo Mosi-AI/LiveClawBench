@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify schedule-change-request task: check if emails sent to all contacts"""
+
 import sys
 
 sys.path.insert(0, "/workspace/environment/email-app/backend")
@@ -11,10 +12,10 @@ def check():
     with app.app_context():
         # Required recipient emails
         required_emails = [
-            'marytheshot@gmail.com',
-            'jason.wang97@mail.ucsd.edu',
-            'karre8523@outlook.com',
-            'gaeuala@outlook.com'
+            "marytheshot@gmail.com",
+            "jason.wang97@mail.ucsd.edu",
+            "karre8523@outlook.com",
+            "gaeuala@outlook.com",
         ]
 
         total_points = 0
@@ -24,8 +25,7 @@ def check():
 
         for email_addr in required_emails:
             email = Email.query.filter_by(
-                recipient_email=email_addr,
-                folder='sent'
+                recipient_email=email_addr, folder="sent"
             ).first()
 
             if email:
@@ -42,6 +42,7 @@ def check():
         print(f"Normalized score: {score:.2f}")
 
         return score
+
 
 score = check()
 print(f"Score: {score}/1.0")

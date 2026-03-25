@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify flight-cancel-claim task: check if claim email sent correctly"""
+
 import sys
 
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
@@ -12,17 +13,17 @@ from models import Email
 
 
 def check():
-    airline_app = create_app('development')
+    airline_app = create_app("development")
 
     with airline_app.app_context():
         # Get Peter Griffin and his cancelled flight booking
-        peter = User.query.filter_by(email='peter.griffin@work.mosi.inc').first()
+        peter = User.query.filter_by(email="peter.griffin@work.mosi.inc").first()
         if not peter:
             print("FAIL: Peter Griffin user not found")
             return 0.0
 
         # Find the cancelled flight GKD2001
-        flight = Flight.query.filter_by(flight_number='GKD2001').first()
+        flight = Flight.query.filter_by(flight_number="GKD2001").first()
         if not flight:
             print("FAIL: Flight GKD2001 not found")
             return 0.0
@@ -40,10 +41,10 @@ def check():
 
         # Now check the email
         from app import app as email_app
+
         with email_app.app_context():
             claim_email = Email.query.filter_by(
-                recipient_email="claims@gkdairlines.com",
-                folder='sent'
+                recipient_email="claims@gkdairlines.com", folder="sent"
             ).first()
 
             if not claim_email:
@@ -67,8 +68,11 @@ def check():
                 print(f"  ✗ Missing flight number: {flight.flight_number}")
 
             # 2. Departure time
-            dep_time_str = flight.departure_time.strftime('%Y-%m-%d')
-            if dep_time_str in email_content or flight.departure_time.strftime('%B %d, %Y').lower() in email_content:
+            dep_time_str = flight.departure_time.strftime("%Y-%m-%d")
+            if (
+                dep_time_str in email_content
+                or flight.departure_time.strftime("%B %d, %Y").lower() in email_content
+            ):
                 print(f"  ✓ Contains departure time: {dep_time_str}")
                 total_points += 1
             else:
@@ -130,6 +134,7 @@ def check():
             print(f"Normalized score: {score:.2f}")
 
             return score
+
 
 score = check()
 print(f"Score: {score}/1.0")

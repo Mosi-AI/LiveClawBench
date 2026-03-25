@@ -5,7 +5,8 @@ from app.models import BaseModel, db
 
 class User(BaseModel):
     """User model for authentication and profile"""
-    __tablename__ = 'users'
+
+    __tablename__ = "users"
 
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
@@ -17,9 +18,18 @@ class User(BaseModel):
     is_active = db.Column(db.Boolean, default=True)
 
     # Relationships
-    bookings = db.relationship('Booking', backref='user', lazy='dynamic', cascade='all, delete-orphan')
-    email_notifications = db.relationship('EmailNotification', backref='user', lazy='dynamic', cascade='all, delete-orphan')
-    chat_sessions = db.relationship('ChatSession', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    bookings = db.relationship(
+        "Booking", backref="user", lazy="dynamic", cascade="all, delete-orphan"
+    )
+    email_notifications = db.relationship(
+        "EmailNotification",
+        backref="user",
+        lazy="dynamic",
+        cascade="all, delete-orphan",
+    )
+    chat_sessions = db.relationship(
+        "ChatSession", backref="user", lazy="dynamic", cascade="all, delete-orphan"
+    )
 
     def __init__(self, email, password, first_name, last_name, **kwargs):
         self.email = email
@@ -40,17 +50,19 @@ class User(BaseModel):
     def to_dict(self):
         """Convert user to dictionary"""
         return {
-            'id': self.id,
-            'email': self.email,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'phone': self.phone,
-            'date_of_birth': self.date_of_birth.isoformat() if self.date_of_birth else None,
-            'is_verified': self.is_verified,
-            'is_active': self.is_active,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            "id": self.id,
+            "email": self.email,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "phone": self.phone,
+            "date_of_birth": self.date_of_birth.isoformat()
+            if self.date_of_birth
+            else None,
+            "is_verified": self.is_verified,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
         }
 
     def __repr__(self):
-        return f'<User {self.email}>'
+        return f"<User {self.email}>"

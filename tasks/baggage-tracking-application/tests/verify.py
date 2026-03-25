@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify baggage-tracking-application task: check baggage report submitted correctly"""
+
 import sys
 
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
@@ -9,17 +10,21 @@ from app.models.user import User
 
 
 def check():
-    app = create_app('development')
+    app = create_app("development")
 
     with app.app_context():
         # Get Peter Griffin
-        peter = User.query.filter_by(email='peter.griffin@work.mosi.inc').first()
+        peter = User.query.filter_by(email="peter.griffin@work.mosi.inc").first()
         if not peter:
             print("FAIL: Peter Griffin user not found")
             return 0.0
 
         # Find baggage report for Peter
-        report = BaggageTracking.query.filter_by(user_id=peter.id).order_by(BaggageTracking.created_at.desc()).first()
+        report = (
+            BaggageTracking.query.filter_by(user_id=peter.id)
+            .order_by(BaggageTracking.created_at.desc())
+            .first()
+        )
         if not report:
             print("FAIL: No baggage report found for Peter Griffin")
             return 0.0
@@ -32,14 +37,18 @@ def check():
         # Check each field (excluding auto-generated fields like status, created_at, updated_at)
         # Required fields to check:
         fields_to_check = [
-            ('flight_number', report.flight_number, 'GKD888'),
-            ('flight_time', report.flight_time, None),  # Just check if not None
-            ('seat_number', report.seat_number, None),  # Just check if not None
-            ('passenger_name', report.passenger_name, 'Peter Griffin'),
-            ('passenger_phone', report.passenger_phone, None),  # Just check if not None
-            ('passenger_email', report.passenger_email, 'peter.griffin@work.mosi.inc'),
-            ('baggage_description', report.baggage_description, None),  # Check for keywords
-            ('loss_details', report.loss_details, None),  # Just check if not None
+            ("flight_number", report.flight_number, "GKD888"),
+            ("flight_time", report.flight_time, None),  # Just check if not None
+            ("seat_number", report.seat_number, None),  # Just check if not None
+            ("passenger_name", report.passenger_name, "Peter Griffin"),
+            ("passenger_phone", report.passenger_phone, None),  # Just check if not None
+            ("passenger_email", report.passenger_email, "peter.griffin@work.mosi.inc"),
+            (
+                "baggage_description",
+                report.baggage_description,
+                None,
+            ),  # Check for keywords
+            ("loss_details", report.loss_details, None),  # Just check if not None
         ]
 
         # Check standard fields
@@ -53,7 +62,9 @@ def check():
                     print(f"  ✓ {field_name}: {field_value}")
                     total_points += 1
                 else:
-                    print(f"  ✗ {field_name}: Expected '{expected_value}', got '{field_value}'")
+                    print(
+                        f"  ✗ {field_name}: Expected '{expected_value}', got '{field_value}'"
+                    )
             else:
                 print(f"  ✗ {field_name}: Field is empty or None")
 
@@ -83,6 +94,7 @@ def check():
         print(f"Normalized score: {score:.2f}")
 
         return score
+
 
 score = check()
 print(f"Score: {score}/1.0")

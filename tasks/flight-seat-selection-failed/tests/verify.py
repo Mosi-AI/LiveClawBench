@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify flight-seat-selection-failed task: check if user informed about upgrade fee"""
+
 import sys
 
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
@@ -13,17 +14,17 @@ from app.models.user import User
 
 
 def check():
-    airline_app = create_app('development')
+    airline_app = create_app("development")
 
     with airline_app.app_context():
         # Get Peter Griffin
-        peter = User.query.filter_by(email='peter.griffin@work.mosi.inc').first()
+        peter = User.query.filter_by(email="peter.griffin@work.mosi.inc").first()
         if not peter:
             print("FAIL: Peter Griffin user not found")
             return 0.0
 
         # Find flight GKD2001
-        flight = Flight.query.filter_by(flight_number='GKD2001').first()
+        flight = Flight.query.filter_by(flight_number="GKD2001").first()
         if not flight:
             print("FAIL: Flight GKD2001 not found")
             return 0.0
@@ -42,15 +43,18 @@ def check():
         if passenger and passenger.seat_id:
             seat = Seat.query.get(passenger.seat_id)
             if seat:
-                print(f"FAIL: Seat was selected ({seat.seat_number}), but no window seats should be available")
+                print(
+                    f"FAIL: Seat was selected ({seat.seat_number}), but no window seats should be available"
+                )
                 return 0.0
 
         if booking.checked_in:
-            print("FAIL: Checked in successfully, but this should not happen without a window seat")
+            print(
+                "FAIL: Checked in successfully, but this should not happen without a window seat"
+            )
             return 0.0
 
         print("  ✓ Seat selection and check-in did not proceed (as expected)")
-
 
     # TODO: check the agent's feedback in message
     # export session's log
@@ -78,6 +82,7 @@ def check():
 
     print("FAIL: No response found informing user about upgrade fee '350'")
     return 0.0
+
 
 score = check()
 print(f"Score: {score}/1.0")

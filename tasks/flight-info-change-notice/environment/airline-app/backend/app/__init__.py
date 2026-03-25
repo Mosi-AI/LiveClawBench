@@ -5,7 +5,7 @@ from app.models import db
 from app.utils import init_utils
 
 
-def create_app(config_name='default'):
+def create_app(config_name="default"):
     """Application factory"""
     from config import config
 
@@ -16,12 +16,13 @@ def create_app(config_name='default'):
     db.init_app(app)
 
     # Simple CORS configuration for development
-    CORS(app, origins='*', allow_headers=['Content-Type', 'Authorization'])
+    CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"])
     init_utils(app)
 
     # Create instance folder if it doesn't exist
     import os
-    instance_path = os.path.join(app.root_path, '..', 'instance')
+
+    instance_path = os.path.join(app.root_path, "..", "instance")
     if not os.path.exists(instance_path):
         os.makedirs(instance_path)
 
@@ -38,17 +39,17 @@ def create_app(config_name='default'):
     from app.routes.mock import mock_bp
     from app.routes.profile import profile_bp
 
-    app.register_blueprint(auth_bp, url_prefix='/api/auth')
-    app.register_blueprint(flights_bp, url_prefix='/api/flights')
-    app.register_blueprint(bookings_bp, url_prefix='/api/bookings')
-    app.register_blueprint(checkin_bp, url_prefix='/api/checkin')
-    app.register_blueprint(claims_bp, url_prefix='/api/claims')
-    app.register_blueprint(mock_bp, url_prefix='/api/mock')
-    app.register_blueprint(announcements_bp, url_prefix='/api/announcements')
-    app.register_blueprint(faq_bp, url_prefix='/api/faq')
-    app.register_blueprint(baggage_bp, url_prefix='/api/baggage')
-    app.register_blueprint(info_bp, url_prefix='/api/info')
-    app.register_blueprint(profile_bp, url_prefix='/api/profile')
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(flights_bp, url_prefix="/api/flights")
+    app.register_blueprint(bookings_bp, url_prefix="/api/bookings")
+    app.register_blueprint(checkin_bp, url_prefix="/api/checkin")
+    app.register_blueprint(claims_bp, url_prefix="/api/claims")
+    app.register_blueprint(mock_bp, url_prefix="/api/mock")
+    app.register_blueprint(announcements_bp, url_prefix="/api/announcements")
+    app.register_blueprint(faq_bp, url_prefix="/api/faq")
+    app.register_blueprint(baggage_bp, url_prefix="/api/baggage")
+    app.register_blueprint(info_bp, url_prefix="/api/info")
+    app.register_blueprint(profile_bp, url_prefix="/api/profile")
 
     # Create database tables
     with app.app_context():
@@ -58,29 +59,28 @@ def create_app(config_name='default'):
     @app.errorhandler(404)
     def not_found(error):
         from flask import jsonify
-        return jsonify({
-            'success': False,
-            'message': 'Resource not found'
-        }), 404
+
+        return jsonify({"success": False, "message": "Resource not found"}), 404
 
     @app.errorhandler(500)
     def internal_error(error):
         from flask import jsonify
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': 'Internal server error'
-        }), 500
 
-    @app.route('/health')
+        db.session.rollback()
+        return jsonify({"success": False, "message": "Internal server error"}), 500
+
+    @app.route("/health")
     def health():
         from datetime import datetime
 
         from flask import jsonify
-        return jsonify({
-            'success': True,
-            'message': 'Server is running',
-            'timestamp': datetime.now().isoformat()
-        })
+
+        return jsonify(
+            {
+                "success": True,
+                "message": "Server is running",
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     return app

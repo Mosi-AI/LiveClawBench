@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify flight-seat-selection task: check if seat selected and checked in"""
+
 import sys
 
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
@@ -10,17 +11,17 @@ from app.models.user import User
 
 
 def check():
-    app = create_app('development')
+    app = create_app("development")
 
     with app.app_context():
         # Get Peter Griffin
-        peter = User.query.filter_by(email='peter.griffin@work.mosi.inc').first()
+        peter = User.query.filter_by(email="peter.griffin@work.mosi.inc").first()
         if not peter:
             print("FAIL: Peter Griffin user not found")
             return 0.0
 
         # Find flight GKD2001
-        flight = Flight.query.filter_by(flight_number='GKD2001').first()
+        flight = Flight.query.filter_by(flight_number="GKD2001").first()
         if not flight:
             print("FAIL: Flight GKD2001 not found")
             return 0.0
@@ -53,7 +54,7 @@ def check():
 
                 # Check if window seat (0.3 additional points)
                 seat_num = seat.seat_number.upper()
-                if 'A' in seat_num or 'F' in seat_num:
+                if "A" in seat_num or "F" in seat_num:
                     print(f"  ✓ Window seat selected: {seat.seat_number}")
                     score += 0.3
                 else:
@@ -72,6 +73,7 @@ def check():
 
         print(f"\nFinal score: {score:.2f}")
         return min(score, 1.0)
+
 
 score = check()
 print(f"Score: {score}/1.0")

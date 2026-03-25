@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify flight-booking task: check if flight booked correctly"""
+
 import sys
 
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
@@ -11,11 +12,11 @@ from app.models.user import User
 
 
 def check():
-    app = create_app('development')
+    app = create_app("development")
 
     with app.app_context():
         # Get Peter Griffin
-        peter = User.query.filter_by(email='peter.griffin@work.mosi.inc').first()
+        peter = User.query.filter_by(email="peter.griffin@work.mosi.inc").first()
         if not peter:
             print("FAIL: Peter Griffin user not found")
             return 0.0
@@ -33,24 +34,34 @@ def check():
 
         target_booking = None
         for booking in bookings:
-            if booking.flight and booking.flight.departure_time.date() == next_monday_date:
+            if (
+                booking.flight
+                and booking.flight.departure_time.date() == next_monday_date
+            ):
                 # Check if it's JFK to LAX
-                if booking.flight.origin_code == 'JFK' and booking.flight.destination_code == 'LAX':
+                if (
+                    booking.flight.origin_code == "JFK"
+                    and booking.flight.destination_code == "LAX"
+                ):
                     target_booking = booking
                     break
 
         if not target_booking:
-            print("FAIL: No booking found for Peter Griffin on next Monday from JFK to LAX")
+            print(
+                "FAIL: No booking found for Peter Griffin on next Monday from JFK to LAX"
+            )
             return 0.0
 
         print(f"Found booking: {target_booking.booking_reference}")
         flight = target_booking.flight
-        print(f"  Flight: {flight.flight_number} ({flight.origin_code} -> {flight.destination_code})")
+        print(
+            f"  Flight: {flight.flight_number} ({flight.origin_code} -> {flight.destination_code})"
+        )
         print(f"  Departure: {flight.departure_time}")
         print(f"  Cabin class: {target_booking.cabin_class}")
 
         # Check if cabin class is economy
-        if target_booking.cabin_class != 'economy':
+        if target_booking.cabin_class != "economy":
             print("FAIL: Cabin class is not economy")
             return 0.0
 
@@ -65,10 +76,13 @@ def check():
             print("  ✓ Flight departs at 10:00 AM (optimal time)")
             score += 0.2
         else:
-            print(f"  Flight departs at {departure_hour:02d}:{departure_minute:02d} (not 10:00 AM)")
+            print(
+                f"  Flight departs at {departure_hour:02d}:{departure_minute:02d} (not 10:00 AM)"
+            )
 
         print(f"\nFinal score: {score:.2f}")
         return min(score, 1.0)
+
 
 score = check()
 print(f"Score: {score}/1.0")
