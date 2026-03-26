@@ -124,7 +124,7 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 
 > **LLM-judge tasks** use `--ee` (not `--ae`) for judge credentials because `llm_judge.py` runs in the
 > verifier phase, outside the OpenClaw agent process. Required vars: `JUDGE_BASE_URL`, `JUDGE_API_KEY`;
-> optional: `JUDGE_MODEL_ID` (default `qwen3-235b-a22b-instruct-2507`).
+> optional: `JUDGE_MODEL_ID` (default `deepseek-v3.2`).
 > See [`docs/guide/running-tasks.md`](docs/guide/running-tasks.md#llm-judge-tasks) for the full example.
 
 ## Task List

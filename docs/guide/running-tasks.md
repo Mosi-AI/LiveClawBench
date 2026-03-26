@@ -198,7 +198,7 @@ The judge credentials must be passed via `--ee` (not `--ae`) because `llm_judge.
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `JUDGE_BASE_URL` | OpenAI-compatible base URL for the judge model | *(none — required)* |
-| `JUDGE_MODEL_ID` | Model name to use for judging | `qwen3-235b-a22b-instruct-2507` |
+| `JUDGE_MODEL_ID` | Model name to use for judging | `deepseek-v3.2` |
 | `JUDGE_API_KEY` | API key for the judge endpoint | *(none — required)* |
 
 `JUDGE_BASE_URL` and `JUDGE_API_KEY` are **mandatory**. `llm_judge.py` raises a `RuntimeError` immediately if either is missing — there are no hardcoded fallbacks.

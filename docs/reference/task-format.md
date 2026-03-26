@@ -138,7 +138,7 @@ Tasks using the LLM judge pattern must follow these conventions.
 |----------|----------|---------|
 | `JUDGE_BASE_URL` | Yes | — |
 | `JUDGE_API_KEY` | Yes | — |
-| `JUDGE_MODEL_ID` | No | `qwen3-235b-a22b-instruct-2507` |
+| `JUDGE_MODEL_ID` | No | `deepseek-v3.2` |
 
 `llm_judge.py` must raise `RuntimeError` immediately if `JUDGE_BASE_URL` or `JUDGE_API_KEY` is unset. No hardcoded fallback URLs or model names are permitted — silent fallbacks mask misconfiguration during evaluation.
 
