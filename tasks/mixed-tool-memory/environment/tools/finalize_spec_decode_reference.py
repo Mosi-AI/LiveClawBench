@@ -5,7 +5,6 @@ import os
 import sqlite3
 from pathlib import Path
 
-
 SYSTEM_ROOT_FILES = {
     "AGENTS.md",
     "BOOTSTRAP.md",

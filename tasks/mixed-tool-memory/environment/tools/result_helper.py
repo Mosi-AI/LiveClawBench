@@ -3,7 +3,6 @@ import argparse
 import json
 from pathlib import Path
 
-
 QUESTION_KEYS = [
     "exactness_guarantee",
     "draft_requirement_status",

@@ -9,10 +9,7 @@ ENV HOME=/home/node \
 WORKDIR /home/node/.openclaw
 
 USER root
-RUN mkdir -p /home/node/.openclaw/output /home/node/.openclaw/workspace/memory /home/node/.openclaw/tests /home/node/.openclaw/tools /home/node/.openclaw/solution \
-    && ln -sfn /home/node/.openclaw/solution /solution \
-    && ln -sfn /home/node/.openclaw/tests /tests \
-    && ln -sfn /home/node/.openclaw/tools /tools \
+RUN mkdir -p /home/node/.openclaw/output /home/node/.openclaw/workspace/memory /home/node/.openclaw/tools \
     && chown -R node:node /home/node
 
 COPY browser_mock_sidecar/ /home/node/.openclaw/browser_mock_sidecar/
