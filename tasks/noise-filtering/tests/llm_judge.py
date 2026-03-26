@@ -307,7 +307,9 @@ def main() -> None:
     }
     score["reward"] = weighted_sum(score, rubric)
 
-    (dc.ROOT / "reward.json").write_text(json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8")
+    (dc.ROOT / "reward.json").write_text(
+        json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     (dc.ROOT / "reward.txt").write_text(str(score["reward"]), encoding="utf-8")
 
 

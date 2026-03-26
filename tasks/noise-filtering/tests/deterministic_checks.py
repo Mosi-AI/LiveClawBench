@@ -26,8 +26,26 @@ SOURCE_ID_PATTERNS = [
     re.compile(r"^\s*<!--\s*source_id:\s*(\S+)\s*-->\s*$", re.I),
 ]
 
-RELIABLE_KEY_HINTS = {"reliable", "trusted", "signal", "keep", "credible", "good", "accurate"}
-REJECTED_KEY_HINTS = {"rejected", "misleading", "noisy", "noise", "unreliable", "hype", "bad", "reject", "discard"}
+RELIABLE_KEY_HINTS = {
+    "reliable",
+    "trusted",
+    "signal",
+    "keep",
+    "credible",
+    "good",
+    "accurate",
+}
+REJECTED_KEY_HINTS = {
+    "rejected",
+    "misleading",
+    "noisy",
+    "noise",
+    "unreliable",
+    "hype",
+    "bad",
+    "reject",
+    "discard",
+}
 
 
 def load_json(path: Path):
@@ -95,7 +113,9 @@ def normalize_source_set(values, aliases: dict[str, str] | None = None) -> set[s
         return set()
     if aliases is None:
         aliases = {}
-    return {canonicalize_source_id(item, aliases) for item in values if str(item).strip()}
+    return {
+        canonicalize_source_id(item, aliases) for item in values if str(item).strip()
+    }
 
 
 def _extract_source_ids_from_value(value) -> list[str]:
@@ -120,7 +140,9 @@ def _key_matches_hints(key: str, hints: set[str]) -> bool:
     return any(h in key_lower for h in hints)
 
 
-def extract_source_partition(result: dict, aliases: dict[str, str]) -> tuple[set[str], set[str]]:
+def extract_source_partition(
+    result: dict, aliases: dict[str, str]
+) -> tuple[set[str], set[str]]:
     reliable: set[str] = set()
     rejected: set[str] = set()
 
@@ -146,13 +168,24 @@ def extract_source_partition(result: dict, aliases: dict[str, str]) -> tuple[set
     walk(result)
 
     if not reliable:
-        for k in ("reliable_source_ids", "reliable_sources", "trusted_sources", "signal_sources"):
+        for k in (
+            "reliable_source_ids",
+            "reliable_sources",
+            "trusted_sources",
+            "signal_sources",
+        ):
             v = result.get(k)
             if isinstance(v, list):
                 reliable = normalize_source_set(v, aliases)
                 break
     if not rejected:
-        for k in ("rejected_source_ids", "rejected_sources", "misleading_sources", "noise_sources", "noisy_sources"):
+        for k in (
+            "rejected_source_ids",
+            "rejected_sources",
+            "misleading_sources",
+            "noise_sources",
+            "noisy_sources",
+        ):
             v = result.get(k)
             if isinstance(v, list):
                 rejected = normalize_source_set(v, aliases)
@@ -250,7 +283,9 @@ def load_output_texts() -> dict[str, str]:
 
 def structural_scores(result: dict) -> dict[str, float]:
     contract = 1.0 if result else 0.0
-    modified = [p for p in gather_durable_artifact_paths(result) if is_modified_from_seed(p)]
+    modified = [
+        p for p in gather_durable_artifact_paths(result) if is_modified_from_seed(p)
+    ]
     workspace = 1.0 if modified else 0.0
 
     return {
@@ -270,15 +305,25 @@ def source_scores(result: dict, key: dict, aliases: dict[str, str]) -> dict[str,
 
     correct = 0
     for sid in all_expected:
-        if sid in expected_reliable and sid in actual_reliable and sid not in actual_rejected:
+        if (
+            sid in expected_reliable
+            and sid in actual_reliable
+            and sid not in actual_rejected
+        ):
             correct += 1
-        elif sid in expected_rejected and sid in actual_rejected and sid not in actual_reliable:
+        elif (
+            sid in expected_rejected
+            and sid in actual_rejected
+            and sid not in actual_reliable
+        ):
             correct += 1
 
     spurious = (actual_reliable | actual_rejected) - all_expected
     penalty = len(spurious)
 
-    source_partition_accuracy = round(max(0.0, correct - penalty) / len(all_expected), 4)
+    source_partition_accuracy = round(
+        max(0.0, correct - penalty) / len(all_expected), 4
+    )
 
     return {
         "source_partition_accuracy": source_partition_accuracy,
@@ -293,7 +338,10 @@ def main() -> None:
     scores.update(source_scores(result, key, aliases))
     payload = {
         "scores": scores,
-        "durable_artifacts": [str(workspace_relpath(path)) for path in gather_durable_artifact_paths(result)],
+        "durable_artifacts": [
+            str(workspace_relpath(path))
+            for path in gather_durable_artifact_paths(result)
+        ],
         "modified_durable_artifacts": [
             str(workspace_relpath(path))
             for path in gather_durable_artifact_paths(result)

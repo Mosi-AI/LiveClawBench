@@ -7,7 +7,9 @@ from pathlib import Path
 
 
 def resolve_root() -> Path:
-    raw = os.environ.get("OPENCLAW_WORKSPACE_ROOT") or os.environ.get("CASE_RUNTIME_ROOT")
+    raw = os.environ.get("OPENCLAW_WORKSPACE_ROOT") or os.environ.get(
+        "CASE_RUNTIME_ROOT"
+    )
     if raw:
         if raw.startswith("~"):
             return Path(raw).expanduser()
@@ -175,7 +177,9 @@ def normalize_provenance(aliases: dict[str, str]) -> None:
     if changed:
         out = dict(prov)
         out["claims"] = normalized_claims
-        prov_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+        prov_path.write_text(
+            json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
 
 def ensure_query_log() -> None:
@@ -226,10 +230,24 @@ def copy_if_missing(dst: Path, src: Path) -> None:
 def harvest_workspace_outputs() -> None:
     workspace_output = WORK / "output"
     if workspace_output.is_dir():
-        for name in ("result.json", "query_answers.json", "summary.md", "final.md", "answer.md", "provenance.json"):
+        for name in (
+            "result.json",
+            "query_answers.json",
+            "summary.md",
+            "final.md",
+            "answer.md",
+            "provenance.json",
+        ):
             copy_if_missing(OUTPUT / name, workspace_output / name)
 
-    for name in ("result.json", "query_answers.json", "summary.md", "final.md", "answer.md", "provenance.json"):
+    for name in (
+        "result.json",
+        "query_answers.json",
+        "summary.md",
+        "final.md",
+        "answer.md",
+        "provenance.json",
+    ):
         copy_if_missing(OUTPUT / name, WORK / name)
 
 

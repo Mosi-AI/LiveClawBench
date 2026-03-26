@@ -25,6 +25,7 @@ SYSTEM_ROOT_FILES = {
 # JSON / text helpers
 # ---------------------------------------------------------------------------
 
+
 def load_json(path: Path):
     if not path.exists():
         return {}
@@ -98,6 +99,7 @@ def load_result_payload() -> dict:
 # Browser trace helpers
 # ---------------------------------------------------------------------------
 
+
 def load_browser_events(path: Path) -> list[dict]:
     if not path.exists():
         return []
@@ -135,6 +137,7 @@ def resolve_browser_log() -> Path:
 # ---------------------------------------------------------------------------
 # Workspace / artifact helpers
 # ---------------------------------------------------------------------------
+
 
 def resolve_workspace_path(rel_path: str) -> Path | None:
     if not isinstance(rel_path, str) or not rel_path.strip():
@@ -227,6 +230,7 @@ def load_output_texts() -> dict[str, str]:
 # Database helpers
 # ---------------------------------------------------------------------------
 
+
 def open_db(db_path: Path):
     if not db_path.exists():
         return None
@@ -248,9 +252,12 @@ def table_columns(conn: sqlite3.Connection, table: str) -> list[str]:
 # Scoring
 # ---------------------------------------------------------------------------
 
+
 def structural_scores(result: dict) -> dict[str, float]:
     contract = 1.0 if result else 0.0
-    modified = [p for p in gather_durable_artifact_paths(result) if is_modified_from_seed(p)]
+    modified = [
+        p for p in gather_durable_artifact_paths(result) if is_modified_from_seed(p)
+    ]
     workspace = 1.0 if modified else 0.0
     return {
         "result_contract_valid": contract,
@@ -287,13 +294,18 @@ def database_integrity_score(key: dict, result: dict) -> dict[str, float]:
         # Source rows check
         try:
             source_rows = {
-                normalize(row[0]) for row in conn.execute("SELECT source_id FROM sources")
+                normalize(row[0])
+                for row in conn.execute("SELECT source_id FROM sources")
                 if row and row[0] is not None
             }
         except sqlite3.Error:
             source_rows = set()
-        required_sources = normalize_set(key.get("required_local_source_ids")) | normalize_set(key.get("required_evidence_ids"))
-        source_score = round(len(required_sources & source_rows) / max(1, len(required_sources)), 4)
+        required_sources = normalize_set(
+            key.get("required_local_source_ids")
+        ) | normalize_set(key.get("required_evidence_ids"))
+        source_score = round(
+            len(required_sources & source_rows) / max(1, len(required_sources)), 4
+        )
 
         # Fact values check with keyword matching (flexible key names)
         fact_concepts = key.get("fact_concepts", {})
@@ -316,7 +328,9 @@ def database_integrity_score(key: dict, result: dict) -> dict[str, float]:
                 if fk == normalize(fact_key):
                     if fv == normalize(expected_value):
                         matched = True
-                    elif fact_key in fact_concepts and concept_in_text(fv, fact_concepts[fact_key]):
+                    elif fact_key in fact_concepts and concept_in_text(
+                        fv, fact_concepts[fact_key]
+                    ):
                         matched = True
                     break
             # Fallback: search all values by concept keywords (handles different key names)
@@ -347,7 +361,9 @@ def database_integrity_score(key: dict, result: dict) -> dict[str, float]:
                 if qk == normalize(fact_key):
                     if qv == normalize(expected_value):
                         matched = True
-                    elif fact_key in fact_concepts and concept_in_text(qv, fact_concepts[fact_key]):
+                    elif fact_key in fact_concepts and concept_in_text(
+                        qv, fact_concepts[fact_key]
+                    ):
                         matched = True
                     break
             if not matched and fact_key in fact_concepts:
@@ -360,7 +376,11 @@ def database_integrity_score(key: dict, result: dict) -> dict[str, float]:
                 qa_hits += 1
         qa_score = round(qa_hits / max(1, fact_total), 4)
 
-        return {"database_integrity": round((schema_score + source_score + fact_score + qa_score) / 4, 4)}
+        return {
+            "database_integrity": round(
+                (schema_score + source_score + fact_score + qa_score) / 4, 4
+            )
+        }
     finally:
         conn.close()
 
@@ -380,7 +400,9 @@ def query_accuracy_score(key: dict, result: dict) -> dict[str, float]:
         actual = normalize(actual_answers.get(question_id, ""))
         if actual == normalize(expected_value):
             primary_hits += 1
-        elif question_id in fact_concepts and concept_in_text(actual, fact_concepts[question_id]):
+        elif question_id in fact_concepts and concept_in_text(
+            actual, fact_concepts[question_id]
+        ):
             primary_hits += 1
 
     # Fallback: if query_answers missing/empty, search entire result.json

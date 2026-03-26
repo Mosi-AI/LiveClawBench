@@ -26,8 +26,12 @@ def parse_answer(raw: str) -> tuple[str, str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Write the structured result.json artifact for the hybrid tool-memory case.")
-    parser.add_argument("output_path", nargs="?", default="~/.openclaw/output/result.json")
+    parser = argparse.ArgumentParser(
+        description="Write the structured result.json artifact for the hybrid tool-memory case."
+    )
+    parser.add_argument(
+        "output_path", nargs="?", default="~/.openclaw/output/result.json"
+    )
     parser.add_argument("--task-id", default="pkb_hybrid_tool_memory_hard_001")
     parser.add_argument("--topic-id", default="speculative_decoding")
     parser.add_argument("--db-path", default="db/spec_decode_knowledge.db")
@@ -55,7 +59,9 @@ def main() -> int:
 
     output_path = Path(args.output_path).expanduser()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    output_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(output_path)
     return 0
 

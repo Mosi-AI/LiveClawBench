@@ -31,22 +31,50 @@ SOURCE_ID_PATTERNS = [
 # ---------------------------------------------------------------------------
 
 PRESERVE_HINTS = {
-    "preserv", "kept", "keep", "unchanged", "still_valid", "retain",
-    "confirmed", "stable", "correct", "hold", "solid",
+    "preserv",
+    "kept",
+    "keep",
+    "unchanged",
+    "still_valid",
+    "retain",
+    "confirmed",
+    "stable",
+    "correct",
+    "hold",
+    "solid",
 }
 UPDATE_HINTS = {
-    "updat", "revis", "narrow", "chang", "modif", "refined",
-    "corrected", "replaced", "replacement", "evolved", "adjusted",
+    "updat",
+    "revis",
+    "narrow",
+    "chang",
+    "modif",
+    "refined",
+    "corrected",
+    "replaced",
+    "replacement",
+    "evolved",
+    "adjusted",
 }
 REMOVE_HINTS = {
-    "remov", "delet", "drop", "discard", "reject", "invalid",
-    "wrong", "obsolete", "deprecated", "retire", "incorrect",
+    "remov",
+    "delet",
+    "drop",
+    "discard",
+    "reject",
+    "invalid",
+    "wrong",
+    "obsolete",
+    "deprecated",
+    "retire",
+    "incorrect",
 }
 
 
 # ---------------------------------------------------------------------------
 # JSON / text helpers
 # ---------------------------------------------------------------------------
+
 
 def load_json(path: Path):
     if not path.exists():
@@ -112,12 +140,15 @@ def normalize_source_set(values, aliases: dict[str, str] | None = None) -> set[s
         return set()
     if aliases is None:
         aliases = {}
-    return {canonicalize_source_id(item, aliases) for item in values if str(item).strip()}
+    return {
+        canonicalize_source_id(item, aliases) for item in values if str(item).strip()
+    }
 
 
 # ---------------------------------------------------------------------------
 # Flexible text extraction from arbitrary JSON structures
 # ---------------------------------------------------------------------------
+
 
 def _extract_text_from_value(value) -> str:
     parts: list[str] = []
@@ -180,6 +211,7 @@ def concept_in_text(text: str, keywords: list[str]) -> bool:
 # Flexible source-ID extraction
 # ---------------------------------------------------------------------------
 
+
 def _extract_source_ids_from_value(value) -> list[str]:
     ids: list[str] = []
     if isinstance(value, str):
@@ -222,6 +254,7 @@ def extract_all_source_ids(result: dict, aliases: dict[str, str]) -> set[str]:
 # ---------------------------------------------------------------------------
 # Workspace / artifact helpers
 # ---------------------------------------------------------------------------
+
 
 def resolve_workspace_path(rel_path: str) -> Path | None:
     if not isinstance(rel_path, str) or not rel_path.strip():
@@ -314,9 +347,12 @@ def load_output_texts() -> dict[str, str]:
 # Scoring
 # ---------------------------------------------------------------------------
 
+
 def structural_scores(result: dict) -> dict[str, float]:
     contract = 1.0 if result else 0.0
-    modified = [p for p in gather_durable_artifact_paths(result) if is_modified_from_seed(p)]
+    modified = [
+        p for p in gather_durable_artifact_paths(result) if is_modified_from_seed(p)
+    ]
     workspace = 1.0 if modified else 0.0
     return {
         "result_contract_valid": contract,
@@ -349,7 +385,9 @@ def delta_scores(result: dict, key: dict) -> dict[str, float]:
     return {"delta_accuracy": round(correct / total, 4)}
 
 
-def source_coverage_score(result: dict, key: dict, aliases: dict[str, str]) -> dict[str, float]:
+def source_coverage_score(
+    result: dict, key: dict, aliases: dict[str, str]
+) -> dict[str, float]:
     actual = extract_all_source_ids(result, aliases)
     expected = normalize_source_set(key.get("evidence_source_ids"), aliases)
     if not expected:

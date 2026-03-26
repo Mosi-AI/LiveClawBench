@@ -113,7 +113,10 @@ def extract_chat_text(payload: dict) -> str:
         if isinstance(content, list):
             parts = []
             for item in content:
-                if isinstance(item, dict) and item.get("type") in {"text", "output_text"}:
+                if isinstance(item, dict) and item.get("type") in {
+                    "text",
+                    "output_text",
+                }:
                     parts.append(str(item.get("text", "")))
             return "\n".join(parts)
     return ""
@@ -188,8 +191,14 @@ def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
                 "temperature": 0,
                 "max_output_tokens": 1200,
                 "input": [
-                    {"role": "system", "content": [{"type": "input_text", "text": system_prompt}]},
-                    {"role": "user", "content": [{"type": "input_text", "text": user_prompt}]},
+                    {
+                        "role": "system",
+                        "content": [{"type": "input_text", "text": system_prompt}],
+                    },
+                    {
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": user_prompt}],
+                    },
                 ],
             },
             extract_responses_text,
@@ -203,7 +212,12 @@ def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
             text = extractor(raw)
             parsed = parse_json_blob(text)
             if parsed:
-                return parsed, {"mode": mode, "url": url, "model": model, "raw_response": raw}
+                return parsed, {
+                    "mode": mode,
+                    "url": url,
+                    "model": model,
+                    "raw_response": raw,
+                }
             errors.append(f"{mode}: response did not contain valid JSON")
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="ignore")
@@ -247,10 +261,12 @@ def build_prompt(key: dict, result: dict, structural: dict) -> str:
         serialize_json(structural),
         "",
         "# Agent's Starting Memory Context",
-        "\n".join(f"- {item}" for item in focus.get("memory_seed_context", [])) or "- (none provided)",
+        "\n".join(f"- {item}" for item in focus.get("memory_seed_context", []))
+        or "- (none provided)",
         "",
         "# What Good Integration and Note Quality Looks Like",
-        "\n".join(f"- {item}" for item in focus.get("note_quality_expectations", [])) or "- (none provided)",
+        "\n".join(f"- {item}" for item in focus.get("note_quality_expectations", []))
+        or "- (none provided)",
         "",
         "# Agent result.json",
         serialize_json(result),
@@ -289,7 +305,9 @@ def main() -> None:
         "query_accuracy": score["query_accuracy"],
         "browser_trace": score["browser_trace"],
         "workspace_update": score["workspace_update"],
-        "integration_reasoning": clamp_score(judge_payload.get("integration_reasoning")),
+        "integration_reasoning": clamp_score(
+            judge_payload.get("integration_reasoning")
+        ),
         "note_quality": clamp_score(judge_payload.get("note_quality")),
         "_meta_rationales": judge_payload.get("rationales", {}),
         "_meta_judge_model": debug_payload.get("model"),

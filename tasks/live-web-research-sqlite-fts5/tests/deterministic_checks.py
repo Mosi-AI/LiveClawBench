@@ -24,6 +24,7 @@ SYSTEM_ROOT_FILES = {
 # JSON / text helpers
 # ---------------------------------------------------------------------------
 
+
 def load_json(path: Path):
     if not path.exists():
         return {}
@@ -89,6 +90,7 @@ def load_result_payload() -> dict:
 # ---------------------------------------------------------------------------
 # Workspace / artifact helpers
 # ---------------------------------------------------------------------------
+
 
 def resolve_workspace_path(rel_path: str) -> Path | None:
     if not isinstance(rel_path, str) or not rel_path.strip():
@@ -205,6 +207,7 @@ def read_trace_text() -> str:
 # Database helpers
 # ---------------------------------------------------------------------------
 
+
 def open_db(db_path: Path):
     if not db_path.exists():
         return None
@@ -216,7 +219,11 @@ def open_db(db_path: Path):
 
 def table_columns(conn, table_name: str) -> list[str]:
     try:
-        return [str(row[1]) for row in conn.execute(f"PRAGMA table_info({table_name})") if len(row) >= 2]
+        return [
+            str(row[1])
+            for row in conn.execute(f"PRAGMA table_info({table_name})")
+            if len(row) >= 2
+        ]
     except sqlite3.Error:
         return []
 
@@ -225,9 +232,12 @@ def table_columns(conn, table_name: str) -> list[str]:
 # Scoring
 # ---------------------------------------------------------------------------
 
+
 def structural_scores(result: dict) -> dict[str, float]:
     contract = 1.0 if result else 0.0
-    modified = [p for p in gather_durable_artifact_paths(result) if is_modified_from_seed(p)]
+    modified = [
+        p for p in gather_durable_artifact_paths(result) if is_modified_from_seed(p)
+    ]
     workspace = 1.0 if modified else 0.0
     return {
         "result_contract_valid": contract,
@@ -311,12 +321,16 @@ def _score_sqlite(conn, key: dict) -> float:
         actual_fact = fact_values.get(nid, "")
         if actual_fact == nval:
             fact_hits += 1
-        elif question_id in fact_concepts and concept_in_text(actual_fact, fact_concepts[question_id]):
+        elif question_id in fact_concepts and concept_in_text(
+            actual_fact, fact_concepts[question_id]
+        ):
             fact_hits += 1
         actual_qa = qa_answers.get(nid, "")
         if actual_qa == nval:
             qa_hits += 1
-        elif question_id in fact_concepts and concept_in_text(actual_qa, fact_concepts[question_id]):
+        elif question_id in fact_concepts and concept_in_text(
+            actual_qa, fact_concepts[question_id]
+        ):
             qa_hits += 1
 
     return round((fact_hits + qa_hits) / max(1, 2 * total), 4)
@@ -375,7 +389,9 @@ def query_accuracy_score(key: dict, result: dict) -> dict[str, float]:
         actual = normalize(actual_answers.get(question_id, ""))
         if actual == normalize(expected_value):
             primary_hits += 1
-        elif question_id in fact_concepts and concept_in_text(actual, fact_concepts[question_id]):
+        elif question_id in fact_concepts and concept_in_text(
+            actual, fact_concepts[question_id]
+        ):
             primary_hits += 1
 
     # Fallback: if query_answers missing/empty, search entire result.json

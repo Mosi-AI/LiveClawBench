@@ -68,7 +68,13 @@ def main() -> int:
                 INSERT OR REPLACE INTO sources (source_id, title, source_url, reliability, kind)
                 VALUES (?, ?, ?, ?, ?)
                 """,
-                (args.source_id, args.title, args.source_url, args.reliability, args.kind),
+                (
+                    args.source_id,
+                    args.title,
+                    args.source_url,
+                    args.reliability,
+                    args.kind,
+                ),
             )
         elif args.command == "add-fact":
             conn.execute(
@@ -100,6 +106,7 @@ def main() -> int:
 
     print(db_path)
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

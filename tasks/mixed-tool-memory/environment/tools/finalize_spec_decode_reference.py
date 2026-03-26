@@ -124,7 +124,9 @@ def db_state(db_path: Path) -> dict:
     try:
         tables = {
             row[0]
-            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+            )
         }
         return {"exists": True, "tables": sorted(tables)}
     finally:
@@ -133,7 +135,9 @@ def db_state(db_path: Path) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--workspace-root", default=os.environ.get("OPENCLAW_WORKSPACE_ROOT"))
+    parser.add_argument(
+        "--workspace-root", default=os.environ.get("OPENCLAW_WORKSPACE_ROOT")
+    )
     parser.add_argument("--artifact", default=None)
     parser.add_argument("--db-path", default="db/spec_decode_knowledge.db")
     parser.add_argument("--browser-log", default="output/browser_mock_access.jsonl")

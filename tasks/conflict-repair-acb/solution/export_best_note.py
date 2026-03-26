@@ -5,7 +5,9 @@ from pathlib import Path
 
 
 def resolve_root() -> Path:
-    raw = os.environ.get("OPENCLAW_WORKSPACE_ROOT") or os.environ.get("CASE_RUNTIME_ROOT")
+    raw = os.environ.get("OPENCLAW_WORKSPACE_ROOT") or os.environ.get(
+        "CASE_RUNTIME_ROOT"
+    )
     if raw:
         if raw.startswith("~"):
             return Path(raw).expanduser()
@@ -90,14 +92,20 @@ def candidate_notes() -> list[Path]:
 
 
 def main() -> None:
-    if any((OUT / name).is_file() and read_text(OUT / name).strip() for name in ("summary.md", "final.md", "answer.md")):
+    if any(
+        (OUT / name).is_file() and read_text(OUT / name).strip()
+        for name in ("summary.md", "final.md", "answer.md")
+    ):
         return
 
     candidates = candidate_notes()
     if not candidates:
         return
 
-    best = max(candidates, key=lambda path: (path.stat().st_mtime, len(read_text(path).strip())))
+    best = max(
+        candidates,
+        key=lambda path: (path.stat().st_mtime, len(read_text(path).strip())),
+    )
     OUT.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(best, OUT / "final.md")
 

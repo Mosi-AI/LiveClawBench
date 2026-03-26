@@ -5,7 +5,9 @@ from pathlib import Path
 
 
 def resolve_root() -> Path:
-    raw = os.environ.get("OPENCLAW_WORKSPACE_ROOT") or os.environ.get("CASE_RUNTIME_ROOT")
+    raw = os.environ.get("OPENCLAW_WORKSPACE_ROOT") or os.environ.get(
+        "CASE_RUNTIME_ROOT"
+    )
     if raw:
         if raw.startswith("~"):
             return Path(raw).expanduser()
@@ -37,7 +39,11 @@ INCORRECT_BELIEFS = {
 CORRECTED_HINTS = {
     "exact_target_preserving_acceleration": ("exact", "verification", "target"),
     "draft_cost_acceptance_and_system_fit": ("acceptance", "draft", "throughput"),
-    "separate_draft_not_always_required": ("self-speculative", "same model", "separate draft"),
+    "separate_draft_not_always_required": (
+        "self-speculative",
+        "same model",
+        "separate draft",
+    ),
 }
 
 
@@ -107,7 +113,14 @@ def best_memory_text() -> str:
     candidates = modified_durable_artifacts()
     if not candidates:
         return ""
-    best = max(candidates, key=lambda path: (path.name == "MEMORY.md", path.stat().st_mtime, len(read_text(path))))
+    best = max(
+        candidates,
+        key=lambda path: (
+            path.name == "MEMORY.md",
+            path.stat().st_mtime,
+            len(read_text(path)),
+        ),
+    )
     return read_text(best).strip()
 
 
@@ -150,7 +163,9 @@ def main() -> None:
     for key, text in corrected.items():
         payload[f"corrected_{key}"] = text
 
-    result_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    result_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 if __name__ == "__main__":

@@ -24,18 +24,38 @@ SYSTEM_ROOT_FILES = {
 # ---------------------------------------------------------------------------
 
 INCORRECT_KEY_HINTS = {
-    "incorrect", "stale", "old", "wrong", "before", "prior",
-    "original", "outdated", "bad", "false", "invalid",
+    "incorrect",
+    "stale",
+    "old",
+    "wrong",
+    "before",
+    "prior",
+    "original",
+    "outdated",
+    "bad",
+    "false",
+    "invalid",
 }
 CORRECTED_KEY_HINTS = {
-    "correct", "repair", "fix", "new", "after", "updated",
-    "revised", "replacement", "good", "valid", "true", "current",
+    "correct",
+    "repair",
+    "fix",
+    "new",
+    "after",
+    "updated",
+    "revised",
+    "replacement",
+    "good",
+    "valid",
+    "true",
+    "current",
 }
 
 
 # ---------------------------------------------------------------------------
 # JSON / text helpers
 # ---------------------------------------------------------------------------
+
 
 def load_json(path: Path):
     if not path.exists():
@@ -63,6 +83,7 @@ def normalize(value) -> str:
 # ---------------------------------------------------------------------------
 # Flexible text extraction from arbitrary JSON structures
 # ---------------------------------------------------------------------------
+
 
 def _extract_text_from_value(value) -> str:
     parts: list[str] = []
@@ -119,6 +140,7 @@ def concept_in_text(text: str, keywords: list[str]) -> bool:
 # Browser trace helpers
 # ---------------------------------------------------------------------------
 
+
 def load_browser_events(path: Path) -> list[dict]:
     if not path.exists():
         return []
@@ -156,6 +178,7 @@ def resolve_browser_log() -> Path:
 # ---------------------------------------------------------------------------
 # Workspace / artifact helpers
 # ---------------------------------------------------------------------------
+
 
 def resolve_workspace_path(rel_path: str) -> Path | None:
     if not isinstance(rel_path, str) or not rel_path.strip():
@@ -248,9 +271,12 @@ def load_output_texts() -> dict[str, str]:
 # Scoring
 # ---------------------------------------------------------------------------
 
+
 def structural_scores(result: dict) -> dict[str, float]:
     contract = 1.0 if result else 0.0
-    modified = [p for p in gather_durable_artifact_paths(result) if is_modified_from_seed(p)]
+    modified = [
+        p for p in gather_durable_artifact_paths(result) if is_modified_from_seed(p)
+    ]
     workspace = 1.0 if modified else 0.0
     return {
         "result_contract_valid": contract,
@@ -272,10 +298,14 @@ def repair_accuracy_score(result: dict, key: dict) -> dict[str, float]:
 
     correct = 0
     for keywords in incorrect_hints.values():
-        if concept_in_text(incorrect_text, keywords) or concept_in_text(full_text, keywords):
+        if concept_in_text(incorrect_text, keywords) or concept_in_text(
+            full_text, keywords
+        ):
             correct += 1
     for keywords in corrected_hints.values():
-        if concept_in_text(corrected_text, keywords) or concept_in_text(full_text, keywords):
+        if concept_in_text(corrected_text, keywords) or concept_in_text(
+            full_text, keywords
+        ):
             correct += 1
 
     return {"repair_accuracy": round(correct / total, 4)}
