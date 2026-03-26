@@ -10,7 +10,7 @@ WORK="${ROOT}/workspace"
 mkdir -p "${OUTPUT}" "${WORK}/memory" "${WORK}/state" "${WORK}/corpus"
 
 cat > "${ROOT}/instruction.md" <<'EOF'
-Review the speculative decoding materials in `corpus/` and your existing workspace notes. Figure out what still holds, what needs revision, and what should be dropped. Update your workspace notes with the corrected understanding and write `output/result.json`.
+Review the speculative decoding materials in `corpus/` and your existing workspace notes. Figure out what still holds, what needs revision, and what should be dropped. Update your workspace notes with the corrected understanding and write `~/.openclaw/output/result.json`.
 EOF
 
 ARK_BASE_URL="${OPENCLAW_ARK_BASE_URL:-https://ark.cn-beijing.volces.com/api/coding/v3}"

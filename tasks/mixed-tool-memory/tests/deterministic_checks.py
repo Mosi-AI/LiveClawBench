@@ -115,33 +115,6 @@ def load_browser_events(path: Path) -> list[dict]:
     return events
 
 
-<<<<<<< HEAD
-def artifact_paths_valid(result: dict) -> float:
-    paths = result.get("updated_artifacts")
-    if not isinstance(paths, list) or not paths:
-        return 0.0
-    valid = 0
-    for rel in paths:
-        if not isinstance(rel, str) or not rel.strip():
-            continue
-        candidate = (WORK / rel).resolve()
-        try:
-            candidate.relative_to(WORK.resolve())
-        except ValueError:
-            continue
-        if (
-            candidate.is_file()
-            and candidate.suffix == ".md"
-            and candidate.stat().st_size > 0
-        ):
-            if (
-                candidate.parent == WORK
-                and candidate.name in IGNORED_WORKSPACE_ROOT_FILES
-            ):
-                continue
-            valid += 1
-    return 1.0 if valid >= 1 else 0.0
-=======
 def resolve_browser_log() -> Path:
     candidates = [
         OUT / "browser_mock_access.jsonl",
@@ -157,7 +130,6 @@ def resolve_browser_log() -> Path:
         if candidate.exists():
             return candidate
     return OUT / "browser_mock_access.jsonl"
->>>>>>> cf77ee4 (Align release cases with PKB and fix release runner)
 
 
 # ---------------------------------------------------------------------------
@@ -290,11 +262,7 @@ def database_integrity_score(key: dict, result: dict) -> dict[str, float]:
     db_path = WORK / "db" / "spec_decode_knowledge.db"
     conn = open_db(db_path)
     if conn is None:
-<<<<<<< HEAD
-        return 0.0
-=======
         return {"database_integrity": 0.0}
->>>>>>> cf77ee4 (Align release cases with PKB and fix release runner)
     try:
         tables = {
             row[0]
@@ -316,21 +284,6 @@ def database_integrity_score(key: dict, result: dict) -> dict[str, float]:
                 schema_hits += 1
         schema_score = round(schema_hits / max(1, schema_total), 4)
 
-<<<<<<< HEAD
-        required_sources = normalize_set(key.get("required_source_ids"))
-        required_facts = {
-            normalize(k): normalize(v)
-            for k, v in key.get("required_fact_values", {}).items()
-        }
-
-        source_score = (
-            1.0
-            if required_sources.issubset(source_ids)
-            else round(
-                len(required_sources & source_ids) / max(1, len(required_sources)), 4
-            )
-        )
-=======
         # Source rows check
         try:
             source_rows = {
@@ -354,7 +307,6 @@ def database_integrity_score(key: dict, result: dict) -> dict[str, float]:
         except sqlite3.Error:
             fact_rows = []
 
->>>>>>> cf77ee4 (Align release cases with PKB and fix release runner)
         fact_hits = 0
         fact_total = len(required_fact_values)
         for fact_key, expected_value in required_fact_values.items():
@@ -451,10 +403,7 @@ def browser_trace_score(key: dict, events: list[dict]) -> dict[str, float]:
         for event in events
         if event.get("event") in {"click", "page"}
     }
-<<<<<<< HEAD
-=======
 
->>>>>>> cf77ee4 (Align release cases with PKB and fix release runner)
     required = normalize_set(key.get("required_evidence_ids"))
     low_conf = normalize_set(key.get("required_low_confidence_ids"))
 
@@ -476,41 +425,6 @@ def main() -> None:
     result = load_result_payload()
     events = load_browser_events(resolve_browser_log())
 
-<<<<<<< HEAD
-    db_path = WORK / "db" / "spec_decode_knowledge.db"
-    score = {}
-    required_fields = {
-        "task_id",
-        "topic_id",
-        "db_path",
-        "retrieved_evidence_ids",
-        "query_answers",
-        "updated_artifacts",
-    }
-    score["result_contract_valid"] = (
-        1.0
-        if required_fields.issubset(result.keys())
-        and normalize(result.get("db_path")) == normalize(key.get("db_path"))
-        else 0.0
-    )
-    score["database_integrity"] = database_integrity_score(db_path, key)
-
-    expected_answers = key.get("required_fact_values", {})
-    actual_answers = result.get("query_answers", {})
-    hits = 0
-    for question_id, expected in expected_answers.items():
-        if normalize(actual_answers.get(question_id, "")) == normalize(expected):
-            hits += 1
-    score["query_accuracy"] = round(hits / max(1, len(expected_answers)), 4)
-    score["evidence_trace"] = browser_trace_score(key, events)
-    score["workspace_update"] = artifact_paths_valid(result)
-    score["final_score"] = weighted_sum(score, rubric)
-
-    (ROOT / "reward.json").write_text(
-        json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    (ROOT / "reward.txt").write_text(str(score["final_score"]), encoding="utf-8")
-=======
     scores = structural_scores(result)
     scores.update(database_integrity_score(key, result))
     scores.update(query_accuracy_score(key, result))
@@ -531,7 +445,6 @@ def main() -> None:
     (OUT / "structural_checks.json").write_text(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
->>>>>>> cf77ee4 (Align release cases with PKB and fix release runner)
 
 
 if __name__ == "__main__":

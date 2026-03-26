@@ -26,8 +26,10 @@ CREATE TABLE IF NOT EXISTS qa_answers (
 
 def main() -> int:
     target = Path(
-        sys.argv[1] if len(sys.argv) > 1 else "workspace/db/spec_decode_live.db"
-    )
+        sys.argv[1]
+        if len(sys.argv) > 1
+        else "~/.openclaw/workspace/db/spec_decode_live.db"
+    ).expanduser()
     target.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(target)
     try:

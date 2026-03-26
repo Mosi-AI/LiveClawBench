@@ -17,3 +17,4 @@ RUN mkdir -p /home/node/.openclaw/output /home/node/.openclaw/workspace/memory /
 
 COPY corpus/ /home/node/.openclaw/corpus/
 COPY workspace_seed/ /home/node/.openclaw/workspace/
+RUN ln -sfn ../corpus /home/node/.openclaw/workspace/corpus

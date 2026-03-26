@@ -17,7 +17,7 @@ BROWSER_READY=0
 mkdir -p "${OUTPUT}" "${WORK}/memory" "${WORK}/state" "${WORK}/corpus" "${DB_DIR}"
 
 cat > "${ROOT}/instruction.md" <<'EOF'
-Visit the pinned URLs in `corpus/pinned.json` with the browser, extract the key facts about speculative decoding, build a compact reference database, and write `output/result.json`.
+Visit the pinned URLs in `corpus/pinned.json` with the browser, extract the key facts about speculative decoding, build a compact reference database, and write `~/.openclaw/output/result.json`.
 EOF
 
 ARK_BASE_URL="${OPENCLAW_ARK_BASE_URL:-https://ark.cn-beijing.volces.com/api/coding/v3}"

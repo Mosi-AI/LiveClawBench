@@ -24,7 +24,7 @@ USE_EMBEDDED_BROWSER_MOCK=0
 mkdir -p "${OUTPUT}" "${WORK}/memory" "${WORK}/state" "${WORK}/corpus" "${WORK}/tools" "${DB_DIR}"
 
 cat > "${ROOT}/instruction.md" <<'EOF'
-Build a durable speculative-decoding reference using the local corpus in `corpus/`, the browser portal, and the helper scripts in `tools/`. Populate the database, fill in the reference template, and write `output/result.json`.
+Build a durable speculative-decoding reference using the local corpus in `corpus/`, the browser portal, and the helper scripts in `tools/`. Populate the database, fill in the reference template, and write `~/.openclaw/output/result.json`.
 EOF
 
 if [[ -z "${BROWSER_MOCK_ACCESS_LOG}" ]]; then

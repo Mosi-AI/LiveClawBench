@@ -1,1 +1,1 @@
-Build a durable speculative-decoding reference using the local corpus in `corpus/`, the browser portal, and the helper scripts in `tools/`. Populate the database, fill in the reference template, and write `output/result.json`.
+Build a durable speculative-decoding reference using the local corpus in `corpus/`, the browser portal, and the helper scripts in `tools/`. Populate the database, fill in the reference template, and write `~/.openclaw/output/result.json`.

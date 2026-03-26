@@ -22,3 +22,5 @@ RUN mkdir -p /home/node/.openclaw/output /home/node/.openclaw/workspace/memory \
 COPY corpus/ /home/node/.openclaw/corpus/
 COPY tools/ /home/node/.openclaw/tools/
 COPY workspace_seed/ /home/node/.openclaw/workspace/
+RUN ln -sfn ../corpus /home/node/.openclaw/workspace/corpus \
+    && ln -sfn ../tools /home/node/.openclaw/workspace/tools
