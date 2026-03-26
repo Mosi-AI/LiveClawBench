@@ -412,7 +412,8 @@ def main():
     answer_score = score_parse_answer_file(str(answer_file_path))
 
     total_score = log_score.get('total', 0) + answer_score.get('total', 0)
-
+    reward_val = total_score / 12
+    
     # Merge all score details into final structure
     score_stat = {
         'total_reward': total_score,
@@ -423,9 +424,14 @@ def main():
         'log_score_details': log_score['details']
     }
 
+    score_stat_with_reward = {
+        "reward": reward_val,
+        "_meta_": score_stat
+    }
+
     # Write to reward.json
     with open(reward_output_path, 'w', encoding='utf-8') as f:
-        json.dump(score_stat, f, indent=2, ensure_ascii=False)
+        json.dump(score_stat_with_reward, f, indent=2, ensure_ascii=False)
 
     # Also print for debugging
     print(f"Verification complete. Total score: {total_score}/12")
@@ -435,7 +441,7 @@ def main():
 
     reward_output_path_txt = Path("/logs/verifier/reward.txt")
     with open(reward_output_path_txt, 'w', encoding='utf-8') as f:
-        f.write(f"{total_score/12:.3f}")
+        f.write(f"{reward_val:.3f}")
     print(f"Float score written to {reward_output_path_txt}")
 
     
