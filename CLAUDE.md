@@ -116,10 +116,16 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `-m <provider>/<model>` | Model to evaluate |
 | `-n <int>` | Number of attempts per task |
 | `-o jobs` | Output directory for job results |
-| `--ae KEY=VALUE` | Pass environment variable into the agent container |
+| `--ae KEY=VALUE` | Pass environment variable into the **agent process** only (via `openclaw.json`); repeatable |
+| `--ee KEY=VALUE` | Pass environment variable into the **container environment** (agent + verifier both see it); repeatable |
 | `--timeout-multiplier 2.0` | Scale all `task.toml` timeouts (useful for hard tasks) |
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
+
+> **LLM-judge tasks** use `--ee` (not `--ae`) for judge credentials because `llm_judge.py` runs in the
+> verifier phase, outside the OpenClaw agent process. Required vars: `JUDGE_BASE_URL`, `JUDGE_API_KEY`;
+> optional: `JUDGE_MODEL_ID` (default `qwen3-235b-a22b-instruct-2507`).
+> See [`docs/guide/running-tasks.md`](docs/guide/running-tasks.md#llm-judge-tasks) for the full example.
 
 ## Task List
 

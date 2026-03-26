@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# NOTE: This file is intentionally duplicated in tasks/conflict-repair-acb/environment/startup.sh.
+# Harbor's per-task build context (environment/ dir only) prevents cross-task file sharing
+# without baking shared logic into the base image. If you edit this file, apply the same
+# change to its counterpart.
 set -euo pipefail
 
 export HOME="/home/node"
