@@ -160,7 +160,7 @@ def score_parse_log_file(log_file_path: str) -> dict:
                             # Check if vite.config.ts was modified
                             if 'vite.config.ts' in path:
                                 # Check if vue() plugin modification is involved
-                                if 'vue()' in old_text or 'vue(' in old_text:
+                                if 'vue()' in old_text or 'vue()' in new_text:
                                     return True
         return False
 
@@ -405,7 +405,7 @@ def main():
             if fallback.exists():
                 actual_log_path = fallback
                 break
-            
+
     print("Log file is", actual_log_path)
     # Compute scores
     log_score = score_parse_log_file(str(actual_log_path))
@@ -413,7 +413,7 @@ def main():
 
     total_score = log_score.get('total', 0) + answer_score.get('total', 0)
     reward_val = total_score / 12
-    
+
     # Merge all score details into final structure
     score_stat = {
         'total_reward': total_score,
@@ -444,6 +444,6 @@ def main():
         f.write(f"{reward_val:.3f}")
     print(f"Float score written to {reward_output_path_txt}")
 
-    
+
 if __name__ == "__main__":
     main()

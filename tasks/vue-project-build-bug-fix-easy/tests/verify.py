@@ -18,7 +18,7 @@ def score_parse_log_file(log_file_path: str) -> dict:
     Scoring criteria:
     Point 1: Read README.md, add 1 point
     Point 2: Successfully started server at http://localhost:xxxx/, add 1 point
-    
+
     Total: 2 points
 
     Returns:
@@ -350,8 +350,8 @@ def score_parse_answer_file(local_answer_file):
         })
 
     total = sum(d['score'] for d in details)
-    return {'total': total, 'details': details}  
-        
+    return {'total': total, 'details': details}
+
 
 def main():
     """Main verification entry point."""
@@ -379,7 +379,7 @@ def main():
             if fallback.exists():
                 actual_log_path = fallback
                 break
-            
+
     print("Log file is", actual_log_path)
     # Compute scores
     log_score = score_parse_log_file(str(actual_log_path))
@@ -387,7 +387,7 @@ def main():
 
     total_score = log_score.get('total', 0) + answer_score.get('total', 0)
     reward_val = total_score / 9
-    
+
     # Merge all score details into final structure
     score_stat = {
         'total_reward': total_score,
@@ -397,7 +397,7 @@ def main():
         'answer_score_details': answer_score['details'],
         'log_score_details': log_score['details']
     }
-    
+
     score_stat_with_reward = {
         "reward": reward_val,
         "_meta_": score_stat
@@ -418,6 +418,6 @@ def main():
         f.write(f"{reward_val:.3f}")
     print(f"Float score written to {reward_output_path_txt}")
 
-    
+
 if __name__ == "__main__":
     main()
