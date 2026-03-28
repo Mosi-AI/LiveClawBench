@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import jwt
 from flask import current_app
@@ -12,8 +12,8 @@ def create_access_token(user_id, expires_in=None):
     payload = {
         "user_id": user_id,
         "type": "access",
-        "exp": datetime.now() + expires_in,
-        "iat": datetime.now(),
+        "exp": datetime.now(timezone.utc) + expires_in,
+        "iat": datetime.now(timezone.utc),
     }
     return jwt.encode(payload, current_app.config["JWT_SECRET_KEY"], algorithm="HS256")
 
@@ -24,8 +24,8 @@ def create_refresh_token(user_id):
     payload = {
         "user_id": user_id,
         "type": "refresh",
-        "exp": datetime.now() + expires_in,
-        "iat": datetime.now(),
+        "exp": datetime.now(timezone.utc) + expires_in,
+        "iat": datetime.now(timezone.utc),
     }
     return jwt.encode(payload, current_app.config["JWT_SECRET_KEY"], algorithm="HS256")
 

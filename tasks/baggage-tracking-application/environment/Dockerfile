@@ -11,7 +11,7 @@ RUN cd /workspace/environment/airline-app/backend && python3 scripts/inject_data
 
 # NODE_ENV=production is set by the base openclaw image, which causes npm install to
 # skip devDependencies (including vite). --include=dev forces them to be installed.
-RUN cd /workspace/environment/email-app/frontend && npm install --include=dev 2>&1 | tee /tmp/airline-npm-install.log
+RUN cd /workspace/environment/airline-app/frontend && npm install --include=dev 2>&1 | tee /tmp/airline-npm-install.log
 
 # Copy startup script
 COPY startup.sh /workspace/startup.sh
