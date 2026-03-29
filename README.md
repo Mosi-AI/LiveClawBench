@@ -4,7 +4,7 @@
 
 [![Paper](https://img.shields.io/badge/Paper-Preprint-orange)](https://github.com/Mosi-AI/LiveClawBench/releases/download/v0.1-preprint/LiveClawBench.pdf)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Tasks](https://img.shields.io/badge/Tasks-29-green)](tasks/)
+[![Tasks](https://img.shields.io/badge/Tasks-30-green)](tasks/)
 
 LiveClawBench evaluates LLM agents on realistic, multi-step assistant tasks using the [Harbor](https://github.com/Mosi-AI/claw-harbor) framework and the [OpenClaw](https://github.com/openclaw/openclaw) agent platform.
 
@@ -73,10 +73,10 @@ See [docs/guide/getting-started.md](docs/guide/getting-started.md) for full setu
 | [Getting Started](docs/guide/getting-started.md) | Prerequisites, setup, first run |
 | [Running Tasks](docs/guide/running-tasks.md) | Harbor CLI flags, results, full dataset runs |
 | [Adding Tasks](docs/guide/adding-tasks.md) | Task format, scoring contract, submission |
-| [Complexity Framework](docs/reference/complexity-framework.md) | Factor definitions, 29-case annotation table |
+| [Complexity Framework](docs/reference/complexity-framework.md) | Factor definitions, 30-case annotation table |
 | [Task Format](docs/reference/task-format.md) | task.toml fields, evaluation rubric |
 
-## Tasks (29 pilot)
+## Tasks (30 pilot)
 
 | Domain | Easy | Medium | Hard |
 |--------|------|--------|------|
@@ -85,9 +85,9 @@ See [docs/guide/getting-started.md](docs/guide/getting-started.md) for full setu
 | Calendar & Task Mgmt | — | — | 2 |
 | Coding & Software Dev | — | 1 | 1 |
 | DevOps & Env Repair | 1 | — | 1 |
-| Documents & Knowledge | 2 | 3 | 3 |
+| Documents & Knowledge | 2 | 4 | 3 |
 | Deep Research & Report | — | 1 | 1 |
-| **Total** | **10** | **9** | **10** |
+| **Total** | **10** | **10** | **10** |
 
 Complexity factors: A1 Cross-Service Dependency (10), A2 Contaminated State (6), B1 Implicit Goals (4), B2 Knowledge Maintenance (11).
 
