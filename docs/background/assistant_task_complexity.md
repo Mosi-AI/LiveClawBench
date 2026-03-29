@@ -30,12 +30,12 @@ LiveClawBench 的设计目标是：构建一个能**系统性测量复杂度叠�
 
 | Factor | Definition | Core Test Point | Coverage |
 |--------|-----------|----------------|----------|
-| **A1: Cross-Service Dependency** | Task requires data flow across ≥2 heterogeneous services | Schema mapping (e.g., email order ID → logistics tracking API) | 11 cases |
+| **A1: Cross-Service Dependency** | Task requires data flow across ≥2 heterogeneous services | Schema mapping (e.g., email order ID → logistics tracking API) | 10 cases |
 | **A2: Contaminated Initial State** | Environment contains faulty, outdated, or inconsistent initial state | Diagnosis before execution — agent must detect and correct before proceeding | 6 cases |
 | **A3: Temporal & Resource Constraints** | Task has time windows, quota limits, or rate-limiting | Opportunity cost reasoning under scarcity | *roadmap* |
 | **A4: Cross-Modal Interaction** | Key task information is embedded in non-text modalities (images, PDFs, screenshots, CAPTCHAs) | Modality bridging — extract and integrate information across input types | *roadmap* |
 
-A1 是最基础也最普遍的复杂度来源。关键测试点不是"能不能调两个 API"，而是 **schema mapping 的准确性**——email 里的 order ID 格式和物流系统的 tracking number 格式不同，agent 需要正确转换。11 个 cases 覆盖了 2-service 到 4-service 的梯度。
+A1 是最基础也最普遍的复杂度来源。关键测试点不是"能不能调两个 API"，而是 **schema mapping 的准确性**——email 里的 order ID 格式和物流系统的 tracking number 格式不同，agent 需要正确转换。10 个 cases 覆盖了 2-service 到 4-service 的梯度。
 
 A2 更加隐蔽。传统 benchmark 假设环境是 clean state——agent 拿到的初始条件都是正确的。但现实中，数据库里可能有脏数据、配置文件可能过期、上一个操作可能留下了半完成的状态。A2 要求 agent 先 **diagnose** 再 execute，这是一个质变。
 
@@ -48,12 +48,12 @@ A3 目前在 roadmap 阶段。时间窗口和资源配额引入了 opportunity c
 | Factor | Definition | Core Test Point | Coverage |
 |--------|-----------|----------------|----------|
 | **B1: Implicit Goal Resolution** | User instruction lacks key preconditions or sub-goals | Proactive clarification / common-sense completion | 4 cases |
-| **B2: Knowledge System Maintenance** | Task involves creating, updating, or maintaining persistent knowledge/skills | State tracking + delta update across sessions | 12 cases |
+| **B2: Knowledge System Maintenance** | Task involves creating, updating, or maintaining persistent knowledge/skills | State tracking + delta update across sessions | 11 cases |
 | **B3: Multi-Agent Delegation** | Requires an orchestrator to coordinate multiple sub-agents | Task decomposition, delegation, and synthesis | *roadmap* |
 
 B1 测试的是 agent 能否从模糊指令中提取完整的执行计划。"帮我订个餐厅"——几个人？什么菜系？什么价位？什么时间？agent 需要判断哪些信息必须追问，哪些可以用 common sense 填充。4 个 cases 目前覆盖了从轻度模糊到严重缺失的梯度。
 
-B2 是 LiveClawBench 最独特的贡献之一。现有 benchmark 几乎都是 stateless 的——每个 task 独立，不需要维护跨任务的知识。但真实 assistant 需要管理 skill library、更新 knowledge base、处理 schema evolution。12 个 cases 覆盖了 skill creation、skill update、skill merge、conflict resolution 等场景。
+B2 是 LiveClawBench 最独特的贡献之一。现有 benchmark 几乎都是 stateless 的——每个 task 独立，不需要维护跨任务的知识。但真实 assistant 需要管理 skill library、更新 knowledge base、处理 schema evolution。11 个 cases 覆盖了 skill creation、skill update、skill merge、conflict resolution 等场景。
 
 B3 目前在 roadmap 阶段。Multi-agent delegation 需要 orchestrator 具备 task decomposition 和 result synthesis 能力，这是当前 LLM agent 的前沿挑战。
 
