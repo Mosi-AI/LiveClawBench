@@ -1,4 +1,5 @@
 """Data Ingestion Service - Universal loader that detects format by extension."""
+
 import argparse
 import os
 import pandas as pd

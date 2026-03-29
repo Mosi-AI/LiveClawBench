@@ -1,4 +1,5 @@
 """Null Value Processor - Handle missing values with configurable strategies."""
+
 import argparse
 import pandas as pd
 
@@ -38,11 +39,19 @@ def main():
     parser = argparse.ArgumentParser(description="Process null values in data")
     parser.add_argument("-i", "--input", required=True, help="Input parquet file")
     parser.add_argument("-o", "--output", required=True, help="Output parquet file")
-    parser.add_argument("-s", "--strategy", default="drop",
-                        choices=["drop", "fill-mean", "fill-median", "fill-constant", "fill-ffill"],
-                        help="Null handling strategy")
-    parser.add_argument("-c", "--columns", default=None, help="Comma-separated target columns")
-    parser.add_argument("--fill-value", default=None, help="Fill value for fill-constant strategy")
+    parser.add_argument(
+        "-s",
+        "--strategy",
+        default="drop",
+        choices=["drop", "fill-mean", "fill-median", "fill-constant", "fill-ffill"],
+        help="Null handling strategy",
+    )
+    parser.add_argument(
+        "-c", "--columns", default=None, help="Comma-separated target columns"
+    )
+    parser.add_argument(
+        "--fill-value", default=None, help="Fill value for fill-constant strategy"
+    )
     args = parser.parse_args()
 
     df = pd.read_parquet(args.input)

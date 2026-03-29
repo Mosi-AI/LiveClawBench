@@ -1,4 +1,5 @@
 """Data Deduplicator - Remove duplicate rows by key columns or all columns."""
+
 import argparse
 import pandas as pd
 
@@ -32,10 +33,18 @@ def main():
     parser = argparse.ArgumentParser(description="Remove duplicate rows from data")
     parser.add_argument("-i", "--input", required=True, help="Input parquet file")
     parser.add_argument("-o", "--output", required=True, help="Output parquet file")
-    parser.add_argument("-k", "--key-columns", default=None,
-                        help="Comma-separated key columns for dedup (default: all)")
-    parser.add_argument("--keep", default="first", choices=["first", "last", "false"],
-                        help="Which duplicate to keep")
+    parser.add_argument(
+        "-k",
+        "--key-columns",
+        default=None,
+        help="Comma-separated key columns for dedup (default: all)",
+    )
+    parser.add_argument(
+        "--keep",
+        default="first",
+        choices=["first", "last", "false"],
+        help="Which duplicate to keep",
+    )
     args = parser.parse_args()
 
     keep = False if args.keep == "false" else args.keep

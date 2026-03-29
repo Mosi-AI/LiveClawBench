@@ -14,7 +14,9 @@ CALC_TYPES = {
 }
 
 
-def calculate(records: list, calc_type: str, col_a: str, col_b: str, result_name: str) -> list:
+def calculate(
+    records: list, calc_type: str, col_a: str, col_b: str, result_name: str
+) -> list:
     """Add a derived column to each record."""
     func = CALC_TYPES[calc_type]
     for rec in records:
@@ -27,29 +29,43 @@ def calculate(records: list, calc_type: str, col_a: str, col_b: str, result_name
 def main():
     parser = argparse.ArgumentParser(description="Compute derived columns")
     parser.add_argument("-i", "--input", required=True, help="Input JSON records file")
-    parser.add_argument("--calc", required=True, choices=list(CALC_TYPES.keys()),
-                        help="Calculation type")
-    parser.add_argument("--columns", required=True, help="Two column names, comma-separated")
-    parser.add_argument("--result-name", default="calculated", help="Name for new column")
+    parser.add_argument(
+        "--calc",
+        required=True,
+        choices=list(CALC_TYPES.keys()),
+        help="Calculation type",
+    )
+    parser.add_argument(
+        "--columns", required=True, help="Two column names, comma-separated"
+    )
+    parser.add_argument(
+        "--result-name", default="calculated", help="Name for new column"
+    )
     parser.add_argument("-o", "--output", required=True, help="Output directory")
     args = parser.parse_args()
 
     cols = args.columns.split(",")
     if len(cols) != 2:
-        print("Error: --columns must specify exactly two column names.", file=sys.stderr)
+        print(
+            "Error: --columns must specify exactly two column names.", file=sys.stderr
+        )
         sys.exit(1)
 
     with open(args.input, "r", encoding="utf-8") as f:
         records = json.load(f)
 
-    records = calculate(records, args.calc, cols[0].strip(), cols[1].strip(), args.result_name)
+    records = calculate(
+        records, args.calc, cols[0].strip(), cols[1].strip(), args.result_name
+    )
 
     os.makedirs(args.output, exist_ok=True)
     out_path = os.path.join(args.output, "transformed_data.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(records, f, indent=2, ensure_ascii=False)
 
-    print(f"Computed '{args.calc}' on ({cols[0]}, {cols[1]}) -> '{args.result_name}' for {len(records)} rows")
+    print(
+        f"Computed '{args.calc}' on ({cols[0]}, {cols[1]}) -> '{args.result_name}' for {len(records)} rows"
+    )
     print(f"Output: {out_path}")
 
 

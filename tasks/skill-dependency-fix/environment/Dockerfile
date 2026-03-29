@@ -8,6 +8,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy environment data and scripts
+# Copy environment data (includes patches/ inside the build context)
 COPY . /workspace/environment/
-COPY patches/ /workspace/patches/
+
+# Symlink so /workspace/patches works for both entrypoint and test.sh
+RUN ln -s /workspace/environment/patches /workspace/patches
+
+# Apply bottom-level patches at build time so the agent sees updated skills
+RUN bash /workspace/patches/apply_patches.sh

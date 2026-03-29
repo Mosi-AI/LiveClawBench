@@ -1,4 +1,5 @@
 """Excel Data Reader - Read Excel files with sheet selection and save as parquet."""
+
 import argparse
 import pandas as pd
 
@@ -35,8 +36,12 @@ def read_excel(input_path, output_path, sheet_name=0, header_row=0):
 def main():
     parser = argparse.ArgumentParser(description="Read Excel and save as parquet")
     parser.add_argument("-i", "--input", required=True, help="Input Excel file path")
-    parser.add_argument("-o", "--output", required=True, help="Output parquet file path")
-    parser.add_argument("-s", "--sheet", default="0", help="Sheet name or index (default: 0)")
+    parser.add_argument(
+        "-o", "--output", required=True, help="Output parquet file path"
+    )
+    parser.add_argument(
+        "-s", "--sheet", default="0", help="Sheet name or index (default: 0)"
+    )
     parser.add_argument("--header-row", type=int, default=0, help="Header row index")
     args = parser.parse_args()
 

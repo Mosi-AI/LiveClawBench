@@ -47,9 +47,14 @@ def main():
     parser = argparse.ArgumentParser(description="Compute aggregate statistics")
     parser.add_argument("-i", "--input", required=True, help="Input JSON records file")
     parser.add_argument("-g", "--group-by", required=True, help="Column to group by")
-    parser.add_argument("-v", "--value-column", required=True, help="Numeric column to aggregate")
-    parser.add_argument("--metrics", default=",".join(ALL_METRICS),
-                        help="Comma-separated metrics (default: all)")
+    parser.add_argument(
+        "-v", "--value-column", required=True, help="Numeric column to aggregate"
+    )
+    parser.add_argument(
+        "--metrics",
+        default=",".join(ALL_METRICS),
+        help="Comma-separated metrics (default: all)",
+    )
     parser.add_argument("-o", "--output", required=True, help="Output directory")
     args = parser.parse_args()
 
@@ -59,7 +64,10 @@ def main():
     metrics = [m.strip() for m in args.metrics.split(",")]
     invalid = [m for m in metrics if m not in METRIC_FUNCS]
     if invalid:
-        print(f"Error: unknown metrics: {invalid}. Available: {ALL_METRICS}", file=sys.stderr)
+        print(
+            f"Error: unknown metrics: {invalid}. Available: {ALL_METRICS}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     result = aggregate(records, args.group_by, args.value_column, metrics)
@@ -70,7 +78,9 @@ def main():
         json.dump(result, f, indent=2, ensure_ascii=False)
 
     n_groups = len(result["groups"])
-    print(f"Aggregated {len(records)} records into {n_groups} groups by '{args.group_by}'")
+    print(
+        f"Aggregated {len(records)} records into {n_groups} groups by '{args.group_by}'"
+    )
     print(f"Metrics: {metrics}")
     print(f"Output: {out_path}")
 

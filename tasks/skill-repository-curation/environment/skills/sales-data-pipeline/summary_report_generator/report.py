@@ -1,11 +1,18 @@
 """Summary Report Generator - Generate KPI summary with revenue, top products, regional breakdown."""
+
 import argparse
 import json
 import pandas as pd
 
 
-def generate_report(df, revenue_col="revenue", product_col="product",
-                    region_col="region", date_col="date", top_n=5):
+def generate_report(
+    df,
+    revenue_col="revenue",
+    product_col="product",
+    region_col="region",
+    date_col="date",
+    top_n=5,
+):
     """Generate a KPI summary report from the data."""
     report = {"row_count": len(df), "column_count": len(df.columns)}
 
@@ -28,7 +35,11 @@ def generate_report(df, revenue_col="revenue", product_col="product",
     if region_col in df.columns and revenue_col in df.columns:
         regional = df.groupby(region_col)[revenue_col].agg(["sum", "mean", "count"])
         report["regional_breakdown"] = {
-            str(region): {"total": float(row["sum"]), "mean": float(row["mean"]), "count": int(row["count"])}
+            str(region): {
+                "total": float(row["sum"]),
+                "mean": float(row["mean"]),
+                "count": int(row["count"]),
+            }
             for region, row in regional.iterrows()
         }
 
@@ -56,8 +67,14 @@ def main():
     df = pd.read_parquet(args.input)
     print(f"Loaded: {args.input} ({len(df)} rows)")
 
-    report = generate_report(df, args.revenue_col, args.product_col,
-                             args.region_col, args.date_col, args.top_n)
+    report = generate_report(
+        df,
+        args.revenue_col,
+        args.product_col,
+        args.region_col,
+        args.date_col,
+        args.top_n,
+    )
 
     with open(args.output, "w") as f:
         json.dump(report, f, indent=2, default=str)
@@ -68,7 +85,9 @@ def main():
         print(f"  Total revenue: {r['total']:,.2f}")
         print(f"  Mean revenue: {r['mean']:,.2f}")
     if "top_products" in report:
-        print(f"  Top {len(report['top_products'])} products: {list(report['top_products'].keys())}")
+        print(
+            f"  Top {len(report['top_products'])} products: {list(report['top_products'].keys())}"
+        )
     if "regional_breakdown" in report:
         print(f"  Regions: {list(report['regional_breakdown'].keys())}")
 

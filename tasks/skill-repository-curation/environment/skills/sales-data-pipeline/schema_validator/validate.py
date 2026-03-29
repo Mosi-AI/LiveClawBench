@@ -1,4 +1,5 @@
 """Schema Validator - Validate columns exist, types match, and nullable constraints."""
+
 import argparse
 import json
 import sys
@@ -33,7 +34,9 @@ def validate_schema(df, schema):
 
         expected_type = spec.get("type")
         if expected_type and str(df[col].dtype) != expected_type:
-            errors.append(f"Column '{col}': expected type {expected_type}, got {df[col].dtype}")
+            errors.append(
+                f"Column '{col}': expected type {expected_type}, got {df[col].dtype}"
+            )
 
         nullable = spec.get("nullable", True)
         if not nullable and df[col].isnull().any():
@@ -46,8 +49,12 @@ def validate_schema(df, schema):
 def main():
     parser = argparse.ArgumentParser(description="Validate data against a schema")
     parser.add_argument("-i", "--input", required=True, help="Input parquet file")
-    parser.add_argument("-o", "--output", required=True, help="Output validation report (JSON)")
-    parser.add_argument("-s", "--schema", required=True, help="Schema definition file (JSON)")
+    parser.add_argument(
+        "-o", "--output", required=True, help="Output validation report (JSON)"
+    )
+    parser.add_argument(
+        "-s", "--schema", required=True, help="Schema definition file (JSON)"
+    )
     args = parser.parse_args()
 
     df = pd.read_parquet(args.input)

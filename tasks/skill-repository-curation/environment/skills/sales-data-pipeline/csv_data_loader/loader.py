@@ -1,9 +1,12 @@
 """CSV Data Loader - Load CSV files with configurable options and save as parquet."""
+
 import argparse
 import pandas as pd
 
 
-def load_csv(input_path, output_path, delimiter=",", encoding="utf-8", date_columns=None):
+def load_csv(
+    input_path, output_path, delimiter=",", encoding="utf-8", date_columns=None
+):
     """Load a CSV file, strip whitespace, parse dates, and save as parquet."""
     parse_dates = date_columns.split(",") if date_columns else False
 
@@ -32,10 +35,14 @@ def load_csv(input_path, output_path, delimiter=",", encoding="utf-8", date_colu
 def main():
     parser = argparse.ArgumentParser(description="Load CSV and save as parquet")
     parser.add_argument("-i", "--input", required=True, help="Input CSV file path")
-    parser.add_argument("-o", "--output", required=True, help="Output parquet file path")
+    parser.add_argument(
+        "-o", "--output", required=True, help="Output parquet file path"
+    )
     parser.add_argument("-d", "--delimiter", default=",", help="Column delimiter")
     parser.add_argument("-e", "--encoding", default="utf-8", help="File encoding")
-    parser.add_argument("--date-columns", default=None, help="Comma-separated date columns to parse")
+    parser.add_argument(
+        "--date-columns", default=None, help="Comma-separated date columns to parse"
+    )
     args = parser.parse_args()
 
     load_csv(args.input, args.output, args.delimiter, args.encoding, args.date_columns)

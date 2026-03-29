@@ -1,4 +1,5 @@
 """Numeric Normalizer - Min-max, z-score, and robust scaling of numeric columns."""
+
 import argparse
 import pandas as pd
 import numpy as np
@@ -42,7 +43,9 @@ def normalize(df, method="min-max", columns=None):
     """Normalize numeric columns using the specified method."""
     scaler = SCALERS.get(method)
     if scaler is None:
-        raise ValueError(f"Unknown method: {method}. Choose from: {list(SCALERS.keys())}")
+        raise ValueError(
+            f"Unknown method: {method}. Choose from: {list(SCALERS.keys())}"
+        )
 
     if columns:
         target_cols = [c.strip() for c in columns.split(",")]
@@ -66,9 +69,16 @@ def main():
     parser = argparse.ArgumentParser(description="Normalize numeric columns")
     parser.add_argument("-i", "--input", required=True, help="Input parquet file")
     parser.add_argument("-o", "--output", required=True, help="Output parquet file")
-    parser.add_argument("-m", "--method", default="min-max", choices=list(SCALERS.keys()),
-                        help="Normalization method")
-    parser.add_argument("-c", "--columns", default=None, help="Comma-separated columns to normalize")
+    parser.add_argument(
+        "-m",
+        "--method",
+        default="min-max",
+        choices=list(SCALERS.keys()),
+        help="Normalization method",
+    )
+    parser.add_argument(
+        "-c", "--columns", default=None, help="Comma-separated columns to normalize"
+    )
     args = parser.parse_args()
 
     df = pd.read_parquet(args.input)

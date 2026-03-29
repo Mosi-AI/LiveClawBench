@@ -1,4 +1,5 @@
 """Multi-Format Exporter - Export data to CSV, JSON, Parquet, and Excel formats."""
+
 import argparse
 import os
 import pandas as pd
@@ -27,11 +28,21 @@ def export_to_format(df, output_path, fmt=None, **kwargs):
 def main():
     parser = argparse.ArgumentParser(description="Export data to multiple formats")
     parser.add_argument("-i", "--input", required=True, help="Input parquet file")
-    parser.add_argument("-o", "--output", required=True,
-                        help="Output path (base name without extension for multi-format)")
-    parser.add_argument("-f", "--formats", default="csv",
-                        help="Comma-separated formats: csv,json,parquet,xlsx")
-    parser.add_argument("--columns", default=None, help="Comma-separated columns to export")
+    parser.add_argument(
+        "-o",
+        "--output",
+        required=True,
+        help="Output path (base name without extension for multi-format)",
+    )
+    parser.add_argument(
+        "-f",
+        "--formats",
+        default="csv",
+        help="Comma-separated formats: csv,json,parquet,xlsx",
+    )
+    parser.add_argument(
+        "--columns", default=None, help="Comma-separated columns to export"
+    )
     args = parser.parse_args()
 
     df = pd.read_parquet(args.input)
@@ -46,7 +57,14 @@ def main():
     base = args.output
 
     # Map format names to extensions
-    ext_map = {"csv": ".csv", "json": ".json", "parquet": ".parquet", "pq": ".parquet", "xlsx": ".xlsx", "excel": ".xlsx"}
+    ext_map = {
+        "csv": ".csv",
+        "json": ".json",
+        "parquet": ".parquet",
+        "pq": ".parquet",
+        "xlsx": ".xlsx",
+        "excel": ".xlsx",
+    }
 
     print(f"Exporting to {len(formats)} format(s):")
     for fmt in formats:

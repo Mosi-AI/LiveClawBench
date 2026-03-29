@@ -37,13 +37,18 @@ def parse_csv(input_path: str, delimiter: str = ",", encoding: str = "utf-8") ->
 def main():
     parser = argparse.ArgumentParser(description="Parse CSV files into JSON records")
     parser.add_argument("-i", "--input", required=True, help="Input CSV file path")
-    parser.add_argument("-d", "--delimiter", default=",", help="Column delimiter (default: ,)")
+    parser.add_argument(
+        "-d", "--delimiter", default=",", help="Column delimiter (default: ,)"
+    )
     parser.add_argument("-e", "--encoding", default="utf-8", help="File encoding")
     parser.add_argument("-o", "--output", required=True, help="Output directory")
     args = parser.parse_args()
 
     if args.delimiter not in (",", "\t"):
-        print(f"Error: unsupported delimiter '{args.delimiter}'. Use ',' or '\\t'.", file=sys.stderr)
+        print(
+            f"Error: unsupported delimiter '{args.delimiter}'. Use ',' or '\\t'.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     records = parse_csv(args.input, args.delimiter, args.encoding)

@@ -47,8 +47,9 @@ def write_csv(stats: dict, output_dir: str):
 def main():
     parser = argparse.ArgumentParser(description="Write final formatted report")
     parser.add_argument("-i", "--input", required=True, help="Input stats_report.json")
-    parser.add_argument("-f", "--format", default="json", choices=["csv", "json"],
-                        help="Output format")
+    parser.add_argument(
+        "-f", "--format", default="json", choices=["csv", "json"], help="Output format"
+    )
     parser.add_argument("-o", "--output", required=True, help="Output directory")
     args = parser.parse_args()
 

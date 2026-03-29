@@ -7,6 +7,15 @@ __pycache__/
 # Harbor evaluation run artifacts (logs, trajectories, scores)
 jobs/*
 !jobs/.gitkeep
+logs/
+
+# Local run scripts (not tracked)
+run_*.sh
+
+# SSH keys — never commit (root-only to avoid matching id_mapping.csv etc.)
+/*.pem
+/id_*
+/id_*.pub
 
 # Node.js dependencies
 **/node_modules/

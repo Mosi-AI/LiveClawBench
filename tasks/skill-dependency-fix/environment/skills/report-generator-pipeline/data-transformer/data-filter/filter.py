@@ -5,12 +5,11 @@ import argparse
 import json
 import os
 import re
-import sys
 
 
 def parse_expr(expr: str):
     """Parse 'column>=value' into (column, operator, value)."""
-    match = re.match(r'^(\w+)\s*(>=|<=|!=|==|>|<)\s*(.+)$', expr)
+    match = re.match(r"^(\w+)\s*(>=|<=|!=|==|>|<)\s*(.+)$", expr)
     if not match:
         raise ValueError(f"Invalid filter expression: {expr}")
     col, op, val = match.groups()
@@ -54,7 +53,9 @@ def filter_records(records: list, expr: str) -> list:
 def main():
     parser = argparse.ArgumentParser(description="Filter rows by expression")
     parser.add_argument("-i", "--input", required=True, help="Input JSON records file")
-    parser.add_argument("--expr", required=True, help="Filter expression, e.g. revenue>500")
+    parser.add_argument(
+        "--expr", required=True, help="Filter expression, e.g. revenue>500"
+    )
     parser.add_argument("-o", "--output", required=True, help="Output directory")
     args = parser.parse_args()
 

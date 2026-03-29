@@ -1,4 +1,5 @@
 """Feature Calculator - Calculate revenue, margin, time features, moving averages."""
+
 import argparse
 import pandas as pd
 
@@ -15,8 +16,12 @@ def add_margin_features(df, revenue_col="revenue", cost_col="cost"):
     """Calculate profit margin features."""
     if revenue_col in df.columns and cost_col in df.columns:
         df["profit"] = df[revenue_col] - df[cost_col]
-        df["margin_pct"] = (df["profit"] / df[revenue_col]).replace([float("inf"), -float("inf")], 0).fillna(0)
-        print(f"  Added 'profit' and 'margin_pct'")
+        df["margin_pct"] = (
+            (df["profit"] / df[revenue_col])
+            .replace([float("inf"), -float("inf")], 0)
+            .fillna(0)
+        )
+        print("  Added 'profit' and 'margin_pct'")
     return df
 
 
@@ -30,7 +35,9 @@ def add_time_features(df, date_col="date"):
     df["day_of_week"] = dt.dt.dayofweek
     df["quarter"] = dt.dt.quarter
     df["is_weekend"] = dt.dt.dayofweek.isin([5, 6]).astype(int)
-    print(f"  Added time features from '{date_col}': year, month, day_of_week, quarter, is_weekend")
+    print(
+        f"  Added time features from '{date_col}': year, month, day_of_week, quarter, is_weekend"
+    )
     return df
 
 
@@ -57,7 +64,9 @@ def main():
     parser.add_argument("--cost-col", default="cost", help="Cost column name")
     parser.add_argument("--date-col", default="date", help="Date column name")
     parser.add_argument("--ma-col", default=None, help="Column for moving averages")
-    parser.add_argument("--ma-windows", default="7,30", help="Comma-separated window sizes")
+    parser.add_argument(
+        "--ma-windows", default="7,30", help="Comma-separated window sizes"
+    )
     args = parser.parse_args()
 
     df = pd.read_parquet(args.input)
