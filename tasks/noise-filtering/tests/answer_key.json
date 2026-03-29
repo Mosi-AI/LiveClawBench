@@ -1,17 +1,30 @@
 {
-  "task_id": "pkb_noise_filter_medium_001",
-  "topic_id": "speculative_decoding",
+  "reliable_source_ids": [
+    "source_01_paper",
+    "source_02_article",
+    "source_03_video",
+    "source_06_memo",
+    "source_07_benchmark_note"
+  ],
+  "rejected_source_ids": [
+    "source_04_blog",
+    "source_05_forum",
+    "source_08_thread",
+    "source_09_note"
+  ],
   "judge_focus": {
-    "noise_goal": "Judge whether the agent correctly separates reliable evidence from the misleading corpus items by content, not by file names or source ids. The misleading material overstates speculative decoding as beam-search-like, automatically faster once acceptance is high, or unconcerned with exact verification.",
+    "noise_goal": "Judge whether the durable workspace memory cleanly corrects the seed beliefs after the agent filtered the speculative-decoding corpus. Focus on whether the final reusable note keeps the careful claims and removes the louder but wrong shortcuts.",
     "memory_seed_beliefs": [
       "speculative decoding: maybe just a beam-search-style speedup trick",
       "high acceptance is enough to guarantee a win",
-      "unsure whether newer variants still need a separate draft model"
+      "unsure whether newer variants still need a separate draft model",
+      "might still be mixing careful sources with loud secondary takes"
     ],
     "memory_correction_expectations": [
       "Durable workspace memory should clarify that speculative decoding preserves the target-model distribution through verification and is not merely beam-search-style guessing.",
       "Durable workspace memory should clarify that acceptance rate alone is insufficient; draft cost and verification or systems bottlenecks still matter.",
-      "Durable workspace memory should clarify that newer self-speculative approaches mean a separate draft model is not always required."
+      "Durable workspace memory should clarify that newer self-speculative approaches mean a separate draft model is not always required.",
+      "Durable workspace memory should explicitly reject cache-only and verification-is-optional framings."
     ]
   }
 }

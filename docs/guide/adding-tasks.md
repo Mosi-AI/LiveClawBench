@@ -326,3 +326,30 @@ Always check `docs/metadata/cases_registry.csv` before choosing a `case_id`. The
 
 **Entrypoint is not required for static tasks**
 Only tasks that run background services (web servers, databases) need `startup.sh`, `entrypoint.sh`, `ENTRYPOINT`, and `CMD`. Static file tasks (skill-*, blog-site-*, vue-project-*) have none of these — the agent accesses `/workspace/environment/` directly. Adding unnecessary entrypoint boilerplate to a static task does not break anything but wastes build time and confuses readers.
+
+**Agent file path resolution: workspace-relative vs absolute (Pattern 4 tasks)**
+
+For Pattern 4 tasks (knowledge/research tasks running under `/home/node`), OpenClaw resolves the agent's workspace root as:
+
+```
+$HOME/.openclaw/workspace/         # default
+$HOME/.openclaw/workspace-${OPENCLAW_PROFILE}/   # if OPENCLAW_PROFILE is set
+```
+
+This means a bare path like `output/result.json` in `instruction.md` is interpreted by the agent as `$HOME/.openclaw/workspace/output/result.json`, **not** `$HOME/.openclaw/output/result.json`. These are different directories.
+
+**Task design decision:** two approaches are valid, pick one consistently:
+
+- **Option A — Verifier adapts**: keep `instruction.md` natural (e.g. `output/result.json`), and have the verifier (`deterministic_checks.py` / `llm_judge.py`) check both candidate paths:
+  ```python
+  candidates = [
+      Path.home() / ".openclaw/output/result.json",
+      Path.home() / ".openclaw/workspace/output/result.json",
+  ]
+  result_path = next((p for p in candidates if p.exists()), None)
+  ```
+  This is more user-friendly and forgiving — preferred for new tasks.
+
+- **Option B — Explicit path in instruction**: use the full absolute path in `instruction.md` (`/home/node/.openclaw/output/result.json`). Removes ambiguity but is verbose and leaks container internals into the task description.
+
+The existing PKB tasks currently use Option B. New tasks should prefer Option A — letting the verifier handle both locations so the instruction stays readable.

@@ -2,26 +2,66 @@
   "task_id": "pkb_hybrid_tool_memory_hard_001",
   "topic_id": "speculative_decoding",
   "db_path": "db/spec_decode_knowledge.db",
+  "required_local_source_ids": [
+    "source_01_note",
+    "source_02_video",
+    "source_03_ops"
+  ],
   "required_evidence_ids": [
     "browser:spec_exact_001",
     "browser:self_spec_002",
-    "browser:spec_speed_003"
+    "browser:spec_speed_003",
+    "browser:uad_004"
   ],
   "required_low_confidence_ids": [
     "browser:spec_noise_001",
     "browser:spec_noise_002"
   ],
-  "required_source_ids": [
-    "source_02_video",
-    "browser:spec_exact_001",
-    "browser:self_spec_002",
-    "browser:spec_speed_003"
-  ],
   "required_fact_values": {
     "exactness_guarantee": "exact_target_preserving_acceleration",
     "draft_requirement_status": "separate_draft_not_always_required",
+    "tokenizer_requirement_status": "cross_tokenizer_assistance_possible_with_alignment",
     "speedup_condition": "draft_cost_acceptance_and_system_fit",
     "fallback_reason": "verification_overhead_or_low_acceptance",
-    "self_spec_definition": "same_model_or_partial_model_drafts_then_verifies"
+    "self_spec_definition": "same_model_or_partial_model_drafts_then_verifies",
+    "deployment_regime": "best_for_latency_sensitive_memory_bound_serving"
+  },
+  "fact_concepts": {
+    "exactness_guarantee": ["exact", "target", "preserv", "verification", "lossless", "distribution"],
+    "draft_requirement_status": ["self-speculative", "not always", "same model", "partial", "layer skip", "self speculative"],
+    "tokenizer_requirement_status": ["cross", "tokenizer", "alignment", "different tokenizer", "universal"],
+    "speedup_condition": ["draft cost", "acceptance", "system fit", "overhead", "not enough"],
+    "fallback_reason": ["verification overhead", "low acceptance", "draft cost", "overhead", "disappear"],
+    "self_spec_definition": ["same model", "partial model", "layer", "draft", "verify", "self"],
+    "deployment_regime": ["latency", "memory-bound", "serving", "memory bound", "interactive"]
+  },
+  "required_fact_sources": {
+    "exactness_guarantee": ["source_01_note", "source_02_video", "browser:spec_exact_001"],
+    "draft_requirement_status": ["source_02_video", "browser:self_spec_002"],
+    "tokenizer_requirement_status": ["source_03_ops", "browser:uad_004"],
+    "speedup_condition": ["source_03_ops", "browser:spec_speed_003"],
+    "fallback_reason": ["source_03_ops", "browser:spec_speed_003"],
+    "self_spec_definition": ["browser:self_spec_002"],
+    "deployment_regime": ["source_03_ops", "browser:spec_speed_003"]
+  },
+  "required_db_columns": {
+    "sources": ["source_id", "title", "source_url", "reliability", "kind"],
+    "facts": ["fact_key", "fact_value", "source_ids", "confidence"],
+    "qa_answers": ["question_id", "answer", "evidence_fact_key"]
+  },
+  "judge_focus": {
+    "integration_goal": "Judge whether the agent successfully integrated evidence from local corpus files AND browser portal pages to build a coherent speculative-decoding reference. Focus on whether local and browser evidence are woven together, not just listed side by side.",
+    "memory_seed_context": [
+      "speculative decoding stays exact because the target model still checks drafted tokens before commitment",
+      "older operator assumption: a separate draft model is the standard setup, but unsure if later work made that optional",
+      "older operator assumption: same-tokenizer pairing is the normal assisted-decoding path, but unsure if still a hard requirement",
+      "open question: is high acceptance enough to predict a deployment win, or do draft cost and serving regime matter just as much"
+    ],
+    "note_quality_expectations": [
+      "Reference note should answer all 7 questions with specific evidence, not generic claims",
+      "Note should clearly distinguish what came from local corpus vs what was confirmed or discovered via browser portal",
+      "Note should be compact and reusable — not a dump of raw source text",
+      "Note should explicitly flag which browser pages were rejected as low-confidence and why"
+    ]
   }
 }

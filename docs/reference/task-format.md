@@ -128,6 +128,41 @@ LiveClawBench tasks use one of three evaluation patterns, each suited to differe
 
 All patterns ultimately write a scalar score to `/logs/verifier/reward.txt`. The `verify.py` pattern is recommended for new tasks (see [Adding Tasks](../guide/adding-tasks.md) for the full contract).
 
+### LLM-judge implementation contract
+
+Tasks using the LLM judge pattern must follow these conventions.
+
+**Credential variables** — passed via `--ee` at run time (not `--ae`; see [Running Tasks](../guide/running-tasks.md#ae-vs-ee-which-to-use) for the distinction):
+
+| Variable | Required | Default |
+|----------|----------|---------|
+| `JUDGE_BASE_URL` | Yes | — |
+| `JUDGE_API_KEY` | Yes | — |
+| `JUDGE_MODEL_ID` | No | `deepseek-v3.2` |
+
+`llm_judge.py` must raise `RuntimeError` immediately if `JUDGE_BASE_URL` or `JUDGE_API_KEY` is unset. No hardcoded fallback URLs or model names are permitted — silent fallbacks mask misconfiguration during evaluation.
+
+**Variable naming** — use the `JUDGE_*` prefix, uppercase, with no provider-specific prefix (not `OPENCLAW_ARK_API_KEY` or similar). This keeps the verifier interface provider-agnostic.
+
+**Output path** — `llm_judge.py` must write reward files directly to `/logs/verifier/`:
+
+```python
+import json, pathlib
+
+verifier_dir = pathlib.Path("/logs/verifier")
+verifier_dir.mkdir(parents=True, exist_ok=True)
+(verifier_dir / "reward.json").write_text(json.dumps(reward_json, indent=2))
+(verifier_dir / "reward.txt").write_text(str(final_score))
+```
+
+Do **not** write to `~/.openclaw/reward.*` and rely on `test.sh` to copy — that intermediate step is unnecessary and creates two inconsistent copies. `/logs/verifier/` is created by Harbor before `test.sh` runs (Stage 5), so `llm_judge.py` called from `test.sh` (Stage 6) can always write there directly.
+
+> **Note**: existing PKB tasks (noise-filtering, conflict-repair-acb, mixed-tool-memory, incremental-update-ctp, live-web-research-sqlite-fts5) still use the `~/.openclaw/reward.*` → `cp` pattern. They will be refactored in a future cleanup; new tasks must follow this spec.
+
+**HTTP client** — current implementations use `urllib.request` (zero external dependencies). A future improvement is to replace this with [LiteLLM](https://github.com/BerrtyCo/litellm), which provides a unified interface across OpenAI-compatible, Anthropic, Gemini, and other provider APIs. Priority: OpenAI-compatible endpoints first; other formats can be validated incrementally.
+
+<!-- TODO: replace urllib.request in llm_judge.py with litellm once LiteLLM is added to the base image (docker/base/Dockerfile). This removes the dual-endpoint fallback (chat/completions → responses) in favor of litellm's built-in provider routing. -->
+
 ---
 
 ### `reward.json` Structure

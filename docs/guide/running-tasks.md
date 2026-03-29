@@ -37,13 +37,25 @@ Run from the `LiveClawBench/` directory. Task paths are relative.
 | `-m <provider>/<model-id>` | Model to evaluate (see Model Names below) |
 | `-n <int>` | Number of trials per task (use `1` for single evaluation) |
 | `-o <dir>` | Output directory for job results (created if absent) |
-| `--ae KEY=VALUE` | Inject an env var into the agent container; repeatable |
+| `--ae KEY=VALUE` | Inject an env var into the **agent process** only (via `openclaw.json`); repeatable |
+| `--ee KEY=VALUE` | Inject an env var into the **environment container** (visible to all processes, including the verifier); repeatable |
 | `--timeout-multiplier <float>` | Scale all timeouts in `task.toml` (default `1.0`) |
 | `--debug` | Verbose logging; keeps container alive on failure for inspection |
 
+### `--ae` vs `--ee`: which to use
+
+Both flags inject environment variables into the Docker container, but they differ in scope:
+
+| Flag | How it's injected | Visible to |
+|------|-------------------|------------|
+| `--ae` | Harbor writes the value into `~/.openclaw/openclaw.json`; only the `openclaw` agent process reads it | OpenClaw agent process only |
+| `--ee` | Passed as `docker run -e KEY=VALUE`; set in the container's shell environment | All processes in the container — agent, `test.sh`, `verify.py`, `llm_judge.py` |
+
+**Rule of thumb:** Use `--ae` for the model's API key and base URL (what the agent calls). Use `--ee` for anything the verifier needs to read — in particular, LLM-judge credentials (see [LLM-judge tasks](#llm-judge-tasks) below).
+
 ## Passing API Keys
 
-API keys are injected into the container at runtime with `--ae`. They are never baked into the image.
+API keys are injected into the container at runtime with `--ae` or `--ee`. They are never baked into the image.
 
 ```bash
 # Single provider
@@ -174,6 +186,48 @@ harbor run --dataset liveclawbench@1.0 \
 ```
 
 `--n-concurrent` controls how many tasks run in parallel. Start low (2–4) to avoid resource exhaustion.
+
+## LLM-judge tasks
+
+Five tasks use an LLM-as-judge verifier (`llm_judge.py`) instead of pure rule-based scoring. These tasks require a **separate judge model API** that the verifier calls during the scoring phase — distinct from the model under evaluation.
+
+### Required environment variables
+
+The judge credentials must be passed via `--ee` (not `--ae`) because `llm_judge.py` runs inside the verifier phase as an independent process, not as part of the OpenClaw agent:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `JUDGE_BASE_URL` | OpenAI-compatible base URL for the judge model | *(none — required)* |
+| `JUDGE_MODEL_ID` | Model name to use for judging | `deepseek-v3.2` |
+| `JUDGE_API_KEY` | API key for the judge endpoint | *(none — required)* |
+
+`JUDGE_BASE_URL` and `JUDGE_API_KEY` are **mandatory**. `llm_judge.py` raises a `RuntimeError` immediately if either is missing — there are no hardcoded fallbacks.
+
+### Example
+
+```bash
+harbor run -p tasks/noise-filtering -a openclaw \
+  -m custom/<YOUR_MODEL_ID> \
+  -n 1 -o jobs \
+  --ae CUSTOM_BASE_URL="<YOUR_BASE_URL>" \
+  --ae CUSTOM_API_KEY="<YOUR_API_KEY>" \
+  --ee JUDGE_BASE_URL="<YOUR_BASE_URL>" \
+  --ee JUDGE_MODEL_ID="qwen3-235b-a22b-instruct-2507" \
+  --ee JUDGE_API_KEY="<YOUR_API_KEY>" \
+  --timeout-multiplier 2.0 --debug
+```
+
+The judge model can be the same endpoint as the agent model or a different one. Using a stronger, cheaper model for judging than for the agent under test is a common pattern.
+
+### Covered tasks
+
+| Task | Difficulty |
+|------|-----------|
+| `noise-filtering` | medium |
+| `incremental-update-ctp` | medium |
+| `conflict-repair-acb` | medium |
+| `mixed-tool-memory` | hard |
+| `live-web-research-sqlite-fts5` | hard |
 
 ## Hard Task Tips
 

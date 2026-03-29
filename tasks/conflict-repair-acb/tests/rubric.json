@@ -1,6 +1,8 @@
 {
-  "result_contract_valid": 0.15,
-  "repair_accuracy": 0.4,
-  "evidence_trace": 0.3,
-  "workspace_update": 0.15
+  "result_contract_valid": 0.05,
+  "repair_accuracy": 0.25,
+  "browser_trace": 0.10,
+  "workspace_update": 0.05,
+  "repair_reasoning": 0.25,
+  "memory_correction": 0.30
 }

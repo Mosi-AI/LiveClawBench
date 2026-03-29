@@ -1,1 +1,1 @@
-Read the local materials in `corpus/` about speculative decoding, filter out the noisy claims, and leave a corrected reusable memory note in `workspace/`.
+Review the speculative decoding materials in `corpus/` and your memory. Some sources are careful and well-supported; others oversimplify or make unsupported claims. Identify which sources are reliable and which are misleading. Update your workspace notes with your corrected understanding and write `~/.openclaw/output/result.json`.

@@ -9,10 +9,9 @@ ENV HOME=/home/node \
 WORKDIR /home/node/.openclaw
 
 USER root
-RUN mkdir -p /home/node/.openclaw/output /home/node/.openclaw/workspace/memory /home/node/.openclaw/tests /home/node/.openclaw/tools /home/node/.openclaw/solution \
+RUN mkdir -p /home/node/.openclaw/output /home/node/.openclaw/workspace/memory \
     && chown -R node:node /home/node
 
 COPY corpus/ /home/node/.openclaw/corpus/
 COPY workspace_seed/ /home/node/.openclaw/workspace/
-
-USER node
+RUN ln -sfn ../corpus /home/node/.openclaw/workspace/corpus

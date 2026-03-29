@@ -1,10 +1,32 @@
 <!-- source_id: source_03_article -->
 <html>
   <body>
-    <h1>Article</h1>
+    <h1>Speculative Decoding: A Public Explainer</h1>
     <p>
-      A public explainer says speculative decoding feels like autocomplete followed by verification.
-      It intentionally keeps the description light and does not go deep on deployment caveats.
+      Speculative decoding is often compared to autocomplete followed by
+      verification. A smaller model writes a quick draft, and then the full
+      model checks each token against its own distribution. If a token passes,
+      it stays; if not, the model resamples from the corrected distribution.
+    </p>
+    <p>
+      This explainer intentionally keeps the description high-level and does
+      not go deep on deployment caveats. In particular, it does not discuss
+      the conditions under which the speedup actually materializes in
+      production serving environments — those details require understanding
+      draft cost, memory bandwidth, and batch-size effects.
+    </p>
+    <p>
+      The key point for a general audience: speculative decoding does not
+      change what the model says, only how fast it says it. The verification
+      step is the mechanism that enforces this guarantee. Without verification,
+      you would just be running a smaller model, which is a different thing
+      entirely.
+    </p>
+    <p>
+      Recent research has also explored variants where the draft phase does not
+      require a completely separate model. These self-speculative approaches
+      reuse layers or sub-networks of the target model itself, reducing the
+      infrastructure overhead of maintaining two distinct models.
     </p>
   </body>
 </html>

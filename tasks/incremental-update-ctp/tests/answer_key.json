@@ -1,25 +1,35 @@
 {
-  "task_id": "pkb_incremental_update_medium_001",
-  "topic_id": "speculative_decoding",
-  "preserved_claim_ids": [
-    "exact_target_distribution_preserved",
-    "draft_propose_target_verify"
-  ],
-  "updated_claim_ids": [
-    "separate_draft_model_always_required",
-    "high_acceptance_alone_implies_speedup"
-  ],
-  "removed_claim_ids": [
-    "speculative_is_cache_only_shortcut"
-  ],
-  "replacement_claims": {
-    "separate_draft_model_always_required": "separate_draft_not_always_required",
-    "high_acceptance_alone_implies_speedup": "draft_cost_acceptance_and_system_fit"
-  },
   "evidence_source_ids": [
     "source_01_baseline",
     "source_02_update",
     "source_03_video",
     "source_04_prior_note"
-  ]
+  ],
+  "delta_concepts": {
+    "preserve": {
+      "exact_distribution": ["exact", "distribution", "lossless", "identical output", "same distribution"],
+      "draft_verify": ["draft", "verify", "propose", "verification", "target model", "checker", "rejection sampling"]
+    },
+    "update": {
+      "separate_draft": ["separate draft", "always require", "self-speculative", "layer skip", "not always", "same model", "medusa", "eagle", "auxiliary head"],
+      "acceptance_speedup": ["acceptance", "speedup", "draft cost", "system fit", "overhead", "insufficient", "not enough", "not sufficient", "wall-clock"]
+    },
+    "remove": {
+      "cache_shortcut": ["cache", "shortcut", "warmup", "cache-only", "reuse only", "cache trick"]
+    }
+  },
+  "judge_focus": {
+    "delta_goal": "Judge whether the agent correctly identified what to preserve, update, and remove from its prior speculative decoding knowledge, and whether the reasoning is grounded in corpus evidence.",
+    "prior_beliefs_to_correct": [
+      "always requires a separate draft model → self-speculative variants (EAGLE, Medusa, layer skipping) now exist",
+      "high acceptance rate implies speedup → draft cost and system fit also matter; acceptance alone is insufficient",
+      "speculative decoding is a cache-only shortcut → this framing is wrong and should be removed entirely"
+    ],
+    "note_quality_expectations": [
+      "Updated note should clearly distinguish what was preserved vs updated vs removed",
+      "Should reference specific evidence from the corpus sources, not just generic claims",
+      "Should explain WHY each prior belief was preserved, updated, or removed",
+      "Should not just copy-paste from sources but synthesize into a coherent updated understanding"
+    ]
+  }
 }

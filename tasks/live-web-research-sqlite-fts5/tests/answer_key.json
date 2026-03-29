@@ -11,5 +11,26 @@
     "paper_core_mechanism": "draft_propose_target_verify",
     "paper_venue": "pmlr_v202_icml_2023",
     "video_role": "public_explainer_for_speculative_decoding"
+  },
+  "fact_concepts": {
+    "paper_exactness": ["exact", "target", "preserv", "acceleration", "lossless", "distribution"],
+    "paper_core_mechanism": ["draft", "propose", "target", "verify", "verification"],
+    "paper_venue": ["pmlr", "icml", "2023", "proceedings", "v202"],
+    "video_role": ["explainer", "public", "speculative decoding", "educational"]
+  },
+  "judge_focus": {
+    "extraction_goal": "Judge whether the agent actually visited the pinned URLs, correctly identified the key facts, and did not merely copy from local corpus files.",
+    "extraction_expectations": [
+      "paper_exactness: agent should determine from the paper page that speculative decoding preserves the exact target distribution",
+      "paper_core_mechanism: agent should identify the draft-then-verify loop from the paper",
+      "paper_venue: agent should extract PMLR v202 / ICML 2023 from the page metadata",
+      "video_role: agent should classify the YouTube video as a public explainer, not primary research"
+    ],
+    "note_quality_expectations": [
+      "Reference note should be compact and reusable — not a raw dump of page content",
+      "Note should clearly distinguish paper (authoritative) from video (explainer)",
+      "Note should include the venue/volume so future lookups can cite it",
+      "Note should be useful to a future agent or human without re-visiting the URLs"
+    ]
   }
 }

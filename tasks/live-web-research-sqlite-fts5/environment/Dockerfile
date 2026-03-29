@@ -13,11 +13,11 @@ WORKDIR /home/node/.openclaw
 USER root
 RUN mkdir -p /home/node/.openclaw/output /home/node/.openclaw/workspace/memory \
              /home/node/.openclaw/workspace/state /home/node/.openclaw/workspace/db \
-             /home/node/.openclaw/tests /home/node/.openclaw/tools /home/node/.openclaw/solution \
+             /home/node/.openclaw/tools \
     && chown -R node:node /home/node
 
 COPY corpus/ /home/node/.openclaw/corpus/
 COPY tools/ /home/node/.openclaw/tools/
 COPY workspace_seed/ /home/node/.openclaw/workspace/
-
-USER node
+RUN ln -sfn ../corpus /home/node/.openclaw/workspace/corpus \
+    && ln -sfn ../tools /home/node/.openclaw/workspace/tools
