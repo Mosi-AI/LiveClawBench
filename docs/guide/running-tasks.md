@@ -219,7 +219,7 @@ harbor run -p tasks/noise-filtering -a openclaw \
 
 The judge model can be the same endpoint as the agent model or a different one. Using a stronger, cheaper model for judging than for the agent under test is a common pattern.
 
-### LLM-judge tasks
+### Covered tasks
 
 | Task | Difficulty |
 |------|-----------|

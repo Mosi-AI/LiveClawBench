@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+# NOTE: The utility functions in this file (call_judge, post_json, extract_chat_text,
+# extract_responses_text, parse_json_blob, etc.) are intentionally duplicated across all
+# five LLM-judge tasks. Harbor's per-task build context (environment/ dir only) prevents
+# cross-task file sharing without baking shared logic into the base image. If you edit
+# these helpers, apply the same change to the counterparts in:
+#   tasks/conflict-repair-acb/tests/llm_judge.py
+#   tasks/incremental-update-ctp/tests/llm_judge.py
+#   tasks/live-web-research-sqlite-fts5/tests/llm_judge.py
+#   tasks/mixed-tool-memory/tests/llm_judge.py
+#   tasks/noise-filtering/tests/llm_judge.py
 import json
 import os
 import urllib.error
