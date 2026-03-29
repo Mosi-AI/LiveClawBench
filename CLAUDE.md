@@ -259,6 +259,7 @@ factor annotation table and controlled pair definitions.
 - **A2 — Contaminated Initial State**: Environment starts in a broken/corrupt state
 - **B1 — Implicit Goal Resolution**: Goal is not explicit; agent must infer constraints
 - **B2 — Knowledge System Maintenance**: Task involves managing a persistent skill/knowledge repo
+- A3 / A4 / B3 / C1 / C2 — expansion roadmap; see [docs/roadmap/future_factors.md](docs/roadmap/future_factors.md)
 
 Each `task.toml` encodes which factors apply (`factor_a1 = 1`, etc.).
 

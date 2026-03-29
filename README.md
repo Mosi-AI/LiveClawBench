@@ -27,17 +27,19 @@ annotations, controlled pairs, deterministic mock environments, and outcome-driv
 ## Triple-Axis Complexity Framework
 
 Task difficulty is characterized along three orthogonal axes. The pilot benchmark covers
-A1, A2, B1, B2; axes A3, B3, C1, C2 are on the expansion roadmap.
+A1, A2, B1, B2; axes A3, A4, B3, C1, C2 are on the expansion roadmap.
 
 | Factor | Axis | Description | In Pilot |
 |--------|------|-------------|----------|
 | **A1** Cross-Service Dependency | Environment | Coordinate multiple services in a single workflow | ✓ 10 tasks |
 | **A2** Contaminated Initial State | Environment | Diagnose and repair corrupted environments before acting | ✓ 6 tasks |
 | A3 Temporal & Resource Constraints | Environment | Reason under deadlines or rate limits | — planned |
+| A4 Cross-Modal Interaction | Environment | Extract and integrate information across non-text modalities (images, PDFs, CAPTCHAs) | — planned |
 | **B1** Implicit Goal Resolution | Cognitive | Infer missing preconditions; seek clarification when ambiguous | ✓ 4 tasks |
 | **B2** Knowledge System Maintenance | Cognitive | Create, update, and repair persistent skill/knowledge artifacts | ✓ 11 tasks |
 | B3 Multi-Agent Delegation | Cognitive | Orchestrate specialized sub-agents and synthesize results | — planned |
-| C1–C2 Runtime Adaptability | Runtime | Handle dynamic perturbations and non-deterministic outcomes | — planned |
+| C1 Environmental State Invalidation | Runtime | Replan when mid-execution environment changes invalidate established assumptions | — planned |
+| C2 Outcome Verification under Altered State | Runtime | Actively verify task success when no simple pass/fail signal is available | — planned |
 
 **Controlled pairs** allow direct factor attribution: each pair shares the same core logic
 but differs in exactly one complexity factor, enabling causal analysis of agent degradation.
@@ -123,12 +125,13 @@ Expand from 7 to 15+ domains:
 
 ### Fuller Complexity Coverage
 
-Axes A3, B3, C1–C2 are not yet in the pilot:
+Axes A3, A4, B3, C1–C2 are not yet in the pilot:
 
 - [ ] A3: Temporal & Resource Constraints (deadline reasoning, rate-limit handling)
+- [ ] A4: Cross-Modal Interaction (images, PDFs, CAPTCHAs — requires vision-capable model)
 - [ ] B3: Multi-Agent Delegation (orchestrator/sub-agent patterns)
-- [ ] C1: Dynamic Feedback Handling (mid-task environment perturbation)
-- [ ] C2: Non-deterministic Outcome Verification (probabilistic success criteria)
+- [ ] C1: Environmental State Invalidation (mid-execution environment changes invalidate agent assumptions)
+- [ ] C2: Outcome Verification under Altered State (active verification without simple pass/fail signal)
 
 ### Stronger Diagnostics
 
