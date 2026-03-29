@@ -19,6 +19,15 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 The agent under evaluation is **OpenClaw**. Harbor orchestrates Docker containers, launches the
 OpenClaw agent inside each container, and verifies the result. LiveClawBench provides the tasks.
 
+## Local Worktrees
+
+When creating additional Git worktrees for agent-driven branch work, place them under
+`./.worktrees/<branch-name>` at the repository root.
+
+- Do not create worktrees under `./.claude/`
+- Keep `./.claude/` for Claude-specific local settings/session data only
+- Treat `./.worktrees/` as disposable local workspace state and keep it untracked
+
 ## Setup
 
 ### Quick Setup (recommended)

@@ -11,5 +11,8 @@ jobs/*
 # Node.js dependencies
 **/node_modules/
 
+# Local Git worktrees used by code agents
+.worktrees/
+
 # Claude Code worktrees and session data
 .claude/

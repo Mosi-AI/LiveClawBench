@@ -4,6 +4,7 @@ line-length = 88
 
 exclude = [
     ".venv",
+    ".worktrees",
     ".claude",
     # Task fixture files: intentionally varied/broken content for agent tasks
     "tasks/skill-dependency-fix/environment/skills",
