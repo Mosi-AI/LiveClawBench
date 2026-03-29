@@ -5,8 +5,8 @@ mkdir -p /logs/verifier
 cd /workspace
 python3 /tests/verify.py 2>&1 | tee /tmp/verify_output.txt || true
 
-# Extract score from "Total: X.XX" pattern (normalized 0-1)
-SCORE=$(grep -oP 'Total:\s*\K[0-9.]+' /tmp/verify_output.txt | tail -1 || echo "0")
+# Extract score from "Score: X.X/1.0" pattern
+SCORE=$(grep -oP 'Score:\s*\K[0-9.]+(?=/1\.0)' /tmp/verify_output.txt | tail -1 || echo "0")
 echo "$SCORE" > /logs/verifier/reward.txt
 
 # DEBUG: extract server running logs
