@@ -62,7 +62,7 @@ harbor run -p tasks/watch-shop -a openclaw -m custom/<YOUR_MODEL_ID> \
   --ae CUSTOM_API_KEY="<YOUR_API_KEY>"
 ```
 
-See [docs/guide/getting-started.md](docs/guide/getting-started.md) for full setup details.
+See [docs/en/guide/getting-started.md](docs/en/guide/getting-started.md) for full setup details.
 
 ## Documentation
 
@@ -70,11 +70,11 @@ See [docs/guide/getting-started.md](docs/guide/getting-started.md) for full setu
 
 | Guide | Description |
 |-------|-------------|
-| [Getting Started](docs/guide/getting-started.md) | Prerequisites, setup, first run |
-| [Running Tasks](docs/guide/running-tasks.md) | Harbor CLI flags, results, full dataset runs |
-| [Adding Tasks](docs/guide/adding-tasks.md) | Task format, scoring contract, submission |
-| [Complexity Framework](docs/reference/complexity-framework.md) | Factor definitions, 30-case annotation table |
-| [Task Format](docs/reference/task-format.md) | task.toml fields, evaluation rubric |
+| [Getting Started](docs/en/guide/getting-started.md) | Prerequisites, setup, first run |
+| [Running Tasks](docs/en/guide/running-tasks.md) | Harbor CLI flags, results, full dataset runs |
+| [Adding Tasks](docs/en/guide/adding-tasks.md) | Task format, scoring contract, submission |
+| [Complexity Framework](docs/en/reference/complexity-framework.md) | Factor definitions, 30-case annotation table |
+| [Task Format](docs/en/reference/task-format.md) | task.toml fields, evaluation rubric |
 
 ## Tasks (30 pilot)
 
@@ -144,8 +144,8 @@ Axes A3, A4, B3, C1–C2 are not yet in the pilot:
 We welcome contributions of new tasks, new domains, and new complexity dimensions.
 Every new task expands the frontier of what we can measure about LLM agent capability.
 
-- Browse the [Complexity Framework](docs/reference/complexity-framework.md) to find underrepresented areas
-- Follow [Adding Tasks](docs/guide/adding-tasks.md) to build and validate your task
+- Browse the [Complexity Framework](docs/en/reference/complexity-framework.md) to find underrepresented areas
+- Follow [Adding Tasks](docs/en/guide/adding-tasks.md) to build and validate your task
 - Open a pull request — all contributions go through the same scoring-contract review
 
 **Join us in building the most comprehensive evaluation of real-world LLM assistant capability.**

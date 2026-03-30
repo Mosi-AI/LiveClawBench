@@ -271,7 +271,7 @@ for task in tasks:
 | Harbor-level crash | `<trial>/result.json` → `exception_info` field |
 | Multiple `reward.txt` files per task | Use `jobs/<task-name>/` structure (per-task loop) or pick the latest by timestamp |
 
-See [`docs/reference/jobs-output.md`](../reference/jobs-output.md) for the full directory layout and field reference.
+See [Jobs Output](../reference/jobs-output.md) for the full directory layout and field reference.
 
 ## LLM-judge tasks
 

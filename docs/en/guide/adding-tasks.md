@@ -66,7 +66,7 @@ factor_a2 = 0   # A2: Contaminated Initial State — pre-existing noise the agen
 factor_b1 = 0   # B1: Implicit Goal Resolution — goal is underspecified; agent must infer intent
 factor_b2 = 0   # B2: Knowledge System Maintenance — agent must persist or update structured knowledge
 
-case_id = 99    # Unique integer across all tasks (check docs/metadata/cases_registry.csv)
+case_id = 99    # Unique integer across all tasks (check ../../metadata/cases_registry.csv)
 
 [verifier]
 timeout_sec = 900.0    # Max time for verify.py to run after the agent finishes
@@ -309,9 +309,9 @@ All 29 existing tasks must continue to pass.
 
 1. Create `tasks/<task-name>/` with all required files
 2. Set `allow_internet = true` in `task.toml` under `[environment]`
-3. Assign a unique `case_id` (check `docs/metadata/cases_registry.csv`)
+3. Assign a unique `case_id` (check `../../metadata/cases_registry.csv`)
 4. Add an entry to `registry.json`
-5. Add a row to `docs/metadata/cases_registry.csv`
+5. Add a row to `../../metadata/cases_registry.csv`
 6. Run `python scripts/validate_tasks.py` — all tasks must pass
 7. Fork the repo and create a branch: `task/<task-name>`
 8. Open a pull request with a brief description of the task
@@ -322,7 +322,7 @@ All 29 existing tasks must continue to pass.
 If your Dockerfile starts background services, add a `sleep` in the entrypoint before signaling readiness. The standard pattern is a 5-second sleep in `startup.sh` before the agent begins.
 
 **case_id conflicts**
-Always check `docs/metadata/cases_registry.csv` before choosing a `case_id`. The validator will catch duplicates, but resolving conflicts after the fact is disruptive.
+Always check `../../metadata/cases_registry.csv` before choosing a `case_id`. The validator will catch duplicates, but resolving conflicts after the fact is disruptive.
 
 **Entrypoint is not required for static tasks**
 Only tasks that run background services (web servers, databases) need `startup.sh`, `entrypoint.sh`, `ENTRYPOINT`, and `CMD`. Static file tasks (skill-*, blog-site-*, vue-project-*) have none of these — the agent accesses `/workspace/environment/` directly. Adding unnecessary entrypoint boilerplate to a static task does not break anything but wastes build time and confuses readers.
