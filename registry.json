@@ -2,13 +2,14 @@
   {
     "name": "liveclawbench",
     "version": "1.0",
-    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 29 pilot cases with 4 complexity factors (A1/A2/B1/B2) across 7 task domains.",
+    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 30 tasks with 4 complexity factors (A1/A2/B1/B2) across 7 task domains.",
     "tasks": [
       {"name": "skill-creation", "path": "tasks/skill-creation"},
       {"name": "skill-supplementation", "path": "tasks/skill-supplementation"},
       {"name": "skill-conflict-resolution", "path": "tasks/skill-conflict-resolution"},
       {"name": "skill-repository-curation", "path": "tasks/skill-repository-curation"},
       {"name": "skill-dependency-fix", "path": "tasks/skill-dependency-fix"},
+      {"name": "skill-combination", "path": "tasks/skill-combination"},
       {"name": "email-writing", "path": "tasks/email-writing"},
       {"name": "email-reply", "path": "tasks/email-reply"},
       {"name": "flight-booking", "path": "tasks/flight-booking"},
