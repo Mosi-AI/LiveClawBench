@@ -16,7 +16,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
 TASKS_DIR = REPO_ROOT / "tasks"
-FRAMEWORK_MD = REPO_ROOT / "docs" / "reference" / "complexity-framework.md"
+FRAMEWORK_MD = REPO_ROOT / "docs" / "en" / "reference" / "complexity-framework.md"
 REGISTRY_CSV = REPO_ROOT / "docs" / "metadata" / "cases_registry.csv"
 
 DIFFICULTY_MAP = {"E": "easy", "M": "medium", "H": "hard"}
