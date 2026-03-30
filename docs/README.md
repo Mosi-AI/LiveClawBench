@@ -9,7 +9,7 @@ Step-by-step operational documentation for running and contributing to the bench
 | Guide | Description |
 |-------|-------------|
 | [Getting Started](guide/getting-started.md) | Prerequisites, `setup.sh`, `.env` configuration, smoke test |
-| [Running Tasks](guide/running-tasks.md) | Harbor CLI flags, API key injection, results, full dataset runs |
+| [Running Tasks](guide/running-tasks.md) | Harbor CLI flags, API key injection, **`--dataset` with `--registry-path`**, per-task loop, results, metrics collection |
 | [Adding Tasks](guide/adding-tasks.md) | Task format, scoring contract, validation, submission checklist |
 
 ## Reference

@@ -140,19 +140,22 @@ After a run completes, Harbor writes output to the directory specified with `-o`
 
 ```
 jobs/
-└── <job-id>/
-    └── <trial-id>/
-        └── logs/
-            ├── verifier/
-            │   └── reward.txt        # Final score: 0.0, 0.5, or 1.0
-            └── agent/
-                └── openclaw.txt      # Full agent session log
+└── <job-id>/                          # timestamp, e.g. 2026-03-29__21-11-23
+    ├── config.json                    # job-level config snapshot
+    ├── result.json                    # aggregated reward distribution
+    └── <task-name>__<random>/         # one subdirectory per trial
+        ├── verifier/
+        │   ├── reward.txt             # scalar score (0.0–1.0)
+        │   └── test-stdout.txt        # verifier stdout/stderr
+        └── agent/
+            ├── openclaw.txt           # full agent session log
+            └── trajectory.json        # ATIF structured trajectory
 ```
 
 Check all scores at once:
 
 ```bash
-cat jobs/*/logs/verifier/reward.txt
+find jobs -name reward.txt | sort | xargs -I{} sh -c 'echo "{}: $(cat {})"'
 ```
 
 | Score | Meaning |
@@ -173,19 +176,102 @@ harbor run -p tasks/flight-seat-selection -a openclaw \
 
 ## Running the Full Dataset
 
-To evaluate against all 29 tasks defined in `registry.json`:
+LiveClawBench registers its 30 tasks as a dataset named `liveclawbench@1.0` in the local `registry.json`.
+
+### Option 1: Local registry (recommended for development)
 
 ```bash
 harbor run --dataset liveclawbench@1.0 \
+  --registry-path ./registry.json \
   -a openclaw \
   -m custom/<YOUR_MODEL_ID> \
   --n-concurrent 4 \
   -o jobs \
   --ae CUSTOM_BASE_URL="<YOUR_BASE_URL>" \
-  --ae CUSTOM_API_KEY="<YOUR_API_KEY>"
+  --ae CUSTOM_API_KEY="<YOUR_API_KEY>" \
+  --ee JUDGE_BASE_URL="<YOUR_JUDGE_BASE_URL>" \
+  --ee JUDGE_API_KEY="<YOUR_JUDGE_API_KEY>" \
+  --ee JUDGE_MODEL_ID="deepseek-v3.2"
 ```
 
-`--n-concurrent` controls how many tasks run in parallel. Start low (2–4) to avoid resource exhaustion.
+> **Why `--registry-path`?** Harbor's `--dataset` flag by default fetches the registry from `github.com/laude-institute/harbor`. Since `liveclawbench` is only registered in the local `registry.json`, you must pass `--registry-path ./registry.json` to tell Harbor where to find the dataset definition.
+
+### Option 2: Per-task loop (alternative, avoids timestamp collisions)
+
+For running tasks in parallel without relying on Harbor's `--n-concurrent`, use a script that assigns each task its own output directory:
+
+```bash
+# See scripts/run_runnability_check.sh for a complete example
+for task in tasks/*/; do
+  harbor run -p "$task" -a openclaw \
+    -m custom/kimi-k2.5 \
+    -n 1 -o "jobs/$(basename $task)" \
+    --ae CUSTOM_BASE_URL=... --ae CUSTOM_API_KEY=... &
+done
+wait
+```
+
+This avoids the timestamp collision issue entirely because each `harbor run` writes to a distinct `jobs/<task-name>/` directory.
+
+> **Tip:** When using the per-task loop approach, remember to also pass `--ee JUDGE_*` variables for the 5 LLM-judge tasks. See [LLM-judge tasks](#llm-judge-tasks) for the full list and explanation.
+
+### Option 3: Use the provided script
+
+```bash
+bash scripts/run_dataset.sh
+```
+
+This script wraps the `--dataset` command with the correct `--registry-path`, judge credentials, and sensible defaults (`--n-concurrent 4`, `--timeout-multiplier 2.0`).
+
+## Collecting Metrics
+
+After a run (single task or full dataset), scores are in `reward.txt` files nested inside `jobs/`.
+
+### Quick score summary
+
+```bash
+# Print path : score for every completed trial
+find jobs -name reward.txt | sort | xargs -I{} sh -c 'echo "{}: $(cat {})"'
+```
+
+### Structured summary table (Python)
+
+```python
+import glob, os
+
+tasks = sorted(d for d in os.listdir("tasks") if os.path.isdir(f"tasks/{d}"))
+print(f"{'Task':<45} {'Score':>6}  Status")
+print("-" * 60)
+for task in tasks:
+    # For per-task loop output: jobs/<task-name>/*/verifier/reward.txt
+    # For dataset run output: jobs/<timestamp>/<task-name>__/verifier/reward.txt
+    files = sorted(glob.glob(f"jobs/**/{task}__*/verifier/reward.txt"))
+    if not files:
+        files = sorted(glob.glob(f"jobs/{task}/**/verifier/reward.txt"))
+    if files:
+        score_str = open(files[-1]).read().strip()
+        try:
+            score = float(score_str)
+            status = "✅" if score >= 0.5 else "❌"
+        except ValueError:
+            status = "⚠️ parse error"
+            score_str = "?"
+    else:
+        score_str, status = "missing", "⚠️ no result"
+    print(f"{task:<45} {score_str:>6}  {status}")
+```
+
+### What to check when a score is missing or unexpected
+
+| Symptom | Where to look |
+|---------|---------------|
+| `reward.txt` absent | `verifier/test-stdout.txt` — did the verifier run? `trial.log` — agent timeout? |
+| Score is 0.0 | `verifier/test-stdout.txt` — which assertion failed |
+| Agent never started | `agent/command-0/return-code.txt`, `agent/command-1/return-code.txt` |
+| Harbor-level crash | `<trial>/result.json` → `exception_info` field |
+| Multiple `reward.txt` files per task | Use `jobs/<task-name>/` structure (per-task loop) or pick the latest by timestamp |
+
+See [`docs/reference/jobs-output.md`](../reference/jobs-output.md) for the full directory layout and field reference.
 
 ## LLM-judge tasks
 
@@ -234,3 +320,37 @@ The judge model can be the same endpoint as the agent model or a different one. 
 - Use `--timeout-multiplier 2.0` for `hard` difficulty tasks; some may need `3.0`
 - `--debug` keeps the container alive after failure for manual inspection
 - Check `/tmp/*.log` files inside a failed container for service startup errors
+
+## Known Issues
+
+### Timestamp collision when running tasks concurrently
+
+Harbor names each job directory after the UTC second the run starts
+(e.g. `jobs/2026-03-29__21-11-23`). When multiple `harbor run -p tasks/<X>` commands
+fire in the same second — for example from a parallel shell loop — some processes
+may find the directory already created by another task and fail with:
+
+```
+FileExistsError: Job directory jobs/<timestamp> already exists and
+cannot be resumed with a different config.
+```
+
+**Resolution:** use a different `-o` directory for the retry run:
+
+```bash
+harbor run -p tasks/<task> ... -o jobs_retry
+```
+
+Or, if you are re-running a single task and the existing directory is stale, delete it first:
+
+```bash
+# ⚠ Only if you don't mind losing the prior result
+rm -rf jobs/<conflicting-timestamp>
+harbor run -p tasks/<task> ... -o jobs
+```
+
+To avoid the collision entirely when scripting parallel runs, use one of these approaches:
+
+1. **Per-task output directories** (`-o "jobs/<task-name>"`) — used by `scripts/run_runnability_check.sh`
+2. **`--dataset` with `--registry-path`** — harbor manages job directories internally (`scripts/run_dataset.sh`)
+3. Serialize task start-up with a short delay between launches
