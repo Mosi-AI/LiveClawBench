@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runnability check: run all 30 tasks with kimi-k2.5 (custom provider)
 # Usage: bash scripts/run_runnability_check.sh
-set -uo pipefail
+set -euo pipefail
 cd "$(dirname "$0")/.."
 
 source .env
