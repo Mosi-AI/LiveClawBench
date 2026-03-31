@@ -23,7 +23,6 @@ REGISTRY_CSVS = [
 ]
 
 DIFFICULTY_MAP = {"E": "easy", "M": "medium", "H": "hard"}
-DIFFICULTY_MAP_REV = {v: k for k, v in DIFFICULTY_MAP.items()}
 
 
 def load_toml_annotations() -> dict[str, dict]:
@@ -147,12 +146,9 @@ def compare_sources(
                     f"toml={toml_ann.get(key)} vs framework={fw_ann.get(key)}"
                 )
 
-    # Check toml tasks against CSV (CSV may use snake_case names)
+    # Check toml tasks against CSV
     for task_name, toml_ann in toml_data.items():
-        csv_name = (
-            task_name.replace("-", "_") if task_name not in csv_data else task_name
-        )
-        csv_ann = csv_data.get(task_name) or csv_data.get(csv_name)
+        csv_ann = csv_data.get(task_name)
         if csv_ann is None:
             errors.append(f"[toml↔{label}] {task_name}: missing from {label}")
             continue
@@ -166,8 +162,7 @@ def compare_sources(
     # Check for framework entries not in toml (skip planned tasks)
     for case_name in framework_data:
         if case_name not in toml_data:
-            csv_name = case_name.replace("-", "_")
-            csv_entry = csv_data.get(case_name) or csv_data.get(csv_name)
+            csv_entry = csv_data.get(case_name)
             if csv_entry and csv_entry.get("status") == "planned":
                 continue
             errors.append(
