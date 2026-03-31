@@ -16,11 +16,13 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
 TASKS_DIR = REPO_ROOT / "tasks"
-FRAMEWORK_MD = REPO_ROOT / "docs" / "reference" / "complexity-framework.md"
-REGISTRY_CSV = REPO_ROOT / "docs" / "metadata" / "cases_registry.csv"
+FRAMEWORK_MD = REPO_ROOT / "docs" / "en" / "reference" / "complexity-framework.md"
+REGISTRY_CSVS = [
+    REPO_ROOT / "docs" / "metadata" / "cases_registry.csv",
+    REPO_ROOT / "docs" / "metadata" / "cases_registry_zh.csv",
+]
 
 DIFFICULTY_MAP = {"E": "easy", "M": "medium", "H": "hard"}
-DIFFICULTY_MAP_REV = {v: k for k, v in DIFFICULTY_MAP.items()}
 
 
 def load_toml_annotations() -> dict[str, dict]:
@@ -90,12 +92,12 @@ def load_framework_annotations() -> dict[str, dict]:
     return results
 
 
-def load_csv_annotations() -> dict[str, dict]:
-    """Parse annotations from cases_registry.csv."""
-    if not REGISTRY_CSV.exists():
+def load_csv_annotations(csv_path: Path) -> dict[str, dict]:
+    """Parse annotations from a cases_registry CSV file."""
+    if not csv_path.exists():
         return {}
     results = {}
-    with REGISTRY_CSV.open(newline="") as f:
+    with csv_path.open(newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
             case_name = row.get("Case name", "").strip()
@@ -121,6 +123,8 @@ def compare_sources(
     toml_data: dict[str, dict],
     framework_data: dict[str, dict],
     csv_data: dict[str, dict],
+    *,
+    label: str = "csv",
 ) -> list[str]:
     """Compare annotations across all three sources, return list of errors."""
     errors: list[str] = []
@@ -142,28 +146,23 @@ def compare_sources(
                     f"toml={toml_ann.get(key)} vs framework={fw_ann.get(key)}"
                 )
 
-    # Check toml tasks against CSV (CSV uses snake_case names)
+    # Check toml tasks against CSV
     for task_name, toml_ann in toml_data.items():
-        # CSV may use either hyphen or underscore naming
-        csv_name = (
-            task_name.replace("-", "_") if task_name not in csv_data else task_name
-        )
-        csv_ann = csv_data.get(task_name) or csv_data.get(csv_name)
+        csv_ann = csv_data.get(task_name)
         if csv_ann is None:
-            errors.append(f"[toml↔csv] {task_name}: missing from cases_registry.csv")
+            errors.append(f"[toml↔{label}] {task_name}: missing from {label}")
             continue
         for key in check_keys:
             if toml_ann.get(key) != csv_ann.get(key):
                 errors.append(
-                    f"[toml↔csv] {task_name}.{key}: "
-                    f"toml={toml_ann.get(key)} vs csv={csv_ann.get(key)}"
+                    f"[toml↔{label}] {task_name}.{key}: "
+                    f"toml={toml_ann.get(key)} vs {label}={csv_ann.get(key)}"
                 )
 
     # Check for framework entries not in toml (skip planned tasks)
     for case_name in framework_data:
         if case_name not in toml_data:
-            csv_name = case_name.replace("-", "_")
-            csv_entry = csv_data.get(case_name) or csv_data.get(csv_name)
+            csv_entry = csv_data.get(case_name)
             if csv_entry and csv_entry.get("status") == "planned":
                 continue
             errors.append(
@@ -206,7 +205,7 @@ def print_summary(toml_data: dict[str, dict]) -> None:
 
 
 def main() -> int:
-    print("Loading annotations from three sources...")
+    print("Loading annotations from multiple sources...")
 
     toml_data = load_toml_annotations()
     print(f"  task.toml: {len(toml_data)} tasks")
@@ -214,22 +213,25 @@ def main() -> int:
     framework_data = load_framework_annotations()
     print(f"  complexity-framework.md: {len(framework_data)} entries")
 
-    csv_data = load_csv_annotations()
-    print(f"  cases_registry.csv: {len(csv_data)} entries")
+    all_errors: list[str] = []
+    for csv_path in REGISTRY_CSVS:
+        label = csv_path.stem  # e.g. "cases_registry" or "cases_registry_zh"
+        csv_data = load_csv_annotations(csv_path)
+        print(f"  {csv_path.name}: {len(csv_data)} entries")
 
-    print("\nCross-validating...")
-    errors = compare_sources(toml_data, framework_data, csv_data)
+        errors = compare_sources(toml_data, framework_data, csv_data, label=label)
+        all_errors.extend(errors)
 
-    if errors:
-        print(f"\nFOUND {len(errors)} INCONSISTENCIES:\n")
-        for err in sorted(errors):
+    if all_errors:
+        print(f"\nFOUND {len(all_errors)} INCONSISTENCIES:\n")
+        for err in sorted(all_errors):
             print(f"  {err}")
     else:
-        print("\nAll annotations are consistent across all three sources.")
+        print("\nAll annotations are consistent across all sources.")
 
     print_summary(toml_data)
 
-    return 1 if errors else 0
+    return 1 if all_errors else 0
 
 
 if __name__ == "__main__":

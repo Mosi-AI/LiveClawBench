@@ -50,7 +50,7 @@ factor_a2 = 0   # A2: Contaminated Initial State
 factor_b1 = 0   # B1: Implicit Goal Resolution
 factor_b2 = 0   # B2: Knowledge System Maintenance
 
-case_id = 99    # Unique integer across all tasks (check docs/metadata/cases_registry.csv)
+case_id = 99    # Unique integer across all tasks (check ../../metadata/cases_registry.csv)
 
 [verifier]
 timeout_sec = 900.0
@@ -70,7 +70,7 @@ allow_internet = true   # required if the agent needs LLM API access
 
 | Field | Description |
 |-------|-------------|
-| `case_id` | Unique integer identifier; check `docs/metadata/cases_registry.csv` before assigning |
+| `case_id` | Unique integer identifier; check `../../metadata/cases_registry.csv` before assigning |
 | `domain` | Primary task domain (e.g., `E-commerce & Daily Svcs`) |
 | `domains_multi` | All domains the task touches, including primary |
 | `factor_a1` .. `factor_b2` | Complexity factor flags per the Triple-Axis Framework |
