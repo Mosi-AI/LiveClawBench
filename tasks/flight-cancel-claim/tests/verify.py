@@ -28,7 +28,6 @@ Email = (
     _email_app_mod.Email
 )  # AttributeError here is intentional: email-app must export Email
 
-
 def check():
     airline_app = create_app("development")
 
