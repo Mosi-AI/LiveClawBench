@@ -24,7 +24,9 @@ sys.modules["email_app_module"] = _email_app_mod
 _spec.loader.exec_module(_email_app_mod)
 
 email_flask_app = _email_app_mod.app
-Email = _email_app_mod.Email  # AttributeError here is intentional: email-app must export Email
+Email = (
+    _email_app_mod.Email
+)  # AttributeError here is intentional: email-app must export Email
 
 
 def check():
