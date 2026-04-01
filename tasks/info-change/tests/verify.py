@@ -9,7 +9,11 @@ user_path = "/tmp/mosi_shop_user.json"
 
 try:
     with open(user_path) as f:
-        users = json.load(f)
+        data = json.load(f)
+    # The shop-app writes a single user dict (not a list).
+    # Normalise to a list so the rest of the logic works either way.
+    users = data if isinstance(data, list) else [data]
+
     addr_ok = all(
         u.get("address") == "4278 Maple View Drive, Sacramento, CA 95814, USA"
         for u in users

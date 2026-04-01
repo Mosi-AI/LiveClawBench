@@ -290,6 +290,10 @@ def create_flights_with_seats(injector):
                 created_flights.append(flight)
                 flight_number += 1
 
+                # Temp Fix: Skip reserved range used by create_specific_data (GKD2001)
+                if flight_number == 2000:
+                    flight_number = 2100
+
     print(f"  Created {len(created_flights)} flights with seats")
     return created_flights
 

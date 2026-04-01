@@ -4,7 +4,6 @@
 import sys
 
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
-sys.path.insert(0, "/workspace/environment/email-app/backend")
 import json
 
 from app import create_app
@@ -56,10 +55,12 @@ def check():
 
         print("  ✓ Seat selection and check-in did not proceed (as expected)")
 
-    # TODO: check the agent's feedback in message
-    # export session's log
+
+    # check the agent's feedback in message
+
     SESSION_LOG_PATH = "/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"
     last_content = None
+
     with open(SESSION_LOG_PATH, "r") as file:
         # find the last response
 
@@ -73,8 +74,26 @@ def check():
             except json.JSONDecodeError:
                 continue
 
-            if data.get("role") == "assistant":
-                last_content = data.get("content")
+            if data.get("type") != "message":
+                continue
+
+            message = data.get("message", {})
+
+            if message.get("role") != "assistant":
+                continue
+
+            content = message.get("content")
+
+            if not isinstance(content, list):
+                continue
+
+            for item in content:
+                if (
+                    isinstance(item, dict)
+                    and item.get("type") == "text"
+                    and item.get("text")
+                ):
+                    last_content = item["text"]
 
         if "350" in last_content:
             print("  ✓ Found response containing upgrade fee '350'")
