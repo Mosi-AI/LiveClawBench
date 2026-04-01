@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Verify flight-cancel-claim task: check if claim email sent correctly"""
 
-import sys
 import importlib.util
+import sys
 
 # Import airline-app FIRST
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
@@ -10,7 +10,6 @@ from app import create_app
 from app.models.booking import Booking
 from app.models.flight import Flight
 from app.models.user import User
-
 
 # Load `email-app` using an explicit file path, naming it as a standalone module.
 
