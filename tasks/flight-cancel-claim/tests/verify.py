@@ -26,10 +26,6 @@ _spec.loader.exec_module(_email_app_mod)
 email_flask_app = _email_app_mod.app
 Email = _email_app_mod.Email if hasattr(_email_app_mod, "Email") else None
 
-if Email is None:
-    sys.path.insert(0, "/workspace/environment/email-app/backend")
-    from models import Email
-
 
 def check():
     airline_app = create_app("development")

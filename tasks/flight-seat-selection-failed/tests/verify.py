@@ -94,7 +94,7 @@ def check():
                 ):
                     last_content = item["text"]
 
-        if "350" in last_content:
+        if last_content and "350" in last_content:
             print("  ✓ Found response containing upgrade fee '350'")
             return 1.0
 
