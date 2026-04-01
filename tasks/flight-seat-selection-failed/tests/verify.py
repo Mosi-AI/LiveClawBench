@@ -55,7 +55,6 @@ def check():
 
         print("  ✓ Seat selection and check-in did not proceed (as expected)")
 
-
     # check the agent's feedback in message
 
     SESSION_LOG_PATH = "/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"

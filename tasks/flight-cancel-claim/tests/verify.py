@@ -17,8 +17,7 @@ from app.models.user import User
 sys.path.insert(0, "/workspace/environment/email-app/backend")
 
 _spec = importlib.util.spec_from_file_location(
-    "email_app_module",
-    "/workspace/environment/email-app/backend/app.py"
+    "email_app_module", "/workspace/environment/email-app/backend/app.py"
 )
 _email_app_mod = importlib.util.module_from_spec(_spec)
 sys.modules["email_app_module"] = _email_app_mod
@@ -30,7 +29,6 @@ Email = _email_app_mod.Email if hasattr(_email_app_mod, "Email") else None
 if Email is None:
     sys.path.insert(0, "/workspace/environment/email-app/backend")
     from models import Email
-
 
 
 def check():
