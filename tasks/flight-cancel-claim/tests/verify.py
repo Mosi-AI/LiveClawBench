@@ -3,6 +3,7 @@
 
 import importlib.util
 import sys
+import importlib.util
 
 # Import airline-app FIRST
 sys.path.insert(0, "/workspace/environment/airline-app/backend")
