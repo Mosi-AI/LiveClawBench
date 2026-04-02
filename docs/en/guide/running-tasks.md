@@ -169,6 +169,8 @@ harbor run -p tasks/<task> -a openclaw \
 
 When `CUSTOM_BASE_URL` is not set, `openrouter` and `moonshot` fall back to their default service endpoints (OpenRouter and Moonshot respectively).
 
+> **Model name format**: Use two-part names like `openrouter/<model-id>` (e.g., `openrouter/kimi-k2.5`). Three-part names like `openrouter/zai/glm-5` will not route correctly because Harbor splits on the last `/`, making the provider `openrouter/zai` instead of `openrouter`.
+
 ## Reading Results
 
 After a run completes, Harbor writes output to the directory specified with `-o`:

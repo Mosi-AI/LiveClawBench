@@ -52,7 +52,7 @@ for task_dir in tasks/*/; do
             --ae "CUSTOM_BASE_URL=$BASE_URL" \
             --ae "CUSTOM_API_KEY=$API_KEY" \
             --ae "CUSTOM_REASONING=true" \
-            --ak thinking=adaptive \
+            --ak thinking=medium \
             "${judge_flags[@]+"${judge_flags[@]}"}" \
             >"run_logs/${task}.log" 2>&1
         code=$?

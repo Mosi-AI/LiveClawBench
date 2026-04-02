@@ -18,7 +18,7 @@ source .env
   --ae "CUSTOM_BASE_URL=$OPENAI_BASE_URL" \
   --ae "CUSTOM_API_KEY=$OPENAI_API_KEY" \
   --ae "CUSTOM_REASONING=true" \
-  --ak thinking=adaptive \
+  --ak thinking=medium \
   --ee "JUDGE_BASE_URL=$OPENAI_BASE_URL" \
   --ee "JUDGE_API_KEY=$OPENAI_API_KEY" \
   --ee "JUDGE_MODEL_ID=deepseek-v3.2" \
