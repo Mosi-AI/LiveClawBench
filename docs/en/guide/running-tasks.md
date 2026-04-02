@@ -122,7 +122,9 @@ harbor run -p tasks/watch-shop -a openclaw \
   --ae CUSTOM_REASONING=true
 ```
 
-> **Auto-inference**: When `CUSTOM_REASONING=true`, Harbor automatically injects `--thinking adaptive` as the default if no explicit `--thinking` level is specified. To use a different intensity, pass `--thinking <level>` explicitly to override.
+> **Auto-inference**: When `CUSTOM_REASONING=true`, Harbor automatically injects `--thinking low` as the default if no explicit thinking level is specified. To use a different intensity, pass `--ak thinking=<level>` explicitly to override (valid levels: `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `adaptive`).
+>
+> **`--ak` vs `--ae`**: Use `--ak key=value` (agent kwarg) to set agent CLI flags such as `thinking`. Use `--ae KEY=VALUE` (agent env) to set environment variables passed to the container (e.g., API keys). Only `--ak` feeds into CLI flag generation; `--ae` values are injected into the container process environment.
 
 **Permanent registration:** If you want a named provider (e.g., `my-provider/model-id`) available without `--ae CUSTOM_BASE_URL`, add it to `harbor/src/harbor/agents/installed/openclaw.py` under `_PROVIDER_CONFIGS`:
 

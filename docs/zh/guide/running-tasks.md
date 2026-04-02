@@ -122,7 +122,9 @@ harbor run -p tasks/watch-shop -a openclaw \
   --ae CUSTOM_REASONING=true
 ```
 
-> **自动推断**：当 `CUSTOM_REASONING=true` 时，若未显式指定 `--thinking`，Harbor 会自动注入 `--thinking adaptive` 作为默认值。如需其他强度，显式传入 `--thinking <level>` 即可覆盖。
+> **自动推断**：当 `CUSTOM_REASONING=true` 时，若未显式指定 thinking 级别，Harbor 会自动注入 `--thinking low` 作为默认值。如需其他强度，通过 `--ak thinking=<level>` 显式覆盖（可选值：`off`、`minimal`、`low`、`medium`、`high`、`xhigh`、`adaptive`）。
+>
+> **`--ak` 与 `--ae` 的区别**：使用 `--ak key=value`（agent kwarg）设置 agent CLI 参数（如 `thinking`）。使用 `--ae KEY=VALUE`（agent env）设置传入容器的环境变量（如 API key）。只有 `--ak` 会参与 CLI 参数生成；`--ae` 值仅注入容器进程环境。
 
 **永久注册：** 如果希望使用命名服务商（如 `my-provider/model-id`）而无需每次传 `--ae CUSTOM_BASE_URL`，可在 `harbor/src/harbor/agents/installed/openclaw.py` 的 `_PROVIDER_CONFIGS` 中添加：
 
