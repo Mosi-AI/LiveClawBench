@@ -122,6 +122,8 @@ harbor run -p tasks/watch-shop -a openclaw \
   --ae CUSTOM_REASONING=true
 ```
 
+> **自动推断**：当 `CUSTOM_REASONING=true` 时，若未显式指定 `--thinking`，Harbor 会自动注入 `--thinking adaptive` 作为默认值。如需其他强度，显式传入 `--thinking <level>` 即可覆盖。
+
 **永久注册：** 如果希望使用命名服务商（如 `my-provider/model-id`）而无需每次传 `--ae CUSTOM_BASE_URL`，可在 `harbor/src/harbor/agents/installed/openclaw.py` 的 `_PROVIDER_CONFIGS` 中添加：
 
 ```python

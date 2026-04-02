@@ -122,6 +122,8 @@ harbor run -p tasks/watch-shop -a openclaw \
   --ae CUSTOM_REASONING=true
 ```
 
+> **Auto-inference**: When `CUSTOM_REASONING=true`, Harbor automatically injects `--thinking adaptive` as the default if no explicit `--thinking` level is specified. To use a different intensity, pass `--thinking <level>` explicitly to override.
+
 **Permanent registration:** If you want a named provider (e.g., `my-provider/model-id`) available without `--ae CUSTOM_BASE_URL`, add it to `harbor/src/harbor/agents/installed/openclaw.py` under `_PROVIDER_CONFIGS`:
 
 ```python
