@@ -122,7 +122,7 @@ harbor run -p tasks/watch-shop -a openclaw \
   --ae CUSTOM_REASONING=true
 ```
 
-> **Auto-inference**: When `CUSTOM_REASONING=true`, Harbor automatically injects `--thinking low` as the default if no explicit thinking level is specified. To use a different intensity, pass `--ak thinking=<level>` explicitly to override (valid levels: `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `adaptive`).
+> **Auto-inference**: When `CUSTOM_REASONING=true`, Harbor automatically injects `--thinking medium` as the default if no explicit thinking level is specified. To use a different intensity, pass `--ak thinking=<level>` explicitly to override (valid levels: `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `adaptive`).
 >
 > **`--ak` vs `--ae`**: Use `--ak key=value` (agent kwarg) to set agent CLI flags such as `thinking`. Use `--ae KEY=VALUE` (agent env) to set environment variables passed to the container (e.g., API keys). Only `--ak` feeds into CLI flag generation; `--ae` values are injected into the container process environment.
 
@@ -137,6 +137,37 @@ harbor run -p tasks/watch-shop -a openclaw \
 ```
 
 Then use `my-provider/model-id` as the `-m` value and pass `--ae MY_PROVIDER_API_KEY="your-key"`.
+
+### Provider Routing for Thinking/Reasoning
+
+Different LLM APIs use different request body fields to enable deep thinking. Harbor leverages OpenClaw's existing provider wrappers to inject the correct parameters — choose the provider name based on which API field your endpoint expects:
+
+| Scenario | Provider | Injected API parameter |
+|----------|----------|----------------------|
+| Model supports `reasoning.effort` | `-m openrouter/<model>` | `reasoning: { effort: "<level>" }` |
+| Model supports `thinking.type` | `-m moonshot/<model>` | `thinking: { type: "enabled" }` |
+| Anthropic native model | `-m anthropic/<model>` | Native thinking API |
+| Generic OpenAI-compatible | `-m custom/<model>` | No thinking parameter injection |
+
+All three (`openrouter`, `moonshot`, `custom`) use the same `CUSTOM_*` env vars for configuration:
+
+```bash
+# Example: VolcEngine endpoint that accepts reasoning.effort
+harbor run -p tasks/<task> -a openclaw \
+  -m openrouter/<model-id> -n 1 -o jobs \
+  --ae CUSTOM_BASE_URL="https://ark.cn-beijing.volces.com/api/v3" \
+  --ae CUSTOM_API_KEY="$VOLCANO_ENGINE_API_KEY" \
+  --ae CUSTOM_REASONING=true
+
+# Example: endpoint that accepts thinking.type
+harbor run -p tasks/<task> -a openclaw \
+  -m moonshot/<model-id> -n 1 -o jobs \
+  --ae CUSTOM_BASE_URL="https://api.example.com/v1" \
+  --ae CUSTOM_API_KEY="$API_KEY" \
+  --ae CUSTOM_REASONING=true
+```
+
+When `CUSTOM_BASE_URL` is not set, `openrouter` and `moonshot` fall back to their default service endpoints (OpenRouter and Moonshot respectively).
 
 ## Reading Results
 

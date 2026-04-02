@@ -122,7 +122,7 @@ harbor run -p tasks/watch-shop -a openclaw \
   --ae CUSTOM_REASONING=true
 ```
 
-> **自动推断**：当 `CUSTOM_REASONING=true` 时，若未显式指定 thinking 级别，Harbor 会自动注入 `--thinking low` 作为默认值。如需其他强度，通过 `--ak thinking=<level>` 显式覆盖（可选值：`off`、`minimal`、`low`、`medium`、`high`、`xhigh`、`adaptive`）。
+> **自动推断**：当 `CUSTOM_REASONING=true` 时，若未显式指定 thinking 级别，Harbor 会自动注入 `--thinking medium` 作为默认值。如需其他强度，通过 `--ak thinking=<level>` 显式覆盖（可选值：`off`、`minimal`、`low`、`medium`、`high`、`xhigh`、`adaptive`）。
 >
 > **`--ak` 与 `--ae` 的区别**：使用 `--ak key=value`（agent kwarg）设置 agent CLI 参数（如 `thinking`）。使用 `--ae KEY=VALUE`（agent env）设置传入容器的环境变量（如 API key）。只有 `--ak` 会参与 CLI 参数生成；`--ae` 值仅注入容器进程环境。
 
@@ -137,6 +137,37 @@ harbor run -p tasks/watch-shop -a openclaw \
 ```
 
 然后将 `my-provider/model-id` 作为 `-m` 参数，并通过 `--ae MY_PROVIDER_API_KEY="your-key"` 传入 key。
+
+### Provider 路由：Thinking/Reasoning 参数注入
+
+不同 LLM API 使用不同的请求体字段来启用深度思考。Harbor 利用 OpenClaw 已有的 provider wrapper 注入正确的参数——根据端点支持的 API 字段选择 provider 名称：
+
+| 场景 | Provider | 注入的 API 参数 |
+|------|----------|----------------|
+| 模型支持 `reasoning.effort` | `-m openrouter/<model>` | `reasoning: { effort: "<level>" }` |
+| 模型支持 `thinking.type` | `-m moonshot/<model>` | `thinking: { type: "enabled" }` |
+| Anthropic 原生模型 | `-m anthropic/<model>` | 原生 thinking API |
+| 通用 OpenAI-compatible | `-m custom/<model>` | 无 thinking 参数注入 |
+
+三种 provider（`openrouter`、`moonshot`、`custom`）共用相同的 `CUSTOM_*` 环境变量：
+
+```bash
+# 示例：支持 reasoning.effort 的火山引擎端点
+harbor run -p tasks/<task> -a openclaw \
+  -m openrouter/<model-id> -n 1 -o jobs \
+  --ae CUSTOM_BASE_URL="https://ark.cn-beijing.volces.com/api/v3" \
+  --ae CUSTOM_API_KEY="$VOLCANO_ENGINE_API_KEY" \
+  --ae CUSTOM_REASONING=true
+
+# 示例：支持 thinking.type 的端点
+harbor run -p tasks/<task> -a openclaw \
+  -m moonshot/<model-id> -n 1 -o jobs \
+  --ae CUSTOM_BASE_URL="https://api.example.com/v1" \
+  --ae CUSTOM_API_KEY="$API_KEY" \
+  --ae CUSTOM_REASONING=true
+```
+
+未设置 `CUSTOM_BASE_URL` 时，`openrouter` 和 `moonshot` 会回退到各自的默认服务端点（OpenRouter 和 Moonshot）。
 
 ## 查看结果
 
