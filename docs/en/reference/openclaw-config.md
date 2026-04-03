@@ -79,13 +79,20 @@ abstracts these behind `ThinkLevel` and injects the correct parameter at runtime
 
 ### API Endpoints
 
-| Provider   | Base URL                              | API Type                   | Env Var             | Model Format       |
+| Provider   | Base URL                              | API Type                   | Auth key env var    | Model Format       |
 |------------|---------------------------------------|----------------------------|---------------------|--------------------|
 | Anthropic  | `https://api.anthropic.com`           | `anthropic-messages`       | `ANTHROPIC_API_KEY` | `anthropic/<model>`|
 | OpenAI     | `https://api.openai.com/v1`           | `openai-completions` / `openai-responses` | `OPENAI_API_KEY` | `openai/<model>` |
-| OpenRouter | `https://openrouter.ai/api/v1`        | `openai-completions`       | `OPENROUTER_API_KEY`| `openrouter/<model>`|
-| Moonshot   | `https://api.moonshot.ai/v1`          | `openai-completions`       | `MOONSHOT_API_KEY`  | `moonshot/<model>` |
-| Custom     | User-defined                          | `openai-completions` (default) | `CUSTOM_API_KEY`| `custom/<model>`   |
+| OpenRouter | `https://openrouter.ai/api/v1`        | `openai-completions`       | `OPENROUTER_API_KEY` (default endpoint) / `CUSTOM_API_KEY` (custom endpoint) | `openrouter/<model>`|
+| Moonshot   | `https://api.moonshot.ai/v1`          | `openai-completions`       | `MOONSHOT_API_KEY` (default endpoint) / `CUSTOM_API_KEY` (custom endpoint) | `moonshot/<model>` |
+| Custom     | User-defined via `CUSTOM_BASE_URL`    | `openai-completions` (default) | `CUSTOM_API_KEY`| `custom/<model>`   |
+
+> **OpenRouter / Moonshot auth key note**: when `CUSTOM_BASE_URL` is set, harbor
+> writes `"apiKey": "${CUSTOM_API_KEY}"` into the provider entry — openclaw
+> substitutes `CUSTOM_API_KEY` from the `env` section at config load time. The
+> native `OPENROUTER_API_KEY` / `MOONSHOT_API_KEY` variables are only used by
+> openclaw's built-in auto-discovery path (i.e. when `CUSTOM_BASE_URL` is **not**
+> set).
 
 ### Base URL Customization Constraints
 
@@ -182,7 +189,9 @@ harbor run -a openclaw -m openai/gpt-5.4 \
   --ae OPENAI_API_KEY=sk-...
 ```
 
-### OpenRouter (with custom endpoint)
+### OpenRouter — default endpoint
+
+Uses `OPENROUTER_API_KEY` (openclaw auto-discovery, no `CUSTOM_BASE_URL`):
 
 ```bash
 harbor run -a openclaw -m openrouter/anthropic/claude-sonnet-4-5 \
@@ -190,7 +199,24 @@ harbor run -a openclaw -m openrouter/anthropic/claude-sonnet-4-5 \
   --ae OPENROUTER_API_KEY=sk-or-...
 ```
 
-### Moonshot
+### OpenRouter — custom endpoint
+
+When `CUSTOM_BASE_URL` is set, harbor builds an explicit provider entry with
+`apiKey: "${CUSTOM_API_KEY}"`. Use `CUSTOM_API_KEY` instead of `OPENROUTER_API_KEY`.
+The provider name `openrouter` is preserved so the `reasoning: { effort }` wrapper
+still applies:
+
+```bash
+harbor run -a openclaw -m openrouter/my-model \
+  --ak thinking=medium \
+  --ae CUSTOM_BASE_URL=https://my-openrouter-proxy.example.com/v1 \
+  --ae CUSTOM_API_KEY=sk-... \
+  --ae CUSTOM_REASONING=true
+```
+
+### Moonshot — default endpoint
+
+Uses `MOONSHOT_API_KEY` (openclaw auto-discovery, no `CUSTOM_BASE_URL`):
 
 ```bash
 harbor run -a openclaw -m moonshot/kimi-k2.5 \
@@ -198,7 +224,23 @@ harbor run -a openclaw -m moonshot/kimi-k2.5 \
   --ae MOONSHOT_API_KEY=...
 ```
 
+### Moonshot — custom endpoint
+
+When `CUSTOM_BASE_URL` is set, use `CUSTOM_API_KEY`. The provider name `moonshot`
+is preserved so the `thinking: { type }` wrapper still applies:
+
+```bash
+harbor run -a openclaw -m moonshot/kimi-k2.5 \
+  --ak thinking=medium \
+  --ae CUSTOM_BASE_URL=https://my-moonshot-proxy.example.com/v1 \
+  --ae CUSTOM_API_KEY=sk-... \
+  --ae CUSTOM_REASONING=true
+```
+
 ### Custom Provider (OpenAI-compatible endpoint)
+
+`CUSTOM_BASE_URL` is required. Uses OpenAI-compat passthrough — no thinking wrapper
+is applied by default:
 
 ```bash
 harbor run -a openclaw -m custom/deepseek-chat \

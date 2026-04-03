@@ -75,13 +75,18 @@ OpenClaw 通过统一的 `ThinkLevel` 抽象将不同 provider 的 API 参数映
 
 ### API 端点
 
-| Provider   | Base URL                              | API Type                   | 环境变量              | 模型格式            |
+| Provider   | Base URL                              | API Type                   | 认证密钥环境变量      | 模型格式            |
 |------------|---------------------------------------|----------------------------|-----------------------|---------------------|
 | Anthropic  | `https://api.anthropic.com`           | `anthropic-messages`       | `ANTHROPIC_API_KEY`   | `anthropic/<model>` |
 | OpenAI     | `https://api.openai.com/v1`           | `openai-completions` / `openai-responses` | `OPENAI_API_KEY` | `openai/<model>` |
-| OpenRouter | `https://openrouter.ai/api/v1`        | `openai-completions`       | `OPENROUTER_API_KEY`  | `openrouter/<model>`|
-| Moonshot   | `https://api.moonshot.ai/v1`          | `openai-completions`       | `MOONSHOT_API_KEY`    | `moonshot/<model>`  |
-| Custom     | 用户自定义                            | `openai-completions`（默认）| `CUSTOM_API_KEY`     | `custom/<model>`    |
+| OpenRouter | `https://openrouter.ai/api/v1`        | `openai-completions`       | `OPENROUTER_API_KEY`（默认端点）/ `CUSTOM_API_KEY`（自定义端点） | `openrouter/<model>`|
+| Moonshot   | `https://api.moonshot.ai/v1`          | `openai-completions`       | `MOONSHOT_API_KEY`（默认端点）/ `CUSTOM_API_KEY`（自定义端点） | `moonshot/<model>`  |
+| Custom     | 通过 `CUSTOM_BASE_URL` 指定           | `openai-completions`（默认）| `CUSTOM_API_KEY`     | `custom/<model>`    |
+
+> **OpenRouter / Moonshot 认证密钥说明**：设置了 `CUSTOM_BASE_URL` 时，harbor 将
+> `"apiKey": "${CUSTOM_API_KEY}"` 写入 provider entry，openclaw 在加载配置时从 `env`
+> 节替换 `CUSTOM_API_KEY` 的值。原生的 `OPENROUTER_API_KEY` / `MOONSHOT_API_KEY`
+> 仅在 openclaw 内置自动发现路径下生效（即**未设置** `CUSTOM_BASE_URL` 时）。
 
 ### Base URL 自定义约束
 
@@ -176,7 +181,9 @@ harbor run -a openclaw -m openai/gpt-5.4 \
   --ae OPENAI_API_KEY=sk-...
 ```
 
-### OpenRouter（自定义端点）
+### OpenRouter — 默认端点
+
+使用 `OPENROUTER_API_KEY`（openclaw 自动发现，不设置 `CUSTOM_BASE_URL`）：
 
 ```bash
 harbor run -a openclaw -m openrouter/anthropic/claude-sonnet-4-5 \
@@ -184,7 +191,23 @@ harbor run -a openclaw -m openrouter/anthropic/claude-sonnet-4-5 \
   --ae OPENROUTER_API_KEY=sk-or-...
 ```
 
-### Moonshot
+### OpenRouter — 自定义端点
+
+设置 `CUSTOM_BASE_URL` 后，harbor 构建显式 provider entry，`apiKey` 固定为
+`"${CUSTOM_API_KEY}"`，需传 `CUSTOM_API_KEY` 而非 `OPENROUTER_API_KEY`。
+provider name 保持 `openrouter`，`reasoning: { effort }` wrapper 照常生效：
+
+```bash
+harbor run -a openclaw -m openrouter/my-model \
+  --ak thinking=medium \
+  --ae CUSTOM_BASE_URL=https://my-openrouter-proxy.example.com/v1 \
+  --ae CUSTOM_API_KEY=sk-... \
+  --ae CUSTOM_REASONING=true
+```
+
+### Moonshot — 默认端点
+
+使用 `MOONSHOT_API_KEY`（openclaw 自动发现，不设置 `CUSTOM_BASE_URL`）：
 
 ```bash
 harbor run -a openclaw -m moonshot/kimi-k2.5 \
@@ -192,7 +215,22 @@ harbor run -a openclaw -m moonshot/kimi-k2.5 \
   --ae MOONSHOT_API_KEY=...
 ```
 
+### Moonshot — 自定义端点
+
+设置 `CUSTOM_BASE_URL` 后，需传 `CUSTOM_API_KEY`。provider name 保持 `moonshot`，
+`thinking: { type }` wrapper 照常生效：
+
+```bash
+harbor run -a openclaw -m moonshot/kimi-k2.5 \
+  --ak thinking=medium \
+  --ae CUSTOM_BASE_URL=https://my-moonshot-proxy.example.com/v1 \
+  --ae CUSTOM_API_KEY=sk-... \
+  --ae CUSTOM_REASONING=true
+```
+
 ### Custom Provider（OpenAI 兼容端点）
+
+`CUSTOM_BASE_URL` 必须设置。默认不应用任何 thinking wrapper，使用 OpenAI 兼容透传：
 
 ```bash
 harbor run -a openclaw -m custom/deepseek-chat \
