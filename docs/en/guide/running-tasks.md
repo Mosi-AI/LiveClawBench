@@ -82,6 +82,7 @@ Models are specified as `<provider>/<model-id>`:
 |--------|---------|
 | `volcengine-plan/<model-id>` | `volcengine-plan/kimi-k2.5` |
 | `volcengine/<model-id>` | `volcengine/deepseek-v3-250324` |
+| `moonshot/<model-id>` | `moonshot/kimi-k2.5` |
 | `anthropic/<model-id>` | `anthropic/claude-opus-4-6` |
 | `openai/<model-id>` | `openai/gpt-4o` |
 | `custom/<model-id>` | `custom/deepseek-chat` |
@@ -122,7 +123,13 @@ harbor run -p tasks/watch-shop -a openclaw \
   --ae CUSTOM_REASONING=true
 ```
 
-> **Auto-inference**: When `CUSTOM_REASONING=true`, Harbor automatically injects `--thinking medium` as the default if no explicit thinking level is specified. To use a different intensity, pass `--ak thinking=<level>` explicitly to override (valid levels: `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `adaptive`).
+> **Auto-inference**: Harbor automatically injects `--thinking` based on `CUSTOM_REASONING`:
+> - `CUSTOM_REASONING=true` → `--thinking medium` (balances depth and token cost)
+> - `CUSTOM_REASONING=false` → `--thinking off` (explicitly disables thinking)
+>
+> This makes `CUSTOM_REASONING` the single entry point for managing evaluation defaults. To use a different intensity, pass `--ak thinking=<level>` explicitly to override (valid levels: `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `adaptive`).
+>
+> **Priority chain**: `--ak thinking=X` (highest) > `CUSTOM_REASONING` auto-inject > OpenClaw internal default. Explicit `--ak` always wins.
 >
 > **`--ak` vs `--ae`**: Use `--ak key=value` (agent kwarg) to set agent CLI flags such as `thinking`. Use `--ae KEY=VALUE` (agent env) to set environment variables passed to the container (e.g., API keys). Only `--ak` feeds into CLI flag generation; `--ae` values are injected into the container process environment.
 
@@ -241,7 +248,7 @@ For running tasks in parallel without relying on Harbor's `--n-concurrent`, use 
 # See scripts/run_runnability_check.sh for a complete example
 for task in tasks/*/; do
   harbor run -p "$task" -a openclaw \
-    -m custom/kimi-k2.5 \
+    -m moonshot/kimi-k2.5 \
     -n 1 -o "jobs/$(basename $task)" \
     --ae CUSTOM_BASE_URL=... --ae CUSTOM_API_KEY=... &
 done

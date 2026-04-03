@@ -82,6 +82,7 @@ harbor run ... --ae VOLCANO_ENGINE_API_KEY="$VOLCANO_ENGINE_API_KEY"
 |------|------|
 | `volcengine-plan/<model-id>` | `volcengine-plan/kimi-k2.5` |
 | `volcengine/<model-id>` | `volcengine/deepseek-v3-250324` |
+| `moonshot/<model-id>` | `moonshot/kimi-k2.5` |
 | `anthropic/<model-id>` | `anthropic/claude-opus-4-6` |
 | `openai/<model-id>` | `openai/gpt-4o` |
 | `custom/<model-id>` | `custom/deepseek-chat` |
@@ -122,7 +123,13 @@ harbor run -p tasks/watch-shop -a openclaw \
   --ae CUSTOM_REASONING=true
 ```
 
-> **自动推断**：当 `CUSTOM_REASONING=true` 时，若未显式指定 thinking 级别，Harbor 会自动注入 `--thinking medium` 作为默认值。如需其他强度，通过 `--ak thinking=<level>` 显式覆盖（可选值：`off`、`minimal`、`low`、`medium`、`high`、`xhigh`、`adaptive`）。
+> **自动推断**：Harbor 根据 `CUSTOM_REASONING` 自动注入 `--thinking`：
+> - `CUSTOM_REASONING=true` → `--thinking medium`（平衡思考深度与 token 成本）
+> - `CUSTOM_REASONING=false` → `--thinking off`（显式关闭思考）
+>
+> 这使 `CUSTOM_REASONING` 成为统一管理评测默认值的单一入口。如需其他强度，通过 `--ak thinking=<level>` 显式覆盖（可选值：`off`、`minimal`、`low`、`medium`、`high`、`xhigh`、`adaptive`）。
+>
+> **优先级链**：`--ak thinking=X`（最高）> `CUSTOM_REASONING` 自动注入 > OpenClaw 内部默认值。显式 `--ak` 始终优先。
 >
 > **`--ak` 与 `--ae` 的区别**：使用 `--ak key=value`（agent kwarg）设置 agent CLI 参数（如 `thinking`）。使用 `--ae KEY=VALUE`（agent env）设置传入容器的环境变量（如 API key）。只有 `--ak` 会参与 CLI 参数生成；`--ae` 值仅注入容器进程环境。
 
@@ -241,7 +248,7 @@ harbor run --dataset liveclawbench@1.0 \
 # 完整示例参见 scripts/run_runnability_check.sh
 for task in tasks/*/; do
   harbor run -p "$task" -a openclaw \
-    -m custom/kimi-k2.5 \
+    -m moonshot/kimi-k2.5 \
     -n 1 -o "jobs/$(basename $task)" \
     --ae CUSTOM_BASE_URL=... --ae CUSTOM_API_KEY=... &
 done

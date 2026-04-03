@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runnability check: run all 30 tasks with kimi-k2.5 (custom provider)
+# Runnability check: run all 30 tasks with kimi-k2.5 (moonshot provider)
 # Usage: bash scripts/run_runnability_check.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -47,12 +47,11 @@ for task_dir in tasks/*/; do
     echo "[$(date '+%H:%M:%S')] START: $task"
     (
         .venv/bin/harbor run -p "tasks/$task" -a openclaw \
-            -m custom/kimi-k2.5 \
+            -m moonshot/kimi-k2.5 \
             -n 1 -o "jobs/${task}" \
             --ae "CUSTOM_BASE_URL=$BASE_URL" \
             --ae "CUSTOM_API_KEY=$API_KEY" \
             --ae "CUSTOM_REASONING=true" \
-            --ak thinking=medium \
             "${judge_flags[@]+"${judge_flags[@]}"}" \
             >"run_logs/${task}.log" 2>&1
         code=$?
