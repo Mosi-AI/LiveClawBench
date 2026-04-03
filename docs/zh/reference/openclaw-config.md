@@ -118,30 +118,35 @@ openclaw harbor adapter 接受以下命令行参数：
 | `timeout`   | `--timeout`    | 整数（秒）                                                        | `OPENCLAW_TIMEOUT`    |
 | `verbose`   | `--verbose`    | `on`, `off`                                                        | `OPENCLAW_VERBOSE`    |
 
-### Custom Provider 环境变量
+### `CUSTOM_*` 环境变量
 
-使用 `-m custom/<model-id>` 时，通过 `--ae` 设置以下环境变量：
+以下变量适用于 `custom`，也适用于设置了 `CUSTOM_BASE_URL` 的 `openrouter` /
+`moonshot`（三条代码路径的逻辑完全对称）。通过 `--ae` 传入：
 
-| 变量                     | 默认值               | 说明               |
-|--------------------------|----------------------|--------------------|
-| `CUSTOM_BASE_URL`        | *(必需)*             | API 端点 URL       |
-| `CUSTOM_API_KEY`         | *(必需)*             | 认证密钥           |
-| `CUSTOM_CONTEXT_WINDOW`  | `128000`             | 上下文窗口（tokens）|
-| `CUSTOM_MAX_TOKENS`      | `4096`               | 最大输出 tokens    |
-| `CUSTOM_REASONING`       | `false`              | 启用推理模式       |
-| `CUSTOM_API`             | `openai-completions` | API 类型           |
+| 变量                    | 默认值                                                        | 说明                                                  |
+|-------------------------|---------------------------------------------------------------|-------------------------------------------------------|
+| `CUSTOM_BASE_URL`       | *(`custom` 必需；`openrouter`/`moonshot` 可选)*               | API 端点 URL                                          |
+| `CUSTOM_API_KEY`        | *(设置了 `CUSTOM_BASE_URL` 时必需)*                           | 认证密钥                                              |
+| `CUSTOM_CONTEXT_WINDOW` | `128000`                                                      | 上下文窗口（tokens，写入 model 定义）                 |
+| `CUSTOM_MAX_TOKENS`     | `4096`                                                        | 最大输出 tokens（写入 model 定义）                    |
+| `CUSTOM_REASONING`      | `false`                                                       | **双重效果**：① 将 `reasoning: true/false` 写入 model 定义（告知 openclaw 该模型是否支持推理）；② 在未显式设置 thinking 档位时触发自动注入 `--thinking medium` |
+| `CUSTOM_API`            | `openai-completions`                                          | API 类型                                              |
 
 ### 自动注入 Thinking
 
-当 `CUSTOM_REASONING=true` 但未显式设置 thinking 档位时，harbor 自动注入
-`--thinking medium`，以平衡推理深度和 token 开销。
+当 `CUSTOM_REASONING=true` 时，harbor 检查 thinking 档位是否被显式配置。
+如果未配置，自动注入 `--thinking medium`。
 
-解析优先级：
+判断逻辑是 `"thinking" not in _resolved_flags`。`--ak thinking=<level>` 和
+`--ae OPENCLAW_THINKING=<level>`（通过 `env_fallback`）都会写入 `_resolved_flags`，
+因此两者均可阻止自动注入：
 
-1. `--ak thinking=<level>`（显式 CLI kwarg）
-2. `--ae OPENCLAW_THINKING=<level>`（agent 环境变量）
-3. 宿主环境 `OPENCLAW_THINKING`
-4. 自动注入 `--thinking medium`（仅在 `CUSTOM_REASONING=true` 时）
+| 配置方式                              | 实际使用的 thinking 档位            |
+|---------------------------------------|-------------------------------------|
+| `--ak thinking=<level>`               | `<level>`（显式，最高优先级）       |
+| `--ae OPENCLAW_THINKING=<level>`      | `<level>`（通过 env_fallback，效果等同 `--ak`）|
+| 两者均未设置 + `CUSTOM_REASONING=true` | `medium`（自动注入）                |
+| 两者均未设置 + `CUSTOM_REASONING=false`| `off` / provider 默认值            |
 
 ### Gateway Mode
 

@@ -123,31 +123,36 @@ The openclaw harbor adapter accepts these flags:
 | `timeout`   | `--timeout`    | integer (seconds)                                                  | `OPENCLAW_TIMEOUT`    |
 | `verbose`   | `--verbose`    | `on`, `off`                                                        | `OPENCLAW_VERBOSE`    |
 
-### Custom Provider Variables
+### `CUSTOM_*` Environment Variables
 
-When using `-m custom/<model-id>`, these environment variables control the
-configuration (set via `--ae`):
+These variables apply to `custom`, and also to `openrouter` / `moonshot` when
+`CUSTOM_BASE_URL` is set (all three code paths share identical logic). Set via
+`--ae`:
 
-| Variable                 | Default              | Description          |
-|--------------------------|----------------------|----------------------|
-| `CUSTOM_BASE_URL`        | *(required)*         | API endpoint URL     |
-| `CUSTOM_API_KEY`         | *(required)*         | Authentication key   |
-| `CUSTOM_CONTEXT_WINDOW`  | `128000`             | Context window (tokens) |
-| `CUSTOM_MAX_TOKENS`      | `4096`               | Max output tokens    |
-| `CUSTOM_REASONING`       | `false`              | Enable reasoning mode |
-| `CUSTOM_API`             | `openai-completions` | API type             |
+| Variable                | Default                                      | Description                                      |
+|-------------------------|----------------------------------------------|--------------------------------------------------|
+| `CUSTOM_BASE_URL`       | *(required for `custom`; optional for `openrouter`/`moonshot`)* | API endpoint URL |
+| `CUSTOM_API_KEY`        | *(required when `CUSTOM_BASE_URL` is set)*   | Authentication key                               |
+| `CUSTOM_CONTEXT_WINDOW` | `128000`                                     | Context window in tokens (written to model definition) |
+| `CUSTOM_MAX_TOKENS`     | `4096`                                       | Max output tokens (written to model definition)  |
+| `CUSTOM_REASONING`      | `false`                                      | **Two effects**: ① sets `reasoning: true/false` in the model definition (tells openclaw whether this model supports reasoning); ② triggers auto-injection of `--thinking medium` when no thinking level is explicitly set |
+| `CUSTOM_API`            | `openai-completions`                         | API type                                         |
 
 ### Auto-Thinking Injection
 
-When `CUSTOM_REASONING=true` is set but no explicit thinking level is provided,
-harbor auto-injects `--thinking medium` to balance reasoning depth and token cost.
+When `CUSTOM_REASONING=true` is set, harbor checks whether a thinking level was
+explicitly configured. If not, it auto-injects `--thinking medium`.
 
-Resolution order:
+The check is `"thinking" not in _resolved_flags`. Both `--ak thinking=<level>` and
+`--ae OPENCLAW_THINKING=<level>` (via `env_fallback`) write into `_resolved_flags`,
+so either one suppresses the auto-injection:
 
-1. `--ak thinking=<level>` (explicit CLI kwarg)
-2. `--ae OPENCLAW_THINKING=<level>` (agent env var)
-3. Host environment `OPENCLAW_THINKING`
-4. Auto-injected `--thinking medium` (only when `CUSTOM_REASONING=true`)
+| Configuration                      | Thinking level used            |
+|------------------------------------|--------------------------------|
+| `--ak thinking=<level>`            | `<level>` (explicit, highest priority) |
+| `--ae OPENCLAW_THINKING=<level>`   | `<level>` (via env_fallback, same effect as `--ak`) |
+| Neither set + `CUSTOM_REASONING=true` | `medium` (auto-injected)    |
+| Neither set + `CUSTOM_REASONING=false` | `off` / provider default  |
 
 ### Gateway Mode
 
