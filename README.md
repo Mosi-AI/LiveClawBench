@@ -57,7 +57,7 @@ docker build -t liveclawbench-base:latest docker/base/
 
 # Edit .env with your API key, then run a task:
 source .venv/bin/activate
-harbor run -p tasks/watch-shop -a openclaw -m custom/<YOUR_MODEL_ID> \
+harbor run -p tasks/watch-shop -a openclaw -m moonshot/<YOUR_MODEL_ID> \
   -n 1 -o jobs \
   --ae CUSTOM_BASE_URL="<YOUR_BASE_URL>" \
   --ae CUSTOM_API_KEY="<YOUR_API_KEY>"
@@ -67,12 +67,22 @@ To run all 30 tasks:
 
 ```bash
 harbor run --dataset liveclawbench@0.1.0 -a openclaw \
-  -m custom/<YOUR_MODEL_ID> --n-concurrent 4 -o jobs \
+  -m moonshot/<YOUR_MODEL_ID> --n-concurrent 4 -o jobs \
   --ae CUSTOM_BASE_URL="<YOUR_BASE_URL>" \
   --ae CUSTOM_API_KEY="<YOUR_API_KEY>" \
   --ee JUDGE_BASE_URL="<JUDGE_BASE_URL>" \
   --ee JUDGE_API_KEY="<JUDGE_API_KEY>"
 ```
+
+> **Model prefix selects the thinking API format:**
+> - `moonshot/<model>` — injects `thinking.type: enabled/disabled`
+> - `openrouter/<model>` — injects `reasoning.effort: <level>`
+> - `anthropic/<model>` — native Anthropic thinking API
+> - `openai/<model>` — native OpenAI API
+> - `custom/<model>` — no thinking parameter injection (any OpenAI-compatible endpoint)
+>
+> All prefixes except `anthropic` and `openai` accept `--ae CUSTOM_BASE_URL` / `--ae CUSTOM_API_KEY`.
+> See [Running Tasks → Provider Routing](docs/en/guide/running-tasks.md#provider-routing-for-thinkingreasoning) for details.
 
 See [docs/en/guide/getting-started.md](docs/en/guide/getting-started.md) for full setup details.
 
