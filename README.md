@@ -18,7 +18,7 @@ by introducing a **Triple-Axis Complexity Framework** derived from empirical ana
 production OpenClaw usage data, and building a pilot benchmark with explicit factor
 annotations, controlled pairs, deterministic mock environments, and outcome-driven evaluation.
 
-> **Status** (updated March 21, 2026): The 29 pilot tasks were manually constructed and validated by contributors.
+> **Status** (updated March 21, 2026): The 30 pilot tasks were manually constructed and validated by contributors.
 > Automated evaluation harness standardization is in progress — full automated testing support expected **week of March 24**.
 > Leaderboard, agent trajectories, and an updated preprint will follow **week of March 31**.
 
@@ -109,8 +109,8 @@ LiveClawBench is a living benchmark designed to evolve alongside the OpenClaw ec
 
 ### Infrastructure
 
-- [x] 29-task pilot benchmark with manual validation (March 2026)
-- [ ] Automated evaluation harness for all 29 tasks (week of March 24)
+- [x] 30-task pilot benchmark with manual validation (March 2026)
+- [ ] Automated evaluation harness for all 30 tasks (week of March 24)
 - [ ] Public leaderboard with agent trajectory viewer (week of March 31)
 - [ ] Community task submission pipeline
 

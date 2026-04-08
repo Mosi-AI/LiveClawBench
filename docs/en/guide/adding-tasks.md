@@ -92,7 +92,7 @@ All task Dockerfiles inherit from `liveclawbench-base:latest`, which pre-bakes t
 docker build -t liveclawbench-base:latest docker/base/
 ```
 
-There are four patterns in use across the 29 tasks — pick the one that matches your task type:
+There are four patterns in use across the 30 tasks — pick the one that matches your task type:
 
 ### Pattern 1: Static file drop (skill-\*, blog-site-\*, vue-project-\*)
 
@@ -303,7 +303,7 @@ The validator checks:
 - `case_id` is unique across all tasks
 - Stub warnings: short `instruction.md`, echo-only `test.sh`, missing `solve.sh`
 
-All 29 existing tasks must continue to pass.
+All 30 existing tasks must continue to pass.
 
 ## Submission Checklist
 

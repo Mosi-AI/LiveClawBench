@@ -1,7 +1,7 @@
 # LiveClawBench 复杂度框架
 
 本文档是 LiveClawBench 任务复杂度标注的唯一参考来源。
-涵盖因子定义、完整的 30 case 标注表（29 个已实现 + 1 个规划中）、
+涵盖因子定义、完整的 30 case 标注表（30 个已实现）、
 摘要统计、领域覆盖和控制对。
 
 ## 复杂度因子定义
@@ -19,7 +19,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 ## 1. 30 Case 因子标注表
 
-`✓` 表示该 case 包含对应因子。标记为 *(规划中)* 的 case 正在开发中。
+`✓` 表示该 case 包含对应因子。
 
 | case_id | Case 名称                         | 难度 | A1 | A2 | B1 | B2 | 主要领域                   |
 |--------:|-----------------------------------|:----:|:--:|:--:|:--:|:--:|----------------------------|
@@ -28,7 +28,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |       3 | skill-conflict-resolution         |  E   |    |    |    | ✓  | Documents & Knowledge      |
 |       4 | skill-repository-curation         |  M   |    |    |    | ✓  | Documents & Knowledge      |
 |       5 | skill-dependency-fix              |  E   |    |    |    | ✓  | Documents & Knowledge      |
-|      30 | skill-combination *(规划中)*      |  E   |    |    |    | ✓  | Documents & Knowledge      |
+|      30 | skill-combination                 |  E   |    |    |    | ✓  | Documents & Knowledge      |
 |       6 | email-writing                     |  E   |    |    |    |    | Communication & Email      |
 |       7 | email-reply                       |  E   |    |    |    |    | Communication & Email      |
 |       8 | flight-booking                    |  M   |    |    |    |    | E-commerce & Daily Svcs    |
@@ -65,7 +65,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 | B1   | 隐式目标解析             |    4 | 13.3%  | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application |
 | B2   | 知识系统维护             |   11 | 36.7%  | skill-creation, skill-dependency-fix, noise-filtering          |
 
-> 占比以 30 个 case 总数（29 个已实现 + 1 个规划中）为分母。
+> 占比以 30 个已实现 case 总数为分母。
 
 因子组合分布：
 
@@ -115,10 +115,10 @@ LiveClawBench 包含 5 个控制对，用于隔离单一因子对 agent 性能�
 |     5 | 技能创建 → 依赖修复             | skill-creation (M)                   | +B2（依赖链）               | skill-dependency-fix (E)                 |
 
 控制对设计说明：
-- **对 1–2** 验证 A1（跨服务依赖）：对 1 显示经验难度无变化（E→E），对 2 则显示大幅跳升（E→H），表明跨环境集成的影响因工作流复杂度而异
+- **对 1–2** 验证 A1（跨服务依赖）：对 2 证实 A1 提升难度（E→H）。对 1 在重新校准后已失去难度梯度（E→E）；**它已无法作为 A1 隔离实验**，应被视为基准 case 的鲁棒性复现，而非受控的 A1 探针。
 - **对 3** 验证 B1（隐式目标解析）：为选座添加约束失败处理将难度从 E 提升至 H，证实自主回退推理在经验上具有挑战性
-- **对 4** 是强度梯度：两个变体经验上均为 H —— 经验难度分级的粒度不足以区分故障链深度差异
-- **对 5** 是强度梯度：经验上变体 (E) 比基准 (M) 更简单，表明 agent 处理依赖链修复比开放式技能创建更得心应手
+- **对 4** 是强度梯度：两个变体经验上均为 H —— **它已无法作为 A2 隔离实验**，因为不存在可测量的难度梯度。当前经验难度分级的粒度不足以区分故障链深度差异。
+- **对 5** 是结果倒置的强度梯度：经验上变体 (E) 比基准 (M) 更简单 —— **它已无法作为 B2 隔离实验**。倒置结果表明 agent 处理依赖链修复比开放式技能创建更得心应手，但这不能单独归因于 B2 因子。
 
 ---
 
@@ -126,7 +126,7 @@ LiveClawBench 包含 5 个控制对，用于隔离单一因子对 agent 性能�
 
 | 难度 | 数量 | 占比   | Case 列表 |
 |:----:|-----:|-------:|-----------|
-| 简单 |   18 | 60.0%  | skill-conflict-resolution, skill-dependency-fix, skill-combination *(规划中)*, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory |
+| 简单 |   18 | 60.0%  | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory |
 | 中等 |    7 | 23.3%  | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5 |
 | 困难 |    5 | 16.7%  | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain |
 

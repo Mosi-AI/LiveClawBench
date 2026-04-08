@@ -92,7 +92,7 @@ allow_internet = true  # 所有 OpenClaw 任务必须设置（agent 需调用 LL
 docker build -t liveclawbench-base:latest docker/base/
 ```
 
-29 个现有任务使用四种模式——选择与您的任务类型匹配的：
+30 个现有任务使用四种模式——选择与您的任务类型匹配的：
 
 ### 模式 1：静态文件（skill-\*、blog-site-\*、vue-project-\*）
 
@@ -303,7 +303,7 @@ python scripts/validate_tasks.py
 - `case_id` 在所有任务中是否唯一
 - 存根警告：`instruction.md` 太短、`test.sh` 仅含 echo、`solve.sh` 缺失
 
-所有 29 个现有任务必须继续通过验证。
+所有 30 个现有任务必须继续通过验证。
 
 ## 提交清单
 
