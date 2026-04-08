@@ -220,12 +220,12 @@ harbor run -p tasks/flight-seat-selection -a openclaw \
 
 ## 运行完整数据集
 
-LiveClawBench 在本地 `registry.json` 中将 30 个任务注册为数据集 `liveclawbench@1.0`。
+LiveClawBench 在本地 `registry.json` 中将 30 个任务注册为数据集 `liveclawbench@0.1.0`。
 
 ### 方案一：本地 registry（推荐用于开发）
 
 ```bash
-harbor run --dataset liveclawbench@1.0 \
+harbor run --dataset liveclawbench@0.1.0 \
   --registry-path ./registry.json \
   -a openclaw \
   -m custom/<YOUR_MODEL_ID> \

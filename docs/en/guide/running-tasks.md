@@ -220,12 +220,12 @@ harbor run -p tasks/flight-seat-selection -a openclaw \
 
 ## Running the Full Dataset
 
-LiveClawBench registers its 30 tasks as a dataset named `liveclawbench@1.0` in the local `registry.json`.
+LiveClawBench registers its 30 tasks as a dataset named `liveclawbench@0.1.0` in the local `registry.json`.
 
 ### Option 1: Local registry (recommended for development)
 
 ```bash
-harbor run --dataset liveclawbench@1.0 \
+harbor run --dataset liveclawbench@0.1.0 \
   --registry-path ./registry.json \
   -a openclaw \
   -m custom/<YOUR_MODEL_ID> \

@@ -4,6 +4,7 @@
 set -euo pipefail
 
 HARBOR_REPO_URL="https://github.com/Mosi-AI/claw-harbor.git"
+HARBOR_VERSION="v0.1.0"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 VENV_DIR="$SCRIPT_DIR/.venv"
 
@@ -55,8 +56,8 @@ else
     echo "  Virtual environment .venv already exists — skipping creation."
 fi
 
-echo "  Installing harbor CLI from $HARBOR_REPO_URL ..."
-uv pip install --quiet --python "$VENV_DIR/bin/python" "harbor @ git+${HARBOR_REPO_URL}"
+echo "  Installing harbor CLI from $HARBOR_REPO_URL @ $HARBOR_VERSION ..."
+uv pip install --quiet --python "$VENV_DIR/bin/python" "harbor @ git+${HARBOR_REPO_URL}@${HARBOR_VERSION}"
 
 HARBOR_BIN="$VENV_DIR/bin/harbor"
 if [ ! -f "$HARBOR_BIN" ]; then

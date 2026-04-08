@@ -66,10 +66,12 @@ harbor run -p tasks/watch-shop -a openclaw -m custom/<YOUR_MODEL_ID> \
 To run all 30 tasks:
 
 ```bash
-harbor run --dataset liveclawbench@1.0 -a openclaw \
+harbor run --dataset liveclawbench@0.1.0 -a openclaw \
   -m custom/<YOUR_MODEL_ID> --n-concurrent 4 -o jobs \
   --ae CUSTOM_BASE_URL="<YOUR_BASE_URL>" \
-  --ae CUSTOM_API_KEY="<YOUR_API_KEY>"
+  --ae CUSTOM_API_KEY="<YOUR_API_KEY>" \
+  --ee JUDGE_BASE_URL="<JUDGE_BASE_URL>" \
+  --ee JUDGE_API_KEY="<JUDGE_API_KEY>"
 ```
 
 See [docs/en/guide/getting-started.md](docs/en/guide/getting-started.md) for full setup details.
@@ -102,6 +104,9 @@ See [docs/en/guide/getting-started.md](docs/en/guide/getting-started.md) for ful
 Complexity factors: A1 Cross-Service Dependency (10), A2 Contaminated State (6), B1 Implicit Goals (4), B2 Knowledge Maintenance (11).
 
 ## Leaderboard
+
+Scores are Avg@3: mean of 3 independent runs per task, averaged across 30 tasks, rescaled to [0, 100].
+Evaluated with claw-harbor `v0.1.0` and OpenClaw `2026.3.11`.
 
 | Model | Avg@3 (0–100) |
 |-------|---------------|

@@ -96,7 +96,7 @@ harbor run -p tasks/watch-shop -a openclaw \
 
 ```bash
 # Generic form (includes LLM judge credentials for the 5 judge tasks)
-harbor run --dataset liveclawbench@1.0 -a openclaw \
+harbor run --dataset liveclawbench@0.1.0 -a openclaw \
   -m custom/<YOUR_MODEL_ID> \
   --n-concurrent 4 \
   -o jobs \
@@ -106,7 +106,7 @@ harbor run --dataset liveclawbench@1.0 -a openclaw \
   --ee JUDGE_API_KEY="<JUDGE_API_KEY>"
 
 # Example: Anthropic
-harbor run --dataset liveclawbench@1.0 -a openclaw \
+harbor run --dataset liveclawbench@0.1.0 -a openclaw \
   -m anthropic/claude-opus-4-1 \
   --n-concurrent 4 \
   --ae ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
