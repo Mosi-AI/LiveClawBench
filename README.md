@@ -135,7 +135,8 @@ Axes A3, A4, B3, C1–C2 are not yet in the pilot:
 
 ### Stronger Diagnostics
 
-- [ ] Scale controlled pairs from 5 to 20+ for robust factor-level attribution
+- [ ] Synthesize A2 and B2 controlled pairs (currently only A1 and B1 have validated gradients)
+- [ ] Scale controlled pairs to 6+ for robust factor-level attribution
 - [ ] Per-factor performance breakdown in leaderboard
 - [ ] Cross-model statistical significance testing
 

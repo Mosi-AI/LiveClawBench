@@ -107,24 +107,26 @@ Key observations:
 
 ## 4. Controlled Pairs
 
-LiveClawBench includes 5 controlled pairs for isolating single-factor effects on agent performance:
+LiveClawBench includes 2 controlled pairs with empirically validated difficulty gradients.
+Each pair shares the same core task logic; the variant adds exactly one complexity factor,
+and the resulting difficulty increase confirms the factor's measurable impact.
 
-- **Factor-addition pairs**: the variant adds exactly one new complexity factor over the base
-- **Intensity-gradient pairs**: both cases share the same factor, but at different depth/severity
-
-| Pair ID | Controlled Pair                    | Base Case (Difficulty)              | Added Factor                | Variant Case (Difficulty)                |
-|--------:|------------------------------------|-------------------------------------|-----------------------------|------------------------------------------|
-|       1 | Shopping → Cross-env Shopping      | washer-shop (E)                     | +A1 (email integration)     | email-washer-change (E)                  |
-|       2 | Shopping → Cross-env Shopping      | watch-shop (E)                      | +A1 (email integration)     | email-watch-shop (H)                     |
-|       3 | Seat Selection → Failed Selection  | flight-seat-selection (E)           | +B1 (constraint failure)    | flight-seat-selection-failed (H)         |
-|       4 | Vue Fix single → chain             | vue-build-fix-single (H)            | +A2 (more complex faults)   | vue-build-fix-chain (H)                  |
-|       5 | Skill Creation → Dependency Fix    | skill-creation (M)                  | +B2 (dependency chain)      | skill-dependency-fix (E)                 |
+| Pair | Controlled Pair                    | Base Case (Difficulty)              | Added Factor                | Variant Case (Difficulty)                |
+|-----:|------------------------------------|-------------------------------------|-----------------------------|------------------------------------------|
+|    1 | Shopping → Cross-env Shopping      | watch-shop (E)                      | +A1 (email integration)     | email-watch-shop (H)                     |
+|    2 | Seat Selection → Failed Selection  | flight-seat-selection (E)           | +B1 (constraint failure)    | flight-seat-selection-failed (H)         |
 
 Pair design rationale:
-- **Pairs 1–2** validate A1 (Cross-Service Dependency): Pair 2 confirms A1 raises difficulty (E→H). Pair 1 lost its gradient post-calibration (E→E); **it can no longer serve as an A1 isolation experiment** and should be treated as a robustness replication of the base case, not a controlled A1 probe.
-- **Pair 3** validates B1 (Implicit Goal Resolution): adding constraint failure to seat selection raises difficulty from E to H, confirming that autonomous fallback reasoning is empirically challenging
-- **Pair 4** is an intensity gradient: both variants are empirically H — **it can no longer serve as an A2 isolation experiment** since there is no measurable difficulty gradient. The fault-chain depth difference is not captured by the current empirical difficulty tiers.
-- **Pair 5** is an intensity gradient with an inverted result: the variant (E) is empirically *easier* than the base (M) — **it can no longer serve as a B2 isolation experiment**. The inversion suggests agents find dependency-chain repair more tractable than open-ended skill creation, but this cannot be attributed to the B2 factor alone.
+- **Pair 1** validates A1 (Cross-Service Dependency): adding email integration raises difficulty from E to H, confirming that cross-service coordination is empirically challenging
+- **Pair 2** validates B1 (Implicit Goal Resolution): adding constraint failure to seat selection raises difficulty from E to H, confirming that autonomous fallback reasoning is empirically challenging
+
+> **Coverage gap.** The pilot benchmark has no validated controlled pairs for A2
+> (Contaminated Initial State) or B2 (Knowledge System Maintenance). Three candidate
+> pairs were evaluated but lost their difficulty gradient after empirical recalibration
+> (PR #25): washer-shop→email-washer-change (A1, E→E), vue-build-fix-single→chain
+> (A2, H→H), skill-creation→skill-dependency-fix (B2, M→E inverted). Synthesizing
+> new A2 and B2 isolation pairs requires adding purpose-built tasks — see
+> [Future Factors roadmap](../roadmap/future_factors.md#controlled-pair-expansion).
 
 ---
 

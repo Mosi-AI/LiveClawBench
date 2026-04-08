@@ -161,3 +161,37 @@ Typical scenarios:
 - Deterministically inject state failures during task execution (specified trigger timing, not random)
 - Require agents to implement retry/fallback strategies
 - Test graceful degradation when the optimal path is blocked
+
+---
+
+## Controlled Pair Expansion
+
+### Current State
+
+The pilot benchmark has **2 validated controlled pairs** (A1 and B1), down from the
+original 5 candidates. Three pairs lost their difficulty gradient after empirical
+recalibration (PR #25):
+
+| Former Pair | Factor | Issue |
+|-------------|--------|-------|
+| washer-shop → email-washer-change | A1 | Both E — no gradient (A1 already covered by watch-shop → email-watch-shop) |
+| vue-build-fix-single → chain | A2 | Both H — no gradient; current difficulty tiers too coarse |
+| skill-creation → skill-dependency-fix | B2 | M → E inverted; dependency repair empirically easier than open-ended creation |
+
+### Needed: A2 and B2 Isolation Pairs
+
+**A2 (Contaminated Initial State):** Requires a new "clean-environment" base task that
+shares core logic with an existing A2 task but starts without initial corruption.
+Candidate design: a DevOps task where the build environment is correctly configured
+(base), paired with the existing `vue-build-fix-single` where it starts broken (A2).
+The base must be empirically easier than the A2 variant.
+
+**B2 (Knowledge System Maintenance):** Requires a new "one-shot information processing"
+base task that shares core logic with an existing B2 task but does not involve
+persistent knowledge maintenance. Candidate design: a document comprehension task
+(base, no B2) paired with a knowledge-repo update task (B2) on the same corpus.
+
+### Target
+
+Scale from 2 validated pairs to 6+ covering all four pilot factors (A1, A2, B1, B2),
+with at least one pair per factor showing a clear empirical difficulty gradient.
