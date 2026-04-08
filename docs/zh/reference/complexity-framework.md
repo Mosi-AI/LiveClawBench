@@ -118,7 +118,7 @@ LiveClawBench 包含 2 个经验证具有有效难度梯度的控制对。
 > 曾评估三个候选对，但在经验重校准后（PR #25）已失去难度梯度：washer-shop→email-washer-change
 >（A1, E→E）、vue-build-fix-single→chain（A2, H→H）、skill-creation→skill-dependency-fix
 >（B2, M→E 倒置）。合成新的 A2 和 B2 隔离对需要新增专门设计的任务——参见
-> [未来因子路线图](../roadmap/future_factors.md#controlled-pair-expansion)。
+> [未来因子路线图](../../en/roadmap/future_factors.md#controlled-pair-expansion)。
 
 ---
 
