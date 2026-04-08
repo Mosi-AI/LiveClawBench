@@ -53,7 +53,7 @@ source .venv/bin/activate
 ```bash
 uv venv .venv
 source .venv/bin/activate
-uv pip install "harbor @ git+https://github.com/Mosi-AI/claw-harbor.git"
+uv pip install "harbor @ git+https://github.com/Mosi-AI/claw-harbor.git@v0.1.0"
 ```
 
 ### API Key Configuration
