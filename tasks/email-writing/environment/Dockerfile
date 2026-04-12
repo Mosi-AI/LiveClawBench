@@ -1,4 +1,4 @@
-FROM liveclawbench-base:latest
+FROM liveclawbench-email-writing:latest
 
 # Copy environment apps
 COPY . /workspace/environment/
@@ -29,7 +29,4 @@ RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.l
 
 RUN mkdir -p /workspace/output
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["sh", "-c", "sleep infinity"]

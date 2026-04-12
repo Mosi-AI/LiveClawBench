@@ -189,32 +189,35 @@ function loadMapping(): MappingConfig {
 // --- Image Build ---
 
 function generateStartupScript(task: string, binaries: string[]): string {
-  if (binaries.length === 0) {
-    // No mock binaries — minimal startup
-    return [
-      "#!/bin/sh",
-      `# Startup for task: ${task} (no mock binaries)`,
-      "echo 'No mock binaries to start for this task.'",
-    ].join("\n") + "\n";
-  }
-
   const lines = [
     "#!/bin/sh",
     `# Startup for task: ${task}`,
-    `# Binaries: ${binaries.join(", ")}`,
+    `# Binaries: ${binaries.length > 0 ? binaries.join(", ") : "(none)"}`,
     "set -e",
     "",
   ];
 
-  for (const bin of binaries) {
-    const port = BINARY_PORTS[bin];
-    lines.push(`echo 'Starting mock-${bin} on port ${port}...'`);
-    lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
+  // Start Bun mock binaries (per-task binary subset)
+  if (binaries.length > 0) {
+    lines.push("# Start mock binaries on their designated ports");
+    for (const bin of binaries) {
+      const port = BINARY_PORTS[bin];
+      lines.push(`echo 'Starting mock-${bin} on port ${port}...'`);
+      lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
+    }
+    lines.push("");
   }
 
-  lines.push("");
-  lines.push("# Wait for all background mock services");
-  lines.push("wait");
+  // Backward compatibility: start existing Python mock services
+  // During Plan 2 migration, these will be replaced by Bun mock routes
+  lines.push("# Start task-specific Python mock services (backward compat)");
+  lines.push("if [ -f /workspace/environment/startup.sh ]; then");
+  lines.push("  bash /workspace/environment/startup.sh &");
+  lines.push("elif [ -f /workspace/startup.sh ]; then");
+  lines.push("  bash /workspace/startup.sh &");
+  lines.push("elif [ -f /home/node/.openclaw/startup.sh ]; then");
+  lines.push("  bash /home/node/.openclaw/startup.sh &");
+  lines.push("fi");
 
   return lines.join("\n") + "\n";
 }
@@ -226,68 +229,11 @@ async function buildTaskImage(
 ): Promise<BuildTaskImageResult> {
   const imageTag = `liveclawbench-${task}:latest`;
 
-  if (binaries.length === 0) {
-    // No mock binaries needed — tag base image + add startup script + entrypoint
-    const tmpDir = join(import.meta.dir, "..", ".tmp-images");
-    mkdirSync(tmpDir, { recursive: true });
-
-    const startupContent = generateStartupScript(task, []);
-    const dockerfileContent = [
-      `FROM ${BASE_IMAGE}`,
-      "",
-      `# Task: ${task} (no mock binaries)`,
-      "",
-      "COPY <<'STARTUP' /opt/mock/startup.d/${TASK_NAME:-default}.sh",
-      startupContent,
-      "STARTUP",
-      "",
-      "COPY --chmod=755 <<'ENTRYPOINT' /opt/mock/entrypoint.sh",
-      "#!/bin/sh",
-      "set -e",
-      "mkdir -p /opt/mock/data 2>/dev/null || true",
-      "TASK_STARTUP=\"/opt/mock/startup.d/${TASK_NAME:-default}.sh\"",
-      "if [ -f \"$TASK_STARTUP\" ]; then",
-      "  echo \"Running startup: $TASK_STARTUP\"",
-      "  . \"$TASK_STARTUP\"",
-      "fi",
-      "exec \"$@\"",
-      "ENTRYPOINT",
-      "",
-      `ENTRYPOINT ["/opt/mock/entrypoint.sh"]`,
-      "CMD [\"/bin/bash\"]",
-      "",
-    ].join("\n") + "\n";
-
-    const dockerfilePath = join(tmpDir, `Dockerfile.${task}`);
-    writeFileSync(dockerfilePath, dockerfileContent);
-
-    if (dryRun) {
-      console.log(`  [DRY RUN] docker build -t ${imageTag} -f ${dockerfilePath} .`);
-      return { task, success: true, imageTag, binariesIncluded: [] };
-    }
-
-    // Build from base image context (no COPY of dist files needed)
-    const proc = Bun.spawn(
-      ["docker", "build", "-t", imageTag, "-f", dockerfilePath, "."],
-      {
-        stdout: "pipe",
-        stderr: "pipe",
-        cwd: "/tmp",
-      },
-    );
-    const exitCode = await proc.exited;
-    if (exitCode !== 0) {
-      const stderr = await new Response(proc.stderr).text();
-      return { task, success: false, imageTag, binariesIncluded: [], error: stderr.trim() };
-    }
-    return { task, success: true, imageTag, binariesIncluded: [] };
-  }
-
-  // Build a per-task Dockerfile with binaries + startup script + entrypoint
+  // Build a per-task Dockerfile
   const tmpDir = join(import.meta.dir, "..", ".tmp-images");
   mkdirSync(tmpDir, { recursive: true });
 
-  // Check all binaries exist before building
+  // Check all binaries exist before building (skip for zero-binary tasks)
   for (const bin of binaries) {
     const binaryPath = join(DIST_DIR, `mock-${bin}`);
     if (!existsSync(binaryPath)) {
@@ -307,35 +253,36 @@ async function buildTaskImage(
     `FROM ${BASE_IMAGE}`,
     "",
     `# Task: ${task}`,
-    `# Binaries: ${binaries.join(", ")}`,
+    `# Binaries: ${binaries.length > 0 ? binaries.join(", ") : "(none)"}`,
     "",
   ];
 
-  // COPY mock binaries
+  // COPY mock binaries (if any)
   for (const bin of binaries) {
     dockerfileLines.push(`COPY mock-${bin} /opt/mock/bin/mock-${bin}`);
   }
 
+  // COPY startup script to deterministic /opt/mock/startup.d/{task}.sh
   dockerfileLines.push("");
-
-  // COPY startup script to read-only startup.d
   dockerfileLines.push(`COPY <<'STARTUP' /opt/mock/startup.d/${task}.sh`);
   dockerfileLines.push(startupContent);
   dockerfileLines.push("STARTUP");
   dockerfileLines.push("");
 
-  // COPY entrypoint
-  dockerfileLines.push("COPY --chmod=755 <<'ENTRYPOINT' /opt/mock/entrypoint.sh");
-  dockerfileLines.push("#!/bin/sh");
-  dockerfileLines.push("set -e");
-  dockerfileLines.push("mkdir -p /opt/mock/data 2>/dev/null || true");
-  dockerfileLines.push(`TASK_STARTUP="/opt/mock/startup.d/${task}.sh"`);
-  dockerfileLines.push("if [ -f \"$TASK_STARTUP\" ]; then");
-  dockerfileLines.push("  echo \"Running startup: $TASK_STARTUP\"");
-  dockerfileLines.push("  . \"$TASK_STARTUP\"");
-  dockerfileLines.push("fi");
-  dockerfileLines.push("exec \"$@\"");
-  dockerfileLines.push("ENTRYPOINT");
+  // Ensure startup.d ownership and permissions (root:root, read-only)
+  dockerfileLines.push("RUN chown root:root /opt/mock/startup.d/" + task + ".sh && \\");
+  dockerfileLines.push("    chmod 755 /opt/mock/startup.d/" + task + ".sh");
+  dockerfileLines.push("");
+
+  // COPY shared entrypoint from the canonical shared/entrypoint.sh
+  // This is the single secure entrypoint for all per-task images
+  dockerfileLines.push("ARG ENTRYPOINT_DIR=.");
+  dockerfileLines.push(`COPY entrypoint.sh /opt/mock/entrypoint.sh`);
+  dockerfileLines.push("RUN chmod 755 /opt/mock/entrypoint.sh");
+  dockerfileLines.push("");
+
+  // Set TASK_NAME so the entrypoint finds the correct startup script
+  dockerfileLines.push(`ENV TASK_NAME=${task}`);
   dockerfileLines.push("");
 
   dockerfileLines.push(`ENTRYPOINT ["/opt/mock/entrypoint.sh"]`);
@@ -344,6 +291,14 @@ async function buildTaskImage(
 
   const dockerfilePath = join(tmpDir, `Dockerfile.${task}`);
   writeFileSync(dockerfilePath, dockerfileLines.join("\n") + "\n");
+
+  // Build context needs both dist/ (for binaries) and shared/ (for entrypoint.sh)
+  // We copy entrypoint.sh into the dist dir temporarily for the build context
+  const entrypointDest = join(DIST_DIR, "entrypoint.sh");
+  const entrypointSrc = ENTRYPOINT_SRC;
+  if (existsSync(entrypointSrc)) {
+    writeFileSync(entrypointDest, readFileSync(entrypointSrc));
+  }
 
   if (dryRun) {
     console.log(`  [DRY RUN] docker build -t ${imageTag} -f ${dockerfilePath} ${DIST_DIR}`);

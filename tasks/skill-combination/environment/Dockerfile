@@ -1,4 +1,4 @@
-FROM liveclawbench-base:latest
+FROM liveclawbench-skill-combination:latest
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 

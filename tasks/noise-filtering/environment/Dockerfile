@@ -1,4 +1,4 @@
-ARG OPENCLAW_BASE_IMAGE=liveclawbench-base:latest
+ARG OPENCLAW_BASE_IMAGE=liveclawbench-noise-filtering:latest
 FROM ${OPENCLAW_BASE_IMAGE}
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true

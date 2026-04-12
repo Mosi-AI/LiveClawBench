@@ -14,16 +14,18 @@ set -e
 # Initialize data directories
 mkdir -p /opt/mock/data 2>/dev/null || true
 
-# Execute task-specific startup script from read-only path
-TASK_STARTUP="/opt/mock/startup.d/${TASK_NAME:-default}.sh"
+# Execute task-specific startup script from read-only path.
+# TASK_NAME is set by the per-task Docker image (not by the agent).
+TASK_STARTUP="/opt/mock/startup.d/${TASK_NAME}.sh"
 if [ -f "$TASK_STARTUP" ]; then
     echo "Running startup: $TASK_STARTUP"
-    . "$TASK_STARTUP"
-else
-    echo "No startup script found at $TASK_STARTUP (task: ${TASK_NAME:-default})"
+    # Run mock binaries as the non-root 'mock' user (privilege separation)
+    su -s /bin/sh mock -c "$TASK_STARTUP" &
 fi
 
-# NEVER source or execute /workspace/startup.sh
-# The agent can modify /workspace/ files to exfiltrate secrets
+# Wait for mock services to bind their ports
+if [ -f "$TASK_STARTUP" ]; then
+    sleep 2
+fi
 
 exec "$@"

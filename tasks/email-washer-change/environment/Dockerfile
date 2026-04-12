@@ -1,4 +1,4 @@
-FROM liveclawbench-base:latest
+FROM liveclawbench-email-washer-change:latest
 
 COPY . /workspace/environment/
 
@@ -12,7 +12,4 @@ RUN cd /workspace/environment/email-app/frontend && npm install
 COPY startup.sh /workspace/environment/startup.sh
 RUN chmod +x /workspace/environment/startup.sh
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["sh", "-c", "sleep infinity"]
