@@ -58,22 +58,29 @@ async function compileMock(name: string): Promise<BuildResult> {
 
 /**
  * Binary isolation verification (AC-1.1).
- * Check that a compiled binary does not contain route strings from other mocks.
+ *
+ * Two-phase check per compiled binary:
+ * 1. POSITIVE control: binary MUST contain its own sentinel route string
+ * 2. NEGATIVE control: binary MUST NOT contain any foreign sentinel route string
+ *
+ * This proves both that each binary is self-contained and that cross-contamination
+ * did not occur during compilation.
  */
-async function verifyIsolation(results: BuildResult[]): Promise<Map<string, string[]>> {
+async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Map<string, string[]>; missingSentinels: string[] }> {
   const violations = new Map<string, string[]>();
+  const missingSentinels: string[] = [];
 
-  // Define unique route patterns per mock (for cross-contamination checks)
-  const routePatterns: Record<string, string[]> = {
-    airline: ["/api/flights", "/api/bookings", "/api/checkin", "/api/baggage"],
-    email: ["/api/emails", "/api/inbox", "/api/sent"],
-    shop: ["/api/products", "/api/cart", "/api/orders"],
-    todolist: ["/api/todos", "/api/tasks"],
-    "browser-portal": ["/api/pages", "/api/search"],
+  // Sentinel routes registered by each mock stub — must match mocks/*/src/index.ts
+  const sentinelPatterns: Record<string, string> = {
+    airline: "/__mock_sentinel__/airline",
+    email: "/__mock_sentinel__/email",
+    shop: "/__mock_sentinel__/shop",
+    todolist: "/__mock_sentinel__/todolist",
+    "browser-portal": "/__mock_sentinel__/browser-portal",
   };
 
   const successfulMocks = results.filter((r) => r.success);
-  if (successfulMocks.length < 2) return violations;
+  if (successfulMocks.length < 2) return { violations, missingSentinels };
 
   for (const result of successfulMocks) {
     if (!result.binaryPath) continue;
@@ -81,15 +88,19 @@ async function verifyIsolation(results: BuildResult[]): Promise<Map<string, stri
     try {
       const binaryContent = await readFile(result.binaryPath);
       const binaryText = binaryContent.toString("utf-8");
-      const foundViolations: string[] = [];
 
-      // Check for routes from OTHER mocks in this binary
-      for (const [mockName, patterns] of Object.entries(routePatterns)) {
-        if (mockName === result.name) continue; // Skip own routes
-        for (const pattern of patterns) {
-          if (binaryText.includes(pattern)) {
-            foundViolations.push(`${mockName}:${pattern}`);
-          }
+      // Phase 1: POSITIVE — own sentinel must be present
+      const ownSentinel = sentinelPatterns[result.name];
+      if (ownSentinel && !binaryText.includes(ownSentinel)) {
+        missingSentinels.push(result.name);
+      }
+
+      // Phase 2: NEGATIVE — foreign sentinels must be absent
+      const foundViolations: string[] = [];
+      for (const [mockName, sentinel] of Object.entries(sentinelPatterns)) {
+        if (mockName === result.name) continue;
+        if (binaryText.includes(sentinel)) {
+          foundViolations.push(sentinel);
         }
       }
 
@@ -101,7 +112,7 @@ async function verifyIsolation(results: BuildResult[]): Promise<Map<string, stri
     }
   }
 
-  return violations;
+  return { violations, missingSentinels };
 }
 
 async function main() {
@@ -140,14 +151,27 @@ async function main() {
   const failed = results.filter((r) => !r.success);
 
   console.log(`\n=== Binary Isolation Verification ===`);
-  const violations = await verifyIsolation(results);
+  const { violations, missingSentinels } = await verifyIsolation(results);
+
+  // Report positive control failures
+  if (missingSentinels.length > 0) {
+    console.log("FAIL: Missing own sentinel (positive control):");
+    for (const name of missingSentinels) {
+      console.log(`  mock-${name} does not contain its own sentinel route`);
+    }
+  }
+
+  // Report negative control failures
   if (violations.size > 0) {
     console.log("FAIL: Cross-contamination detected:");
     for (const [mock, routes] of violations) {
-      console.log(`  mock-${mock} contains: ${routes.join(", ")}`);
+      console.log(`  mock-${mock} contains foreign sentinels: ${routes.join(", ")}`);
     }
-  } else {
-    console.log("PASS: No cross-contamination detected between binaries.");
+  }
+
+  const isolationPass = violations.size === 0 && missingSentinels.length === 0;
+  if (isolationPass) {
+    console.log("PASS: All binaries contain own sentinel, no cross-contamination.");
   }
 
   // Summary report

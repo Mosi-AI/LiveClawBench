@@ -2,10 +2,11 @@
  * JWT authentication module using HS256 with in-memory secret generation.
  *
  * Security properties:
- * - Secret generated at startup via crypto.getRandomValues() — no env files, no CLI args
+ * - Secret generated at process startup via crypto.getRandomValues() — no env files, no CLI args
  * - Each binary generates its own independent secret (no cross-binary sharing)
  * - API surface supports future evolution to RS256/OAuth2 via sign()/verify() abstraction
- * - ENV override (MOCK_JWT_SECRET) for dev/test only, never in production
+ * - ENV override (MOCK_JWT_SECRET) gated behind NODE_ENV=development|test only
+ * - Tokens use JWT-compliant base64url encoding (RFC 7519)
  */
 
 /**
@@ -22,6 +23,28 @@ export interface TokenCookieOptions {
 const ALGORITHM = "HS256";
 const TOKEN_EXPIRY_SECONDS = 3600; // 1 hour
 
+// --- base64url helpers (RFC 4648 §5) ---
+
+function base64urlEncode(data: Uint8Array | string): string {
+  const binary = typeof data === "string"
+    ? data
+    : Array.from(data)
+        .map((b) => String.fromCharCode(b))
+        .join("");
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function base64urlDecode(b64url: string): Uint8Array {
+  // Restore standard base64 padding and characters
+  let b64 = b64url.replace(/-/g, "+").replace(/_/g, "/");
+  const pad = b64.length % 4;
+  if (pad === 2) b64 += "==";
+  else if (pad === 3) b64 += "=";
+  return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+}
+
+// --- Secret management ---
+
 /**
  * Generate a cryptographically random hex string of the specified byte length.
  */
@@ -33,19 +56,36 @@ function generateSecret(byteLength: number = 64): string {
     .join("");
 }
 
-// In-memory secret — generated once per process, never persisted
+/**
+ * Check whether the process is running in a development or test environment.
+ */
+function isDevOrTest(): boolean {
+  const env = (process.env.NODE_ENV ?? "").toLowerCase();
+  return env === "development" || env === "test";
+}
+
+// Secret is generated eagerly at process startup, never lazily.
+// This ensures the secret exists before any request handler runs
+// and cannot be observed via /proc/PID/cmdline or /proc/PID/environ.
+const _startupSecret = generateSecret();
+
+// In-memory secret — resolves once, never changes for the process lifetime.
 let _secret: string | null = null;
 
 /**
  * Get the JWT secret for this binary instance.
  *
- * - In production: auto-generated via crypto.getRandomValues()
- * - In dev/test: can be overridden via MOCK_JWT_SECRET environment variable
+ * - In production: auto-generated via crypto.getRandomValues() at startup
+ * - In dev/test only (NODE_ENV=development|test): can be overridden via MOCK_JWT_SECRET
  */
 function getSecret(): string {
   if (_secret === null) {
-    // Dev/test override — never use in production
-    _secret = process.env.MOCK_JWT_SECRET ?? generateSecret();
+    // Only accept env override in explicitly dev/test environments
+    if (isDevOrTest() && process.env.MOCK_JWT_SECRET) {
+      _secret = process.env.MOCK_JWT_SECRET;
+    } else {
+      _secret = _startupSecret;
+    }
   }
   return _secret;
 }
@@ -64,28 +104,27 @@ export interface JwtPayload {
 }
 
 /**
- * Sign a payload into a JWT string.
+ * Sign a payload into a JWT string (HS256, base64url encoding).
  */
 export async function sign(payload: JwtPayload): Promise<string> {
   const header = { alg: ALGORITHM, typ: "JWT" };
   const now = Math.floor(Date.now() / 1000);
   const signedPayload = { ...payload, iat: now, exp: now + TOKEN_EXPIRY_SECONDS };
 
-  const encoder = new TextEncoder();
-  const headerB64 = btoa(JSON.stringify(header));
-  const payloadB64 = btoa(JSON.stringify(signedPayload));
-  const data = encoder.encode(`${headerB64}.${payloadB64}`);
+  const headerB64 = base64urlEncode(JSON.stringify(header));
+  const payloadB64 = base64urlEncode(JSON.stringify(signedPayload));
+  const data = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
 
   const key = await crypto.subtle.importKey(
     "raw",
-    encoder.encode(getSecret()),
+    new TextEncoder().encode(getSecret()),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
   );
 
   const signature = await crypto.subtle.sign("HMAC", key, data);
-  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)));
+  const signatureB64 = base64urlEncode(new Uint8Array(signature));
 
   return `${headerB64}.${payloadB64}.${signatureB64}`;
 }
@@ -99,25 +138,25 @@ export async function verify(token: string): Promise<JwtPayload | null> {
   if (parts.length !== 3) return null;
 
   const [headerB64, payloadB64, signatureB64] = parts;
-  const encoder = new TextEncoder();
-  const data = encoder.encode(`${headerB64}.${payloadB64}`);
+  const data = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
 
   try {
     const key = await crypto.subtle.importKey(
       "raw",
-      encoder.encode(getSecret()),
+      new TextEncoder().encode(getSecret()),
       { name: "HMAC", hash: "SHA-256" },
       false,
       ["verify"],
     );
 
-    const signatureBytes = Uint8Array.from(atob(signatureB64), (c) =>
-      c.charCodeAt(0),
-    );
-    const valid = await crypto.subtle.verify("HMAC", key, signatureBytes, data);
+    const signatureBytes = base64urlDecode(signatureB64);
+    const sigBuf = new ArrayBuffer(signatureBytes.byteLength);
+    new Uint8Array(sigBuf).set(signatureBytes);
+    const valid = await crypto.subtle.verify("HMAC", key, sigBuf, data);
     if (!valid) return null;
 
-    const payload: JwtPayload = JSON.parse(atob(payloadB64));
+    const payloadJson = new TextDecoder().decode(base64urlDecode(payloadB64));
+    const payload: JwtPayload = JSON.parse(payloadJson);
 
     // Check expiration
     if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {

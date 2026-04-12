@@ -2,8 +2,14 @@
  * build-task-images.ts — Build per-task Docker images with binary subsets
  *
  * Reads the task→binary mapping artifact (config/task-binary-map.json),
- * then builds a Docker image for each task containing only its required
- * mock binaries FROM the public base image.
+ * validates its schema, then builds a Docker image for each task containing
+ * only its required mock binaries FROM the public base image.
+ *
+ * Features:
+ * - Schema validation gate: fails fast on invalid mapping before any image build
+ * - Per-binary port assignment: each mock binary runs on its designated port
+ * - startup.d/{task}.sh generation: per-task startup script in read-only path
+ * - Shared entrypoint inclusion: COPY shared/entrypoint.sh into the image
  *
  * Usage: bun run scripts/build-task-images.ts [--dry-run]
  */
@@ -14,7 +20,36 @@ import { mkdirSync, writeFileSync } from "node:fs";
 
 const DIST_DIR = join(import.meta.dir, "..", "dist");
 const CONFIG_PATH = join(import.meta.dir, "..", "config", "task-binary-map.json");
+const ENTRYPOINT_SRC = join(import.meta.dir, "..", "..", "shared", "entrypoint.sh");
 const BASE_IMAGE = "liveclawbench-base:latest";
+
+/**
+ * Canonical port assignment per binary.
+ * These match the existing Python/Flask mock service ports so that
+ * task instruction.md prompts and verification scripts continue to work
+ * without modification during the Plan 2 migration.
+ */
+const BINARY_PORTS: Record<string, number> = {
+  airline: 5000,
+  email: 5001,
+  shop: 1234,
+  todolist: 5002,
+  "browser-portal": 8123,
+};
+
+// All 30 benchmark task names (canonical source of truth)
+const ALL_TASK_NAMES = new Set([
+  "watch-shop", "washer-shop", "info-change", "washer-change",
+  "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
+  "schedule-change-request", "flight-booking", "flight-info-change-notice",
+  "flight-seat-selection", "flight-seat-selection-failed", "flight-cancel-claim",
+  "baggage-tracking-application", "blog-site-from-scratch",
+  "blog-site-completion-from-starter", "vue-build-fix-single", "vue-build-fix-chain",
+  "skill-creation", "skill-repository-curation", "skill-supplementation",
+  "skill-conflict-resolution", "skill-dependency-fix", "noise-filtering",
+  "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
+  "conflict-repair-acb", "skill-combination",
+]);
 
 interface TaskMapping {
   binaries: string[];
@@ -33,6 +68,114 @@ interface BuildTaskImageResult {
   error?: string;
 }
 
+// --- Schema Validation ---
+
+function validateMapping(raw: unknown): MappingConfig {
+  const errors: string[] = [];
+
+  if (typeof raw !== "object" || raw === null) {
+    throw new Error("Mapping file root must be a JSON object");
+  }
+
+  const obj = raw as Record<string, unknown>;
+
+  // Check required top-level keys
+  if (!Array.isArray(obj.binaries)) {
+    errors.push("Missing or invalid 'binaries' array");
+  }
+  if (typeof obj.tasks !== "object" || obj.tasks === null) {
+    errors.push("Missing or invalid 'tasks' object");
+  }
+
+  if (errors.length > 0) {
+    throw new Error("Schema validation failed:\n  " + errors.join("\n  "));
+  }
+
+  const binaries = obj.binaries as string[];
+  const tasks = obj.tasks as Record<string, unknown>;
+
+  // Validate binaries array
+  const seenBinaries = new Set<string>();
+  for (const bin of binaries) {
+    if (typeof bin !== "string") {
+      errors.push(`Non-string entry in 'binaries': ${JSON.stringify(bin)}`);
+    } else if (seenBinaries.has(bin)) {
+      errors.push(`Duplicate binary name: "${bin}"`);
+    } else if (!(bin in BINARY_PORTS)) {
+      errors.push(`Unknown binary name: "${bin}" (no port mapping)`);
+    } else {
+      seenBinaries.add(bin);
+    }
+  }
+
+  // Validate tasks object
+  const seenTaskNames = new Set<string>();
+  for (const [taskName, taskVal] of Object.entries(tasks)) {
+    // Check task name is a known benchmark task
+    if (!ALL_TASK_NAMES.has(taskName)) {
+      errors.push(`Unknown task name: "${taskName}"`);
+    }
+    if (seenTaskNames.has(taskName)) {
+      errors.push(`Duplicate task name: "${taskName}"`);
+    }
+    seenTaskNames.add(taskName);
+
+    // Check task value shape
+    if (typeof taskVal !== "object" || taskVal === null) {
+      errors.push(`Task "${taskName}" value must be an object`);
+      continue;
+    }
+
+    const taskObj = taskVal as Record<string, unknown>;
+    if (!Array.isArray(taskObj.binaries)) {
+      errors.push(`Task "${taskName}" missing 'binaries' array`);
+      continue;
+    }
+
+    const taskBinaries = taskObj.binaries as unknown[];
+    if (taskBinaries.some((b) => typeof b !== "string")) {
+      errors.push(`Task "${taskName}" has non-string entries in 'binaries'`);
+      continue;
+    }
+
+    const taskBinStrings = taskBinaries as string[];
+
+    // Check for unknown binary references
+    for (const bin of taskBinStrings) {
+      if (!seenBinaries.has(bin)) {
+        errors.push(`Task "${taskName}" references unknown binary: "${bin}"`);
+      }
+    }
+
+    // Check for duplicate binary references within a task
+    const taskBinSet = new Set(taskBinStrings);
+    if (taskBinSet.size !== taskBinStrings.length) {
+      errors.push(`Task "${taskName}" has duplicate binary references`);
+    }
+  }
+
+  // Check for missing tasks
+  for (const expectedTask of ALL_TASK_NAMES) {
+    if (!seenTaskNames.has(expectedTask)) {
+      errors.push(`Missing task: "${expectedTask}"`);
+    }
+  }
+
+  // Reject unknown top-level keys (allow known metadata keys)
+  const allowedTopLevel = new Set(["$schema", "$id", "description", "version", "binaries", "tasks"]);
+  for (const key of Object.keys(obj)) {
+    if (!allowedTopLevel.has(key)) {
+      errors.push(`Unknown top-level key: "${key}"`);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error("Schema validation failed:\n  " + errors.join("\n  "));
+  }
+
+  return { binaries, tasks: tasks as Record<string, TaskMapping> };
+}
+
 function loadMapping(): MappingConfig {
   if (!existsSync(CONFIG_PATH)) {
     console.error(`Mapping file not found: ${CONFIG_PATH}`);
@@ -40,20 +183,40 @@ function loadMapping(): MappingConfig {
   }
 
   const raw = JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
+  return validateMapping(raw);
+}
 
-  // Validate: all referenced binaries exist in the binaries list
-  const validBinaries = new Set(raw.binaries as string[]);
-  for (const [task, mapping] of Object.entries(raw.tasks)) {
-    const m = mapping as TaskMapping;
-    for (const bin of m.binaries) {
-      if (!validBinaries.has(bin)) {
-        console.error(`Invalid binary "${bin}" in task "${task}"`);
-        process.exit(1);
-      }
-    }
+// --- Image Build ---
+
+function generateStartupScript(task: string, binaries: string[]): string {
+  if (binaries.length === 0) {
+    // No mock binaries — minimal startup
+    return [
+      "#!/bin/sh",
+      `# Startup for task: ${task} (no mock binaries)`,
+      "echo 'No mock binaries to start for this task.'",
+    ].join("\n") + "\n";
   }
 
-  return raw as MappingConfig;
+  const lines = [
+    "#!/bin/sh",
+    `# Startup for task: ${task}`,
+    `# Binaries: ${binaries.join(", ")}`,
+    "set -e",
+    "",
+  ];
+
+  for (const bin of binaries) {
+    const port = BINARY_PORTS[bin];
+    lines.push(`echo 'Starting mock-${bin} on port ${port}...'`);
+    lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
+  }
+
+  lines.push("");
+  lines.push("# Wait for all background mock services");
+  lines.push("wait");
+
+  return lines.join("\n") + "\n";
 }
 
 async function buildTaskImage(
@@ -64,16 +227,54 @@ async function buildTaskImage(
   const imageTag = `liveclawbench-${task}:latest`;
 
   if (binaries.length === 0) {
-    // No mock binaries needed — just tag the base image
+    // No mock binaries needed — tag base image + add startup script + entrypoint
+    const tmpDir = join(import.meta.dir, "..", ".tmp-images");
+    mkdirSync(tmpDir, { recursive: true });
+
+    const startupContent = generateStartupScript(task, []);
+    const dockerfileContent = [
+      `FROM ${BASE_IMAGE}`,
+      "",
+      `# Task: ${task} (no mock binaries)`,
+      "",
+      "COPY <<'STARTUP' /opt/mock/startup.d/${TASK_NAME:-default}.sh",
+      startupContent,
+      "STARTUP",
+      "",
+      "COPY --chmod=755 <<'ENTRYPOINT' /opt/mock/entrypoint.sh",
+      "#!/bin/sh",
+      "set -e",
+      "mkdir -p /opt/mock/data 2>/dev/null || true",
+      "TASK_STARTUP=\"/opt/mock/startup.d/${TASK_NAME:-default}.sh\"",
+      "if [ -f \"$TASK_STARTUP\" ]; then",
+      "  echo \"Running startup: $TASK_STARTUP\"",
+      "  . \"$TASK_STARTUP\"",
+      "fi",
+      "exec \"$@\"",
+      "ENTRYPOINT",
+      "",
+      `ENTRYPOINT ["/opt/mock/entrypoint.sh"]`,
+      "CMD [\"/bin/bash\"]",
+      "",
+    ].join("\n") + "\n";
+
+    const dockerfilePath = join(tmpDir, `Dockerfile.${task}`);
+    writeFileSync(dockerfilePath, dockerfileContent);
+
     if (dryRun) {
-      console.log(`  [DRY RUN] docker tag ${BASE_IMAGE} ${imageTag}`);
+      console.log(`  [DRY RUN] docker build -t ${imageTag} -f ${dockerfilePath} .`);
       return { task, success: true, imageTag, binariesIncluded: [] };
     }
 
-    const proc = Bun.spawn(["docker", "tag", BASE_IMAGE, imageTag], {
-      stdout: "pipe",
-      stderr: "pipe",
-    });
+    // Build from base image context (no COPY of dist files needed)
+    const proc = Bun.spawn(
+      ["docker", "build", "-t", imageTag, "-f", dockerfilePath, "."],
+      {
+        stdout: "pipe",
+        stderr: "pipe",
+        cwd: "/tmp",
+      },
+    );
     const exitCode = await proc.exited;
     if (exitCode !== 0) {
       const stderr = await new Response(proc.stderr).text();
@@ -82,30 +283,11 @@ async function buildTaskImage(
     return { task, success: true, imageTag, binariesIncluded: [] };
   }
 
-  // Build a temporary Dockerfile for this task
+  // Build a per-task Dockerfile with binaries + startup script + entrypoint
   const tmpDir = join(import.meta.dir, "..", ".tmp-images");
   mkdirSync(tmpDir, { recursive: true });
 
-  const dockerfileContent = [
-    `FROM ${BASE_IMAGE}`,
-    "",
-    `# Task: ${task}`,
-    `# Binaries: ${binaries.join(", ")}`,
-    "",
-    "COPY --chmod=755 <<'SCRIPT' /opt/mock/startup.sh",
-    "#!/bin/sh",
-    "set -e",
-    "for bin in /opt/mock/bin/mock-*; do",
-    '  if [ -x "$bin" ]; then',
-    '    "$bin" --port ${PORT:-3000} &',
-    "  fi",
-    "done",
-    "wait",
-    "SCRIPT",
-    "",
-  ];
-
-  // Add COPY lines for each binary
+  // Check all binaries exist before building
   for (const bin of binaries) {
     const binaryPath = join(DIST_DIR, `mock-${bin}`);
     if (!existsSync(binaryPath)) {
@@ -117,11 +299,51 @@ async function buildTaskImage(
         error: `Binary not found: ${binaryPath}`,
       };
     }
-    dockerfileContent.push(`COPY mock-${bin} /opt/mock/bin/mock-${bin}`);
   }
 
+  const startupContent = generateStartupScript(task, binaries);
+
+  const dockerfileLines = [
+    `FROM ${BASE_IMAGE}`,
+    "",
+    `# Task: ${task}`,
+    `# Binaries: ${binaries.join(", ")}`,
+    "",
+  ];
+
+  // COPY mock binaries
+  for (const bin of binaries) {
+    dockerfileLines.push(`COPY mock-${bin} /opt/mock/bin/mock-${bin}`);
+  }
+
+  dockerfileLines.push("");
+
+  // COPY startup script to read-only startup.d
+  dockerfileLines.push(`COPY <<'STARTUP' /opt/mock/startup.d/${task}.sh`);
+  dockerfileLines.push(startupContent);
+  dockerfileLines.push("STARTUP");
+  dockerfileLines.push("");
+
+  // COPY entrypoint
+  dockerfileLines.push("COPY --chmod=755 <<'ENTRYPOINT' /opt/mock/entrypoint.sh");
+  dockerfileLines.push("#!/bin/sh");
+  dockerfileLines.push("set -e");
+  dockerfileLines.push("mkdir -p /opt/mock/data 2>/dev/null || true");
+  dockerfileLines.push(`TASK_STARTUP="/opt/mock/startup.d/${task}.sh"`);
+  dockerfileLines.push("if [ -f \"$TASK_STARTUP\" ]; then");
+  dockerfileLines.push("  echo \"Running startup: $TASK_STARTUP\"");
+  dockerfileLines.push("  . \"$TASK_STARTUP\"");
+  dockerfileLines.push("fi");
+  dockerfileLines.push("exec \"$@\"");
+  dockerfileLines.push("ENTRYPOINT");
+  dockerfileLines.push("");
+
+  dockerfileLines.push(`ENTRYPOINT ["/opt/mock/entrypoint.sh"]`);
+  dockerfileLines.push("CMD [\"/bin/bash\"]");
+  dockerfileLines.push("");
+
   const dockerfilePath = join(tmpDir, `Dockerfile.${task}`);
-  writeFileSync(dockerfilePath, dockerfileContent.join("\n") + "\n");
+  writeFileSync(dockerfilePath, dockerfileLines.join("\n") + "\n");
 
   if (dryRun) {
     console.log(`  [DRY RUN] docker build -t ${imageTag} -f ${dockerfilePath} ${DIST_DIR}`);
@@ -149,7 +371,16 @@ async function main() {
   console.log(`Mapping:    ${CONFIG_PATH}`);
   if (dryRun) console.log("Mode:       DRY RUN\n");
 
-  const mapping = loadMapping();
+  // Schema validation gate — fail fast before any image build
+  let mapping: MappingConfig;
+  try {
+    mapping = loadMapping();
+    console.log("Schema validation: PASS");
+  } catch (err) {
+    console.error(`Schema validation: FAIL\n${err}`);
+    process.exit(1);
+  }
+
   const taskCount = Object.keys(mapping.tasks).length;
   console.log(`Tasks:      ${taskCount}\n`);
 
