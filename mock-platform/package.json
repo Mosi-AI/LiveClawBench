@@ -1,0 +1,15 @@
+{
+  "name": "liveclawbench-mock-platform",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["packages/*", "mocks/*"],
+  "scripts": {
+    "build": "bun run scripts/build-all.ts",
+    "build:images": "bun run scripts/build-task-images.ts",
+    "create-mock": "bun run tools/create-mock/index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "@types/bun": "^1.2.0"
+  }
+}

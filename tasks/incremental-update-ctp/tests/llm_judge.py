@@ -322,6 +322,14 @@ def main() -> None:
     )
     (dc.ROOT / "reward.txt").write_text(str(score["reward"]), encoding="utf-8")
 
+    # Write directly to verifier-owned path (agent cannot manipulate scores)
+    verifier_dir = Path("/logs/verifier")
+    verifier_dir.mkdir(parents=True, exist_ok=True)
+    (verifier_dir / "reward.json").write_text(
+        json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    (verifier_dir / "reward.txt").write_text(str(score["reward"]), encoding="utf-8")
+
 
 if __name__ == "__main__":
     main()

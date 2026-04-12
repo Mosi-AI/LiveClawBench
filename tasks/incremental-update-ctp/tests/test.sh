@@ -9,6 +9,4 @@ ln -sfn /tests "${HOME}/.openclaw/tests"
 cd "${HOME}/.openclaw"
 python3 /tests/llm_judge.py
 
-# Copy reward files to harbor's expected location
-cp -f "${HOME}/.openclaw/reward.json" /logs/verifier/reward.json 2>/dev/null || true
-cp -f "${HOME}/.openclaw/reward.txt" /logs/verifier/reward.txt 2>/dev/null || true
+# llm_judge.py writes directly to /logs/verifier/ (no staging via ~/.openclaw/)

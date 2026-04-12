@@ -1,0 +1,10 @@
+{
+  "name": "mock-lib",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "hono": "^4.8.0"
+  }
+}
