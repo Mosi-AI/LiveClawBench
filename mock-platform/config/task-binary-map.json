@@ -30,10 +30,16 @@
     "skill-conflict-resolution": { "binaries": [] },
     "skill-dependency-fix": { "binaries": [] },
     "noise-filtering": { "binaries": [] },
-    "mixed-tool-memory": { "binaries": ["browser-portal"] },
+    "mixed-tool-memory": {
+      "binaries": ["browser-portal"],
+      "startup_extra": "tasks/mixed-tool-memory/environment/startup.sh"
+    },
     "incremental-update-ctp": { "binaries": [] },
     "live-web-research-sqlite-fts5": { "binaries": [] },
-    "conflict-repair-acb": { "binaries": ["browser-portal"] },
+    "conflict-repair-acb": {
+      "binaries": ["browser-portal"],
+      "startup_extra": "tasks/conflict-repair-acb/environment/startup.sh"
+    },
     "skill-combination": { "binaries": [] }
   }
 }

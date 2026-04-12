@@ -53,6 +53,7 @@ const ALL_TASK_NAMES = new Set([
 
 interface TaskMapping {
   binaries: string[];
+  startup_extra?: string;
 }
 
 interface MappingConfig {
@@ -152,6 +153,13 @@ function validateMapping(raw: unknown): MappingConfig {
     if (taskBinSet.size !== taskBinStrings.length) {
       errors.push(`Task "${taskName}" has duplicate binary references`);
     }
+
+    // Validate optional startup_extra field
+    if ("startup_extra" in taskObj) {
+      if (typeof taskObj.startup_extra !== "string") {
+        errors.push(`Task "${taskName}" 'startup_extra' must be a string path`);
+      }
+    }
   }
 
   // Check for missing tasks
@@ -188,7 +196,7 @@ function loadMapping(): MappingConfig {
 
 // --- Image Build ---
 
-function generateStartupScript(task: string, binaries: string[]): string {
+function generateStartupScript(task: string, binaries: string[], startupExtra?: string): string {
   const lines = [
     "#!/bin/sh",
     `# Startup for task: ${task}`,
@@ -208,16 +216,23 @@ function generateStartupScript(task: string, binaries: string[]): string {
     lines.push("");
   }
 
-  // Backward compatibility: start existing Python mock services
-  // During Plan 2 migration, these will be replaced by Bun mock routes
-  lines.push("# Start task-specific Python mock services (backward compat)");
-  lines.push("if [ -f /workspace/environment/startup.sh ]; then");
-  lines.push("  bash /workspace/environment/startup.sh &");
-  lines.push("elif [ -f /workspace/startup.sh ]; then");
-  lines.push("  bash /workspace/startup.sh &");
-  lines.push("elif [ -f /home/node/.openclaw/startup.sh ]; then");
-  lines.push("  bash /home/node/.openclaw/startup.sh &");
-  lines.push("fi");
+  // Embed task-specific extra startup content (e.g. browser mock server init)
+  // This content is read from the repo at image build time and embedded in the
+  // read-only /opt/mock/startup.d/{task}.sh — not executed from writable paths.
+  if (startupExtra) {
+    // Strip shebang line and bash-specific set options from embedded content
+    // since the outer script uses /bin/sh (POSIX). The embedded content runs
+    // in the same shell context, so shebang is irrelevant and set -euo pipefail
+    // would fail in dash. We keep set -e from the outer script.
+    const stripped = startupExtra
+      .split("\n")
+      .filter((line) => !line.startsWith("#!") && line.trim() !== "set -euo pipefail")
+      .join("\n")
+      .trimEnd();
+    lines.push("# Task-specific service startup (embedded from startup_extra)");
+    lines.push(stripped);
+    lines.push("");
+  }
 
   return lines.join("\n") + "\n";
 }
@@ -226,6 +241,7 @@ async function buildTaskImage(
   task: string,
   binaries: string[],
   dryRun: boolean,
+  startupExtraPath?: string,
 ): Promise<BuildTaskImageResult> {
   const imageTag = `liveclawbench-${task}:latest`;
 
@@ -247,7 +263,24 @@ async function buildTaskImage(
     }
   }
 
-  const startupContent = generateStartupScript(task, binaries);
+  // Read optional startup_extra content from repo root
+  let startupExtraContent: string | undefined;
+  if (startupExtraPath) {
+    const repoRoot = join(import.meta.dir, "..", "..");
+    const extraAbsPath = join(repoRoot, startupExtraPath);
+    if (!existsSync(extraAbsPath)) {
+      return {
+        task,
+        success: false,
+        imageTag,
+        binariesIncluded: binaries,
+        error: `startup_extra file not found: ${extraAbsPath}`,
+      };
+    }
+    startupExtraContent = readFileSync(extraAbsPath, "utf-8");
+  }
+
+  const startupContent = generateStartupScript(task, binaries, startupExtraContent);
 
   const dockerfileLines = [
     `FROM ${BASE_IMAGE}`,
@@ -342,7 +375,7 @@ async function main() {
   const results: BuildTaskImageResult[] = [];
   for (const [task, config] of Object.entries(mapping.tasks)) {
     process.stdout.write(`Building ${task} (${config.binaries.length} binaries)... `);
-    const result = await buildTaskImage(task, config.binaries, dryRun);
+    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra);
     results.push(result);
 
     if (result.success) {

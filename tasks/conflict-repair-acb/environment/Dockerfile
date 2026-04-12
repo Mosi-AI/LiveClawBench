@@ -16,8 +16,6 @@ COPY browser_mock_sidecar/ /home/node/.openclaw/browser_mock_sidecar/
 COPY corpus/ /home/node/.openclaw/corpus/
 COPY tools/ /home/node/.openclaw/tools/
 COPY workspace_seed/ /home/node/.openclaw/workspace/
-COPY startup.sh /home/node/.openclaw/startup.sh
 RUN ln -sfn ../corpus /home/node/.openclaw/workspace/corpus \
-    && ln -sfn ../tools /home/node/.openclaw/workspace/tools \
-    && chmod +x /home/node/.openclaw/startup.sh
+    && ln -sfn ../tools /home/node/.openclaw/workspace/tools
 

@@ -9,7 +9,4 @@ RUN cd /workspace/environment/shop-app/backend && pip install --no-cache-dir --b
 RUN cd /workspace/environment/email-app/backend && pip install --no-cache-dir --break-system-packages -r requirements.txt
 RUN cd /workspace/environment/email-app/frontend && npm install
 
-COPY startup.sh /workspace/environment/startup.sh
-RUN chmod +x /workspace/environment/startup.sh
-
 CMD ["sh", "-c", "sleep infinity"]

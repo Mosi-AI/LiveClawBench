@@ -19,10 +19,6 @@ RUN cd /workspace/environment/todolist-app/frontend && npm install --include=dev
 RUN cd /workspace/environment/email-app/backend && python3 scripts/inject_data.py
 RUN cd /workspace/environment/todolist-app/backend && python3 init_db.py && python3 inject_data.py && python3 inject_data_manual.py
 
-# Copy startup script
-COPY startup.sh /workspace/startup.sh
-RUN chmod +x /workspace/startup.sh
-
 # Install Playwright Chromium and symlink to /usr/bin/chromium so openclaw's
 # findChromeExecutableLinux() can detect it. openclaw only checks system paths
 # like /usr/bin/chromium — it does not scan the Playwright cache directory.

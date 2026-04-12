@@ -1,4 +1,4 @@
-FROM liveclawbench-base:latest
+FROM liveclawbench-baggage-tracking-application:latest
 
 # Copy environment apps
 COPY . /workspace/environment/
@@ -12,10 +12,6 @@ RUN cd /workspace/environment/airline-app/backend && python3 scripts/inject_data
 # NODE_ENV=production is set by the base openclaw image, which causes npm install to
 # skip devDependencies (including vite). --include=dev forces them to be installed.
 RUN cd /workspace/environment/airline-app/frontend && npm install --include=dev 2>&1 | tee /tmp/airline-npm-install.log
-
-# Copy startup script
-COPY startup.sh /workspace/startup.sh
-RUN chmod +x /workspace/startup.sh
 
 # Install Playwright Chromium and symlink to /usr/bin/chromium so openclaw's
 # findChromeExecutableLinux() can detect it. openclaw only checks system paths
