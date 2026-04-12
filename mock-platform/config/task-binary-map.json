@@ -1,0 +1,39 @@
+{
+  "$schema": {
+    "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
+    "version": "1.0"
+  },
+  "binaries": ["airline", "email", "shop", "todolist", "browser-portal"],
+  "tasks": {
+    "watch-shop": { "binaries": ["shop"] },
+    "washer-shop": { "binaries": ["shop"] },
+    "info-change": { "binaries": ["shop"] },
+    "washer-change": { "binaries": ["shop"] },
+    "email-watch-shop": { "binaries": ["email", "shop"] },
+    "email-washer-change": { "binaries": ["email", "shop"] },
+    "email-writing": { "binaries": ["email"] },
+    "email-reply": { "binaries": ["email"] },
+    "schedule-change-request": { "binaries": ["airline", "email", "todolist"] },
+    "flight-booking": { "binaries": ["airline"] },
+    "flight-info-change-notice": { "binaries": ["airline", "todolist"] },
+    "flight-seat-selection": { "binaries": ["airline"] },
+    "flight-seat-selection-failed": { "binaries": ["airline", "email"] },
+    "flight-cancel-claim": { "binaries": ["airline", "email"] },
+    "baggage-tracking-application": { "binaries": ["airline"] },
+    "blog-site-from-scratch": { "binaries": [] },
+    "blog-site-completion-from-starter": { "binaries": [] },
+    "vue-build-fix-single": { "binaries": [] },
+    "vue-build-fix-chain": { "binaries": [] },
+    "skill-creation": { "binaries": [] },
+    "skill-repository-curation": { "binaries": [] },
+    "skill-supplementation": { "binaries": [] },
+    "skill-conflict-resolution": { "binaries": [] },
+    "skill-dependency-fix": { "binaries": [] },
+    "noise-filtering": { "binaries": [] },
+    "mixed-tool-memory": { "binaries": ["browser-portal"] },
+    "incremental-update-ctp": { "binaries": [] },
+    "live-web-research-sqlite-fts5": { "binaries": [] },
+    "conflict-repair-acb": { "binaries": ["browser-portal"] },
+    "skill-combination": { "binaries": [] }
+  }
+}
