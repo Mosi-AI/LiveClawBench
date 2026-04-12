@@ -1,24 +1,24 @@
 // mock-lib: shared framework for LiveClawBench mock services
-// Public API surface — implementation follows in subsequent tasks
 
-export interface MockConfig {
-  name: string;
-  port?: number;
-  dev?: boolean;
-}
+// Types
+export type { MockConfig, MockApp, AppEnv, CreateMockAppOptions } from "./types";
 
-export interface MockApp {
-  config: MockConfig;
-  // Hono app instance — typed after task2 implementation
-  app: unknown;
-}
+// Factory
+export { createMockApp } from "./create-app";
 
-// Placeholder factory — task2 implements the real version
-export function createMockApp(_config: MockConfig): MockApp {
-  throw new Error("createMockApp not yet implemented (task2)");
-}
+// Server
+export { startServer } from "./server";
 
-// Placeholder server — task3 implements the real version
-export function startServer(_app: MockApp): void {
-  throw new Error("startServer not yet implemented (task3)");
-}
+// Auth
+export { sign, verify, _resetSecret, tokenCookieOptions } from "./auth";
+export type { JwtPayload, TokenCookieOptions } from "./auth";
+export { authRequired, authOptional } from "./auth";
+
+// Database
+export { getDb, resetDb, migrate } from "./db";
+export { JsonStore } from "./db";
+export type { SqliteOptions, JsonStoreOptions } from "./db";
+
+// Render (stub — Plan 2 implements)
+export { registerStaticAssets, renderTemplate } from "./render";
+export type { TemplateData } from "./render";
