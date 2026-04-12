@@ -232,6 +232,22 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("# Task-specific service startup (embedded from startup_extra)");
     lines.push(stripped);
     lines.push("");
+  } else if (binaries.length > 0) {
+    // For service-backed tasks without startup_extra, delegate to the task's
+    // Python startup script. The Bun mock binaries are stubs that will replace
+    // these Python services in Plan 2; until then, the Python services provide
+    // the real API that the agent and verifier expect.
+    // startup.sh is available at /workspace/environment/startup.sh because the
+    // task Dockerfile does COPY . /workspace/environment/ (includes startup.sh).
+    lines.push("# Start task-specific Python mock services");
+    lines.push("if [ -f /workspace/environment/startup.sh ]; then");
+    lines.push("  bash /workspace/environment/startup.sh &");
+    lines.push("elif [ -f /workspace/startup.sh ]; then");
+    lines.push("  bash /workspace/startup.sh &");
+    lines.push("fi");
+    lines.push("# Wait for services to bind their ports");
+    lines.push("sleep 3");
+    lines.push("");
   }
 
   return lines.join("\n") + "\n";
