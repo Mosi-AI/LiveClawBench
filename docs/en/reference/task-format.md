@@ -25,7 +25,7 @@ Each task follows this standardised directory layout:
 
 - `task.toml` — declares task metadata (difficulty, domain, complexity factors) and resource config (CPU, memory, timeouts)
 - `instruction.md` — the task description shown to the agent, simulating a user's natural language request
-- `Dockerfile` — builds the task runtime environment on top of `liveclawbench-base:latest`, including app dependency installation, database init, and startup scripts
+- `Dockerfile` — builds the task runtime environment on top of `liveclawbench-{task}:latest` (the per-task image layer), including app dependency installation and database init. Do **not** add a task-local `ENTRYPOINT` or copy `startup.sh` into writable paths — services are started by the per-task image's `/opt/mock/entrypoint.sh` from the read-only `/opt/mock/startup.d/{task}.sh`
 - `solve.sh` — reference solution script used to verify task solvability (not exposed to the agent)
 - `test.sh` — verification entry point; scoring files vary by task (see [Evaluation Patterns](#evaluation-patterns) below)
 

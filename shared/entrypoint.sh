@@ -19,13 +19,11 @@ mkdir -p /opt/mock/data 2>/dev/null || true
 TASK_STARTUP="/opt/mock/startup.d/${TASK_NAME}.sh"
 if [ -f "$TASK_STARTUP" ]; then
     echo "Running startup: $TASK_STARTUP"
-    # Run mock binaries as the non-root 'mock' user (privilege separation)
-    su -s /bin/sh mock -c "$TASK_STARTUP" &
-fi
-
-# Wait for mock services to bind their ports
-if [ -f "$TASK_STARTUP" ]; then
-    sleep 2
+    # Run startup script synchronously as the non-root 'mock' user.
+    # The startup script is responsible for backgrounding long-lived services
+    # and blocking until they are ready (readiness probe). Running synchronously
+    # here ensures the readiness probe gates agent start.
+    su -s /bin/sh mock -c "$TASK_STARTUP"
 fi
 
 exec "$@"

@@ -31,13 +31,13 @@
     "skill-dependency-fix": { "binaries": [] },
     "noise-filtering": { "binaries": [] },
     "mixed-tool-memory": {
-      "binaries": ["browser-portal"],
+      "binaries": [],
       "startup_extra": "tasks/mixed-tool-memory/environment/startup.sh"
     },
     "incremental-update-ctp": { "binaries": [] },
     "live-web-research-sqlite-fts5": { "binaries": [] },
     "conflict-repair-acb": {
-      "binaries": ["browser-portal"],
+      "binaries": [],
       "startup_extra": "tasks/conflict-repair-acb/environment/startup.sh"
     },
     "skill-combination": { "binaries": [] }

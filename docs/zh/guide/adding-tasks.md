@@ -86,20 +86,34 @@ allow_internet = true  # 所有 OpenClaw 任务必须设置（agent 需调用 LL
 
 ## Dockerfile 要求
 
-所有任务 Dockerfile 继承自 `liveclawbench-base:latest`，该基础镜像已预装 HTTPS apt source 修复、`python3 python3-pip python3-venv curl`、`/usr/bin/chromium` 的 Playwright Chromium 以及 `/workspace/output`。**构建任意任务镜像前，必须先构建基础镜像：**
+所有任务 Dockerfile 继承自**任务专属基础镜像**（`liveclawbench-{task}:latest`），这是三层镜像架构的第二层：
+
+1. **公共基础层**（`liveclawbench-base:latest`）— Bun 运行时、Python、Playwright Chromium、`/workspace/output`
+2. **任务专属层**（`liveclawbench-{task}:latest`）— 该任务所需的 mock 二进制文件、只读的 `/opt/mock/startup.d/{task}.sh`、安全入口点 `/opt/mock/entrypoint.sh`
+3. **任务 Dockerfile**（`tasks/{task}/environment/Dockerfile`）— 任务特定的应用安装（pip install、npm install、数据注入）
+
+任务专属层由 `bun run mock-platform/scripts/build-task-images.ts` 生成。**构建顺序：**
 
 ```bash
+# 1. 构建公共基础层（一次性）
 docker build -t liveclawbench-base:latest docker/base/
+
+# 2. 构建任务专属层（编译 mock 二进制后执行）
+cd mock-platform && bun install && bun run scripts/build-all.ts
+bun run scripts/build-task-images.ts
+
+# 3. 构建任务镜像（harbor 自动执行）
+docker build -t liveclawbench-{task}:latest tasks/{task}/environment/
 ```
 
 30 个现有任务使用四种模式——选择与您的任务类型匹配的：
 
 ### 模式 1：静态文件（skill-\*、blog-site-\*、vue-project-\*）
 
-无后台服务。Agent 直接读写 `/workspace/environment/` 下的文件。无需 `ENTRYPOINT`。
+无后台服务。Agent 直接读写 `/workspace/environment/` 下的文件。
 
 ```dockerfile
-FROM liveclawbench-base:latest
+FROM liveclawbench-{task}:latest
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 USER root
@@ -113,10 +127,10 @@ COPY . /workspace/environment/
 
 ### 模式 2：Python 后端服务（shop-app 系列）
 
-单个 Python 后端；`startup.sh` 位于 `/workspace/environment/startup.sh`。
+单个 Python 后端。服务由容器入口点通过 `/opt/mock/startup.d/{task}.sh` 启动——**不要**将 `startup.sh` 复制到 `/workspace/` 或添加任务本地 `ENTRYPOINT`。
 
 ```dockerfile
-FROM liveclawbench-base:latest
+FROM liveclawbench-{task}:latest
 
 COPY . /workspace/environment/
 # --no-cache-dir: 减少镜像层大小
@@ -124,21 +138,15 @@ COPY . /workspace/environment/
 #   "externally managed"，不加此参数 pip install 会失败
 RUN cd /workspace/environment/shop-app/backend && pip install --no-cache-dir --break-system-packages -r requirements.txt
 
-COPY startup.sh /workspace/environment/startup.sh
-RUN chmod +x /workspace/environment/startup.sh
-
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["sh", "-c", "sleep infinity"]
 ```
 
 ### 模式 3：全栈服务（airline-app / email-app 系列）
 
-Python 后端 + Node.js 前端；`startup.sh` 位于 `/workspace/startup.sh`。
+Python 后端 + Node.js 前端。服务由容器入口点启动——**不要**将 `startup.sh` 复制到 `/workspace/` 或添加任务本地 `ENTRYPOINT`。
 
 ```dockerfile
-FROM liveclawbench-base:latest
+FROM liveclawbench-{task}:latest
 
 COPY . /workspace/environment/
 # --no-cache-dir: 减少镜像层大小
@@ -146,12 +154,6 @@ COPY . /workspace/environment/
 RUN cd /workspace/environment/your-app/backend && pip install --no-cache-dir --break-system-packages -r requirements.txt
 RUN cd /workspace/environment/your-app/frontend && npm install
 
-COPY startup.sh /workspace/startup.sh
-RUN chmod +x /workspace/startup.sh
-
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["sh", "-c", "sleep infinity"]
 ```
 
@@ -160,7 +162,7 @@ CMD ["sh", "-c", "sleep infinity"]
 工作目录为 `/home/node/.openclaw/`；以 `node` 用户运行；`ARG OPENCLAW_BASE_IMAGE` 允许 Harbor 在运行时替换基础镜像。
 
 ```dockerfile
-ARG OPENCLAW_BASE_IMAGE=liveclawbench-base:latest
+ARG OPENCLAW_BASE_IMAGE=liveclawbench-{task}:latest
 FROM ${OPENCLAW_BASE_IMAGE}
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
@@ -182,6 +184,7 @@ USER node
 ```
 
 - 服务通过 `localhost:<port>` 对 agent 可访问
+- 任务专属层的 `/opt/mock/entrypoint.sh` 在移交给 agent 前，从只读的 `/opt/mock/startup.d/{task}.sh` 启动服务。不要添加任务本地 `ENTRYPOINT` 或将 `startup.sh` 复制到可写路径。
 
 ## `verify.py` 合约
 

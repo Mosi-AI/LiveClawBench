@@ -24,7 +24,7 @@
 
 - `task.toml` — 声明任务元数据（难度、领域、复杂度因子）和资源配置（CPU、内存、超时时间）
 - `instruction.md` — 展示给 agent 的任务描述，模拟用户的自然语言请求
-- `Dockerfile` — 基于 `liveclawbench-base:latest` 构建任务运行环境，包括应用依赖安装、数据库初始化和启动脚本
+- `Dockerfile` — 基于 `liveclawbench-{task}:latest`（任务专属层）构建任务运行环境，包括应用依赖安装和数据库初始化。**不要**添加任务本地 `ENTRYPOINT` 或将 `startup.sh` 复制到可写路径——服务由任务专属层的 `/opt/mock/entrypoint.sh` 从只读的 `/opt/mock/startup.d/{task}.sh` 启动
 - `solve.sh` — 参考解脚本，用于验证任务可解性（不暴露给 agent）
 - `test.sh` — 验证入口；评分文件因任务而异（参见下方[评估模式](#评估模式)）
 
