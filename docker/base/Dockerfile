@@ -8,8 +8,20 @@ USER root
 # On restricted networks, configure Docker daemon proxy before building so that
 # apt-get can reach deb.debian.org — see docs/guide/getting-started.md.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        python3 python3-pip python3-venv curl sqlite3 && \
+        python3 python3-pip python3-venv curl sqlite3 unzip && \
     rm -rf /var/lib/apt/lists/*
+
+# Install Bun runtime for mock platform binaries
+RUN curl -fsSL https://bun.sh/install | bash -s "latest" && \
+    ln -s /root/.bun/bin/bun /usr/local/bin/bun
+
+# Create mock user and directory structure
+# Mock binaries live in /opt/mock/bin/ (populated by per-task images)
+# Startup scripts live in /opt/mock/startup.d/ (read-only, root:root)
+RUN groupadd -r mock && useradd -r -g mock -d /opt/mock -s /sbin/nologin mock && \
+    mkdir -p /opt/mock/bin /opt/mock/startup.d /opt/mock/data && \
+    chown root:root /opt/mock/startup.d && \
+    chmod 755 /opt/mock/startup.d
 
 # Install Playwright Chromium with all system dependencies.
 # openclaw's findChromeExecutableLinux() only checks system paths like /usr/bin/chromium —
