@@ -25,3 +25,9 @@ run_*.sh
 
 # Claude Code worktrees and session data
 .claude/
+
+# Playwright MCP session logs
+.playwright-mcp/
+
+# Humanize plugin state (drafts, plans, plan QA, bitlesson, config)
+.humanize/
