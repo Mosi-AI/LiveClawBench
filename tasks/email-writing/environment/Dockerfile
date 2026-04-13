@@ -1,4 +1,4 @@
-FROM liveclawbench-email-writing:latest
+FROM liveclawbench-email-writing-base:latest
 
 # Copy environment apps
 COPY . /workspace/environment/

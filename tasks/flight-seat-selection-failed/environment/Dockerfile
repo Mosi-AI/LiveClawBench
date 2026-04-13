@@ -1,4 +1,4 @@
-FROM liveclawbench-flight-seat-selection-failed:latest
+FROM liveclawbench-flight-seat-selection-failed-base:latest
 
 # Copy environment apps
 COPY . /workspace/environment/

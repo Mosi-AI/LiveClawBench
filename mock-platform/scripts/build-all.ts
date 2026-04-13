@@ -126,10 +126,6 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
       }
     }
   }
-    } catch {
-      // Binary may not be readable (permissions etc.) — skip isolation check
-    }
-  }
 
   return { violations, missingSentinels };
 }

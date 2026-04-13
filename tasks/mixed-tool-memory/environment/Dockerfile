@@ -1,4 +1,4 @@
-ARG OPENCLAW_BASE_IMAGE=liveclawbench-mixed-tool-memory:latest
+ARG OPENCLAW_BASE_IMAGE=liveclawbench-mixed-tool-memory-base:latest
 FROM ${OPENCLAW_BASE_IMAGE}
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true

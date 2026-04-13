@@ -1,4 +1,4 @@
-FROM liveclawbench-skill-dependency-fix:latest
+FROM liveclawbench-skill-dependency-fix-base:latest
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 

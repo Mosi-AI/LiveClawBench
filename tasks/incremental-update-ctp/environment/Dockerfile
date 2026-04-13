@@ -1,4 +1,4 @@
-ARG OPENCLAW_BASE_IMAGE=liveclawbench-incremental-update-ctp:latest
+ARG OPENCLAW_BASE_IMAGE=liveclawbench-incremental-update-ctp-base:latest
 FROM ${OPENCLAW_BASE_IMAGE}
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true

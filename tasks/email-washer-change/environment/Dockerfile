@@ -1,4 +1,4 @@
-FROM liveclawbench-email-washer-change:latest
+FROM liveclawbench-email-washer-change-base:latest
 
 COPY . /workspace/environment/
 

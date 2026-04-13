@@ -1,4 +1,4 @@
-FROM liveclawbench-blog-site-from-scratch:latest
+FROM liveclawbench-blog-site-from-scratch-base:latest
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 

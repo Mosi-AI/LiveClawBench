@@ -1,4 +1,4 @@
-FROM liveclawbench-flight-booking:latest
+FROM liveclawbench-flight-booking-base:latest
 
 # Copy environment apps
 COPY . /workspace/environment/

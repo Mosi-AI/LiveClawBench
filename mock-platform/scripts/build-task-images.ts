@@ -255,7 +255,7 @@ async function buildTaskImage(
   dryRun: boolean,
   startupExtraPath?: string,
 ): Promise<BuildTaskImageResult> {
-  const imageTag = `liveclawbench-${task}:latest`;
+  const imageTag = `liveclawbench-${task}-base:latest`;
 
   // Build a per-task Dockerfile
   const tmpDir = join(import.meta.dir, "..", ".tmp-images");

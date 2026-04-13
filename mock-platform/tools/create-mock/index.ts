@@ -45,6 +45,9 @@ async function createMock(name: string): Promise<void> {
 
 const app = createMockApp({ name: "${kebab}" });
 
+// Sentinel route for isolation verification (AC-1.1)
+app.app.get("/__mock_sentinel__/${kebab}", (c) => c.json({ mock: "${kebab}", sentinel: true }));
+
 // ${kebab} routes will be added in migration tasks.
 
 export default app;

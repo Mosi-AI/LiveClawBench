@@ -1,4 +1,4 @@
-FROM liveclawbench-schedule-change-request:latest
+FROM liveclawbench-schedule-change-request-base:latest
 
 # Copy environment apps
 COPY . /workspace/environment/

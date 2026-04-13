@@ -1,4 +1,4 @@
-FROM liveclawbench-washer-shop:latest
+FROM liveclawbench-washer-shop-base:latest
 
 COPY . /workspace/environment/
 

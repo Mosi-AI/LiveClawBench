@@ -1,4 +1,4 @@
-FROM liveclawbench-baggage-tracking-application:latest
+FROM liveclawbench-baggage-tracking-application-base:latest
 
 # Copy environment apps
 COPY . /workspace/environment/

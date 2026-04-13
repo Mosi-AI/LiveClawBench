@@ -1,4 +1,4 @@
-FROM liveclawbench-skill-repository-curation:latest
+FROM liveclawbench-skill-repository-curation-base:latest
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 

@@ -1,4 +1,4 @@
-FROM liveclawbench-info-change:latest
+FROM liveclawbench-info-change-base:latest
 
 COPY . /workspace/environment/
 

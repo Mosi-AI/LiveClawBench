@@ -1,4 +1,4 @@
-FROM liveclawbench-flight-cancel-claim:latest
+FROM liveclawbench-flight-cancel-claim-base:latest
 
 # Copy environment apps
 COPY . /workspace/environment/

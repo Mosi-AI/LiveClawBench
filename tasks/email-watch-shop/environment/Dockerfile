@@ -1,4 +1,4 @@
-FROM liveclawbench-email-watch-shop:latest
+FROM liveclawbench-email-watch-shop-base:latest
 
 COPY . /workspace/environment/
 

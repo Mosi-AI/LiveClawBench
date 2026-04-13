@@ -1,4 +1,4 @@
-FROM liveclawbench-flight-info-change-notice:latest
+FROM liveclawbench-flight-info-change-notice-base:latest
 
 # Copy environment apps
 COPY . /workspace/environment/
