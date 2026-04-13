@@ -37,6 +37,11 @@ export function getDb(options?: SqliteOptions): Database {
   _db.run("PRAGMA journal_mode = WAL");
   _db.run("PRAGMA foreign_keys = ON");
 
+  // Run migrations if autoMigrate is enabled (default behavior)
+  if (opts.autoMigrate) {
+    migrate(_db);
+  }
+
   return _db;
 }
 

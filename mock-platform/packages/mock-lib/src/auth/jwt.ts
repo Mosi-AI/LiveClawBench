@@ -26,12 +26,15 @@ const TOKEN_EXPIRY_SECONDS = 3600; // 1 hour
 // --- base64url helpers (RFC 4648 §5) ---
 
 function base64urlEncode(data: Uint8Array | string): string {
-  const binary = typeof data === "string"
-    ? data
-    : Array.from(data)
-        .map((b) => String.fromCharCode(b))
-        .join("");
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  // Encode to UTF-8 first to support Unicode (emojis, non-ASCII characters)
+  // btoa() only accepts Latin-1, so we must encode UTF-8 explicitly
+  const utf8Bytes = typeof data === "string"
+    ? new TextEncoder().encode(data)
+    : new Uint8Array(data);
+  return btoa(String.fromCharCode(...utf8Bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 function base64urlDecode(b64url: string): Uint8Array {
