@@ -41,13 +41,18 @@ async function createMock(name: string): Promise<void> {
   );
 
   // Write entry point
-  const entryContent = `import { createMockApp } from "mock-lib";
+  const entryContent = `import { createMockApp, startServer } from "mock-lib";
 
 const app = createMockApp({ name: "${kebab}" });
 
 // ${kebab} routes will be added in migration tasks.
 
 export default app;
+
+// Start the server when this file is run directly (for standalone binary)
+if (import.meta.main) {
+  startServer(app);
+}
 `;
   await writeFile(join(srcDir, "index.ts"), entryContent);
 

@@ -97,7 +97,7 @@ bun install --silent
 bun run build
 
 # Build per-task images (dry-run to validate schema, then build images)
-bun run build-task-images
+bun run build:images
 cd "$SCRIPT_DIR"
 
 echo "  Mock binaries and per-task images built successfully."

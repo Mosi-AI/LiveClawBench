@@ -241,7 +241,8 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("  bash /workspace/startup.sh &");
     lines.push("fi");
     lines.push("# Wait for services to bind their ports");
-    lines.push("sleep 3");
+    lines.push("# Preserves 5-second delay from original per-task entrypoints");
+    lines.push("sleep 5");
     lines.push("");
   }
 
