@@ -205,16 +205,10 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     "",
   ];
 
-  // Start Bun mock binaries (per-task binary subset)
-  if (binaries.length > 0) {
-    lines.push("# Start mock binaries on their designated ports");
-    for (const bin of binaries) {
-      const port = BINARY_PORTS[bin];
-      lines.push(`echo 'Starting mock-${bin} on port ${port}...'`);
-      lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
-    }
-    lines.push("");
-  }
+  // NOTE: Bun mock binaries are currently stubs without real API implementations.
+  // They are included in the image but NOT started in Plan 1 to avoid port conflicts
+  // with the existing Python Flask services that provide the actual API functionality.
+  // Stub startup will be enabled in Plan 2 when Bun mocks implement real APIs.
 
   // Embed task-specific extra startup content (e.g. browser mock server init)
   // This content is read from the repo at image build time and embedded in the
@@ -240,6 +234,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     // startup.sh is available at /workspace/environment/startup.sh because the
     // task Dockerfile does COPY . /workspace/environment/ (includes startup.sh).
     lines.push("# Start task-specific Python mock services");
+    lines.push("# NOTE: Bun stub binaries are not started (see note above)");
     lines.push("if [ -f /workspace/environment/startup.sh ]; then");
     lines.push("  bash /workspace/environment/startup.sh &");
     lines.push("elif [ -f /workspace/startup.sh ]; then");

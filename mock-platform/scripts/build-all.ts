@@ -192,6 +192,13 @@ async function main() {
     process.exit(1);
   }
 
+  // Exit with error if isolation verification failed (AC-1.1 violation)
+  if (!isolationPass) {
+    console.error("\nERROR: Isolation verification failed. Build pipeline cannot continue.");
+    console.error("  Fix: Ensure each mock contains its own sentinel route and no foreign sentinels.");
+    process.exit(1);
+  }
+
   // Build compatibility gate: exit 0 even if some mocks failed
   // (individual failures are reported but don't block the pipeline)
   console.log("\nBuild pipeline complete.");

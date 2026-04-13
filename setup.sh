@@ -72,7 +72,7 @@ echo ""
 # ---------------------------------------------------------------------------
 # Step 3: Build the shared base Docker image
 # ---------------------------------------------------------------------------
-echo "[3/4] Building liveclawbench-base Docker image..."
+echo "[3/5] Building liveclawbench-base Docker image..."
 echo "  This is required before running any task (image is local-only, not in a registry)."
 docker build -t liveclawbench-base:latest "$SCRIPT_DIR/docker/base/"
 echo "  liveclawbench-base:latest built successfully."
@@ -80,7 +80,32 @@ echo "  liveclawbench-base:latest built successfully."
 echo ""
 
 # ---------------------------------------------------------------------------
-# Step 4: .env setup
+# Step 4: Build Bun mock binaries and per-task Docker images
+# ---------------------------------------------------------------------------
+echo "[4/5] Building Bun mock binaries and per-task Docker images..."
+
+# Check if bun is available
+if ! command -v bun &>/dev/null; then
+    echo "  ERROR: 'bun' not found."
+    echo "         Install from https://bun.sh"
+    exit 1
+fi
+
+# Build binaries
+cd "$SCRIPT_DIR/mock-platform"
+bun install --silent
+bun run build
+
+# Build per-task images (dry-run to validate schema, then build images)
+bun run build-task-images
+cd "$SCRIPT_DIR"
+
+echo "  Mock binaries and per-task images built successfully."
+
+echo ""
+
+# ---------------------------------------------------------------------------
+# Step 5: .env setup
 # ---------------------------------------------------------------------------
 echo "[4/4] Configuring .env..."
 
