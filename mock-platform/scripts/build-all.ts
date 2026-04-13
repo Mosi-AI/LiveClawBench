@@ -37,7 +37,8 @@ async function compileMock(name: string): Promise<BuildResult> {
 
   try {
     const proc = Bun.spawn([
-      "bun", "build", "--compile", entryPoint, "--outfile", outputPath,
+      "bun", "build", "--compile", "--target", "bun-linux-x64",
+      entryPoint, "--outfile", outputPath,
     ], {
       stdout: "pipe",
       stderr: "pipe",

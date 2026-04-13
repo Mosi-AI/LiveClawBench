@@ -334,8 +334,27 @@ async function buildTaskImage(
   // No CMD here — inherits from base image (openclaw:2026.3.11 provides long-lived command)
   dockerfileLines.push("");
 
+  // Write startup script content to a temporary file (build context)
+  // This avoids BuildKit-only heredoc COPY syntax, ensuring portability
+  // when Docker BuildKit is disabled or unavailable.
+  const startupScriptPath = join(tmpDir, `startup-${task}.sh`);
+  writeFileSync(startupScriptPath, startupContent);
+
+  // Replace heredoc COPY with regular COPY that works without BuildKit
+  // The startup script is now in the build context as startup-{task}.sh
+  const dockerfileLinesWithCopy = dockerfileLines.map((line) => {
+    if (line === `COPY <<'STARTUP' /opt/mock/startup.d/${task}.sh`) {
+      return `COPY startup-${task}.sh /opt/mock/startup.d/${task}.sh`;
+    }
+    return line;
+  });
+  // Remove heredoc delimiter lines
+  const dockerfileLinesClean = dockerfileLinesWithCopy.filter(
+    (line) => line !== "STARTUP"
+  );
+
   const dockerfilePath = join(tmpDir, `Dockerfile.${task}`);
-  writeFileSync(dockerfilePath, dockerfileLines.join("\n") + "\n");
+  writeFileSync(dockerfilePath, dockerfileLinesClean.join("\n") + "\n");
 
   // Build context needs both dist/ (for binaries) and shared/ (for entrypoint.sh)
   // We copy entrypoint.sh into the dist dir temporarily for the build context
