@@ -344,7 +344,7 @@ async function buildTaskImage(
   // No need for heredoc replacement (removed in earlier edit)
 
   const dockerfilePath = join(tmpDir, `Dockerfile.${task}`);
-  writeFileSync(dockerfilePath, dockerfileLinesClean.join("\n") + "\n");
+  writeFileSync(dockerfilePath, dockerfileLines.join("\n") + "\n");
 
   // Build context needs both dist/ (for binaries) and shared/ (for entrypoint.sh)
   // We copy entrypoint.sh into the dist dir temporarily for the build context
