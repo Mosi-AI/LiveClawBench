@@ -331,7 +331,7 @@ async function buildTaskImage(
   dockerfileLines.push("");
 
   dockerfileLines.push(`ENTRYPOINT ["/opt/mock/entrypoint.sh"]`);
-  dockerfileLines.push("CMD [\"/bin/bash\"]");
+  // No CMD here — inherits from base image (openclaw:2026.3.11 provides long-lived command)
   dockerfileLines.push("");
 
   const dockerfilePath = join(tmpDir, `Dockerfile.${task}`);

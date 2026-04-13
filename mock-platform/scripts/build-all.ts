@@ -80,8 +80,9 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
   };
 
   const successfulMocks = results.filter((r) => r.success);
-  if (successfulMocks.length < 2) return { violations, missingSentinels };
 
+  // Phase 1: POSITIVE — each mock must contain its own sentinel
+  // This check always runs, even if only one mock compiles
   for (const result of successfulMocks) {
     if (!result.binaryPath) continue;
 
@@ -89,24 +90,42 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
       const binaryContent = await readFile(result.binaryPath);
       const binaryText = binaryContent.toString("utf-8");
 
-      // Phase 1: POSITIVE — own sentinel must be present
       const ownSentinel = sentinelPatterns[result.name];
       if (ownSentinel && !binaryText.includes(ownSentinel)) {
         missingSentinels.push(result.name);
       }
+    } catch (err) {
+      // If we can't read the binary, we can't verify sentinel
+      console.error(`Warning: Could not read ${result.name} for sentinel check: ${err}`);
+    }
+  }
 
-      // Phase 2: NEGATIVE — foreign sentinels must be absent
-      const foundViolations: string[] = [];
-      for (const [mockName, sentinel] of Object.entries(sentinelPatterns)) {
-        if (mockName === result.name) continue;
-        if (binaryText.includes(sentinel)) {
-          foundViolations.push(sentinel);
+  // Phase 2: NEGATIVE — foreign sentinels must be absent
+  // This check requires at least 2 successful mocks to detect cross-contamination
+  if (successfulMocks.length >= 2) {
+    for (const result of successfulMocks) {
+      if (!result.binaryPath) continue;
+
+      try {
+        const binaryContent = await readFile(result.binaryPath);
+        const binaryText = binaryContent.toString("utf-8");
+
+        const foundViolations: string[] = [];
+        for (const [mockName, sentinel] of Object.entries(sentinelPatterns)) {
+          if (mockName === result.name) continue;
+          if (binaryText.includes(sentinel)) {
+            foundViolations.push(sentinel);
+          }
         }
-      }
 
-      if (foundViolations.length > 0) {
-        violations.set(result.name, foundViolations);
+        if (foundViolations.length > 0) {
+          violations.set(result.name, foundViolations);
+        }
+      } catch (err) {
+        console.error(`Warning: Could not read ${result.name} for cross-contamination check: ${err}`);
       }
+    }
+  }
     } catch {
       // Binary may not be readable (permissions etc.) — skip isolation check
     }
