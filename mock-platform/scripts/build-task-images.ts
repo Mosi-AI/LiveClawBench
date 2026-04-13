@@ -308,10 +308,9 @@ async function buildTaskImage(
   }
 
   // COPY startup script to deterministic /opt/mock/startup.d/{task}.sh
+  // The startup script is written to DIST_DIR (build context) as startup-{task}.sh
   dockerfileLines.push("");
-  dockerfileLines.push(`COPY <<'STARTUP' /opt/mock/startup.d/${task}.sh`);
-  dockerfileLines.push(startupContent);
-  dockerfileLines.push("STARTUP");
+  dockerfileLines.push(`COPY startup-${task}.sh /opt/mock/startup.d/${task}.sh`);
   dockerfileLines.push("");
 
   // Ensure startup.d ownership and permissions (root:root, read-only)
@@ -334,24 +333,15 @@ async function buildTaskImage(
   // No CMD here — inherits from base image (openclaw:2026.3.11 provides long-lived command)
   dockerfileLines.push("");
 
-  // Write startup script content to a temporary file (build context)
-  // This avoids BuildKit-only heredoc COPY syntax, ensuring portability
+  // Write startup script content to DIST_DIR (Docker build context)
+  // This ensures the COPY command can find the file at build time.
+  // Using plain COPY instead of BuildKit heredoc ensures portability
   // when Docker BuildKit is disabled or unavailable.
-  const startupScriptPath = join(tmpDir, `startup-${task}.sh`);
+  const startupScriptPath = join(DIST_DIR, `startup-${task}.sh`);
   writeFileSync(startupScriptPath, startupContent);
 
-  // Replace heredoc COPY with regular COPY that works without BuildKit
-  // The startup script is now in the build context as startup-{task}.sh
-  const dockerfileLinesWithCopy = dockerfileLines.map((line) => {
-    if (line === `COPY <<'STARTUP' /opt/mock/startup.d/${task}.sh`) {
-      return `COPY startup-${task}.sh /opt/mock/startup.d/${task}.sh`;
-    }
-    return line;
-  });
-  // Remove heredoc delimiter lines
-  const dockerfileLinesClean = dockerfileLinesWithCopy.filter(
-    (line) => line !== "STARTUP"
-  );
+  // COPY startup script is already in dockerfileLines as regular COPY
+  // No need for heredoc replacement (removed in earlier edit)
 
   const dockerfilePath = join(tmpDir, `Dockerfile.${task}`);
   writeFileSync(dockerfilePath, dockerfileLinesClean.join("\n") + "\n");
