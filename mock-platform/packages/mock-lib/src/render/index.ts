@@ -7,7 +7,7 @@
  * Plan 2 will use this module to render HTML templates for:
  * - airline-app frontend
  * - email-app frontend
- * - browser-portal pages
+ * - doc-search pages
  */
 
 import type { Context } from "hono";

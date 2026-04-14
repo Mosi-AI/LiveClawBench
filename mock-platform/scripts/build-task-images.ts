@@ -34,7 +34,7 @@ const BINARY_PORTS: Record<string, number> = {
   email: 5001,
   shop: 1234,
   todolist: 5002,
-  "browser-portal": 8123,
+  "doc-search": 8123,
 };
 
 // All 30 benchmark task names (canonical source of truth)
