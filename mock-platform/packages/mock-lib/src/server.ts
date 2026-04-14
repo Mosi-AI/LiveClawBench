@@ -29,6 +29,9 @@ function parseCliPort(): number | undefined {
  * - Uses --port CLI flag if provided, otherwise falls back to config.port
  * - In dev mode: enables Hono logger middleware
  * - Calls optional seed function before starting
+ * - Logs and continues if seed() throws (non-blocking for production)
+ *
+ * @returns Bun server instance for lifecycle management (shutdown, health checks, etc.)
  */
 export async function startServer(
   mockApp: MockApp,
@@ -38,7 +41,7 @@ export async function startServer(
     /** Dev mode: enable Hono logger. Defaults to mockApp.config.dev */
     dev?: boolean;
   },
-): Promise<void> {
+): Promise<Server> {
   const dev = options?.dev ?? mockApp.config.dev ?? false;
   const port = parseCliPort() ?? mockApp.config.port ?? 3000;
 
@@ -48,13 +51,20 @@ export async function startServer(
     mockApp.app.use("*", logger());
   }
 
-  // Run seed callback if provided
+  // Run seed callback if provided (non-blocking: log error but continue startup)
   if (options?.seed) {
-    await options.seed();
+    try {
+      await options.seed();
+    } catch (err) {
+      console.error(
+        `mock-${mockApp.config.name}: seed() failed, continuing startup`,
+        err,
+      );
+    }
   }
 
   // Start Bun's native HTTP server
-  Bun.serve({
+  const server = Bun.serve({
     port,
     fetch: mockApp.app.fetch,
   });
@@ -62,4 +72,6 @@ export async function startServer(
   console.log(
     `mock-${mockApp.config.name} listening on http://localhost:${port}`,
   );
+
+  return server;
 }

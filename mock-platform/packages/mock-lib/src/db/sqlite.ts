@@ -4,7 +4,12 @@ import { Database } from "bun:sqlite";
  * SQLite database singleton per mock binary.
  *
  * Each mock gets its own database instance. The database file path
- * is determined by the mock name and data directory configuration.
+ * is determined by mock name and data directory configuration.
+ *
+ * API Constraint: This module implements a process-level singleton. Calling getDb()
+ * with different paths in the same process returns the first instance. This is safe
+ * in the current architecture where each mock runs in its own isolated process,
+ * but callers should be aware of this behavior for future multi-DB use cases.
  */
 
 let _db: Database | null = null;
@@ -26,6 +31,9 @@ const DEFAULT_OPTIONS: SqliteOptions = {
  *
  * In production: uses the configured file path.
  * In tests: defaults to :memory: for isolation.
+ *
+ * Note: This returns a process-level singleton. For multi-DB scenarios,
+ * consider migrating to a path-isolated Map-based design.
  */
 export function getDb(options?: SqliteOptions): Database {
   if (_db !== null) return _db;
@@ -60,7 +68,7 @@ export function resetDb(): void {
  * Creates common tables if they don't exist.
  * Actual migration logic will be added by migration tasks in Plan 2+.
  */
-export function migrate(db: Database): void {
+function migrate(db: Database): void {
   db.run(`
     CREATE TABLE IF NOT EXISTS _migrations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

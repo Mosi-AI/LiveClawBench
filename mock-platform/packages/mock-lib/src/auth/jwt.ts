@@ -174,11 +174,14 @@ export async function verify(token: string): Promise<JwtPayload | null> {
 
 /**
  * Get cookie options for JWT tokens.
+ *
+ * Note: secure is set to false in dev/test environments to allow cookies
+ * over HTTP (localhost). In production, browsers require HTTPS with secure: true.
  */
 export function tokenCookieOptions(): TokenCookieOptions {
   return {
     httpOnly: true,
-    secure: true,
+    secure: !isDevOrTest(),
     sameSite: "Strict",
     maxAge: TOKEN_EXPIRY_SECONDS,
     path: "/",
