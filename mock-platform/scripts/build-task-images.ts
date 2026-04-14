@@ -262,6 +262,8 @@ async function buildTaskImage(
   mkdirSync(tmpDir, { recursive: true });
 
   // Check all binaries exist before building (skip for zero-binary tasks)
+  // Also verify binaries are not stale (source newer than binary)
+  const entryPoint = join(MOCKS_DIR, bin, "src", "index.ts");
   for (const bin of binaries) {
     const binaryPath = join(DIST_DIR, `mock-${bin}`);
     if (!existsSync(binaryPath)) {
@@ -271,6 +273,19 @@ async function buildTaskImage(
         imageTag,
         binariesIncluded: binaries,
         error: `Binary not found: ${binaryPath}`,
+      };
+    }
+
+    // Reject stale binaries (source newer than compiled artifact)
+    const binaryStat = statSync(binaryPath);
+    const sourceStat = statSync(entryPoint);
+    if (sourceStat && sourceStat.mtimeMs > binaryStat.mtimeMs) {
+      return {
+        task,
+        success: false,
+        imageTag,
+        binariesIncluded: binaries,
+        error: `Stale binary: ${binaryPath} (source ${sourceStat.mtimeMs} newer than binary ${binaryStat.mtimeMs})`,
       };
     }
   }
