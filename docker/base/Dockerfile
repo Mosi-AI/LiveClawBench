@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Install Bun runtime for mock platform binaries
-RUN curl -fsSL https://bun.sh/install | bash -s "latest" && \
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v1.3.11" && \
     ln -s /root/.bun/bin/bun /usr/local/bin/bun
 
 # Create mock user and directory structure

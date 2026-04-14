@@ -22,7 +22,7 @@ export function registerStaticAssets(_options?: {
   /** URL prefix for static assets */
   prefix?: string;
 }): void {
-  // Plan 2: implement using Hono's serveStatic middleware
+  throw new Error("registerStaticAssets not yet implemented (Plan 2)");
 }
 
 /**

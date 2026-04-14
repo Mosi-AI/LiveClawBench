@@ -346,7 +346,6 @@ async function buildTaskImage(
 
   // COPY shared entrypoint from the canonical shared/entrypoint.sh
   // This is the single secure entrypoint for all per-task images
-  dockerfileLines.push("ARG ENTRYPOINT_DIR=.");
   dockerfileLines.push(`COPY entrypoint.sh /opt/mock/entrypoint.sh`);
   dockerfileLines.push("RUN chmod 755 /opt/mock/entrypoint.sh");
   dockerfileLines.push("");
