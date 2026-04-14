@@ -263,7 +263,7 @@ async function buildTaskImage(
 
   // Check all binaries exist before building (skip for zero-binary tasks)
   // Also verify binaries are not stale (source newer than binary)
-  const entryPoint = join(MOCKS_DIR, bin, "src", "index.ts");
+  const MOCKS_DIR = join(import.meta.dir, "..", "mocks");
   for (const bin of binaries) {
     const binaryPath = join(DIST_DIR, `mock-${bin}`);
     if (!existsSync(binaryPath)) {
@@ -277,9 +277,20 @@ async function buildTaskImage(
     }
 
     // Reject stale binaries (source newer than compiled artifact)
+    const entryPoint = join(MOCKS_DIR, bin, "src", "index.ts");
+    if (!existsSync(entryPoint)) {
+      return {
+        task,
+        success: false,
+        imageTag,
+        binariesIncluded: binaries,
+        error: `Source entry point not found: ${entryPoint}`,
+      };
+    }
+
     const binaryStat = statSync(binaryPath);
     const sourceStat = statSync(entryPoint);
-    if (sourceStat && sourceStat.mtimeMs > binaryStat.mtimeMs) {
+    if (sourceStat.mtimeMs > binaryStat.mtimeMs) {
       return {
         task,
         success: false,
