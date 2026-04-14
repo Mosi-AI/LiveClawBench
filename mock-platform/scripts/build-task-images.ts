@@ -14,7 +14,7 @@
  * Usage: bun run scripts/build-task-images.ts [--dry-run]
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { mkdirSync, writeFileSync } from "node:fs";
 
