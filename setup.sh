@@ -30,6 +30,7 @@ check_cmd() {
 check_cmd git    "Install from https://git-scm.com/downloads"
 check_cmd uv     "Install from https://docs.astral.sh/uv/getting-started/installation/"
 check_cmd docker "Install from https://docs.docker.com/get-docker/"
+check_cmd bun    "Install from https://bun.sh"
 
 # Python >= 3.12 check (uv manages Python, but verify host has one accessible)
 PY_VERSION=$(python3 --version 2>&1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
@@ -83,13 +84,6 @@ echo ""
 # Step 4: Build Bun mock binaries and per-task Docker images
 # ---------------------------------------------------------------------------
 echo "[4/5] Building Bun mock binaries and per-task Docker images..."
-
-# Check if bun is available
-if ! command -v bun &>/dev/null; then
-    echo "  ERROR: 'bun' not found."
-    echo "         Install from https://bun.sh"
-    exit 1
-fi
 
 # Build binaries
 cd "$SCRIPT_DIR/mock-platform"
