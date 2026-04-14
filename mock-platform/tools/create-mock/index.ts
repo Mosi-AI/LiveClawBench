@@ -3,7 +3,7 @@
  *
  * Usage: bun run tools/create-mock/index.ts <name>
  *
- * Creates a new mock package at mocks/<name>/ with the standard structure:
+ * Creates a new mock package at mocks/<name>/ with standard structure:
  *   mocks/<name>/package.json
  *   mocks/<name>/src/index.ts
  */
@@ -46,16 +46,14 @@ async function createMock(name: string): Promise<void> {
 const app = createMockApp({ name: "${kebab}" });
 
 // Sentinel route for isolation verification (AC-1.1)
+// Each mock registers a unique sentinel that build-all.ts checks for
+// both presence (own) and absence (foreign) to prove cross-contamination freedom.
 app.app.get("/__mock_sentinel__/${kebab}", (c) => c.json({ mock: "${kebab}", sentinel: true }));
 
-// ${kebab} routes will be added in migration tasks.
+// ${kebab} routes will be added in Plan 2 migration tasks.
 
-export default app;
-
-// Start the server when this file is run directly (for standalone binary)
-if (import.meta.main) {
-  startServer(app);
-}
+// Start server unconditionally (matches established pattern across all 5 existing mocks)
+startServer(app);
 `;
   await writeFile(join(srcDir, "index.ts"), entryContent);
 

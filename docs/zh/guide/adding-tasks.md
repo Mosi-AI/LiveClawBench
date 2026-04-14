@@ -86,10 +86,10 @@ allow_internet = true  # 所有 OpenClaw 任务必须设置（agent 需调用 LL
 
 ## Dockerfile 要求
 
-所有任务 Dockerfile 继承自**任务专属基础镜像**（`liveclawbench-{task}:latest`），这是三层镜像架构的第二层：
+所有任务 Dockerfile 继承自**任务专属基础镜像**（`liveclawbench-{task}-base:latest`），这是三层镜像架构的第二层：
 
 1. **公共基础层**（`liveclawbench-base:latest`）— Bun 运行时、Python、Playwright Chromium、`/workspace/output`
-2. **任务专属层**（`liveclawbench-{task}:latest`）— 该任务所需的 mock 二进制文件、只读的 `/opt/mock/startup.d/{task}.sh`、安全入口点 `/opt/mock/entrypoint.sh`
+2. **任务专属层**（`liveclawbench-{task}-base:latest`）— 该任务所需的 mock 二进制文件、只读的 `/opt/mock/startup.d/{task}.sh`、安全入口点 `/opt/mock/entrypoint.sh`
 3. **任务 Dockerfile**（`tasks/{task}/environment/Dockerfile`）— 任务特定的应用安装（pip install、npm install、数据注入）
 
 任务专属层由 `bun run mock-platform/scripts/build-task-images.ts` 生成。**构建顺序：**
@@ -113,7 +113,7 @@ docker build -t liveclawbench-{task}:latest tasks/{task}/environment/
 无后台服务。Agent 直接读写 `/workspace/environment/` 下的文件。
 
 ```dockerfile
-FROM liveclawbench-{task}:latest
+FROM liveclawbench-{task}-base:latest
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 USER root
@@ -130,7 +130,7 @@ COPY . /workspace/environment/
 单个 Python 后端。服务由容器入口点通过 `/opt/mock/startup.d/{task}.sh` 启动——**不要**将 `startup.sh` 复制到 `/workspace/` 或添加任务本地 `ENTRYPOINT`。
 
 ```dockerfile
-FROM liveclawbench-{task}:latest
+FROM liveclawbench-{task}-base:latest
 
 COPY . /workspace/environment/
 # --no-cache-dir: 减少镜像层大小
@@ -146,7 +146,7 @@ CMD ["sh", "-c", "sleep infinity"]
 Python 后端 + Node.js 前端。服务由容器入口点启动——**不要**将 `startup.sh` 复制到 `/workspace/` 或添加任务本地 `ENTRYPOINT`。
 
 ```dockerfile
-FROM liveclawbench-{task}:latest
+FROM liveclawbench-{task}-base:latest
 
 COPY . /workspace/environment/
 # --no-cache-dir: 减少镜像层大小
@@ -162,7 +162,7 @@ CMD ["sh", "-c", "sleep infinity"]
 工作目录为 `/home/node/.openclaw/`；以 `node` 用户运行；`ARG OPENCLAW_BASE_IMAGE` 允许 Harbor 在运行时替换基础镜像。
 
 ```dockerfile
-ARG OPENCLAW_BASE_IMAGE=liveclawbench-{task}:latest
+ARG OPENCLAW_BASE_IMAGE=liveclawbench-{task}-base:latest
 FROM ${OPENCLAW_BASE_IMAGE}
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
