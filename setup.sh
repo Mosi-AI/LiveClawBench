@@ -14,7 +14,7 @@ echo ""
 # ---------------------------------------------------------------------------
 # Step 1: Prerequisite checks
 # ---------------------------------------------------------------------------
-echo "[1/4] Checking prerequisites..."
+echo "[1/5] Checking prerequisites..."
 
 check_cmd() {
     local cmd="$1"
@@ -47,7 +47,7 @@ echo ""
 # ---------------------------------------------------------------------------
 # Step 2: Harbor installation into local .venv (idempotent)
 # ---------------------------------------------------------------------------
-echo "[2/4] Setting up Harbor framework..."
+echo "[2/5] Setting up Harbor framework..."
 
 if [ ! -d "$VENV_DIR" ]; then
     echo "  Creating virtual environment at .venv ..."
@@ -107,7 +107,7 @@ echo ""
 # ---------------------------------------------------------------------------
 # Step 5: .env setup
 # ---------------------------------------------------------------------------
-echo "[4/4] Configuring .env..."
+echo "[5/5] Configuring .env..."
 
 if [ ! -f "$SCRIPT_DIR/.env" ]; then
     cp "$SCRIPT_DIR/.env.example" "$SCRIPT_DIR/.env"

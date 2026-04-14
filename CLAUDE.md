@@ -38,9 +38,11 @@ When creating additional Git worktrees for agent-driven branch work, place them 
 ```
 
 `setup.sh` will:
-1. Check prerequisites (git, uv, Docker, Python ≥ 3.12)
+1. Check prerequisites (git, uv, Docker, Python ≥ 3.12, Bun)
 2. Create a local `.venv` and install `harbor` from the claw-harbor GitHub URL
-3. Copy `.env.example` → `.env` for API key configuration
+3. Build the shared `liveclawbench-base:latest` Docker image
+4. Build Bun mock binaries and per-task Docker images
+5. Copy `.env.example` → `.env` for API key configuration
 
 Then activate the venv before running any `harbor` commands:
 
@@ -181,25 +183,37 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `conflict-repair-acb` | Documents & Knowledge | easy | **llm_judge** |
 | `skill-combination` | Documents & Knowledge | easy | evaluate.py |
 
-## Base Docker Image
+## Docker Image Architecture
 
-All task Dockerfiles inherit from `liveclawbench-base:latest` instead of directly
-from `ghcr.io/openclaw/openclaw:2026.3.11`. The base image (`docker/base/Dockerfile`) pre-bakes:
+LiveClawBench uses a three-layer Docker image architecture:
 
-- **Common packages**: `python3 python3-pip python3-venv curl sqlite3`
-- **Playwright Chromium** with all system deps (`--with-deps`), plus `/usr/bin/chromium` symlink so
-  openclaw's `findChromeExecutableLinux()` can discover it via standard system paths
-- **Directory scaffolding**: `/workspace` and `/workspace/output`
+1. **Base layer** (`liveclawbench-base:latest`): Shared runtime
+   - Pre-built by `setup.sh` step 3
+   - Pre-bakes: `python3 python3-pip python3-venv curl sqlite3`, Playwright Chromium, directory scaffolding (`/workspace`, `/workspace/output`)
+   - Built from: `docker/base/Dockerfile`
 
-Build order: **build base first**, then build task images that depend on it.
+2. **Per-task layer** (`liveclawbench-{task}-base:latest`): Task-specific mock binaries and startup
+   - Pre-built by `setup.sh` step 4 via `mock-platform/scripts/build-task-images.ts`
+   - Contains only the mock binaries required for that task (defined in `mock-platform/config/task-binary-map.json`)
+   - Includes per-task startup script at `/opt/mock/startup.d/{task}.sh` and shared entrypoint at `/opt/mock/entrypoint.sh`
+   - Read-only startup path prevents agent tampering
+
+3. **Task layer** (final task image): Task-specific environment and apps
+   - Built by harbor from `tasks/{task}/environment/Dockerfile`
+   - Inherits from the per-task layer: `FROM liveclawbench-{task}-base:latest`
+   - Copies task-specific apps (shop-app, airline-app, etc.) and runs any additional setup steps
+
+### Build Order
 
 ```bash
-# Build the base image (one-time, or when docker/base/Dockerfile changes)
+# 1. Build shared base (one-time, or when docker/base/Dockerfile changes)
 docker build -t liveclawbench-base:latest docker/base/
 
-# Verify common packages
-docker run --rm liveclawbench-base:latest python3 --version
-docker run --rm liveclawbench-base:latest sqlite3 --version
+# 2. Build all per-task images (one-time, or when mock binaries change)
+cd mock-platform && bun run build:images
+
+# 3. Build specific task image (harbor does this automatically on task run)
+docker build -t liveclawbench-watch-shop tasks/watch-shop/environment/
 ```
 
 > **Restricted network / proxy**: if your Docker daemon routes through a local proxy,
@@ -228,7 +242,7 @@ tasks/<task-name>/
 ├── task.toml           # difficulty, domain, factor_a1/a2/b1/b2, timeouts, allow_internet
 ├── instruction.md      # Agent-facing prompt
 ├── environment/
-│   └── Dockerfile      # FROM liveclawbench-base:latest  (or ARG OPENCLAW_BASE_IMAGE=liveclawbench-base:latest)
+│   └── Dockerfile      # FROM liveclawbench-{task}-base:latest (built by setup.sh step 4)
 ├── solution/
 │   └── solve.sh        # Reference solution
 └── tests/
@@ -268,18 +282,16 @@ Each `task.toml` encodes which factors apply (`factor_a1 = 1`, etc.).
 1. Create `tasks/<task-name>/` with the structure above
 2. `task.toml` must set `allow_internet = true` under `[environment]` if the agent needs LLM API access
 3. Set complexity factors (`factor_a1`, `factor_a2`, `factor_b1`, `factor_b2`) per the triple-axis framework
-4. Base Dockerfile on `liveclawbench-base:latest` (build base image first — see above)
-5. `verify.py` must print `Score: X.X/1.0` and exit non-zero if score < 0.5
-6. Check `docs/metadata/cases_registry.csv` for the next available `case_id`
+4. Add task to `mock-platform/config/task-binary-map.json` if it requires mock services
+5. `FROM liveclawbench-{task}-base:latest` in `environment/Dockerfile` (per-task layer built by setup.sh step 4)
+6. `verify.py` must print `Score: X.X/1.0` and exit non-zero if score < 0.5
+7. Check `docs/metadata/cases_registry.csv` for the next available `case_id`
 
 ## Validation & Tooling
 
 ```bash
 python scripts/validate_tasks.py       # validates all tasks (required files, TOML fields, case_id uniqueness)
 python scripts/validate_annotations.py # cross-checks factor annotations across task.toml / complexity-framework.md / cases_registry.csv
-
-# Build base image (required before building any task image)
-docker build -t liveclawbench-base:latest docker/base/
 ```
 
 - `capability_dimension` field is deprecated — `validate_tasks.py` flags it as an error; do not add to new tasks

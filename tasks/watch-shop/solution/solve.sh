@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd /workspace
-bash environment/startup.sh
 
 # Agent task:
 # Please help me purchase a smart watch from the Mosi Shop (address: http://localhost:1234/, open it in your browser). The product must be the cheapest among those with a rating of 4.6 or higher. Please

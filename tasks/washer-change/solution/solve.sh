@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd /workspace
-bash environment/startup.sh
 
 # Agent task:
 # I recently purchased a Kenmore top load washer at Mosi Shop (address: http://localhost:1234/), but now I realize it's not portable enough. Please help me refund it at my orders of Mosi Shop (address: 
