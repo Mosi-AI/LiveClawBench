@@ -236,12 +236,31 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     "",
   ];
 
+  // Step 0: Data directory initialization for shop tasks
+  // The shop binary stores data at /var/lib/mock-data/shop/ and verifiers
+  // read from /tmp/mosi_shop_*.json via symlinks.
+  if (binaries.includes("shop")) {
+    lines.push("# Initialize shop data directory and verifier-compatible symlinks");
+    lines.push("mkdir -p /var/lib/mock-data/shop");
+    lines.push("chmod 700 /var/lib/mock-data/shop");
+    lines.push("ln -sf /var/lib/mock-data/shop/orders.json /tmp/mosi_shop_orders.json");
+    lines.push("ln -sf /var/lib/mock-data/shop/cart.json /tmp/mosi_shop_cart.json");
+    lines.push("ln -sf /var/lib/mock-data/shop/user.json /tmp/mosi_shop_user.json");
+    lines.push("");
+  }
+
   // Step 1: Launch Bun mock binaries (if any)
   if (binaries.length > 0) {
     lines.push("# Start Bun mock binaries");
     for (const bin of binaries) {
       const port = BINARY_PORTS[bin];
-      lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
+      if (bin === "doc-search") {
+        // Doc-search requires explicit --database and --log flags for verifier
+        const outputBase = "${HOME:-/home/node}/.openclaw/output";
+        lines.push(`/opt/mock/bin/mock-doc-search --port ${port} --database "${outputBase}/browser_mock_documents.sqlite" --log "${outputBase}/browser_mock_access.jsonl" &`);
+      } else {
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
+      }
     }
     lines.push("");
     lines.push("# Wait for mock binaries to bind their ports");

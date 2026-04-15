@@ -102,11 +102,10 @@ let allProducts: Product[] = [];
 // Data persistence
 // ---------------------------------------------------------------------------
 
-// Use /tmp paths to match Python verifier expectations (verify.py reads /tmp/mosi_shop_*.json)
-const DATA_DIR = "/tmp";
-const CART_FILE = `${DATA_DIR}/mosi_shop_cart.json`;
-const USER_FILE = `${DATA_DIR}/mosi_shop_user.json`;
-const ORDERS_FILE = `${DATA_DIR}/mosi_shop_orders.json`;
+// Data directory for persistent shop state. The per-task startup script creates this
+// directory (mkdir -p, chown mock:mock, chmod 700) and creates verifier-compatible
+// symlinks: /tmp/mosi_shop_{orders,cart,user}.json -> /var/lib/mock-data/shop/*.json
+const DATA_DIR = process.env.MOCK_DATA_DIR || "/var/lib/mock-data/shop";
 
 const store = new JsonStore({ dir: DATA_DIR });
 
@@ -374,7 +373,7 @@ function renderResults(params: {
     return `<div class="product-card">
 <div class="product-image"><img src="${escHtml(p.image_url)}" alt="${escHtml(p.title)}"></div>
 <div class="product-info">
-<h3 class="product-title"><a href="/product/${escHtml(p.id)}">${escHtml(p.title)}</a></h3>
+<h3 class="product-title">${escHtml(p.title)}</h3>
 <div class="product-rating">${starHtml} <span class="rating-text">${rating.toFixed(1)}</span>${p.rating_count ? ` (${escHtml(p.rating_count)})` : ""}</div>
 <div class="product-price">$${p.price.toFixed(2)}</div>
 ${tagsHtml ? `<div class="product-tags">${tagsHtml}</div>` : ""}
@@ -541,48 +540,162 @@ async function checkout() {
 
 // --- profile.html ---
 function renderProfile(user: UserData): string {
-  const paymentMethodsHtml = (user.payment_methods ?? []).map((method) => {
+  const paymentItemsHtml = (user.payment_methods ?? []).map((method) => {
     const typeLower = method.type.toLowerCase();
-    let icon = "&#128179;"; // credit card default
+    let icon = "&#128179;";
     if (typeLower.includes("gift")) icon = "&#127873;";
-    else if (typeLower.includes("paypal")) icon = "&#10697;";
-    return `<div class="payment-method">
-<span class="payment-icon">${icon}</span>
-<span class="payment-type">${escHtml(method.type)}</span>
-<span class="payment-account">${escHtml(method.account)}</span>
-${method.balance ? `<span class="payment-balance">${escHtml(method.balance)}</span>` : ""}
+    else if (typeLower.includes("paypal")) icon = "&#128179;";
+    else if (typeLower.includes("credit")) icon = "&#128179;";
+    const balanceArg = method.balance ? `, '${escHtml(method.balance)}'` : "";
+    return `<div class="payment-item" onclick="showPaymentDetail('${escHtml(method.type)}', '${escHtml(method.account)}'${balanceArg})">
+<div class="payment-icon">${icon}</div>
+<div class="payment-info">
+<div class="payment-type">${escHtml(method.type)}</div>
+<div class="payment-account">${escHtml(method.account)}</div>
+</div>
+<div class="payment-arrow">&rsaquo;</div>
 </div>`;
   }).join("\n");
 
-  const body = `<div class="container">
-<h1>Profile</h1>
-<div class="profile-info">
-<div class="profile-field"><label>Username:</label> <span>${escHtml(user.username)}</span></div>
-<div class="profile-field"><label>Gender:</label> <span>${escHtml(user.gender)}</span></div>
-<div class="profile-field"><label>Email:</label> <span>${escHtml(user.email)}</span></div>
-<div class="profile-field"><label>Phone:</label> <span>${escHtml(user.phone)}</span></div>
-<div class="profile-field"><label>Address:</label> <span>${escHtml(user.address)}</span></div>
+  const body = `<div class="profile-container">
+<div class="profile-header">
+<div class="profile-avatar">&#128100;</div>
+<h1>${escHtml(user.username)}</h1>
+<div class="profile-subtitle">Welcome to your profile</div>
+</div>
+<div class="profile-content">
+<div class="profile-section">
+<h2>Basic Information</h2>
+<div class="info-grid">
+<div class="info-item">
+<label>Username</label>
+<div class="info-value" id="username-display">
+<span class="value-text">${escHtml(user.username)}</span>
+<button class="edit-btn" onclick="editField('username', '${escHtml(user.username)}')">&#9999;&#65039;</button>
+</div>
+</div>
+<div class="info-item">
+<label>Gender</label>
+<div class="info-value" id="gender-display">
+<span class="value-text">${escHtml(user.gender)}</span>
+<button class="edit-btn" onclick="editField('gender', '${escHtml(user.gender)}')">&#9999;&#65039;</button>
+</div>
+</div>
+<div class="info-item">
+<label>Email</label>
+<div class="info-value" id="email-display">
+<span class="value-text">${escHtml(user.email)}</span>
+<button class="edit-btn" onclick="editField('email', '${escHtml(user.email)}')">&#9999;&#65039;</button>
+</div>
+</div>
+<div class="info-item">
+<label>Phone</label>
+<div class="info-value" id="phone-display">
+<span class="value-text">${escHtml(user.phone)}</span>
+<button class="edit-btn" onclick="editField('phone', '${escHtml(user.phone)}')">&#9999;&#65039;</button>
+</div>
+</div>
+<div class="info-item full-width">
+<label>Delivery Address</label>
+<div class="info-value" id="address-display">
+<span class="value-text">${escHtml(user.address)}</span>
+<button class="edit-btn" onclick="editField('address', '${escHtml(user.address)}')">&#9999;&#65039;</button>
+</div>
+</div>
+</div>
 </div>
 ${user.payment_methods && user.payment_methods.length > 0
-    ? `<h2>Payment Methods</h2><div class="payment-methods">${paymentMethodsHtml}</div>`
+    ? `<div class="profile-section">
+<h2>Payment Methods</h2>
+<div class="payment-methods">${paymentItemsHtml}</div>
+</div>`
     : ""}
+<div class="profile-actions">
+<a href="/orders" class="action-btn primary"><span class="action-icon">&#128230;</span><span>View My Orders</span></a>
+<a href="/cart" class="action-btn"><span class="action-icon">&#128722;</span><span>View Shopping Cart</span></a>
+<a href="/" class="action-btn"><span class="action-icon">&#127968;</span><span>Back to Home</span></a>
+</div>
+</div>
 </div>`;
 
   return renderPage(`${user.username}'s Profile`, body + `
+<style>
+.profile-container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+.profile-header { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; margin-bottom: 30px; }
+.profile-avatar { width: 100px; height: 100px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.profile-header h1 { font-size: 32px; margin-bottom: 10px; }
+.profile-subtitle { font-size: 16px; opacity: 0.9; }
+.profile-content { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.profile-section { margin-bottom: 30px; }
+.profile-section h2 { font-size: 20px; color: #232F3E; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.info-item { padding: 15px; background: #f8f9fa; border-radius: 8px; }
+.info-item.full-width { grid-column: 1 / -1; }
+.info-item label { display: block; font-size: 13px; color: #666; margin-bottom: 8px; font-weight: 500; }
+.info-value { font-size: 16px; color: #232F3E; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+.value-text { flex: 1; }
+.edit-btn { background: none; border: none; font-size: 16px; cursor: pointer; opacity: 0.5; transition: all 0.2s; padding: 4px 8px; border-radius: 4px; }
+.edit-btn:hover { opacity: 1; background: #f0f0f0; transform: scale(1.1); }
+.profile-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 30px; }
+.action-btn { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 20px; background: white; border: 2px solid #e0e0e0; border-radius: 8px; text-decoration: none; color: #232F3E; font-weight: 500; transition: all 0.3s; }
+.action-btn:hover { border-color: #667eea; background: #f8f9ff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.15); }
+.action-btn.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; }
+.action-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(102,126,234,0.3); }
+.action-icon { font-size: 20px; }
+.payment-methods { display: flex; flex-direction: column; gap: 15px; }
+.payment-item { display: flex; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 8px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+.payment-item:hover { background: #fff; border-color: #667eea; transform: translateX(5px); box-shadow: 0 2px 8px rgba(102,126,234,0.15); }
+.payment-icon { font-size: 32px; margin-right: 15px; }
+.payment-info { flex: 1; }
+.payment-type { font-size: 16px; font-weight: 600; color: #232F3E; margin-bottom: 4px; }
+.payment-account { font-size: 14px; color: #666; }
+.payment-arrow { font-size: 24px; color: #999; transition: transform 0.2s; }
+.payment-item:hover .payment-arrow { transform: translateX(5px); color: #667eea; }
+.edit-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+.edit-modal.active { display: flex; }
+.edit-modal-content { background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: slideIn 0.3s ease; }
+.edit-modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+.edit-modal-title { font-size: 22px; font-weight: 600; color: #232F3E; }
+.edit-modal-close { background: none; border: none; font-size: 28px; cursor: pointer; color: #999; transition: color 0.2s; }
+.edit-modal-close:hover { color: #333; }
+.edit-modal-body { padding: 10px 0; }
+.edit-field-label { font-size: 14px; color: #666; font-weight: 500; margin-bottom: 8px; }
+.edit-field-input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; color: #232F3E; transition: border-color 0.2s; box-sizing: border-box; }
+.edit-field-input:focus { outline: none; border-color: #667eea; }
+textarea.edit-field-input { resize: vertical; min-height: 100px; }
+.edit-modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.save-btn { padding: 10px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.save-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+.cancel-btn { padding: 10px 24px; background: white; color: #232F3E; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.cancel-btn:hover { background: #f5f5f5; }
+.payment-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+.payment-modal.active { display: flex; }
+.modal-content { background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: slideIn 0.3s ease; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+.modal-title { font-size: 22px; font-weight: 600; color: #232F3E; }
+.modal-close { background: none; border: none; font-size: 28px; cursor: pointer; color: #999; transition: color 0.2s; }
+.modal-close:hover { color: #333; }
+.modal-body { padding: 10px 0; }
+.detail-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+.detail-row:last-child { border-bottom: none; }
+.detail-label { font-size: 14px; color: #666; font-weight: 500; }
+.detail-value { font-size: 16px; color: #232F3E; font-weight: 600; }
+@keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
 <script>
 function editField(fieldName, currentValue) {
-  const labels = { username: 'Username', gender: 'Gender', email: 'Email', phone: 'Phone', address: 'Delivery Address' };
-  const isTextarea = fieldName === 'address';
-  const inputEl = isTextarea
+  var labels = { username: 'Username', gender: 'Gender', email: 'Email', phone: 'Phone', address: 'Delivery Address' };
+  var isTextarea = fieldName === 'address';
+  var inputEl = isTextarea
     ? '<textarea class="edit-field-input" id="editInput">' + currentValue + '</textarea>'
     : '<input type="text" class="edit-field-input" id="editInput" value="' + currentValue + '">';
-  const modalHtml = '<div class="edit-modal active" id="editModal" onclick="closeEditModal(event)">'
+  var modalHtml = '<div class="edit-modal active" id="editModal" onclick="closeEditModal(event)">'
     + '<div class="edit-modal-content" onclick="event.stopPropagation()">'
     + '<div class="edit-modal-header"><div class="edit-modal-title">Edit ' + labels[fieldName] + '</div>'
     + '<button class="edit-modal-close" onclick="closeEditModal()">&times;</button></div>'
     + '<div class="edit-modal-body"><div class="edit-field-label">' + labels[fieldName] + '</div>' + inputEl + '</div>'
     + '<div class="edit-modal-actions"><button class="cancel-btn" onclick="closeEditModal()">Cancel</button>'
-    + '<button class="save-btn" onclick="saveField(\\''+fieldName+'\\')">Save</button></div></div></div>';
+    + '<button class="save-btn" onclick="saveField(\''+fieldName+'\')">Save</button></div></div></div>';
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   setTimeout(function() {
     var inp = document.getElementById('editInput');
@@ -622,6 +735,25 @@ async function saveField(fieldName) {
     console.error('Error saving field:', error);
     alert('Error saving. Please try again.');
   }
+}
+
+function showPaymentDetail(type, account, balance) {
+  var modalHtml = '<div class="payment-modal active" id="paymentModal" onclick="closeModal(event)">'
+    + '<div class="modal-content" onclick="event.stopPropagation()">'
+    + '<div class="modal-header"><div class="modal-title">' + type + '</div>'
+    + '<button class="modal-close" onclick="closeModal()">&times;</button></div>'
+    + '<div class="modal-body">'
+    + '<div class="detail-row"><span class="detail-label">Account</span><span class="detail-value">' + account + '</span></div>'
+    + (balance ? '<div class="detail-row"><span class="detail-label">Balance</span><span class="detail-value" style="color:#1e8e3e;">' + balance + '</span></div>' : '')
+    + '<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="color:#1e8e3e;">&#10003; Active</span></div>'
+    + '</div></div></div>';
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function closeModal(event) {
+  if (event && event.target !== event.currentTarget) return;
+  var modal = document.getElementById('paymentModal');
+  if (modal) modal.remove();
 }
 </script>`);
 }
