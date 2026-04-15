@@ -372,10 +372,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     return c.html(renderHome());
   });
 
-  // GET /health — Health check (matches Python {"ok": true})
-  app.get("/health", (c) => {
-    return c.json({ ok: true });
-  });
+  // GET /health — provided by mock-lib default (AC-1.1 contract)
 
   // GET /search — Search results page
   app.get("/search", (c) => {
@@ -482,7 +479,6 @@ function registerRoutes(app: Hono<AppEnv>): void {
 const app = createMockApp({
   name: "doc-search",
   port: 8123,
-  healthResponse: { ok: true },
   routes: registerRoutes,
 });
 

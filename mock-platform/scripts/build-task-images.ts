@@ -242,9 +242,9 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("# Initialize shop data directory and verifier-compatible symlinks");
     lines.push("mkdir -p /var/lib/mock-data/shop");
     lines.push("chmod 700 /var/lib/mock-data/shop");
-    lines.push("ln -sf /var/lib/mock-data/shop/orders.json /tmp/mosi_shop_orders.json");
-    lines.push("ln -sf /var/lib/mock-data/shop/cart.json /tmp/mosi_shop_cart.json");
-    lines.push("ln -sf /var/lib/mock-data/shop/user.json /tmp/mosi_shop_user.json");
+    lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_orders.json /tmp/mosi_shop_orders.json");
+    lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_cart.json /tmp/mosi_shop_cart.json");
+    lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_user.json /tmp/mosi_shop_user.json");
     lines.push("");
   }
 
