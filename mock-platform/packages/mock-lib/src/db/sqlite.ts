@@ -68,7 +68,7 @@ export function resetDb(): void {
  * Creates common tables if they don't exist.
  * Actual migration logic will be added by migration tasks in Plan 2+.
  */
-function migrate(db: Database): void {
+export function migrate(db: Database): void {
   db.run(`
     CREATE TABLE IF NOT EXISTS _migrations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
