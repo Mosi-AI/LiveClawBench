@@ -1,0 +1,28 @@
+# Task: mixed-tool-memory
+# Date: 2026-04-15T14:08:00Z
+# Mock: Bun doc-search on :19999
+# SQL seed: tasks/mixed-tool-memory/environment/browser_mock_sidecar/documents.sql
+#
+# Test: Simulated agent browsing all 4 required + 2 low-confidence documents
+# - Home page loaded
+# - Searched "speculative decoding" (6 results returned)
+# - Clicked all 4 required evidence docs + 2 low-confidence docs
+#
+# deterministic_checks.py — browser_trace_score:
+
+search_score=1.0
+required_evidence_ids: [browser:spec_exact_001, browser:self_spec_002, browser:spec_speed_003, browser:uad_004]
+required_low_confidence_ids: [browser:spec_noise_001, browser:spec_noise_002]
+required_visited=4/4: {browser:spec_exact_001, browser:self_spec_002, browser:spec_speed_003, browser:uad_004}
+low_conf_visited=2/2: {browser:spec_noise_001, browser:spec_noise_002}
+required_visit_score=1.0
+low_conf_bonus=0.2
+browser_trace=1.0
+
+# JSONL access log (15 events):
+# home:1 search:1 click:6 page:6
+# All required evidence IDs visited: PASS
+# All low-confidence IDs visited: PASS (bonus +0.2)
+
+# Note: Full task score also depends on integration_reasoning and note_quality
+# (LLM judge components). The browser_trace component scores 1.0 with the Bun mock.

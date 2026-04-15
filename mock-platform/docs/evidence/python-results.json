@@ -1,0 +1,203 @@
+{
+  "product_count": 91,
+  "queries": {
+    "smart watch": [
+      {
+        "id": "prod_0068",
+        "title": "Smart Watch(Answer/Make Call), 1.91\" Smartwatch for Men Women, New Fitness Watch with 110+ Sport Modes, Fitness Activity Tracke with Pedometer/Sleep Monitor//IP68 Waterproof, for Android iOS, Blue",
+        "score": 119.8
+      },
+      {
+        "id": "prod_0064",
+        "title": "Smart Watch with Alexa Built-in, 1.83\" HD Touchscreen, Bluetooth Call/Make Calls, IP68 Waterproof Fitness Tracker with 120+ Sport Modes, 24/7 Heart Rate & Sleep Monitor for iOS/Android (Black)",
+        "score": 108.8
+      },
+      {
+        "id": "prod_0069",
+        "title": "Fitness Tracker with 24/7 Heart Rate, Blood Oxygen Blood Pressure Sleep Monitor, Activity Trackers 5 ATM Waterproof,Step Calorie Counter Pedometer Health Smart Watch for Women Men Bordeaux",
+        "score": 88.4
+      },
+      {
+        "id": "prod_0083",
+        "title": "Garmin Forerunner 55 GPS Running Smartwatch, 2-Week Battery, 24/7 Heart Rate, Daily Suggested Workouts, Multi-Sport Tracking, Black",
+        "score": 59.2
+      },
+      {
+        "id": "prod_0066",
+        "title": "Garmin v\u00edvoactive 5, Health and Fitness GPS Smartwatch, AMOLED Display, Up to 11 Days of Battery, Black",
+        "score": 58.8
+      },
+      {
+        "id": "prod_0070",
+        "title": "Fitbit Versa 4 Fitness Smartwatch with Daily Readiness, GPS, 24/7 Heart Rate, 40+ Exercise Modes, Sleep Tracking and more, Waterfall Blue/Platinum, One Size (S & L Bands Included)",
+        "score": 58.6
+      },
+      {
+        "id": "prod_0072",
+        "title": "Echo Glow - Multicolor smart lamp, Works with Alexa",
+        "score": 55.0
+      },
+      {
+        "id": "prod_0063",
+        "title": "Garmin Forerunner 55, GPS Running Watch with Daily Suggested Workouts, Up to 2 weeks of Battery Life, Black - 010-02562-00",
+        "score": 54.2
+      },
+      {
+        "id": "prod_0030",
+        "title": "LG WM4200HBA / WM4200HBA / WM4200HBA 5.0 Cu. Ft. Mega Capacity Smart wi-fi Enabled Front Load Washer with TurboWash 360 and Built-in Intelligence",
+        "score": 47.6
+      }
+    ],
+    "washer": [
+      {
+        "id": "prod_0074",
+        "title": "Portable Washing Machine -Compact Home Laundry Washer for Apartment,10 Wash Programs, 6 Water Level, Top Load, Full Automatic, Small Clothes Washer with Drain Pump for Bathroom, Dorms,RVs,White",
+        "score": 73.8
+      },
+      {
+        "id": "prod_0029",
+        "title": "Comfee Portable Washing Machine, 0.9 cu.ft Compact Washer With LED Display, 5 Wash Cycles, 2 Built-in Rollers, Space Saving Full-Automatic Washer",
+        "score": 71.8
+      },
+      {
+        "id": "prod_0025",
+        "title": "Auertech Portable Washing Machine, 28lbs Twin Tub Washer Mini Compact Laundry Machine with Drain Pump, Semi-automatic 18lbs Washer 10lbs Spinner Combo for Dorms, Apartments, RVs",
+        "score": 71.4
+      },
+      {
+        "id": "prod_0031",
+        "title": "Kenmore 4.5 cu. ft. Top Load Washer with Triple Action Impeller for Tough Dirt & Stains-Reduce Laundry Time with Accela and Express Wash-LED, White",
+        "score": 68.2
+      },
+      {
+        "id": "prod_0027",
+        "title": "Nictemaw Portable Washing Machine 15.6Lbs Large Capacity 2.1 Cu.ft Laundry Machine with 10 Programs and 8 Water Levels Selections Compact Washer Machine for Apartment, Home, Dorms, Rv",
+        "score": 62.8
+      },
+      {
+        "id": "prod_0030",
+        "title": "LG WM4200HBA / WM4200HBA / WM4200HBA 5.0 Cu. Ft. Mega Capacity Smart wi-fi Enabled Front Load Washer with TurboWash 360 and Built-in Intelligence",
+        "score": 62.6
+      },
+      {
+        "id": "prod_0026",
+        "title": "BLACK+DECKER 0.9 Cu. Ft. Portable Washer, 6.6 lb. Capacity Washing Machine for Homes & Apartments, 5 Wash Cycles, Quick Connect Sink Adapter and Drain Hose Included, Transparent Lid, BPWM09W, White",
+        "score": 48.8
+      },
+      {
+        "id": "prod_0032",
+        "title": "SAMSUNG WA40A3005WPR White Top Load HE Washer/Dryer Pair",
+        "score": 48.8
+      },
+      {
+        "id": "prod_0087",
+        "title": "BLACK+DECKER 0.9 cu. ft. Portable Top Load Washer, 6.6 lb Capacity, 5 Wash Cycles, Stainless Steel Tub, Quick Connect, Child Lock, White",
+        "score": 48.8
+      },
+      {
+        "id": "prod_0028",
+        "title": "Hamilton Beach HBFW3205 Fullsize Washer-LED Digital Display Panel-5 Wash Cycles-Front Load Design-2.2 cu ft, 24 inch Wide, White",
+        "score": 47.2
+      }
+    ],
+    "toilet paper": [
+      {
+        "id": "prod_0021",
+        "title": "Amazon Brand - Presto! 2-Ply Ultra-Strong Toilet Paper, 12 Mega Rolls Toilet Paper = 60 regular rolls, 308 Sheet (Pack of 12), Unscented",
+        "score": 108.2
+      },
+      {
+        "id": "prod_0019",
+        "title": "Cottonelle Ultra Clean Toilet Paper with Active CleaningRipples Texture, Strong Bath Tissue, 24 Family Mega Rolls = 132 Regular Rolls (4 Packs of 6)",
+        "score": 102.4
+      },
+      {
+        "id": "prod_0023",
+        "title": "Scott Professional 100% Recycled Fiber Standard Roll Bulk Toilet Paper (13217), 2-Ply, Elevated Design, White, Individually Wrapped (80 Rolls of 473 Sheets, 37,840 Sheet Total)",
+        "score": 92.2
+      },
+      {
+        "id": "prod_0022",
+        "title": "Angel Soft Toilet Paper, 16 Mega Rolls = 64 Regular Rolls, Soft and Strong Toilet Tissue",
+        "score": 87.4
+      },
+      {
+        "id": "prod_0017",
+        "title": "Scott ComfortPlus Toilet Paper, 12 Double Rolls, 231 Sheets per Roll, Septic-Safe, 1-Ply Toilet Tissue",
+        "score": 87.0
+      },
+      {
+        "id": "prod_0084",
+        "title": "Angel Soft Toilet Paper, 16 Mega Rolls = 64 Regular Rolls, 2-Ply, Soft, Strong, Septic Safe, Unscented",
+        "score": 82.4
+      },
+      {
+        "id": "prod_0024",
+        "title": "Amazon Basics 2-Ply Toilet Paper, 30 Rolls = 120 Regular Rolls, 350 Sheets, (Pack of 30), Unscented",
+        "score": 80.8
+      },
+      {
+        "id": "prod_0018",
+        "title": "Charmin Ultra Strong Clean Touch Toilet Paper, 24 Family Mega Rolls = 120 Regular Rolls",
+        "score": 79.6
+      },
+      {
+        "id": "prod_0020",
+        "title": "Charmin Ultra Soft Cushiony Touch Toilet Paper, 24 Family Mega Rolls = 123 Regular Rolls",
+        "score": 79.6
+      },
+      {
+        "id": "prod_0082",
+        "title": "Purrfectzone Stainless Steel Handheld Bidet Sprayer for Toilet, Adjustable Water Pressure, Easy Installation, Multi-Purpose",
+        "score": 34.2
+      }
+    ],
+    "stapler": [
+      {
+        "id": "prod_0013",
+        "title": "M&G Desktop Stapler with 25 Sheet Capacity, Two Binding Modes, Basic Stapler Set with 1000 Staples and Remover, Durable Staplers for Office School Home (Black)",
+        "score": 87.0
+      },
+      {
+        "id": "prod_0015",
+        "title": "Amazon Basics Stapler with 1000 Staples, Office Stapler, 25 Sheet Capacity, Non-Slip, Black",
+        "score": 82.2
+      },
+      {
+        "id": "prod_0010",
+        "title": "Marspark 10 Pcs Stapler for Desk Office Staplers Bulk with 6000 Staples 25 Sheet Capacity for School Office",
+        "score": 80.8
+      },
+      {
+        "id": "prod_0088",
+        "title": "Bostitch Office Stapler with 1,250 Staples, No-Jam, 25 Sheet Capacity, Full-Strip, Black",
+        "score": 72.4
+      },
+      {
+        "id": "prod_0016",
+        "title": "Arrow P22 Heavy Duty Handheld Plier Stapler for Crafts, Office, and Insulation, Uses 1/4-Inch and 5/16-Inch Staples",
+        "score": 66.2
+      },
+      {
+        "id": "prod_0014",
+        "title": "Bostitch Office Stapler, No-Jam Premium for Desktop, Includes 1,250 Staples, Full-Strip, 25 Sheet Capacity, Black",
+        "score": 49.4
+      },
+      {
+        "id": "prod_0011",
+        "title": "Rapid Classic K1 Plier Stapler, Chrome (90119)",
+        "score": 49.2
+      },
+      {
+        "id": "prod_0009",
+        "title": "Deli Stapler, Desktop Staplers with 640 Staples, Office Stapler, 25 Sheet Capacity, Pink",
+        "score": 49.0
+      },
+      {
+        "id": "prod_0012",
+        "title": "Swingline Stapler, 40 Sheet Capacity, Optima 40, Jam Free, Reduced Effort, Soft Grip, Metal, Orange and Gray (87845)",
+        "score": 49.0
+      }
+    ]
+  }
+}

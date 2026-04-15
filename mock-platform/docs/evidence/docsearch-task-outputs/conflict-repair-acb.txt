@@ -1,0 +1,26 @@
+# Task: conflict-repair-acb
+# Date: 2026-04-15T14:05:00Z
+# Mock: Bun doc-search on :19999
+# SQL seed: tasks/conflict-repair-acb/environment/browser_mock_sidecar/documents.sql
+#
+# Test: Simulated agent browsing all 3 validated documents
+# - Home page loaded
+# - Searched "speculative decoding" (5 results returned)
+# - Clicked doc: speculative-decoding-exact-not-cache-only (rank 3)
+# - Clicked doc: speculative-decoding-speedup-condition (rank 4)
+# - Clicked doc: self-speculative-decoding-update (rank 5)
+#
+# deterministic_checks.py — browser_trace_score:
+
+search_score=1.0
+visited_validated=3/3: {browser:spec_perf_002, browser:self_spec_003, browser:spec_exact_001}
+visit_score=1.0
+browser_trace=1.0
+
+# JSONL access log (7 events):
+# home:1 search:1 click:3 page:3
+# All validated doc IDs visited: PASS
+
+# Note: Full task score also depends on structural_checks.py (result_contract,
+# workspace_update) and repair_accuracy which requires agent output. The
+# browser_trace component (20% weight) scores 1.0 with the Bun mock.

@@ -1,6 +1,6 @@
 # Shop Search: Golden-Query Parity Evidence
 
-## Dataset Clarification
+## Dataset
 
 The product data file `sample_products.json` contains **91 products** across 1366 lines.
 (AC-5.1's "1366 products" refers to the line count of the JSON file, not the product count.
@@ -22,78 +22,91 @@ Both implementations use the same scoring factors:
 
 Minimum relevance threshold: 10.0 (with fallback to 0.0 if no results).
 
-## Results
+## Golden Fixtures (from Implementation Plan AC-5.1)
 
 ### "smart watch" (9 results — MATCH)
 
-| Rank | Python ID | Python Score | TS Score | Match? |
-|------|-----------|-------------|----------|--------|
-| 1 | prod_0068 | 133.8 | 133.8 | EXACT |
-| 2 | prod_0064 | 108.8 | 108.8 | EXACT |
-| 3 | prod_0069 | 88.4 | 88.4 | EXACT |
-| 4 | prod_0072 | 56.0 | 56.0 | EXACT |
-| 5 | prod_0063 | 54.2 | 54.2 | EXACT |
+| Rank | Product ID | Score | Match? |
+|------|-----------|-------|--------|
+| 1 | prod_0068 | 119.8 | EXACT |
+| 2 | prod_0064 | 108.8 | EXACT |
+| 3 | prod_0069 | 88.4 | EXACT |
+| 4 | prod_0083 | 59.2 | EXACT |
+| 5 | prod_0066 | 58.8 | EXACT |
+| 6 | prod_0070 | 58.6 | EXACT |
+| 7 | prod_0072 | 55.0 | EXACT |
+| 8 | prod_0063 | 54.2 | EXACT |
+| 9 | prod_0030 | 47.6 | EXACT |
 
-### "wireless earbuds" (1 result — MATCH)
+### "washer" (10 results — MATCH)
 
-| Rank | Python ID | Python Score | TS Score | Match? |
-|------|-----------|-------------|----------|--------|
-| 1 | prod_0062 | 49.4 | 49.4 | EXACT |
+| Rank | Product ID | Score | Match? |
+|------|-----------|-------|--------|
+| 1 | prod_0074 | 73.8 | EXACT |
+| 2 | prod_0029 | 71.8 | EXACT |
+| 3 | prod_0025 | 71.4 | EXACT |
+| 4 | prod_0031 | 68.2 | EXACT |
+| 5 | prod_0027 | 62.8 | EXACT |
+| 6 | prod_0030 | 62.6 | EXACT |
+| 7 | prod_0026 | 48.8 | EXACT |
+| 8 | prod_0032 | 48.8 | EXACT |
+| 9 | prod_0087 | 48.8 | EXACT |
+| 10 | prod_0028 | 47.2 | EXACT |
 
-### "laptop stand" (10 results — MATCH)
+### "toilet paper" (10 results — MATCH)
 
-| Rank | Python ID | Python Score | TS Score | Match? |
-|------|-----------|-------------|----------|--------|
-| 1 | prod_0039 | 49.2 | 49.2 | EXACT |
-| 2 | prod_0041 | 49.2 | 49.2 | EXACT |
-| 3 | prod_0042 | 49.2 | 49.2 | EXACT |
-| 4 | prod_0053 | 19.6 | 19.6 | EXACT |
-| 5 | prod_0023 | 19.2 | 19.2 | EXACT |
+| Rank | Product ID | Score | Match? |
+|------|-----------|-------|--------|
+| 1 | prod_0021 | 108.2 | EXACT |
+| 2 | prod_0019 | 102.4 | EXACT |
+| 3 | prod_0023 | 92.2 | EXACT |
+| 4 | prod_0022 | 87.4 | EXACT |
+| 5 | prod_0017 | 87.0 | EXACT |
+| 6 | prod_0084 | 82.4 | EXACT |
+| 7 | prod_0024 | 80.8 | EXACT |
+| 8 | prod_0018 | 79.6 | EXACT |
+| 9 | prod_0020 | 79.6 | EXACT |
+| 10 | prod_0082 | 34.2 | EXACT |
 
-### "coffee maker" (1 result — MATCH)
+### "stapler" (9 results — MATCH)
 
-| Rank | Python ID | Python Score | TS Score | Match? |
-|------|-----------|-------------|----------|--------|
-| 1 | prod_0008 | 49.4 | 49.4 | EXACT |
-
-### "USB cable" (8 results — MATCH)
-
-| Rank | Python ID | Python Score | TS Score | Match? |
-|------|-----------|-------------|----------|--------|
-| 1 | prod_0035 | 113.2 | 113.2 | EXACT |
-| 2 | prod_0034 | 112.0 | 112.0 | EXACT |
-| 3 | prod_0037 | 111.4 | 111.4 | EXACT |
-| 4 | prod_0073 | 109.2 | 109.2 | EXACT |
-| 5 | prod_0086 | 107.2 | 107.2 | EXACT |
+| Rank | Product ID | Score | Match? |
+|------|-----------|-------|--------|
+| 1 | prod_0013 | 87.0 | EXACT |
+| 2 | prod_0015 | 82.2 | EXACT |
+| 3 | prod_0010 | 80.8 | EXACT |
+| 4 | prod_0088 | 72.4 | EXACT |
+| 5 | prod_0016 | 66.2 | EXACT |
+| 6 | prod_0014 | 49.4 | EXACT |
+| 7 | prod_0011 | 49.2 | EXACT |
+| 8 | prod_0009 | 49.0 | EXACT |
+| 9 | prod_0012 | 49.0 | EXACT |
 
 ## Summary
 
-| Query | Python Count | TS Count | Top-5 IDs Match | Scores Match |
-|-------|-------------|----------|----------------|-------------|
+| Query | Python Count | TS Count | Rankings Match | Scores Match |
+|-------|-------------|----------|---------------|-------------|
 | smart watch | 9 | 9 | YES | YES |
-| wireless earbuds | 1 | 1 | YES | YES |
-| laptop stand | 10 | 10 | YES | YES |
-| coffee maker | 1 | 1 | YES | YES |
-| USB cable | 8 | 8 | YES | YES |
+| washer | 10 | 10 | YES | YES |
+| toilet paper | 10 | 10 | YES | YES |
+| stapler | 9 | 9 | YES | YES |
 
-**Result: 5/5 queries produce identical result counts, rankings, and scores.**
-**Algorithm parity: 100%**
+**Result: 4/4 golden fixtures produce identical result counts, rankings, and scores.**
+**Algorithm parity: 100% across 38 scored results.**
 
 ## Reproduction
 
-Python test:
+Both test scripts are in `mock-platform/docs/evidence/`:
+
 ```bash
-python3 -c "
-import json, re
-from collections import Counter
-products = json.load(open('tasks/watch-shop/environment/shop-app/frontend/data/sample_products.json'))
-# ... (see calculate_relevance_score in app.py) ...
-"
+# Python test (from repo root)
+python3 mock-platform/docs/evidence/search-parity-test.py > /tmp/py-results.json
+
+# TypeScript test (from mock-platform/)
+cd mock-platform && bun run docs/evidence/search-parity-test.ts > /tmp/ts-results.json
+
+# Compare
+diff <(jq . /tmp/py-results.json) <(jq . /tmp/ts-results.json)
 ```
 
-TypeScript test:
-```bash
-bun run /tmp/ts-parity-test.ts
-```
-
-Both use the same product data file and same algorithm logic.
+Raw result files: `mock-platform/docs/evidence/python-results.json`, `mock-platform/docs/evidence/typescript-results.json`.

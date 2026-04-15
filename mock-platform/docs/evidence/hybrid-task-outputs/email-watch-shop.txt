@@ -1,0 +1,7 @@
+# Task: email-watch-shop (hybrid: Bun shop + Python email)
+# Date: 2026-04-15T14:03:49Z
+# Shop port: 19999 (Bun), Email port: 5678 (Python Flask)
+# Port analysis: no conflict — services on different ports
+# Verifier checks: shop data only (/tmp/mosi_shop_*.json)
+
+Score: 1.0/1.0
