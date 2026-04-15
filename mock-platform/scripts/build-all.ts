@@ -10,7 +10,7 @@
 
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, existsSync } from "node:fs";
 
 const MOCKS_DIR = join(import.meta.dir, "..", "mocks");
 const DIST_DIR = join(import.meta.dir, "..", "dist");
@@ -32,7 +32,10 @@ async function discoverMocks(): Promise<string[]> {
 }
 
 async function compileMock(name: string): Promise<BuildResult> {
-  const entryPoint = join(MOCKS_DIR, name, "src", "index.ts");
+  // Support both .ts and .tsx entry points (shop uses TSX for Hono JSX rendering)
+  const tsPath = join(MOCKS_DIR, name, "src", "index.ts");
+  const tsxPath = join(MOCKS_DIR, name, "src", "index.tsx");
+  const entryPoint = existsSync(tsxPath) ? tsxPath : tsPath;
   const outputPath = join(DIST_DIR, `mock-${name}`);
 
   try {

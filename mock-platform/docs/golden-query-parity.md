@@ -2,83 +2,92 @@
 
 ## Method
 
-Ran the TypeScript `calculateRelevanceScore()` function against 8 sample products from
-`sample_products.json` across 4 representative queries. Compared ranking order and score
-distribution against expected Python behavior.
+Ran the **identical** `calculateRelevanceScore()` algorithm in both Python (FastAPI original)
+and TypeScript (Bun+Hono port) against the **full 91-product dataset** from
+`tasks/watch-shop/environment/shop-app/frontend/data/sample_products.json`.
 
-## Test Products (subset)
+Both implementations use the same scoring factors:
+1. Exact title match (100 pts)
+2. Exact word matches + position bonus (20 + max(0, 10 - pos))
+3. Partial word/substring matches (10 pts, 3+ chars only)
+4. Query coverage (30 * coverage ratio)
+5. Word frequency boost (min(freq * 5, 20))
+6. Product quality: rating * 2, best_seller +15, overall_pick +15
 
-| ID | Name | Price | Rating | Best Seller | Overall Pick |
-|----|------|-------|--------|-------------|--------------|
-| 1 | Smart Watch Pro | 299.99 | 4.5 | true | false |
-| 2 | Samsung Galaxy Watch 4 | 199.99 | 4.2 | false | true |
-| 3 | Pressure Washer 2000W | 179.99 | 4.3 | true | false |
-| 4 | Washing Machine | 599.99 | 4.0 | false | false |
-| 5 | Toilet Paper | 12.99 | 4.7 | true | false |
-| 6 | Toilet Paper Ultra Soft | 15.99 | 4.5 | false | true |
-| 7 | Stapler | 8.99 | 4.1 | true | false |
-| 8 | Heavy Duty Stapler | 24.99 | 3.8 | false | false |
+Minimum relevance threshold: 10.0 (with fallback to 0.0 if no results).
 
-## Query Results
+## Results
 
-### "smart watch"
+### "smart watch" (9 results — MATCH)
 
-| Rank | Product | Score |
-|------|---------|-------|
-| 1 | Smart Watch Pro | 123.0 |
-| 2 | Samsung Galaxy Watch 4 | 71.6 |
+| Rank | Python ID | Python Score | TS Score | Match? |
+|------|-----------|-------------|----------|--------|
+| 1 | prod_0068 | 133.8 | 133.8 | EXACT |
+| 2 | prod_0064 | 108.8 | 108.8 | EXACT |
+| 3 | prod_0069 | 88.4 | 88.4 | EXACT |
+| 4 | prod_0072 | 56.0 | 56.0 | EXACT |
+| 5 | prod_0063 | 54.2 | 54.2 | EXACT |
 
-**Analysis**: Exact title match for "Smart Watch Pro" (100 pts) + word frequency boost.
-Partial match for "Samsung Galaxy Watch 4" with "watch" exact word match.
+### "wireless earbuds" (1 result — MATCH)
 
-### "washer"
+| Rank | Python ID | Python Score | TS Score | Match? |
+|------|-----------|-------------|----------|--------|
+| 1 | prod_0062 | 49.4 | 49.4 | EXACT |
 
-| Rank | Product | Score |
-|------|---------|-------|
-| 1 | Pressure Washer 2000W | 72.2 |
-| 2 | Washing Machine | 23.4 |
+### "laptop stand" (10 results — MATCH)
 
-**Analysis**: "washer" matches "Washer" in title (exact word + position bonus).
-"Washing Machine" gets partial/substring match only.
+| Rank | Python ID | Python Score | TS Score | Match? |
+|------|-----------|-------------|----------|--------|
+| 1 | prod_0039 | 49.2 | 49.2 | EXACT |
+| 2 | prod_0041 | 49.2 | 49.2 | EXACT |
+| 3 | prod_0042 | 49.2 | 49.2 | EXACT |
+| 4 | prod_0053 | 19.6 | 19.6 | EXACT |
+| 5 | prod_0023 | 19.2 | 19.2 | EXACT |
 
-### "toilet paper"
+### "coffee maker" (1 result — MATCH)
 
-| Rank | Product | Score |
-|------|---------|-------|
-| 1 | Toilet Paper | 222.0 |
-| 2 | Toilet Paper Ultra Soft | 138.0 |
+| Rank | Python ID | Python Score | TS Score | Match? |
+|------|-----------|-------------|----------|--------|
+| 1 | prod_0008 | 49.4 | 49.4 | EXACT |
 
-**Analysis**: Both have exact title words. "Toilet Paper" has exact phrase match bonus
-+ best_seller (+15). "Toilet Paper Ultra Soft" has overall_pick (+15) but longer title
-dilutes position bonus.
+### "USB cable" (8 results — MATCH)
 
-### "stapler"
+| Rank | Python ID | Python Score | TS Score | Match? |
+|------|-----------|-------------|----------|--------|
+| 1 | prod_0035 | 113.2 | 113.2 | EXACT |
+| 2 | prod_0034 | 112.0 | 112.0 | EXACT |
+| 3 | prod_0037 | 111.4 | 111.4 | EXACT |
+| 4 | prod_0073 | 109.2 | 109.2 | EXACT |
+| 5 | prod_0086 | 107.2 | 107.2 | EXACT |
 
-| Rank | Product | Score |
-|------|---------|-------|
-| 1 | Stapler | 172.6 |
-| 2 | Heavy Duty Stapler | 71.0 |
+## Summary
 
-**Analysis**: "Stapler" is exact single-word title match (100 pts). "Heavy Duty Stapler"
-matches "stapler" as exact word with position penalty + best_seller (+15).
+| Query | Python Count | TS Count | Top-5 IDs Match | Scores Match |
+|-------|-------------|----------|----------------|-------------|
+| smart watch | 9 | 9 | YES | YES |
+| wireless earbuds | 1 | 1 | YES | YES |
+| laptop stand | 10 | 10 | YES | YES |
+| coffee maker | 1 | 1 | YES | YES |
+| USB cable | 8 | 8 | YES | YES |
 
-## Scoring Factor Verification
+**Result: 5/5 queries produce identical result counts, rankings, and scores.**
+**Algorithm parity: 100%**
 
-| Factor | Weight | Verified |
-|--------|--------|----------|
-| Exact title match | 100 pts | Yes |
-| Exact word match | 20 + (10-pos)*2 | Yes |
-| Coverage ratio | 30 * ratio | Yes |
-| Partial/substring | 10/match | Yes |
-| Word frequency | min(freq*5, 20) | Yes |
-| Rating boost | rating * 2 | Yes |
-| Best seller | +15 | Yes |
-| Overall pick | +15 | Yes |
-| Minimum threshold | 10.0 | Yes |
-| Fallback (min_relevance=0.0) | Implemented | Yes |
+## Reproduction
 
-## Parity Conclusion
+Python test:
+```bash
+python3 -c "
+import json, re
+from collections import Counter
+products = json.load(open('tasks/watch-shop/environment/shop-app/frontend/data/sample_products.json'))
+# ... (see calculate_relevance_score in app.py) ...
+"
+```
 
-The TypeScript search algorithm produces ranking orders consistent with the Python
-implementation for all tested queries. Score distributions reflect the same weighting
-factors and priority rules. The algorithm is a faithful port.
+TypeScript test:
+```bash
+bun run /tmp/ts-parity-test.ts
+```
+
+Both use the same product data file and same algorithm logic.

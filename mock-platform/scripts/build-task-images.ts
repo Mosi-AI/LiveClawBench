@@ -241,6 +241,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
   if (binaries.includes("shop")) {
     lines.push("# Initialize shop data directory and verifier-compatible symlinks");
     lines.push("mkdir -p /var/lib/mock-data/shop");
+    lines.push("chown mock:mock /var/lib/mock-data/shop");
     lines.push("chmod 700 /var/lib/mock-data/shop");
     lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_orders.json /tmp/mosi_shop_orders.json");
     lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_cart.json /tmp/mosi_shop_cart.json");
@@ -348,7 +349,9 @@ async function buildTaskImage(
     }
 
     // Reject stale binaries (source newer than compiled artifact)
-    const entryPoint = join(MOCKS_DIR, bin, "src", "index.ts");
+    const tsEp = join(MOCKS_DIR, bin, "src", "index.ts");
+    const tsxEp = join(MOCKS_DIR, bin, "src", "index.tsx");
+    const entryPoint = existsSync(tsxEp) ? tsxEp : tsEp;
     if (!existsSync(entryPoint)) {
       return {
         task,
@@ -398,6 +401,12 @@ async function buildTaskImage(
     `# Binaries: ${binaries.length > 0 ? binaries.join(", ") : "(none)"}`,
     "",
   ];
+
+  // Create mock user for shop data directory ownership (task11a bootstrap)
+  if (binaries.includes("shop")) {
+    dockerfileLines.push("RUN useradd -r -s /bin/false mock || true");
+    dockerfileLines.push("");
+  }
 
   // COPY mock binaries (if any)
   for (const bin of binaries) {

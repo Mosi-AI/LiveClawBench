@@ -12,6 +12,8 @@
 import { createMockApp, startServer, JsonStore, registerStaticAssets } from "mock-lib";
 import type { AppEnv } from "mock-lib";
 import { Hono } from "hono";
+import { html, raw } from "hono/html";
+import type { FC, Child } from "hono/jsx";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -295,16 +297,17 @@ function escHtml(s: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// TSX Templates
+// TSX Template Components
 // ---------------------------------------------------------------------------
 
-function renderPage(title: string, body: string): string {
-  return `<!DOCTYPE html>
+const Layout: FC<{ title: string; children: Child; scripts?: string; styles?: string }> = ({ title, children, scripts, styles }) => {
+  return html`<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>${title}</title>
 <link rel="stylesheet" href="/static/css/style.css">
+${styles ? html`<style>${raw(styles)}</style>` : ""}
 </head>
 <body>
 <nav class="navbar">
@@ -313,7 +316,7 @@ function renderPage(title: string, body: string): string {
 <a href="/profile">Profile</a>
 <a href="/orders">Orders</a>
 </nav>
-${body}
+${children}
 <script>
 async function updateCartCount() {
   try {
@@ -327,25 +330,66 @@ async function updateCartCount() {
 }
 updateCartCount();
 </script>
+${scripts ? html`<script>${raw(scripts)}</script>` : ""}
 </body>
 </html>`;
-}
+};
 
 // --- search.html (home page) ---
-function renderSearch(): string {
-  return renderPage("Mosi Shop", `
-<div class="container">
-<h1>Welcome to Mosi Shop</h1>
-<p>Search for products:</p>
-<form action="/search" method="get" class="search-form">
-<input type="text" name="q" placeholder="Search products...">
-<button type="submit">Search</button>
-</form>
-</div>`);
-}
+const HomePage: FC = () => {
+  return <Layout title="Mosi Shop">
+    <div class="container">
+      <h1>Welcome to Mosi Shop</h1>
+      <p>Search for products:</p>
+      <form action="/search" method="get" class="search-form">
+        <input type="text" name="q" placeholder="Search products..." />
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </Layout>;
+};
 
 // --- results.html ---
-function renderResults(params: {
+const ProductCard: FC<{ product: Product }> = ({ product: p }) => {
+  const rating = p.rating ?? 0;
+  const fullStars = Math.floor(rating);
+  const remainingStars = Math.max(0, 5 - fullStars);
+  const stars: Child[] = [];
+  for (let i = 0; i < fullStars; i++) stars.push(<span class="star full">&#9733;</span>);
+  for (let i = 0; i < remainingStars; i++) stars.push(<span class="star empty">&#9734;</span>);
+
+  const tags: Child[] = [];
+  if (p.sponsored) tags.push(<span class="tag sponsored">Sponsored</span>);
+  if (p.best_seller) tags.push(<span class="tag best-seller">Best Seller</span>);
+  if (p.overall_pick) tags.push(<span class="tag overall-pick">Overall Pick</span>);
+  if (p.limited_time) tags.push(<span class="tag limited-time">Limited Time</span>);
+  if (p.discounted) tags.push(<span class="tag discounted">Discounted</span>);
+  if (p.low_stock) tags.push(<span class="tag low-stock">Low Stock</span>);
+
+  return <div class="product-card">
+    <div class="product-image"><img src={p.image_url} alt={p.title} /></div>
+    <div class="product-info">
+      <h3 class="product-title">{p.title}</h3>
+      <div class="product-rating">
+        <span class="stars">{stars}</span>{" "}
+        <span class="rating-text">{rating.toFixed(1)}</span>
+        {p.rating_count ? ` (${p.rating_count})` : ""}
+      </div>
+      <div class="product-price">${`$${p.price.toFixed(2)}`}</div>
+      {tags.length > 0 ? <div class="product-tags">{tags}</div> : null}
+      <button class="add-to-cart-btn" onclick={`addToCart('${escHtml(p.id)}')`}>Add to Cart</button>
+    </div>
+  </div>;
+};
+
+const SORT_LABELS: Record<string, string> = {
+  similarity: "Relevance",
+  price_asc: "Price: Low to High",
+  price_desc: "Price: High to Low",
+  rating: "Rating",
+};
+
+const ResultsPage: FC<{
   query: string;
   products: Product[];
   currentSort: string;
@@ -354,87 +398,27 @@ function renderResults(params: {
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
-}): string {
-  const { query, products, currentSort, currentPage, totalPages, minPrice, maxPrice, minRating } = params;
+}> = ({ query, products, currentSort, currentPage, totalPages, minPrice, maxPrice, minRating }) => {
+  const sortOptions: Child[] = ["similarity", "price_asc", "price_desc", "rating"].map((s) =>
+    <option value={s} selected={s === currentSort}>{SORT_LABELS[s]}</option>
+  );
 
-  const productCards = products.map((p) => {
-    const rating = p.rating ?? 0;
-    const fullStars = Math.floor(rating);
-    const remainingStars = Math.max(0, 5 - fullStars);
-    let starHtml = '<span class="stars">';
-    for (let i = 0; i < fullStars; i++) starHtml += '<span class="star full">&#9733;</span>';
-    for (let i = 0; i < remainingStars; i++) starHtml += '<span class="star empty">&#9734;</span>';
-    starHtml += "</span>";
-
-    let tagsHtml = "";
-    if (p.sponsored) tagsHtml += '<span class="tag sponsored">Sponsored</span>';
-    if (p.best_seller) tagsHtml += '<span class="tag best-seller">Best Seller</span>';
-    if (p.overall_pick) tagsHtml += '<span class="tag overall-pick">Overall Pick</span>';
-    if (p.limited_time) tagsHtml += '<span class="tag limited-time">Limited Time</span>';
-    if (p.discounted) tagsHtml += '<span class="tag discounted">Discounted</span>';
-    if (p.low_stock) tagsHtml += '<span class="tag low-stock">Low Stock</span>';
-
-    return `<div class="product-card">
-<div class="product-image"><img src="${escHtml(p.image_url)}" alt="${escHtml(p.title)}"></div>
-<div class="product-info">
-<h3 class="product-title">${escHtml(p.title)}</h3>
-<div class="product-rating">${starHtml} <span class="rating-text">${rating.toFixed(1)}</span>${p.rating_count ? ` (${escHtml(p.rating_count)})` : ""}</div>
-<div class="product-price">$${p.price.toFixed(2)}</div>
-${tagsHtml ? `<div class="product-tags">${tagsHtml}</div>` : ""}
-<button class="add-to-cart-btn" onclick="addToCart('${escHtml(p.id)}')">Add to Cart</button>
-</div>
-</div>`;
-  }).join("\n");
-
-  // Sort dropdown
-  const SORT_LABELS: Record<string, string> = {
-    similarity: "Relevance",
-    price_asc: "Price: Low to High",
-    price_desc: "Price: High to Low",
-    rating: "Rating",
-  };
-  const sortOptions = ["similarity", "price_asc", "price_desc", "rating"]
-    .map((s) => `<option value="${s}"${s === currentSort ? " selected" : ""}>${SORT_LABELS[s]}</option>`)
-    .join("");
-
-  // Pagination
-  let paginationHtml = "";
+  const pagination: Child[] = [];
   if (totalPages > 1) {
-    const pages = [];
     for (let p = 1; p <= totalPages; p++) {
       if (p === currentPage) {
-        pages.push(`<span class="page current">${p}</span>`);
+        pagination.push(<span class="page current">{p}</span>);
       } else {
         const params = new URLSearchParams({ q: query, sort: currentSort, page: String(p) });
         if (minPrice != null) params.set("min_price", String(minPrice));
         if (maxPrice != null) params.set("max_price", String(maxPrice));
         if (minRating != null) params.set("min_rating", String(minRating));
-        pages.push(`<a href="/search?${params}" class="page">${p}</a>`);
+        pagination.push(<a href={`/search?${params}`} class="page">{p}</a>);
       }
     }
-    paginationHtml = `<div class="pagination">${pages.join(" ")}</div>`;
   }
 
-  const body = `<div class="container">
-<h1>Search Results</h1>
-<p class="meta">Query: <code>${escHtml(query)}</code></p>
-<form action="/search" method="get" class="search-form">
-<input type="text" name="q" value="${escHtml(query)}">
-<select name="sort">${sortOptions}</select>
-<input type="number" name="min_price" placeholder="Min price" step="0.01" value="${minPrice ?? ""}">
-<input type="number" name="max_price" placeholder="Max price" step="0.01" value="${maxPrice ?? ""}">
-<input type="number" name="min_rating" placeholder="Min rating" step="0.1" min="0" max="5" value="${minRating ?? ""}">
-<button type="submit">Search</button>
-</form>
-${products.length > 0
-    ? `<div class="product-list">${productCards}</div>`
-    : '<p>No products found matching your search.</p>'
-}
-${paginationHtml}
-</div>`;
-
-  return renderPage(`Search: ${query}`, body + `
-<script>
+  return <Layout title={`Search: ${query}`} scripts={`
 async function addToCart(productId) {
   try {
     const response = await fetch('/api/cart/add', {
@@ -453,43 +437,45 @@ async function addToCart(productId) {
     console.error('Error adding to cart:', error);
     alert('Error adding item to cart');
   }
-}
-</script>`);
-}
+}`}>
+    <div class="container">
+      <h1>Search Results</h1>
+      <p class="meta">Query: <code>{query}</code></p>
+      <form action="/search" method="get" class="search-form">
+        <input type="text" name="q" value={query} />
+        <select name="sort">{sortOptions}</select>
+        <input type="number" name="min_price" placeholder="Min price" step="0.01" value={minPrice ?? ""} />
+        <input type="number" name="max_price" placeholder="Max price" step="0.01" value={maxPrice ?? ""} />
+        <input type="number" name="min_rating" placeholder="Min rating" step="0.1" min="0" max="5" value={minRating ?? ""} />
+        <button type="submit">Search</button>
+      </form>
+      {products.length > 0
+        ? <div class="product-list">{products.map((p) => <ProductCard product={p} />)}</div>
+        : <p>No products found matching your search.</p>
+      }
+      {pagination.length > 0 ? <div class="pagination">{pagination}</div> : null}
+    </div>
+  </Layout>;
+};
 
 // --- cart.html ---
-function renderCart(cartItems: CartItem[], total: number): string {
+const CartItem: FC<{ item: CartItem }> = ({ item }) => {
+  return <div class="cart-item">
+    <span class="cart-item-title">{item.title}</span>
+    <span class="cart-item-price">{`$${item.price.toFixed(2)}`}</span>
+    <span class="cart-item-quantity">
+      <button onclick={`updateCart('${escHtml(item.id)}', ${item.quantity - 1})`}>-</button>
+      <span>{item.quantity}</span>
+      <button onclick={`updateCart('${escHtml(item.id)}', ${item.quantity + 1})`}>+</button>
+    </span>
+    <span class="cart-item-subtotal">{`$${(item.price * item.quantity).toFixed(2)}`}</span>
+    <button onclick={`removeFromCart('${escHtml(item.id)}')`}>Remove</button>
+  </div>;
+};
+
+const CartPage: FC<{ cartItems: CartItem[]; total: number }> = ({ cartItems, total }) => {
   const totalItems = cartItems.reduce((s, i) => s + i.quantity, 0);
-
-  const itemsHtml = cartItems.map((item) => `
-<div class="cart-item">
-<span class="cart-item-title">${escHtml(item.title)}</span>
-<span class="cart-item-price">$${item.price.toFixed(2)}</span>
-<span class="cart-item-quantity">
-<button onclick="updateCart('${escHtml(item.id)}', ${item.quantity - 1})">-</button>
-<span>${item.quantity}</span>
-<button onclick="updateCart('${escHtml(item.id)}', ${item.quantity + 1})">+</button>
-</span>
-<span class="cart-item-subtotal">$${(item.price * item.quantity).toFixed(2)}</span>
-<button onclick="removeFromCart('${escHtml(item.id)}')">Remove</button>
-</div>`).join("\n");
-
-  const body = `<div class="container">
-<h1>Shopping Cart</h1>
-${cartItems.length > 0
-    ? `${itemsHtml}
-<div class="cart-total">
-<p>Items: ${totalItems}</p>
-<p>Total: $${total.toFixed(2)}</p>
-<button class="checkout-btn" onclick="checkout()">Checkout</button>
-<button class="clear-btn" onclick="clearCartAction()">Clear Cart</button>
-</div>`
-    : "<p>Your cart is empty.</p>"
-}
-</div>`;
-
-  return renderPage("Cart", body + `
-<script>
+  return <Layout title="Cart" scripts={`
 async function updateCart(productId, newQuantity) {
   if (newQuantity < 0) return;
   try {
@@ -544,93 +530,29 @@ async function checkout() {
   } catch (error) {
     console.error('Error during checkout:', error);
   }
-}
-</script>`);
-}
+}`}>
+    <div class="container">
+      <h1>Shopping Cart</h1>
+      {cartItems.length > 0
+        ? <>
+            {cartItems.map((item) => <CartItem item={item} />)}
+            <div class="cart-total">
+              <p>{`Items: ${totalItems}`}</p>
+              <p>{`Total: $${total.toFixed(2)}`}</p>
+              <button class="checkout-btn" onclick="checkout()">Checkout</button>
+              <button class="clear-btn" onclick="clearCartAction()">Clear Cart</button>
+            </div>
+          </>
+        : <p>Your cart is empty.</p>
+      }
+    </div>
+  </Layout>;
+};
+
 
 // --- profile.html ---
-function renderProfile(user: UserData): string {
-  const paymentItemsHtml = (user.payment_methods ?? []).map((method) => {
-    const typeLower = method.type.toLowerCase();
-    let icon = "&#128179;";
-    if (typeLower.includes("gift")) icon = "&#127873;";
-    else if (typeLower.includes("paypal")) icon = "&#128179;";
-    else if (typeLower.includes("credit")) icon = "&#128179;";
-    const balanceArg = method.balance ? `, '${escHtml(method.balance)}'` : "";
-    return `<div class="payment-item" onclick="showPaymentDetail('${escHtml(method.type)}', '${escHtml(method.account)}'${balanceArg})">
-<div class="payment-icon">${icon}</div>
-<div class="payment-info">
-<div class="payment-type">${escHtml(method.type)}</div>
-<div class="payment-account">${escHtml(method.account)}</div>
-</div>
-<div class="payment-arrow">&rsaquo;</div>
-</div>`;
-  }).join("\n");
 
-  const body = `<div class="profile-container">
-<div class="profile-header">
-<div class="profile-avatar">&#128100;</div>
-<h1>${escHtml(user.username)}</h1>
-<div class="profile-subtitle">Welcome to your profile</div>
-</div>
-<div class="profile-content">
-<div class="profile-section">
-<h2>Basic Information</h2>
-<div class="info-grid">
-<div class="info-item">
-<label>Username</label>
-<div class="info-value" id="username-display">
-<span class="value-text">${escHtml(user.username)}</span>
-<button class="edit-btn" onclick="editField('username', '${escHtml(user.username)}')">&#9999;&#65039;</button>
-</div>
-</div>
-<div class="info-item">
-<label>Gender</label>
-<div class="info-value" id="gender-display">
-<span class="value-text">${escHtml(user.gender)}</span>
-<button class="edit-btn" onclick="editField('gender', '${escHtml(user.gender)}')">&#9999;&#65039;</button>
-</div>
-</div>
-<div class="info-item">
-<label>Email</label>
-<div class="info-value" id="email-display">
-<span class="value-text">${escHtml(user.email)}</span>
-<button class="edit-btn" onclick="editField('email', '${escHtml(user.email)}')">&#9999;&#65039;</button>
-</div>
-</div>
-<div class="info-item">
-<label>Phone</label>
-<div class="info-value" id="phone-display">
-<span class="value-text">${escHtml(user.phone)}</span>
-<button class="edit-btn" onclick="editField('phone', '${escHtml(user.phone)}')">&#9999;&#65039;</button>
-</div>
-</div>
-<div class="info-item full-width">
-<label>Delivery Address</label>
-<div class="info-value" id="address-display">
-<span class="value-text">${escHtml(user.address)}</span>
-<button class="edit-btn" onclick="editField('address', '${escHtml(user.address)}')">&#9999;&#65039;</button>
-</div>
-</div>
-</div>
-</div>
-${user.payment_methods && user.payment_methods.length > 0
-    ? `<div class="profile-section">
-<h2>Payment Methods</h2>
-<div class="payment-methods">${paymentItemsHtml}</div>
-</div>`
-    : ""}
-<div class="profile-actions">
-<a href="/orders" class="action-btn primary"><span class="action-icon">&#128230;</span><span>View My Orders</span></a>
-<a href="/cart" class="action-btn"><span class="action-icon">&#128722;</span><span>View Shopping Cart</span></a>
-<a href="/" class="action-btn"><span class="action-icon">&#127968;</span><span>Back to Home</span></a>
-</div>
-</div>
-</div>`;
-
-  return renderPage(`${user.username}'s Profile`, body + `
-<style>
-.profile-container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+const PROFILE_CSS = `.profile-container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
 .profile-header { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; margin-bottom: 30px; }
 .profile-avatar { width: 100px; height: 100px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 0 auto 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .profile-header h1 { font-size: 32px; margin-bottom: 10px; }
@@ -691,9 +613,9 @@ textarea.edit-field-input { resize: vertical; min-height: 100px; }
 .detail-label { font-size: 14px; color: #666; font-weight: 500; }
 .detail-value { font-size: 16px; color: #232F3E; font-weight: 600; }
 @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-</style>
-<script>
-function editField(fieldName, currentValue) {
+`;
+
+const PROFILE_JS = `function editField(fieldName, currentValue) {
   var labels = { username: 'Username', gender: 'Gender', email: 'Email', phone: 'Phone', address: 'Delivery Address' };
   var isTextarea = fieldName === 'address';
   var inputEl = isTextarea
@@ -764,49 +686,97 @@ function closeModal(event) {
   if (event && event.target !== event.currentTarget) return;
   var modal = document.getElementById('paymentModal');
   if (modal) modal.remove();
+}`;
+
+function getPaymentIcon(type: string): string {
+  const t = type.toLowerCase();
+  if (t.includes("gift")) return "\u{1F381}";
+  return "\u{1F4B3}";
 }
-</script>`);
-}
+
+const ProfilePage: FC<{ user: UserData }> = ({ user }) => {
+  const payments = user.payment_methods ?? [];
+  const editIcon = "\u270F\uFE0F";
+  const paymentItems: Child[] = payments.map((m) => {
+    const icon = getPaymentIcon(m.type);
+    const balanceArg = m.balance ? `, '${escHtml(m.balance)}'` : "";
+    return <div class="payment-item" onclick={`showPaymentDetail('${escHtml(m.type)}', '${escHtml(m.account)}'${balanceArg})`}>
+      <div class="payment-icon">{icon}</div>
+      <div class="payment-info">
+        <div class="payment-type">{m.type}</div>
+        <div class="payment-account">{m.account}</div>
+      </div>
+      <div class="payment-arrow">{"\u203A"}</div>
+    </div>;
+  });
+
+  return <Layout title={`${user.username}'s Profile`} styles={PROFILE_CSS} scripts={PROFILE_JS}>
+    <div class="profile-container">
+      <div class="profile-header">
+        <div class="profile-avatar">{"\u{1F464}"}</div>
+        <h1>{user.username}</h1>
+        <div class="profile-subtitle">Welcome to your profile</div>
+      </div>
+      <div class="profile-content">
+        <div class="profile-section">
+          <h2>Basic Information</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Username</label>
+              <div class="info-value" id="username-display">
+                <span class="value-text">{user.username}</span>
+                <button class="edit-btn" onclick={`editField('username', '${escHtml(user.username)}')`}>{editIcon}</button>
+              </div>
+            </div>
+            <div class="info-item">
+              <label>Gender</label>
+              <div class="info-value" id="gender-display">
+                <span class="value-text">{user.gender}</span>
+                <button class="edit-btn" onclick={`editField('gender', '${escHtml(user.gender)}')`}>{editIcon}</button>
+              </div>
+            </div>
+            <div class="info-item">
+              <label>Email</label>
+              <div class="info-value" id="email-display">
+                <span class="value-text">{user.email}</span>
+                <button class="edit-btn" onclick={`editField('email', '${escHtml(user.email)}')`}>{editIcon}</button>
+              </div>
+            </div>
+            <div class="info-item">
+              <label>Phone</label>
+              <div class="info-value" id="phone-display">
+                <span class="value-text">{user.phone}</span>
+                <button class="edit-btn" onclick={`editField('phone', '${escHtml(user.phone)}')`}>{editIcon}</button>
+              </div>
+            </div>
+            <div class="info-item full-width">
+              <label>Delivery Address</label>
+              <div class="info-value" id="address-display">
+                <span class="value-text">{user.address}</span>
+                <button class="edit-btn" onclick={`editField('address', '${escHtml(user.address)}')`}>{editIcon}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {payments.length > 0
+          ? <div class="profile-section">
+              <h2>Payment Methods</h2>
+              <div class="payment-methods">{paymentItems}</div>
+            </div>
+          : null}
+        <div class="profile-actions">
+          <a href="/orders" class="action-btn primary"><span class="action-icon">{"\u{1F4E6}"}</span><span>View My Orders</span></a>
+          <a href="/cart" class="action-btn"><span class="action-icon">{"\u{1F6D2}"}</span><span>View Shopping Cart</span></a>
+          <a href="/" class="action-btn"><span class="action-icon">{"\u{1F3E0}"}</span><span>Back to Home</span></a>
+        </div>
+      </div>
+    </div>
+  </Layout>;
+};
 
 // --- orders.html ---
-function renderOrders(user: UserData, orders: Order[]): string {
-  const ordersHtml = orders.map((order) => {
-    const itemsHtml = order.items.map((item) => `
-<div class="order-item">
-<span>${escHtml(item.title)}</span>
-<span>Qty: ${item.quantity}</span>
-<span>$${item.price.toFixed(2)}</span>
-</div>`).join("\n");
 
-    let actionHtml = "";
-    if (order.status === "Delivered") {
-      actionHtml = `<button onclick="confirmOrder('${escHtml(order.order_id)}')">Confirm Receipt</button>
-<button onclick="returnOrder('${escHtml(order.order_id)}')">Return</button>`;
-    } else if (["Pending Shipment", "Shipped", "Completed"].includes(order.status)) {
-      actionHtml = `<button onclick="returnOrder('${escHtml(order.order_id)}')">Return</button>`;
-    }
-
-    return `<div class="order">
-<div class="order-header">
-<span class="order-id">Order: ${escHtml(order.order_id)}</span>
-<span class="order-status ${order.status.toLowerCase().replace(/\s/g, "-")}">${escHtml(order.status)}</span>
-<span class="order-date">${escHtml(order.create_time)}</span>
-<span class="order-total">$${order.total_amount.toFixed(2)}</span>
-</div>
-<div class="order-items">${itemsHtml}</div>
-<div class="order-actions">${actionHtml}</div>
-</div>`;
-  }).join("\n");
-
-  const body = `<div class="container">
-<h1>Order History</h1>
-<p class="meta">${escHtml(user.username)} — ${orders.length} orders</p>
-${orders.length > 0 ? ordersHtml : "<p>No orders found.</p>"}
-</div>`;
-
-  return renderPage("Orders", body + `
-<script>
-async function returnOrder(orderId) {
+const ORDERS_JS = `async function returnOrder(orderId) {
   try {
     const response = await fetch('/api/orders/' + orderId + '/return', {
       method: 'POST',
@@ -838,9 +808,48 @@ async function confirmOrder(orderId) {
   } catch (error) {
     console.error('Error confirming delivery:', error);
   }
-}
-</script>`);
-}
+}`;
+
+const OrdersPage: FC<{ user: UserData; orders: Order[] }> = ({ user, orders }) => {
+  const orderElements: Child[] = orders.map((order) => {
+    const itemElements: Child[] = order.items.map((item) =>
+      <div class="order-item">
+        <span>{item.title}</span>
+        <span>{`Qty: ${item.quantity}`}</span>
+        <span>{`$${item.price.toFixed(2)}`}</span>
+      </div>
+    );
+
+    let actionButtons: Child = null;
+    if (order.status === "Delivered") {
+      actionButtons = <>
+        <button onclick={`confirmOrder('${escHtml(order.order_id)}')`}>Confirm Receipt</button>
+        <button onclick={`returnOrder('${escHtml(order.order_id)}')`}>Return</button>
+      </>;
+    } else if (["Pending Shipment", "Shipped", "Completed"].includes(order.status)) {
+      actionButtons = <button onclick={`returnOrder('${escHtml(order.order_id)}')`}>Return</button>;
+    }
+
+    return <div class="order">
+      <div class="order-header">
+        <span class="order-id">{`Order: ${order.order_id}`}</span>
+        <span class={`order-status ${order.status.toLowerCase().replace(/\s/g, "-")}`}>{order.status}</span>
+        <span class="order-date">{order.create_time}</span>
+        <span class="order-total">{`$${order.total_amount.toFixed(2)}`}</span>
+      </div>
+      <div class="order-items">{itemElements}</div>
+      <div class="order-actions">{actionButtons}</div>
+    </div>;
+  });
+
+  return <Layout title="Orders" scripts={ORDERS_JS}>
+    <div class="container">
+      <h1>Order History</h1>
+      <p class="meta">{`${user.username} \u2014 ${orders.length} orders`}</p>
+      {orders.length > 0 ? orderElements : <p>No orders found.</p>}
+    </div>
+  </Layout>;
+};
 
 // ---------------------------------------------------------------------------
 // Route registration
@@ -856,7 +865,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   registerStaticAssets(app, { dir: "/opt/mock/static/shop", prefix: "/static" });
 
   // HTML pages
-  app.get("/", (c) => c.html(renderSearch()));
+  app.get("/", (c) => c.html(<HomePage />));
 
   app.get("/search", (c) => {
     const query = c.req.query("q") ?? "";
@@ -884,31 +893,31 @@ function registerRoutes(app: Hono<AppEnv>): void {
     }
 
     return c.html(
-      renderResults({
-        query,
-        products: currentProducts,
-        currentSort: sort,
-        currentPage: page,
-        totalPages,
-        minPrice,
-        maxPrice,
-        minRating,
-      }),
+      <ResultsPage
+        query={query}
+        products={currentProducts}
+        currentSort={sort}
+        currentPage={page}
+        totalPages={totalPages}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+        minRating={minRating}
+      />,
     );
   });
 
   app.get("/cart", (c) => {
     const cartItems = loadCart();
     const total = cartItems.reduce((s, i) => s + i.price * i.quantity, 0);
-    return c.html(renderCart(cartItems, total));
+    return c.html(<CartPage cartItems={cartItems} total={total} />);
   });
 
   app.get("/profile", (c) => {
-    return c.html(renderProfile(loadUser()));
+    return c.html(<ProfilePage user={loadUser()} />);
   });
 
   app.get("/orders", (c) => {
-    return c.html(renderOrders(loadUser(), loadOrders()));
+    return c.html(<OrdersPage user={loadUser()} orders={loadOrders()} />);
   });
 
   // API routes
