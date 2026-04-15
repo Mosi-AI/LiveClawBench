@@ -212,7 +212,7 @@ function initAccessLog(): void {
 // ---------------------------------------------------------------------------
 
 function normalize(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 function tokenize(text: string): string[] {

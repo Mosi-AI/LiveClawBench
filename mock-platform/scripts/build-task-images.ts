@@ -14,9 +14,8 @@
  * Usage: bun run scripts/build-task-images.ts [--dry-run]
  */
 
-import { readFileSync, existsSync, statSync } from "node:fs";
+import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { mkdirSync, writeFileSync } from "node:fs";
 
 const DIST_DIR = join(import.meta.dir, "..", "dist");
 const CONFIG_PATH = join(import.meta.dir, "..", "config", "task-binary-map.json");
@@ -409,13 +408,14 @@ async function buildTaskImage(
   // Asset source files are copied into DIST_DIR (build context) so Docker COPY can find them.
   if (assets && assets.length > 0) {
     const repoRoot = join(import.meta.dir, "..", "..");
-    // Ensure destination directories exist in the image
     const destDirs = new Set<string>();
-    for (const asset of assets) {
+    const assetCopyLines: string[] = [];
+
+    for (let i = 0; i < assets.length; i++) {
+      const asset = assets[i];
       const destDir = asset.dest.substring(0, asset.dest.lastIndexOf("/"));
       if (destDir) destDirs.add(destDir);
 
-      // Copy asset source file to build context
       const srcAbsPath = join(repoRoot, asset.src);
       if (!existsSync(srcAbsPath)) {
         return {
@@ -426,33 +426,17 @@ async function buildTaskImage(
           error: `Asset source not found: ${srcAbsPath}`,
         };
       }
-      // Use a flat naming in build context: asset-{task}-{index}-{filename}
       const srcFileName = asset.src.split("/").pop()!;
-      const contextName = `asset-${task}-${assets.indexOf(asset)}-${srcFileName}`;
-      const contextPath = join(DIST_DIR, contextName);
-      writeFileSync(contextPath, readFileSync(srcAbsPath));
-      dockerfileLines.push(`COPY ${contextName} ${asset.dest}`);
+      const contextName = `asset-${task}-${i}-${srcFileName}`;
+      writeFileSync(join(DIST_DIR, contextName), readFileSync(srcAbsPath));
+      assetCopyLines.push(`COPY ${contextName} ${asset.dest}`);
     }
+
+    // Emit RUN mkdir before asset COPY lines (creates destination dirs in the image)
     if (destDirs.size > 0) {
-      // Prepend RUN mkdir for destination dirs (before COPY commands)
-      // Insert after the last COPY mock binary line
-      const mkdirCmd = `RUN mkdir -p ${[...destDirs].join(" ")}`;
-      // Find insertion point: after binary COPY lines, before asset COPY lines
-      const lastBinaryCopyIdx = dockerfileLines.findLastIndex(
-        (l) => l.startsWith("COPY mock-"),
-      );
-      if (lastBinaryCopyIdx >= 0) {
-        dockerfileLines.splice(lastBinaryCopyIdx + 1, 0, mkdirCmd);
-      } else {
-        // No binaries — insert after task comment lines
-        dockerfileLines.splice(
-          dockerfileLines.findIndex((l) => l.startsWith("# Binaries:")) + 1,
-          0,
-          "",
-          mkdirCmd,
-        );
-      }
+      dockerfileLines.push(`RUN mkdir -p ${[...destDirs].join(" ")}`);
     }
+    dockerfileLines.push(...assetCopyLines);
   }
 
   // COPY startup script to deterministic /opt/mock/startup.d/{task}.sh

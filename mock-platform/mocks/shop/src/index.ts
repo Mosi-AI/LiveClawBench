@@ -12,7 +12,6 @@
 import { createMockApp, startServer, JsonStore, registerStaticAssets } from "mock-lib";
 import type { AppEnv } from "mock-lib";
 import { Hono } from "hono";
-import type { Context } from "hono";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -108,10 +107,6 @@ let allProducts: Product[] = [];
 const DATA_DIR = process.env.MOCK_DATA_DIR || "/var/lib/mock-data/shop";
 
 const store = new JsonStore({ dir: DATA_DIR });
-
-function loadProducts(): Product[] {
-  return allProducts;
-}
 
 function loadCart(): CartItem[] {
   return store.read<CartItem[]>("mosi_shop_cart", []);
@@ -248,9 +243,10 @@ interface FilterOptions {
   useSearch?: boolean;
 }
 
-function filterAndSortProducts(products: Product[], opts: FilterOptions): Product[] {
+function filterAndSortProducts(sourceProducts: Product[], opts: FilterOptions): Product[] {
   const { query, minPrice, maxPrice, minRating, sortBy = "similarity", useSearch = true } = opts;
 
+  let products = sourceProducts;
   let productsWithScores = new Map<string, number>();
 
   // Step 1: Apply search
@@ -261,7 +257,7 @@ function filterAndSortProducts(products: Product[], opts: FilterOptions): Produc
 
     // If no results, retry with lower threshold
     if (!products.length) {
-      scored = searchProducts(loadProducts(), query, 0.0);
+      scored = searchProducts(allProducts, query, 0.0);
       productsWithScores = new Map(scored.map(([p, s]) => [p.id, s]));
       products = scored.map(([p]) => p);
     }
@@ -272,7 +268,7 @@ function filterAndSortProducts(products: Product[], opts: FilterOptions): Produc
   if (maxPrice != null) products = products.filter((p) => (p.price ?? 0) <= maxPrice!);
   if (minRating != null) products = products.filter((p) => (p.rating ?? 0) >= minRating!);
 
-  // Step 3: Sort
+  // Step 3: Sort (mutate in place)
   if (sortBy === "similarity") {
     if (productsWithScores.size > 0) {
       products.sort((a, b) => (productsWithScores.get(b.id) ?? 0) - (productsWithScores.get(a.id) ?? 0));
@@ -288,6 +284,14 @@ function filterAndSortProducts(products: Product[], opts: FilterOptions): Produc
   }
 
   return products;
+}
+
+// ---------------------------------------------------------------------------
+// HTML helpers
+// ---------------------------------------------------------------------------
+
+function escHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 // ---------------------------------------------------------------------------
@@ -383,8 +387,14 @@ ${tagsHtml ? `<div class="product-tags">${tagsHtml}</div>` : ""}
   }).join("\n");
 
   // Sort dropdown
+  const SORT_LABELS: Record<string, string> = {
+    similarity: "Relevance",
+    price_asc: "Price: Low to High",
+    price_desc: "Price: High to Low",
+    rating: "Rating",
+  };
   const sortOptions = ["similarity", "price_asc", "price_desc", "rating"]
-    .map((s) => `<option value="${s}"${s === currentSort ? " selected" : ""}>${s === "price_asc" ? "Price: Low to High" : s === "price_desc" ? "Price: High to Low" : s === "rating" ? "Rating" : "Relevance"}</option>`)
+    .map((s) => `<option value="${s}"${s === currentSort ? " selected" : ""}>${SORT_LABELS[s]}</option>`)
     .join("");
 
   // Pagination
@@ -832,10 +842,6 @@ async function confirmOrder(orderId) {
 </script>`);
 }
 
-function escHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-
 // ---------------------------------------------------------------------------
 // Route registration
 // ---------------------------------------------------------------------------
@@ -864,7 +870,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     let totalPages = 0;
 
     if (query) {
-      const allResults = filterAndSortProducts(loadProducts(), {
+      const allResults = filterAndSortProducts(allProducts, {
         query,
         minPrice,
         maxPrice,
@@ -914,7 +920,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const maxPrice = c.req.query("max_price") ? parseFloat(c.req.query("max_price")!) : undefined;
     const minRating = c.req.query("min_rating") ? parseFloat(c.req.query("min_rating")!) : undefined;
 
-    const filtered = filterAndSortProducts(loadProducts(), {
+    const filtered = filterAndSortProducts(allProducts, {
       query,
       minPrice,
       maxPrice,
@@ -938,7 +944,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
   app.get("/api/product/:product_id", (c) => {
     const pid = c.req.param("product_id");
-    const product = loadProducts().find((p) => p.id === pid);
+    const product = allProducts.find((p) => p.id === pid);
     if (!product) return c.json({ error: "Product not found" }, 404);
     return c.json(product);
   });
@@ -948,7 +954,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const productId = body.product_id;
     if (!productId) return c.json({ success: false, message: "product_id required" });
 
-    const product = loadProducts().find((p) => p.id === productId);
+    const product = allProducts.find((p) => p.id === productId);
     if (!product) return c.json({ success: false, message: "Product not found" });
 
     const cart = loadCart();
@@ -1129,7 +1135,7 @@ function seedOrders(): void {
   // Only seed if no orders exist
   if (loadOrders().length > 0) return;
 
-  const products = loadProducts();
+  const products = allProducts;
   if (!products.length) return;
 
   const productMap = new Map(products.map((p) => [p.id, p]));
