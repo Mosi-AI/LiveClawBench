@@ -34,14 +34,16 @@
       ]
     },
     "email-watch-shop": {
-      "binaries": ["email", "shop"],
+      "binaries": ["shop"],
+      "startup_extra": "tasks/email-watch-shop/environment/startup.sh",
       "assets": [
         { "src": "tasks/email-watch-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/style.css" },
         { "src": "tasks/email-watch-shop/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "email-washer-change": {
-      "binaries": ["email", "shop"],
+      "binaries": ["shop"],
+      "startup_extra": "tasks/email-washer-change/environment/startup.sh",
       "assets": [
         { "src": "tasks/email-washer-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/style.css" },
         { "src": "tasks/email-washer-change/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }

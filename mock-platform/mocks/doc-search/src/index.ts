@@ -82,12 +82,32 @@ interface PageEvent {
 type AccessEvent = HomeEvent | SearchEvent | ClickEvent | PageEvent;
 
 // ---------------------------------------------------------------------------
-// Configuration
+// Configuration — CLI args override env vars override defaults
 // ---------------------------------------------------------------------------
 
+function parseCliArgs(): Record<string, string> {
+  const args = process.argv.slice(2);
+  const result: Record<string, string> = {};
+  for (let i = 0; i < args.length; i++) {
+    if (args[i].startsWith("--") && i + 1 < args.length && !args[i + 1].startsWith("--")) {
+      const key = args[i].slice(2);
+      result[key] = args[i + 1];
+      i++;
+    } else if (args[i].includes("=")) {
+      const eqIdx = args[i].indexOf("=");
+      const key = args[i].slice(2, eqIdx);
+      result[key] = args[i].slice(eqIdx + 1);
+    }
+  }
+  return result;
+}
+
+const cliArgs = parseCliArgs();
+const OUTPUT_BASE = `${process.env.HOME ?? "/home/node"}/.openclaw/output`;
+
+const DB_PATH = cliArgs.database ?? process.env.BROWSER_MOCK_DB_PATH ?? `${OUTPUT_BASE}/browser_mock_documents.sqlite`;
+const LOG_PATH = cliArgs.log ?? process.env.BROWSER_MOCK_ACCESS_LOG ?? `${OUTPUT_BASE}/browser_mock_access.jsonl`;
 const DATA_DIR = process.env.BROWSER_MOCK_DATA_DIR ?? "/opt/mock/data";
-const DB_PATH = process.env.BROWSER_MOCK_DB_PATH ?? `${process.env.HOME ?? "/home/node"}/.openclaw/output/browser_mock_documents.sqlite`;
-const LOG_PATH = process.env.BROWSER_MOCK_ACCESS_LOG ?? `${process.env.HOME ?? "/home/node"}/.openclaw/output/browser_mock_access.jsonl`;
 const SQL_PATH = `${DATA_DIR}/documents.sql`;
 
 // Session counter (process-local, resets on restart)
@@ -127,14 +147,15 @@ function initDatabase(): void {
 
   db = new Database(DB_PATH, { create: true });
 
-  // Load and execute SQL seed file
-  if (existsSync(SQL_PATH)) {
-    const sql = readFileSync(SQL_PATH, "utf-8");
-    db.exec(sql);
-    console.log(`mock-doc-search: initialized DB from ${SQL_PATH}`);
-  } else {
-    console.error(`mock-doc-search: SQL file not found at ${SQL_PATH}, DB is empty`);
+  // Load and execute SQL seed file — fail fast if missing (AC-6.3)
+  if (!existsSync(SQL_PATH)) {
+    console.error(`mock-doc-search: FATAL: SQL seed file not found at ${SQL_PATH}`);
+    console.error(`mock-doc-search: Ensure the per-task asset (documents.sql) is staged at /opt/mock/data/`);
+    process.exit(1);
   }
+  const sql = readFileSync(SQL_PATH, "utf-8");
+  db.exec(sql);
+  console.log(`mock-doc-search: initialized DB from ${SQL_PATH}`);
 
   // Load dynamic configuration from metadata and query_examples tables
   loadDynamicConfig();

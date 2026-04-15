@@ -236,28 +236,8 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     "",
   ];
 
-  // Embed task-specific extra startup content (e.g. browser mock server init)
-  // This content is read from the repo at image build time and embedded in the
-  // read-only /opt/mock/startup.d/{task}.sh — not executed from writable paths.
-  if (startupExtra) {
-    // Strip shebang line and bash-specific set options from embedded content
-    // since the outer script uses /bin/sh (POSIX). The embedded content runs
-    // in the same shell context, so shebang is irrelevant and set -euo pipefail
-    // would fail in dash. We keep set -e from the outer script.
-    const stripped = startupExtra
-      .split("\n")
-      .filter((line) => !line.startsWith("#!") && line.trim() !== "set -euo pipefail")
-      .join("\n")
-      .trimEnd();
-    lines.push("# Task-specific service startup (embedded from startup_extra)");
-    lines.push(stripped);
-    lines.push("");
-  } else if (binaries.length > 0) {
-    // Launch each Bun mock binary in the background with its designated port.
-    // Binaries are at /opt/mock/bin/mock-{name} (copied by the Dockerfile).
-    // Each binary is a compiled Bun executable serving its mock API.
-    // No Python fallback — the Bun binary fully replaces the Python service
-    // on the same port. Running both would cause port conflicts.
+  // Step 1: Launch Bun mock binaries (if any)
+  if (binaries.length > 0) {
     lines.push("# Start Bun mock binaries");
     for (const bin of binaries) {
       const port = BINARY_PORTS[bin];
@@ -265,7 +245,56 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     }
     lines.push("");
     lines.push("# Wait for mock binaries to bind their ports");
-    lines.push("sleep 5");
+    lines.push("sleep 2");
+    lines.push("");
+  }
+
+  // Step 2: Embed task-specific extra startup content (e.g. Python email services)
+  // This content is read from the repo at image build time and embedded in the
+  // read-only /opt/mock/startup.d/{task}.sh — not executed from writable paths.
+  // Both Bun binaries AND legacy startup can coexist (e.g. Bun shop + Python email).
+  if (startupExtra) {
+    // Strip shebang line and bash-specific set options from embedded content
+    // since the outer script uses /bin/sh (POSIX). The embedded content runs
+    // in the same shell context, so shebang is irrelevant and set -euo pipefail
+    // would fail in dash. We keep set -e from the outer script.
+    let filtered = startupExtra
+      .split("\n")
+      .filter((line) => !line.startsWith("#!") && line.trim() !== "set -euo pipefail");
+
+    // When Bun binaries include 'shop', strip Python shop-app startup lines
+    // to avoid port conflicts (Python start.sh kills processes on port 1234).
+    if (binaries.includes("shop")) {
+      // Filter out blocks between "# Start shop-app" and the next "# Start " comment
+      let inShopBlock = false;
+      filtered = filtered.filter((line) => {
+        const l = line.trim();
+        if (l.match(/^#\s*Start\s+shop-app/i)) {
+          inShopBlock = true;
+          return false;
+        }
+        if (inShopBlock && l.match(/^#\s*Start\s+/i)) {
+          inShopBlock = false;
+          // Keep this line (it's a new block)
+          return true;
+        }
+        if (inShopBlock) return false;
+        return true;
+      });
+    }
+
+    const stripped = filtered.join("\n").trimEnd();
+    if (stripped) {
+      lines.push("# Task-specific legacy startup (embedded from startup_extra)");
+      lines.push(stripped);
+      lines.push("");
+    }
+  }
+
+  // Step 3: Final wait for all services to be ready
+  if (binaries.length > 0 || startupExtra) {
+    lines.push("# Wait for all services to be ready");
+    lines.push("sleep 3");
     lines.push("");
   }
 
