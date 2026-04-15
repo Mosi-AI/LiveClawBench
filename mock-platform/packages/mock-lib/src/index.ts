@@ -19,6 +19,6 @@ export { getDb, resetDb, migrate } from "./db";
 export { JsonStore } from "./db";
 export type { SqliteOptions, JsonStoreOptions } from "./db";
 
-// Render (stub — Plan 2 implements)
-export { registerStaticAssets, renderTemplate } from "./render";
-export type { TemplateData } from "./render";
+// Render
+export { registerStaticAssets } from "./render";
+export type { StaticAssetsOptions } from "./render";

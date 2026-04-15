@@ -51,9 +51,18 @@ const ALL_TASK_NAMES = new Set([
   "conflict-repair-acb", "skill-combination",
 ]);
 
+interface AssetMapping {
+  /** Source path relative to the repository root */
+  src: string;
+  /** Destination path inside the per-task Docker image */
+  dest: string;
+}
+
 interface TaskMapping {
   binaries: string[];
   startup_extra?: string;
+  /** Optional per-task assets to COPY into the image */
+  assets?: AssetMapping[];
 }
 
 interface MappingConfig {
@@ -160,6 +169,28 @@ function validateMapping(raw: unknown): MappingConfig {
         errors.push(`Task "${taskName}" 'startup_extra' must be a string path`);
       }
     }
+
+    // Validate optional assets field
+    if ("assets" in taskObj) {
+      if (!Array.isArray(taskObj.assets)) {
+        errors.push(`Task "${taskName}" 'assets' must be an array`);
+      } else {
+        for (let ai = 0; ai < (taskObj.assets as unknown[]).length; ai++) {
+          const asset = (taskObj.assets as unknown[])[ai];
+          if (typeof asset !== "object" || asset === null) {
+            errors.push(`Task "${taskName}" assets[${ai}] must be an object`);
+            continue;
+          }
+          const assetObj = asset as Record<string, unknown>;
+          if (typeof assetObj.src !== "string" || !assetObj.src) {
+            errors.push(`Task "${taskName}" assets[${ai}] missing 'src' string`);
+          }
+          if (typeof assetObj.dest !== "string" || !assetObj.dest) {
+            errors.push(`Task "${taskName}" assets[${ai}] missing 'dest' string`);
+          }
+        }
+      }
+    }
   }
 
   // Check for missing tasks
@@ -205,11 +236,6 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     "",
   ];
 
-  // NOTE: Bun mock binaries are currently stubs without real API implementations.
-  // They are included in the image but NOT started in Plan 1 to avoid port conflicts
-  // with the existing Python Flask services that provide the actual API functionality.
-  // Stub startup will be enabled in Plan 2 when Bun mocks implement real APIs.
-
   // Embed task-specific extra startup content (e.g. browser mock server init)
   // This content is read from the repo at image build time and embedded in the
   // read-only /opt/mock/startup.d/{task}.sh — not executed from writable paths.
@@ -227,21 +253,18 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push(stripped);
     lines.push("");
   } else if (binaries.length > 0) {
-    // For service-backed tasks without startup_extra, delegate to the task's
-    // Python startup script. The Bun mock binaries are stubs that will replace
-    // these Python services in Plan 2; until then, the Python services provide
-    // the real API that the agent and verifier expect.
-    // startup.sh is available at /workspace/environment/startup.sh because the
-    // task Dockerfile does COPY . /workspace/environment/ (includes startup.sh).
-    lines.push("# Start task-specific Python mock services");
-    lines.push("# NOTE: Bun stub binaries are not started (see note above)");
-    lines.push("if [ -f /workspace/environment/startup.sh ]; then");
-    lines.push("  bash /workspace/environment/startup.sh &");
-    lines.push("elif [ -f /workspace/startup.sh ]; then");
-    lines.push("  bash /workspace/startup.sh &");
-    lines.push("fi");
-    lines.push("# Wait for services to bind their ports");
-    lines.push("# Preserves 5-second delay from original per-task entrypoints");
+    // Launch each Bun mock binary in the background with its designated port.
+    // Binaries are at /opt/mock/bin/mock-{name} (copied by the Dockerfile).
+    // Each binary is a compiled Bun executable serving its mock API.
+    // No Python fallback — the Bun binary fully replaces the Python service
+    // on the same port. Running both would cause port conflicts.
+    lines.push("# Start Bun mock binaries");
+    for (const bin of binaries) {
+      const port = BINARY_PORTS[bin];
+      lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
+    }
+    lines.push("");
+    lines.push("# Wait for mock binaries to bind their ports");
     lines.push("sleep 5");
     lines.push("");
   }
@@ -254,6 +277,7 @@ async function buildTaskImage(
   binaries: string[],
   dryRun: boolean,
   startupExtraPath?: string,
+  assets?: AssetMapping[],
 ): Promise<BuildTaskImageResult> {
   const imageTag = `liveclawbench-${task}-base:latest`;
 
@@ -331,6 +355,56 @@ async function buildTaskImage(
   // COPY mock binaries (if any)
   for (const bin of binaries) {
     dockerfileLines.push(`COPY mock-${bin} /opt/mock/bin/mock-${bin}`);
+  }
+
+  // Stage and COPY per-task assets (CSS, JSON, SQL sidecars)
+  // Asset source files are copied into DIST_DIR (build context) so Docker COPY can find them.
+  if (assets && assets.length > 0) {
+    const repoRoot = join(import.meta.dir, "..", "..");
+    // Ensure destination directories exist in the image
+    const destDirs = new Set<string>();
+    for (const asset of assets) {
+      const destDir = asset.dest.substring(0, asset.dest.lastIndexOf("/"));
+      if (destDir) destDirs.add(destDir);
+
+      // Copy asset source file to build context
+      const srcAbsPath = join(repoRoot, asset.src);
+      if (!existsSync(srcAbsPath)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Asset source not found: ${srcAbsPath}`,
+        };
+      }
+      // Use a flat naming in build context: asset-{task}-{index}-{filename}
+      const srcFileName = asset.src.split("/").pop()!;
+      const contextName = `asset-${task}-${assets.indexOf(asset)}-${srcFileName}`;
+      const contextPath = join(DIST_DIR, contextName);
+      writeFileSync(contextPath, readFileSync(srcAbsPath));
+      dockerfileLines.push(`COPY ${contextName} ${asset.dest}`);
+    }
+    if (destDirs.size > 0) {
+      // Prepend RUN mkdir for destination dirs (before COPY commands)
+      // Insert after the last COPY mock binary line
+      const mkdirCmd = `RUN mkdir -p ${[...destDirs].join(" ")}`;
+      // Find insertion point: after binary COPY lines, before asset COPY lines
+      const lastBinaryCopyIdx = dockerfileLines.findLastIndex(
+        (l) => l.startsWith("COPY mock-"),
+      );
+      if (lastBinaryCopyIdx >= 0) {
+        dockerfileLines.splice(lastBinaryCopyIdx + 1, 0, mkdirCmd);
+      } else {
+        // No binaries — insert after task comment lines
+        dockerfileLines.splice(
+          dockerfileLines.findIndex((l) => l.startsWith("# Binaries:")) + 1,
+          0,
+          "",
+          mkdirCmd,
+        );
+      }
+    }
   }
 
   // COPY startup script to deterministic /opt/mock/startup.d/{task}.sh
@@ -421,7 +495,7 @@ async function main() {
   const results: BuildTaskImageResult[] = [];
   for (const [task, config] of Object.entries(mapping.tasks)) {
     process.stdout.write(`Building ${task} (${config.binaries.length} binaries)... `);
-    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra);
+    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets);
     results.push(result);
 
     if (result.success) {

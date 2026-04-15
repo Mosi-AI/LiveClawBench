@@ -2,15 +2,51 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
-  "version": "1.0",
+  "version": "1.1",
   "binaries": ["airline", "email", "shop", "todolist", "doc-search"],
   "tasks": {
-    "watch-shop": { "binaries": ["shop"] },
-    "washer-shop": { "binaries": ["shop"] },
-    "info-change": { "binaries": ["shop"] },
-    "washer-change": { "binaries": ["shop"] },
-    "email-watch-shop": { "binaries": ["email", "shop"] },
-    "email-washer-change": { "binaries": ["email", "shop"] },
+    "watch-shop": {
+      "binaries": ["shop"],
+      "assets": [
+        { "src": "tasks/watch-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/style.css" },
+        { "src": "tasks/watch-shop/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ]
+    },
+    "washer-shop": {
+      "binaries": ["shop"],
+      "assets": [
+        { "src": "tasks/washer-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/style.css" },
+        { "src": "tasks/washer-shop/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ]
+    },
+    "info-change": {
+      "binaries": ["shop"],
+      "assets": [
+        { "src": "tasks/info-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/style.css" },
+        { "src": "tasks/info-change/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ]
+    },
+    "washer-change": {
+      "binaries": ["shop"],
+      "assets": [
+        { "src": "tasks/washer-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/style.css" },
+        { "src": "tasks/washer-change/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ]
+    },
+    "email-watch-shop": {
+      "binaries": ["email", "shop"],
+      "assets": [
+        { "src": "tasks/email-watch-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/style.css" },
+        { "src": "tasks/email-watch-shop/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ]
+    },
+    "email-washer-change": {
+      "binaries": ["email", "shop"],
+      "assets": [
+        { "src": "tasks/email-washer-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/style.css" },
+        { "src": "tasks/email-washer-change/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ]
+    },
     "email-writing": { "binaries": ["email"] },
     "email-reply": { "binaries": ["email"] },
     "schedule-change-request": { "binaries": ["airline", "email", "todolist"] },
@@ -31,14 +67,18 @@
     "skill-dependency-fix": { "binaries": [] },
     "noise-filtering": { "binaries": [] },
     "mixed-tool-memory": {
-      "binaries": [],
-      "startup_extra": "tasks/mixed-tool-memory/environment/startup.sh"
+      "binaries": ["doc-search"],
+      "assets": [
+        { "src": "tasks/mixed-tool-memory/environment/browser_mock_sidecar/documents.sql", "dest": "/opt/mock/data/documents.sql" }
+      ]
     },
     "incremental-update-ctp": { "binaries": [] },
     "live-web-research-sqlite-fts5": { "binaries": [] },
     "conflict-repair-acb": {
-      "binaries": [],
-      "startup_extra": "tasks/conflict-repair-acb/environment/startup.sh"
+      "binaries": ["doc-search"],
+      "assets": [
+        { "src": "tasks/conflict-repair-acb/environment/browser_mock_sidecar/documents.sql", "dest": "/opt/mock/data/documents.sql" }
+      ]
     },
     "skill-combination": { "binaries": [] }
   }

@@ -1,5 +1,5 @@
-import { Hono } from "hono";
 import type { AppEnv, CreateMockAppOptions, MockApp } from "./types";
+import { Hono } from "hono";
 
 const DEFAULT_PORT = 3000;
 
@@ -24,7 +24,9 @@ export function createMockApp(options: CreateMockAppOptions): MockApp {
 
   // Built-in health check endpoint
   app.get("/health", (c) => {
-    return c.json(options.healthResponse ?? { ok: true });
+    return c.json(
+      options.healthResponse ?? { status: "healthy", service: config.name },
+    );
   });
 
   // Register custom routes if provided

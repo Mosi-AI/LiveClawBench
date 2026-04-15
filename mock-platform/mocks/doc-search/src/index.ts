@@ -1,12 +1,474 @@
+/**
+ * Doc-search mock service — Browser Mock Portal with FTS5 search
+ *
+ * Port of the Python browser_mock_server.py to Bun + Hono.
+ * Provides full-text search over a documents database with FTS5 + BM25,
+ * JSONL access logging for verifier scoring (20% weight), and HTML rendering.
+ *
+ * Endpoints: GET /, GET /health, GET /search, GET /docs/{slug}
+ * Database: SQLite with FTS5 (porter unicode61 tokenizer), per-task SQL seeding
+ * Access log: JSONL with home/search/click/page events
+ */
+
 import { createMockApp, startServer } from "mock-lib";
+import type { AppEnv } from "mock-lib";
+import { Hono } from "hono";
+import { Database } from "bun:sqlite";
+import { mkdirSync, unlinkSync, appendFileSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 
-const app = createMockApp({ name: "doc-search" });
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
-// Sentinel route for binary isolation verification (AC-1.1).
-app.app.get("/__mock_sentinel__/doc-search", (c) =>
-  c.json({ mock: "doc-search", sentinel: true }),
-);
+interface Document {
+  id: string;
+  slug: string;
+  title: string;
+  kind: string;
+  status: string;
+  reliability: string;
+  updated_at: string;
+  owner: string;
+  summary: string;
+  body: string;
+  tags: string;
+}
 
-// Document search routes will be added in Plan 2 migration tasks.
+interface SearchResult {
+  rank: number;
+  doc_id: string;
+  slug: string;
+}
 
-startServer(app);
+interface Metadata {
+  site_title: string;
+  home_title: string;
+  home_description: string;
+  search_placeholder: string;
+}
+
+// JSONL event types
+interface HomeEvent {
+  event: "home";
+  path: string;
+}
+
+interface SearchEvent {
+  event: "search";
+  sid: string;
+  path: string;
+  query: string;
+  results: SearchResult[];
+}
+
+interface ClickEvent {
+  event: "click";
+  sid: string;
+  rank: string;
+  path: string;
+  doc_id: string;
+  slug: string;
+}
+
+interface PageEvent {
+  event: "page";
+  sid: string;
+  rank: string;
+  path: string;
+  doc_id: string;
+  slug: string;
+}
+
+type AccessEvent = HomeEvent | SearchEvent | ClickEvent | PageEvent;
+
+// ---------------------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------------------
+
+const DATA_DIR = process.env.BROWSER_MOCK_DATA_DIR ?? "/opt/mock/data";
+const DB_PATH = process.env.BROWSER_MOCK_DB_PATH ?? `${process.env.HOME ?? "/home/node"}/.openclaw/output/browser_mock_documents.sqlite`;
+const LOG_PATH = process.env.BROWSER_MOCK_ACCESS_LOG ?? `${process.env.HOME ?? "/home/node"}/.openclaw/output/browser_mock_access.jsonl`;
+const SQL_PATH = `${DATA_DIR}/documents.sql`;
+
+// Session counter (process-local, resets on restart)
+let searchCounter = 0;
+
+// Dynamic config loaded from DB at startup
+let metadata: Metadata = {
+  site_title: "Browser Portal",
+  home_title: "Browser Portal",
+  home_description: "Search this portal for documents.",
+  search_placeholder: "Search for documents",
+};
+let queryExamples: string[] = [];
+
+// SQLite database (opened once, reused)
+let db: Database;
+
+// ---------------------------------------------------------------------------
+// Database initialization
+// ---------------------------------------------------------------------------
+
+function initDatabase(): void {
+  // Ensure output directory exists
+  const outputDir = DB_PATH.substring(0, DB_PATH.lastIndexOf("/"));
+  try {
+    mkdirSync(outputDir, { recursive: true });
+  } catch {
+    // Directory may already exist
+  }
+
+  // Delete existing DB to start fresh (matches Python behavior)
+  try {
+    unlinkSync(DB_PATH);
+  } catch {
+    // File may not exist
+  }
+
+  db = new Database(DB_PATH, { create: true });
+
+  // Load and execute SQL seed file
+  if (existsSync(SQL_PATH)) {
+    const sql = readFileSync(SQL_PATH, "utf-8");
+    db.exec(sql);
+    console.log(`mock-doc-search: initialized DB from ${SQL_PATH}`);
+  } else {
+    console.error(`mock-doc-search: SQL file not found at ${SQL_PATH}, DB is empty`);
+  }
+
+  // Load dynamic configuration from metadata and query_examples tables
+  loadDynamicConfig();
+}
+
+function loadDynamicConfig(): void {
+  try {
+    const metaRows = db.query("SELECT key, value FROM metadata").all() as Array<{ key: string; value: string }>;
+    const metaMap = new Map(metaRows.map((r) => [r.key, r.value]));
+    metadata = {
+      site_title: metaMap.get("site_title") ?? metadata.site_title,
+      home_title: metaMap.get("home_title") ?? metadata.home_title,
+      home_description: metaMap.get("home_description") ?? metadata.home_description,
+      search_placeholder: metaMap.get("search_placeholder") ?? metadata.search_placeholder,
+    };
+
+    const exampleRows = db.query("SELECT query FROM query_examples ORDER BY position ASC").all() as Array<{ query: string }>;
+    queryExamples = exampleRows.map((r) => r.query);
+  } catch (err) {
+    console.error("mock-doc-search: failed to load dynamic config", err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// JSONL access log
+// ---------------------------------------------------------------------------
+
+function writeEvent(event: AccessEvent): void {
+  const line = JSON.stringify(event) + "\n";
+  try {
+    appendFileSync(LOG_PATH, line);
+  } catch (err) {
+    console.error("mock-doc-search: failed to write access log", err);
+  }
+}
+
+function initAccessLog(): void {
+  const logDir = LOG_PATH.substring(0, LOG_PATH.lastIndexOf("/"));
+  try {
+    mkdirSync(logDir, { recursive: true });
+  } catch {
+    // Directory may already exist
+  }
+  // Truncate/create the log file (matches Python `: > "$BROWSER_MOCK_LOG"`)
+  try {
+    writeFileSync(LOG_PATH, "");
+  } catch {
+    // Ignore
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Query helpers — faithful ports of Python normalize/tokenize/build_match_query
+// ---------------------------------------------------------------------------
+
+function normalize(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function tokenize(text: string): string[] {
+  const normalized = normalize(text);
+  if (!normalized) return [];
+  return normalized.split(" ").filter((t) => t.length > 0);
+}
+
+function buildMatchQuery(tokens: string[]): string {
+  // Deduplicate while preserving first occurrence order
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const t of tokens) {
+    if (!seen.has(t)) {
+      seen.add(t);
+      unique.push(t);
+    }
+  }
+  // Render each token as "token"* (wildcard suffix)
+  return unique.map((t) => `"${t}"*`).join(" OR ");
+}
+
+// ---------------------------------------------------------------------------
+// HTML rendering — faithful port of Python page() and render_* functions
+// ---------------------------------------------------------------------------
+
+function escHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function renderPage(title: string, bodyContent: string): string {
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>${escHtml(title)}</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+.meta { color: #666; font-size: 0.9em; margin: 4px 0; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; margin: 2px; background: #e8e8e8; }
+.summary { color: #444; font-style: italic; }
+.doc-card { border: 1px solid #ddd; padding: 12px; margin: 8px 0; border-radius: 6px; }
+.result-title { margin: 4px 0; }
+.open-link { color: #0066cc; }
+.doc-body p { line-height: 1.6; }
+form { margin: 16px 0; }
+input[type=text] { padding: 6px; width: 60%; }
+button { padding: 6px 14px; }
+</style>
+</head>
+<body>
+<p class="meta">${escHtml(metadata.site_title)}</p>
+${bodyContent}
+</body>
+</html>`;
+}
+
+function renderHome(): string {
+  const queryListHtml = queryExamples.map((q) => `<li><code>${escHtml(q)}</code></li>`).join("\n");
+
+  return renderPage(metadata.home_title, `
+<h1>${escHtml(metadata.home_title)}</h1>
+<p>${escHtml(metadata.home_description)}</p>
+<form action="/search" method="get">
+<input type="text" name="q" placeholder="${escHtml(metadata.search_placeholder)}">
+<button type="submit">Search</button>
+</form>
+<p>Use the search page, inspect result cards, and open result links to review individual pages.</p>
+<h2>Suggested queries</h2>
+<ul>
+${queryListHtml}
+</ul>`);
+}
+
+function renderSearch(query: string, results: Array<Document & { rank_score?: number }>, sid: string): string {
+  const resultCards = results.map((doc, idx) => {
+    const rank = idx + 1;
+    const pills = [
+      `<span class="pill">${escHtml(doc.status)}</span>`,
+      `<span class="pill">${escHtml(doc.reliability)}</span>`,
+      `<span class="pill">${escHtml(doc.kind)}</span>`,
+      `<span class="pill">${escHtml(doc.updated_at)}</span>`,
+    ].join(" ");
+
+    return `<div class="doc-card">
+<p class="meta">Result ${rank}</p>
+<h2 class="result-title">${escHtml(doc.title)}</h2>
+${pills}
+<p class="summary">${escHtml(doc.summary)}</p>
+<a class="open-link" href="/docs/${encodeURIComponent(doc.slug)}?sid=${encodeURIComponent(sid)}&rank=${rank}">Open result</a>
+</div>`;
+  }).join("\n");
+
+  return renderPage(`Search: ${query}`, `
+<h1>Search Results</h1>
+<p class="meta">Query: <code>${escHtml(query)}</code></p>
+<p class="meta">Search session: <code>${escHtml(sid)}</code></p>
+<form action="/search" method="get">
+<input type="text" name="q" value="${escHtml(query)}">
+<button type="submit">Search</button>
+</form>
+${results.length > 0 ? resultCards : "<p>No documents matched this query.</p>"}
+<p><a href="/">Back to home</a></p>`);
+}
+
+function renderDoc(doc: Document, sid: string, rank: string): string {
+  const pills = [
+    `source: ${escHtml(doc.id)}`,
+    `status: ${escHtml(doc.status)}`,
+    `reliability: ${escHtml(doc.reliability)}`,
+    `kind: ${escHtml(doc.kind)}`,
+    `updated: ${escHtml(doc.updated_at)}`,
+    `owner: ${escHtml(doc.owner)}`,
+  ].map((p) => `<span class="pill">${p}</span>`).join("\n");
+
+  let sessionRow = "";
+  if (sid) {
+    sessionRow = `<p class="meta">search session: ${escHtml(sid)}</p>
+<p class="meta">rank: ${escHtml(rank || "?")}</p>`;
+  }
+
+  // Split body on double newlines into paragraphs
+  const paragraphs = doc.body.split("\n\n").map((p) => `<p>${escHtml(p.trim())}</p>`).join("\n");
+
+  // Split tags on pipe
+  const tagPills = doc.tags.split("|").map((t) => t.trim()).filter((t) => t).map((t) => `<span class="pill">${escHtml(t)}</span>`).join(" ");
+
+  return renderPage(doc.title, `
+<h1 class="doc-title">${escHtml(doc.title)}</h1>
+${pills}
+${sessionRow}
+<p class="summary"><strong>Summary:</strong> ${escHtml(doc.summary)}</p>
+<div class="doc-body">
+${paragraphs}
+</div>
+<p class="meta">Tags: ${tagPills}</p>
+<p><a href="/">Back to home</a></p>`);
+}
+
+function renderNotFound(): string {
+  return renderPage("Not Found", "<h1>Not Found</h1>");
+}
+
+// ---------------------------------------------------------------------------
+// Route registration
+// ---------------------------------------------------------------------------
+
+function registerRoutes(app: Hono<AppEnv>): void {
+  // Sentinel route for binary isolation verification (AC-1.1).
+  app.get("/__mock_sentinel__/doc-search", (c) =>
+    c.json({ mock: "doc-search", sentinel: true }),
+  );
+
+  // GET / — Home page
+  app.get("/", (c) => {
+    writeEvent({ event: "home", path: c.req.path });
+    return c.html(renderHome());
+  });
+
+  // GET /health — Health check (matches Python {"ok": true})
+  app.get("/health", (c) => {
+    return c.json({ ok: true });
+  });
+
+  // GET /search — Search results page
+  app.get("/search", (c) => {
+    const query = c.req.query("q") ?? "";
+    const path = c.req.path + (c.req.url.includes("?") ? "?" + c.req.url.split("?")[1] : "");
+
+    // Tokenize and search
+    let results: Array<Document & { rank_score?: number }> = [];
+    const tokens = tokenize(query);
+
+    if (tokens.length > 0) {
+      const matchQuery = buildMatchQuery(tokens);
+      const stmt = db.query(`
+        SELECT d.*, bm25(documents_fts, 10.0, 6.0, 2.0, 3.0) AS rank_score
+        FROM documents_fts
+        JOIN documents d ON d.rowid = documents_fts.rowid
+        WHERE documents_fts MATCH ?
+        ORDER BY rank_score ASC,
+                 CASE d.reliability WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
+                 d.title ASC
+        LIMIT 8
+      `);
+      results = stmt.all(matchQuery) as Array<Document & { rank_score?: number }>;
+    } else {
+      // Empty query: return top documents sorted by reliability then title
+      const stmt = db.query(`
+        SELECT *
+        FROM documents
+        ORDER BY CASE reliability WHEN 'high' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
+                 title ASC
+        LIMIT 8
+      `);
+      results = stmt.all() as Array<Document & { rank_score?: number }>;
+    }
+
+    // Generate session ID
+    searchCounter++;
+    const sid = `search_${String(searchCounter).padStart(4, "0")}`;
+
+    // Build search results for JSONL log
+    const logResults: SearchResult[] = results.map((doc, idx) => ({
+      rank: idx + 1,
+      doc_id: doc.id,
+      slug: doc.slug,
+    }));
+
+    // Write search event
+    writeEvent({
+      event: "search",
+      sid,
+      path,
+      query,
+      results: logResults,
+    });
+
+    return c.html(renderSearch(query, results, sid));
+  });
+
+  // GET /docs/:slug — Document page
+  app.get("/docs/:slug", (c) => {
+    const slug = c.req.param("slug");
+    const sid = c.req.query("sid") ?? "";
+    const rank = c.req.query("rank") ?? "";
+    const path = c.req.path + (c.req.url.includes("?") ? "?" + c.req.url.split("?")[1] : "");
+
+    // Look up document by slug
+    const stmt = db.query("SELECT * FROM documents WHERE slug = ?");
+    const doc = stmt.get(slug) as Document | undefined;
+
+    if (!doc) {
+      return c.html(renderNotFound(), 404);
+    }
+
+    // Write click event (only if sid is non-empty)
+    if (sid) {
+      writeEvent({
+        event: "click",
+        sid,
+        rank,
+        path,
+        doc_id: doc.id,
+        slug: doc.slug,
+      });
+    }
+
+    // Always write page event for successful document views
+    writeEvent({
+      event: "page",
+      sid,
+      rank,
+      path,
+      doc_id: doc.id,
+      slug: doc.slug,
+    });
+
+    return c.html(renderDoc(doc, sid, rank));
+  });
+}
+
+// ---------------------------------------------------------------------------
+// App bootstrap
+// ---------------------------------------------------------------------------
+
+const app = createMockApp({
+  name: "doc-search",
+  port: 8123,
+  healthResponse: { ok: true },
+  routes: registerRoutes,
+});
+
+startServer(app, {
+  seed() {
+    initAccessLog();
+    initDatabase();
+    console.log(`mock-doc-search: DB=${DB_PATH}, LOG=${LOG_PATH}`);
+  },
+});

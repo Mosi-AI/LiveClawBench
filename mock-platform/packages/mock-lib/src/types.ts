@@ -40,6 +40,6 @@ export interface MockApp {
 export interface CreateMockAppOptions extends MockConfig {
   /** Custom route registration callback. Receives the Hono app to add routes. */
   routes?: (app: Hono<AppEnv>) => void;
-  /** Health check response body. Defaults to { ok: true } */
+  /** Health check response body. Defaults to { status: "healthy", service: config.name } */
   healthResponse?: Record<string, unknown>;
 }

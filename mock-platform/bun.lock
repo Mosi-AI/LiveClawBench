@@ -17,8 +17,8 @@
         "mock-lib": "workspace:*",
       },
     },
-    "mocks/browser-portal": {
-      "name": "@mock/browser-portal",
+    "mocks/doc-search": {
+      "name": "@mock/doc-search",
       "version": "0.1.0",
       "dependencies": {
         "hono": "^4.8.0",
@@ -60,7 +60,7 @@
   "packages": {
     "@mock/airline": ["@mock/airline@workspace:mocks/airline"],
 
-    "@mock/browser-portal": ["@mock/browser-portal@workspace:mocks/browser-portal"],
+    "@mock/doc-search": ["@mock/doc-search@workspace:mocks/doc-search"],
 
     "@mock/email": ["@mock/email@workspace:mocks/email"],
 

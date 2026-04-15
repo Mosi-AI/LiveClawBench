@@ -1,46 +1,53 @@
 /**
- * Render module — TSX template rendering via Hono JSX.
+ * Render module — static asset serving for Hono mock services.
  *
- * API surface defined here for Plan 1. Actual template implementation
- * and static asset serving will be added in Plan 2+ migration tasks.
- *
- * Plan 2 will use this module to render HTML templates for:
- * - airline-app frontend
- * - email-app frontend
- * - doc-search pages
+ * Provides registerStaticAssets() for serving static files (CSS, JS, data)
+ * from a filesystem directory. Each mock app imports its TSX components
+ * directly — no template registry or string-based template lookup needed.
  */
 
-import type { Context } from "hono";
+import type { Hono } from "hono";
+import type { AppEnv } from "../types";
+import { serveStatic } from "hono/bun";
+
+/**
+ * Options for registering static asset serving on a Hono app.
+ */
+export interface StaticAssetsOptions {
+  /** Absolute path to the directory containing static assets */
+  dir: string;
+  /**
+   * URL path prefix where assets are served (e.g., "/static").
+   * If omitted, assets are served from the root.
+   */
+  prefix?: string;
+}
 
 /**
  * Register static asset serving middleware on a Hono app.
- * Stub — Plan 2 implements the actual static file serving.
+ *
+ * Uses Hono's serveStatic adapter for Bun to serve files from disk.
+ * The middleware only responds to requests that match an existing file;
+ * all other requests fall through to route handlers.
+ *
+ * @example
+ * ```ts
+ * // Serve files from /opt/mock/static/shop/ at /static/*
+ * registerStaticAssets(app, { dir: "/opt/mock/static/shop", prefix: "/static" });
+ * ```
  */
-export function registerStaticAssets(_options?: {
-  /** Directory containing static assets */
-  dir?: string;
-  /** URL prefix for static assets */
-  prefix?: string;
-}): void {
-  throw new Error("registerStaticAssets not yet implemented (Plan 2)");
-}
+export function registerStaticAssets(
+  app: Hono<AppEnv>,
+  options: StaticAssetsOptions,
+): void {
+  const { dir, prefix } = options;
 
-/**
- * Render a TSX template to an HTML response.
- * Stub — Plan 2 implements actual TSX rendering.
- */
-export function renderTemplate(
-  _c: Context,
-  _template: string,
-  _data?: Record<string, unknown>,
-): Response {
-  throw new Error("renderTemplate not yet implemented (Plan 2)");
-}
-
-/**
- * Template data type for render functions.
- * Each mock defines its own template data shape.
- */
-export interface TemplateData {
-  [key: string]: unknown;
+  app.use(
+    prefix ? `${prefix}/*` : "/*",
+    serveStatic({
+      root: dir,
+      rewriteRequestPath: (path: string) =>
+        prefix ? path.slice(prefix.length) : path,
+    }),
+  );
 }
