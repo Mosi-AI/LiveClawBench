@@ -33,24 +33,39 @@ Shop app has 5 Jinja2 templates, all self-contained (no `{% extends %}` or `{% i
 
 ### Rendering Approach
 
-Rather than using JSX/TSX components, the shop mock uses **template literal functions** that
-return HTML strings. This avoids the need for a render module or JSX compilation step while
-maintaining parity with the original Jinja templates.
+The shop mock uses **Hono TSX Function Components** (`FC` from `hono/jsx`) for all 5 pages.
+The entry point is `mocks/shop/src/index.tsx` (compiled via `bun build --compile` with JSX support).
 
-Each template function:
-1. Takes typed data parameters
-2. Returns a full HTML document string via `renderPage(title, bodyContent)`
-3. Includes inline CSS and JavaScript matching the original templates
-4. Uses `escHtml()` for all dynamic content
+**Layout wrapper**: A shared `Layout` FC wraps every page with `<html>`, `<head>`, `<body>` scaffolding.
+It accepts `scripts` and `styles` props for per-page inline CSS/JS, rendered via `raw()` from `hono/html`
+to prevent `escapeHtml()` from encoding script/style content.
+
+**Page components** (all in `index.tsx`):
+
+| Component | Route | Key Features |
+|-----------|-------|-------------|
+| `HomePage` | GET `/` | Search bar, category grid, Unicode emoji icons |
+| `ResultsPage` | GET `/search?q=` | Product cards with relevance scores, `addToCart()` |
+| `CartPage` | GET `/cart` | Quantity controls, totals, checkout button |
+| `ProfilePage` | GET `/profile` | Editable fields, payment history, Unicode emoji icons |
+| `OrdersPage` | GET `/orders` | Status tracking, return/confirm action buttons |
+
+Each component:
+1. Receives typed data as props
+2. Uses Hono's `html` tagged template for the outer HTML shell (DOCTYPE, head, body)
+3. Embeds TSX markup inside the template for dynamic content sections
+4. Includes inline CSS as string constants rendered via `${raw(styles)}`
+5. Includes inline JS as string constants rendered via `${raw(scripts)}`
+6. Uses Unicode emoji characters directly in JSX text (safe rendering without HTML injection)
 
 ## Search Algorithm Mapping
 
-The Python `calculate_relevance_score()` (80 lines) was ported to TypeScript as `calculateRelevanceScore()`:
+The Python `calculate_relevance_score()` in `app.py` was ported to TypeScript as `calculateRelevanceScore()` in `mocks/shop/src/index.tsx`:
 
 | Scoring Factor | Python | TypeScript |
 |---------------|--------|------------|
 | Exact title match | 100 | 100 |
-| Exact word + position | 20 + (10 - pos) * 2 | 20 + (10 - pos) * 2 |
+| Exact word + position | 20 + max(0, 10 - pos) | 20 + max(0, 10 - pos) |
 | Coverage | 30 * (matched/total) | 30 * (matched/total) |
 | Partial/substring | 10/match | 10/match |
 | Word frequency | min(freq * 5, 20) | min(freq * 5, 20) |

@@ -1,5 +1,11 @@
 # Shop Search: Golden-Query Parity Evidence
 
+## Dataset Clarification
+
+The product data file `sample_products.json` contains **91 products** across 1366 lines.
+(AC-5.1's "1366 products" refers to the line count of the JSON file, not the product count.
+Both Python and TypeScript implementations operate on the same 91-product array.)
+
 ## Method
 
 Ran the **identical** `calculateRelevanceScore()` algorithm in both Python (FastAPI original)
