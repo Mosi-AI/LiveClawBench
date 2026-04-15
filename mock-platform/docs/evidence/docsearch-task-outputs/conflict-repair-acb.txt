@@ -1,26 +1,37 @@
-# Task: conflict-repair-acb
-# Date: 2026-04-15T14:05:00Z
+# Task: conflict-repair-acb (doc-search, Bun mock)
+# Date: 2026-04-15T15:05:00Z
 # Mock: Bun doc-search on :19999
 # SQL seed: tasks/conflict-repair-acb/environment/browser_mock_sidecar/documents.sql
+# Verifier: llm_judge.py (deterministic_checks.py + LLM judge API)
 #
-# Test: Simulated agent browsing all 3 validated documents
-# - Home page loaded
-# - Searched "speculative decoding" (5 results returned)
-# - Clicked doc: speculative-decoding-exact-not-cache-only (rank 3)
-# - Clicked doc: speculative-decoding-speedup-condition (rank 4)
-# - Clicked doc: self-speculative-decoding-update (rank 5)
+# Deterministic pipeline results:
+#   result_contract_valid: 0.0 (empty result.json — agent artifact)
+#   repair_accuracy: 0.0 (empty result.json — agent artifact)
+#   workspace_update: 0.0 (no workspace modifications — agent artifact)
+#   browser_trace: 1.0 (search + all 3 validated docs visited)
 #
-# deterministic_checks.py — browser_trace_score:
-
-search_score=1.0
-visited_validated=3/3: {browser:spec_perf_002, browser:self_spec_003, browser:spec_exact_001}
-visit_score=1.0
-browser_trace=1.0
-
-# JSONL access log (7 events):
-# home:1 search:1 click:3 page:3
-# All validated doc IDs visited: PASS
-
-# Note: Full task score also depends on structural_checks.py (result_contract,
-# workspace_update) and repair_accuracy which requires agent output. The
-# browser_trace component (20% weight) scores 1.0 with the Bun mock.
+# LLM-judged dimensions (require JUDGE_BASE_URL + JUDGE_API_KEY):
+#   repair_reasoning: weight 0.25
+#   memory_correction: weight 0.30
+#   Total LLM weight: 0.55
+#
+# Deterministic reward (LLM portion would be added): 0.1
+# Full reward requires production Docker environment with LLM API access.
+#
+# Rubric:
+#   result_contract_valid: 0.05
+#   repair_accuracy: 0.25
+#   browser_trace: 0.10
+#   workspace_update: 0.05
+#   repair_reasoning: 0.25
+#   memory_correction: 0.30
+#
+# JSONL events (10 total):
+#   home: 1, search: 1, click: 4, page: 4
+#   Validated docs visited: spec_exact_001, spec_perf_002, self_spec_003
+#
+# Reproduction:
+#   BROWSER_MOCK_DATA_DIR=tasks/conflict-repair-acb/environment/browser_mock_sidecar \
+#     bun run mocks/doc-search/src/index.ts --port 19999 \
+#     --database /tmp/doc.db --log /tmp/access.jsonl
+#   # Then simulate browsing and run deterministic_checks.py

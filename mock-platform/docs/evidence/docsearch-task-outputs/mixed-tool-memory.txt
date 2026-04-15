@@ -1,28 +1,41 @@
-# Task: mixed-tool-memory
-# Date: 2026-04-15T14:08:00Z
+# Task: mixed-tool-memory (doc-search, Bun mock)
+# Date: 2026-04-15T15:05:00Z
 # Mock: Bun doc-search on :19999
 # SQL seed: tasks/mixed-tool-memory/environment/browser_mock_sidecar/documents.sql
+# Verifier: llm_judge.py (deterministic_checks.py + LLM judge API)
 #
-# Test: Simulated agent browsing all 4 required + 2 low-confidence documents
-# - Home page loaded
-# - Searched "speculative decoding" (6 results returned)
-# - Clicked all 4 required evidence docs + 2 low-confidence docs
+# Deterministic pipeline results:
+#   result_contract_valid: 0.0 (empty result.json — agent artifact)
+#   workspace_update: 0.0 (no workspace modifications — agent artifact)
+#   database_integrity: 0.0 (no agent DB — agent artifact)
+#   query_accuracy: 0.0 (no agent DB — agent artifact)
+#   browser_trace: 1.0 (search + all 4 evidence docs + 2 low-conf docs visited)
 #
-# deterministic_checks.py — browser_trace_score:
-
-search_score=1.0
-required_evidence_ids: [browser:spec_exact_001, browser:self_spec_002, browser:spec_speed_003, browser:uad_004]
-required_low_confidence_ids: [browser:spec_noise_001, browser:spec_noise_002]
-required_visited=4/4: {browser:spec_exact_001, browser:self_spec_002, browser:spec_speed_003, browser:uad_004}
-low_conf_visited=2/2: {browser:spec_noise_001, browser:spec_noise_002}
-required_visit_score=1.0
-low_conf_bonus=0.2
-browser_trace=1.0
-
-# JSONL access log (15 events):
-# home:1 search:1 click:6 page:6
-# All required evidence IDs visited: PASS
-# All low-confidence IDs visited: PASS (bonus +0.2)
-
-# Note: Full task score also depends on integration_reasoning and note_quality
-# (LLM judge components). The browser_trace component scores 1.0 with the Bun mock.
+# LLM-judged dimensions (require JUDGE_BASE_URL + JUDGE_API_KEY):
+#   integration_reasoning: weight 0.15
+#   note_quality: weight 0.20
+#   Total LLM weight: 0.35
+#
+# Deterministic reward (LLM portion would be added): 0.1
+# Full reward requires production Docker environment with LLM API access.
+#
+# Rubric:
+#   result_contract_valid: 0.05
+#   database_integrity: 0.20
+#   query_accuracy: 0.20
+#   browser_trace: 0.10
+#   workspace_update: 0.10
+#   integration_reasoning: 0.15
+#   note_quality: 0.20
+#
+# JSONL events (14 total):
+#   home: 1, search: 1, click: 6, page: 6
+#   Required evidence visited: spec_exact_001, self_spec_002, spec_speed_003, uad_004
+#   Low-confidence docs visited: spec_noise_001, spec_noise_002
+#   low_conf_bonus: 0.2
+#
+# Reproduction:
+#   BROWSER_MOCK_DATA_DIR=tasks/mixed-tool-memory/environment/browser_mock_sidecar \
+#     bun run mocks/doc-search/src/index.ts --port 19999 \
+#     --database /tmp/doc.db --log /tmp/access.jsonl
+#   # Then simulate browsing and run deterministic_checks.py
