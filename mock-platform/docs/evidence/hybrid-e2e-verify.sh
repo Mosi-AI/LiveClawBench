@@ -30,7 +30,9 @@ SHOP_STATIC_DIR="/tmp/hybrid-e2e-static"
 SHOP_SRC="mocks/shop/src/index.tsx"
 ORIG_PRODUCTS_PATH="/opt/mock/static/shop/products.json"
 LOCAL_PRODUCTS_PATH="/tmp/hybrid-e2e-static/shop/products.json"
-PYTHON_VENV="$REPO_ROOT/.venv/bin/python3"
+# Use Python with Flask installed (use system Python since venv not available)
+# Install Flask if not present: pip3 install --break-system-packages Flask==3.0.0 Flask-CORS==4.0.0 Flask-SQLAlchemy==3.1.1 Flask-JWT-Extended==4.6.0
+PYTHON_CMD="python3"
 SCRIPT_DIR="$(pwd)"
 
 mkdir -p "$OUTPUT_DIR"
@@ -68,8 +70,8 @@ run_task() {
 
   # Start Python email in subshell to preserve cwd
   (cd "$TASKS_ROOT/$task/environment/email-app/backend" && \
-   $PYTHON_VENV scripts/inject_data.py > /dev/null 2>&1 && \
-   $PYTHON_VENV app.py > "$OUTPUT_DIR/email-server.log" 2>&1 &)
+   $PYTHON_CMD scripts/inject_data.py > /dev/null 2>&1 && \
+   $PYTHON_CMD app.py > "$OUTPUT_DIR/email-server.log" 2>&1 &)
   sleep 2
 
   # Verify email auth
