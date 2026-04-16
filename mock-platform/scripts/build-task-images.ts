@@ -311,10 +311,10 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
   } else if (binaries.length > 0) {
     // Fallback: tasks with binaries but no startup_extra may still need legacy
     // services (e.g. email-writing runs Python email, flight-booking runs airline app).
-    // Source the task's startup.sh if it exists at runtime.
-    lines.push("# Legacy app fallback — source task startup.sh if present");
+    // Run via bash since startup.sh files use Bash-specific features (set -euo pipefail).
+    lines.push("# Legacy app fallback — run task startup.sh via bash if present");
     lines.push("if [ -f /workspace/environment/startup.sh ]; then");
-    lines.push("  . /workspace/environment/startup.sh");
+    lines.push("  bash /workspace/environment/startup.sh");
     lines.push("fi");
     lines.push("");
   }
