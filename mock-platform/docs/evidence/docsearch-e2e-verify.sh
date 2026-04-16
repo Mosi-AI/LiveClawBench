@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # Doc-search e2e verification — runs Bun doc-search mock, simulates agent
-# browsing behavior, then runs the FULL deterministic_checks.py pipeline
-# (structural_scores + browser_trace_score + all other deterministic checks).
+# browsing behavior, then runs the deterministic_checks.py pipeline.
 #
-# Additionally runs the deterministic portion of llm_judge.py
-# (steps 1-5: load key, compute deterministic scores, build LLM prompt).
-# The LLM judge API call (step 6) requires JUDGE_BASE_URL + JUDGE_API_KEY
-# which are not available in the development environment — this is by design;
-# the scoring weights are configured in rubric.json for production runs.
+# Two modes:
+#   Mode A (default): Deterministic preview only.
+#     Prints "DETERMINISTIC PREVIEW ONLY — not authoritative final reward" warning.
+#     Runs structural_scores + browser_trace_score without LLM judge.
+#   Mode B (JUDGE_BASE_URL + JUDGE_API_KEY set): Full verification.
+#     Runs the complete llm_judge.py pipeline including LLM judge API call.
+#     Output IS the authoritative reward.
 #
 # Usage (from mock-platform/):
 #   bash docs/evidence/docsearch-e2e-verify.sh
-#
-# Output: docs/evidence/docsearch-task-outputs/<task>.txt
+#   JUDGE_BASE_URL=<url> JUDGE_API_KEY=<key> bash docs/evidence/docsearch-e2e-verify.sh
 
 set -euo pipefail
 
@@ -24,6 +24,24 @@ DOCSEARCH_PORT=19999
 SCRIPT_DIR="$(pwd)"
 
 mkdir -p "$OUTPUT_DIR"
+
+# Detect mode
+if [ -n "${JUDGE_BASE_URL:-}" ] && [ -n "${JUDGE_API_KEY:-}" ]; then
+  MODE="full"
+  echo "========================================="
+  echo "Doc-Search E2E Verification — FULL MODE"
+  echo "LLM judge API: $JUDGE_BASE_URL"
+  echo "========================================="
+else
+  MODE="preview"
+  echo "========================================="
+  echo "Doc-Search E2E Verification — DETERMINISTIC PREVIEW ONLY"
+  echo "WARNING: This is NOT the authoritative final reward."
+  echo "The deterministic preview may differ from the full llm_judge.py run."
+  echo "For authoritative results, run with JUDGE_BASE_URL + JUDGE_API_KEY."
+  echo "See reward.json files in this directory for authoritative outputs."
+  echo "========================================="
+fi
 
 cleanup() {
   if [ -n "${DOCSEARCH_PID:-}" ]; then
@@ -47,13 +65,14 @@ run_task() {
   rm -rf "$test_dir"
   mkdir -p "$test_dir"
 
-  # Start Bun doc-search mock
+  # Start Bun doc-search mock with JSONL logging
   BROWSER_MOCK_DATA_DIR="$sql_dir" \
+  BROWSER_MOCK_ACCESS_LOG="$test_dir/access.jsonl" \
     bun run mocks/doc-search/src/index.ts \
-    --port "$DOCSEARCH_PORT" \
-    --database "$test_dir/browser_mock_documents.sqlite" \
-    --log "$test_dir/access.jsonl" \
-    > "$OUTPUT_DIR/docsearch-server.log" 2>&1 &
+      --port "$DOCSEARCH_PORT" \
+      --database "$test_dir/browser_mock_documents.sqlite" \
+      --log "$test_dir/access.jsonl" \
+      > "$OUTPUT_DIR/docsearch-server.log" 2>&1 &
   DOCSEARCH_PID=$!
   sleep 3
 
@@ -63,18 +82,15 @@ run_task() {
   echo "Health: $health"
 
   # Simulate agent browsing
-  # Both tasks search for "speculative decoding" but have different document sets
   echo "Simulating agent browsing..."
   curl -sf --max-time 5 "http://localhost:$DOCSEARCH_PORT/" > /dev/null
   curl -sf --max-time 5 "http://localhost:$DOCSEARCH_PORT/search?q=speculative+decoding" > /dev/null
 
   if [ "$task" = "conflict-repair-acb" ]; then
-    # Visit validated docs: spec_exact_001, spec_perf_002, self_spec_003
     curl -sf --max-time 5 "http://localhost:$DOCSEARCH_PORT/docs/speculative-decoding-exact-not-cache-only?sid=search_0001&rank=1" > /dev/null
     curl -sf --max-time 5 "http://localhost:$DOCSEARCH_PORT/docs/speculative-decoding-speedup-condition?sid=search_0001&rank=2" > /dev/null
     curl -sf --max-time 5 "http://localhost:$DOCSEARCH_PORT/docs/self-speculative-decoding-update?sid=search_0001&rank=3" > /dev/null
   else
-    # mixed-tool-memory: visit 4 required evidence + 2 low-confidence
     curl -sf --max-time 5 "http://localhost:$DOCSEARCH_PORT/docs/speculative-decoding-exactness-note?sid=search_0001&rank=1" > /dev/null
     curl -sf --max-time 5 "http://localhost:$DOCSEARCH_PORT/docs/self-speculative-decoding-definition?sid=search_0001&rank=2" > /dev/null
     curl -sf --max-time 5 "http://localhost:$DOCSEARCH_PORT/docs/speculative-decoding-speedup-rule?sid=search_0001&rank=3" > /dev/null
@@ -100,9 +116,15 @@ run_task() {
   # Create a result.json (simulates agent output)
   echo '{}' > "$output_dir/result.json"
 
-  # Run full deterministic_checks.py
+  # Run deterministic_checks.py
   echo ""
-  echo "=== Running deterministic_checks.py (full pipeline) ==="
+  if [ "$MODE" = "preview" ]; then
+    echo "=== Running deterministic_checks.py (PREVIEW MODE) ==="
+    echo "DETERMINISTIC PREVIEW ONLY — not authoritative final reward"
+  else
+    echo "=== Running deterministic_checks.py (FULL MODE) ==="
+  fi
+
   {
     echo "# Task: $task"
     echo "# Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -110,6 +132,11 @@ run_task() {
     echo "# SQL seed: $sql_dir/documents.sql"
     echo "# DB: $test_dir/browser_mock_documents.sqlite"
     echo "# JSONL log: $test_dir/access.jsonl"
+    if [ "$MODE" = "preview" ]; then
+      echo "# Mode: DETERMINISTIC PREVIEW ONLY"
+    else
+      echo "# Mode: Full (deterministic + LLM judge)"
+    fi
     echo ""
 
     python3 -c "
@@ -121,6 +148,9 @@ import os
 os.environ['HOME'] = '$test_dir/fake_home'
 os.makedirs('$test_dir/fake_home/.openclaw/output', exist_ok=True)
 os.makedirs('$test_dir/fake_home/.openclaw/workspace', exist_ok=True)
+
+# Set BROWSER_MOCK_ACCESS_LOG so resolve_browser_log() finds the JSONL
+os.environ['BROWSER_MOCK_ACCESS_LOG'] = '$test_dir/access.jsonl'
 
 # Write result.json to expected location
 with open('$test_dir/fake_home/.openclaw/output/result.json', 'w') as f:
@@ -136,7 +166,10 @@ from deterministic_checks import (
 rubric = load_json(__import__('pathlib').Path('$TASKS_ROOT/$task/tests/rubric.json'))
 
 key = load_json(KEY)
-events = load_browser_events(__import__('pathlib').Path('$test_dir/access.jsonl'))
+
+# Use resolve_browser_log() to find the JSONL, matching production verifier logic
+browser_log_path = resolve_browser_log()
+events = load_browser_events(browser_log_path)
 
 # Run all deterministic scores
 scores = structural_scores(load_json(OUT / 'result.json'))
@@ -164,9 +197,9 @@ det_reward = weighted_sum(scores, rubric)
 print(f'Deterministic scores:')
 for k, v in scores.items():
     print(f'  {k}: {v}')
-print(f'Deterministic reward (LLM judge portion would be added): {det_reward}')
+print(f'Deterministic reward: {det_reward}')
 print(f'Browser trace events loaded: {len(events)}')
-print(f'Rubric weights: {rubric}')
+print(f'Browser log resolved via: {browser_log_path}')
 
 # Identify LLM-judged dimensions
 llm_dims = {k: v for k, v in rubric.items() if k not in scores}
@@ -176,14 +209,23 @@ if llm_dims:
 "
   } 2>&1 | tee "$output_file"
 
+  # Full mode: run llm_judge.py end-to-end
+  if [ "$MODE" = "full" ]; then
+    echo ""
+    echo "=== Running full llm_judge.py ==="
+    (
+      export HOME="$test_dir/fake_home"
+      export BROWSER_MOCK_ACCESS_LOG="$test_dir/access.jsonl"
+      cd "$TASKS_ROOT/$task/tests"
+      python3 llm_judge.py 2>&1 || echo "llm_judge.py failed (check logs above)"
+    )
+    echo "Full verifier output saved to $test_dir/fake_home/.openclaw/output/"
+  fi
+
   echo ""
   echo "Output saved to $output_file"
 }
 
-echo "========================================="
-echo "Doc-Search E2E Verification — Bun Mock"
-echo "Full deterministic pipeline + LLM judge wiring"
-echo "========================================="
 echo ""
 
 run_task "conflict-repair-acb"
@@ -192,5 +234,10 @@ run_task "mixed-tool-memory"
 
 echo ""
 echo "========================================="
-echo "Doc-search verification complete."
+if [ "$MODE" = "preview" ]; then
+  echo "Doc-search verification complete (DETERMINISTIC PREVIEW ONLY)."
+  echo "For authoritative results, see reward.json files in this directory."
+else
+  echo "Doc-search verification complete (FULL MODE — authoritative)."
+fi
 echo "========================================="

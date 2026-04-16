@@ -14,6 +14,12 @@ import type { AppEnv } from "mock-lib";
 import { Hono } from "hono";
 import { html, raw } from "hono/html";
 import type { FC, Child } from "hono/jsx";
+import {
+  calculateRelevanceScore,
+  searchProducts,
+  filterAndSortProducts,
+  type FilterOptions,
+} from "./search-algorithm.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -136,156 +142,6 @@ function loadOrders(): Order[] {
 
 function saveOrders(orders: Order[]): void {
   store.write("mosi_shop_orders", orders);
-}
-
-// ---------------------------------------------------------------------------
-// Search algorithm — faithful port of Python calculate_relevance_score()
-// ---------------------------------------------------------------------------
-
-function calculateRelevanceScore(product: Product, query: string): number {
-  if (!query || !query.trim()) return 0.0;
-
-  const queryLower = query.toLowerCase().trim();
-  const title = (product.title ?? "").toLowerCase();
-  if (!title) return 0.0;
-
-  let score = 0.0;
-
-  // Exact title match
-  if (queryLower === title) {
-    score += 100.0;
-  }
-
-  // Tokenize query and title using \w+ (matches [a-zA-Z0-9_])
-  const queryWords = queryLower.match(/\w+/g) ?? [];
-  const titleWords = title.match(/\w+/g) ?? [];
-
-  if (!queryWords.length || !titleWords.length) return score;
-
-  // Count word frequencies
-  const titleWordCount = new Map<string, number>();
-  for (const w of titleWords) {
-    titleWordCount.set(w, (titleWordCount.get(w) ?? 0) + 1);
-  }
-
-  // Exact word matches
-  let matchedWords = 0;
-  for (const qWord of queryWords) {
-    if ((titleWords as readonly string[]).includes(qWord)) {
-      matchedWords++;
-      const positions: number[] = [];
-      for (let i = 0; i < titleWords.length; i++) {
-        if (titleWords[i] === qWord) positions.push(i);
-      }
-      if (positions.length > 0) {
-        const positionBonus = Math.max(0, 10 - positions[0]);
-        score += 20 + positionBonus;
-      }
-    }
-  }
-
-  // Partial word matches (substring, 3+ chars only)
-  for (const qWord of queryWords) {
-    if (qWord.length >= 3) {
-      for (const tWord of titleWords) {
-        if (qWord !== tWord && tWord.includes(qWord)) {
-          score += 10;
-          break;
-        }
-      }
-    }
-  }
-
-  // Coverage: percentage of query words found
-  const coverage = matchedWords / queryWords.length;
-  score += coverage * 30;
-
-  // Word frequency boost
-  for (const qWord of queryWords) {
-    const freq = titleWordCount.get(qWord) ?? 0;
-    if (freq > 0) {
-      score += Math.min(freq * 5, 20);
-    }
-  }
-
-  // Product quality boosts
-  score += (product.rating ?? 0) * 2;
-  if (product.best_seller) score += 15;
-  if (product.overall_pick) score += 15;
-
-  return score;
-}
-
-function searchProducts(
-  products: Product[],
-  query: string,
-  minRelevance = 10.0,
-): [Product, number][] {
-  if (!query || !query.trim()) {
-    return products.map((p) => [p, 0.0] as [Product, number]);
-  }
-
-  const scored: [Product, number][] = [];
-  for (const product of products) {
-    const relevance = calculateRelevanceScore(product, query);
-    if (relevance >= minRelevance) {
-      scored.push([product, relevance]);
-    }
-  }
-  scored.sort((a, b) => b[1] - a[1]);
-  return scored;
-}
-
-interface FilterOptions {
-  query?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  minRating?: number;
-  sortBy?: string;
-  useSearch?: boolean;
-}
-
-function filterAndSortProducts(sourceProducts: Product[], opts: FilterOptions): Product[] {
-  const { query, minPrice, maxPrice, minRating, sortBy = "similarity", useSearch = true } = opts;
-
-  let products = sourceProducts;
-  let productsWithScores = new Map<string, number>();
-
-  // Step 1: Apply search
-  if (query && query.trim() && useSearch) {
-    let scored = searchProducts(products, query, 10.0);
-    productsWithScores = new Map(scored.map(([p, s]) => [p.id, s]));
-    products = scored.map(([p]) => p);
-
-    // If no results, retry with lower threshold
-    if (!products.length) {
-      scored = searchProducts(allProducts, query, 0.0);
-      productsWithScores = new Map(scored.map(([p, s]) => [p.id, s]));
-      products = scored.map(([p]) => p);
-    }
-  }
-
-  // Step 2: Apply filters
-  if (minPrice != null) products = products.filter((p) => (p.price ?? 0) >= minPrice!);
-  if (maxPrice != null) products = products.filter((p) => (p.price ?? 0) <= maxPrice!);
-  if (minRating != null) products = products.filter((p) => (p.rating ?? 0) >= minRating!);
-
-  // Step 3: Sort (mutate in place)
-  if (sortBy === "similarity") {
-    if (productsWithScores.size > 0) {
-      products.sort((a, b) => (productsWithScores.get(b.id) ?? 0) - (productsWithScores.get(a.id) ?? 0));
-    } else {
-      products.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-    }
-  } else if (sortBy === "price_asc") {
-    products.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
-  } else if (sortBy === "price_desc") {
-    products.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
-  } else if (sortBy === "rating") {
-    products.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-  }
-
-  return products;
 }
 
 // ---------------------------------------------------------------------------

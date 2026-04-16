@@ -20,7 +20,9 @@ Both Python and TypeScript implementations operate on the same 91-product array.
 - **TypeScript side**: Directly imports the REAL `calculateRelevanceScore()`,
   `searchProducts()`, and `filterAndSortProducts()` from
   `mocks/shop/src/search-algorithm.ts` (the single source of truth for the Bun search
-  algorithm). No HTTP server startup, no source patching. Per-product scores come from the
+  algorithm). This module is also imported by `index.tsx` (the production shop service),
+  making `search-algorithm.ts` the shared codepath for both the test and production.
+  No HTTP server startup, no source patching. Per-product scores come from the
   real function. The filter flow calls `filterAndSortProducts()` with `{ query }` to exercise
   the full production pipeline.
 
@@ -97,6 +99,53 @@ Both scripts are reproducible: `docs/evidence/search-parity-test.py` and
 | 7 | prod_0088 | 72.4 | 72.4 | EXACT |
 | 8 | prod_0011 | 70.2 | 70.2 | EXACT |
 | 9 | prod_0016 | 66.2 | 66.2 | EXACT |
+
+## Production Codepath Verification
+
+`search-algorithm.ts` is the single source of truth (SSOT) for the search algorithm:
+
+- **Production codepath**: `index.tsx` imports `calculateRelevanceScore`, `searchProducts`,
+  `filterAndSortProducts`, and `FilterOptions` from `./search-algorithm.js`. No inline
+  duplicate search functions remain in `index.tsx`.
+- **Test codepath**: `search-parity-test.ts` imports the same functions from
+  `search-algorithm.ts`.
+- Both paths resolve to the **same module at runtime** — parity tests exercise the
+  production codepath, not a separate test copy.
+
+### Runtime HTTP Endpoint Verification
+
+The running shop service (via `bun run`) was verified against the same golden queries:
+
+| Query | Top Result (API) | Matches Filter ID #1? |
+|-------|-----------------|----------------------|
+| smart watch | prod_0068 (score 133.8) | YES |
+| washer | prod_0074 (score 73.8) | YES |
+| toilet paper | prod_0022 (score 109.4) | YES |
+| stapler | prod_0009 (score 88.0) | YES |
+
+Method: `bun run mocks/shop/src/index.tsx` with source-path patching for local
+products.json, then `curl /api/products?q=<query>` and compare top result ID with
+`filter_and_sort_ids[0]` from the parity test.
+
+## TS Production Behavior: Zero-Result Fallback
+
+When `filterAndSortProducts()` returns zero results with the default threshold
+(`minRelevance=10.0`), the TypeScript implementation retries with `minRelevance=0.0`
+using the full source product set (`sourceProducts` parameter). This is documented
+as an **intentional divergence** from the Python implementation:
+
+| Implementation | Fallback Variable | Behavior |
+|---------------|-------------------|----------|
+| Python `app.py:449` | `products` (empty from first call) | BUG: retries empty list |
+| TS `search-algorithm.ts:162` | `sourceProducts` (parameter) | Correct: retries full set |
+
+When `index.tsx` calls `filterAndSortProducts(allProducts, opts)`, the
+`sourceProducts` parameter receives `allProducts`, so the TS fallback correctly
+retries the full dataset. The Python bug is a known divergence — the TS behavior
+is correct and should not be "fixed" to match the Python bug.
+
+This fallback behavior is NOT included in the 38/38 parity count above because
+the parity test uses matching datasets with sufficient results for all 4 queries.
 
 ## Reproduction
 

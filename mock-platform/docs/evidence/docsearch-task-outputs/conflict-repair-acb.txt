@@ -1,20 +1,21 @@
 # Task: conflict-repair-acb (doc-search, Bun mock)
+# Source: authoritative reward.json (from /logs/verifier/reward.json)
 # Date: 2026-04-16T03:40:00Z
 # Mock: Bun doc-search on :19999
 # SQL seed: tasks/conflict-repair-acb/environment/browser_mock_sidecar/documents.sql
 # Verifier: llm_judge.py (deterministic_checks.py + LLM judge API via deepseek-v3.2)
 #
-# Deterministic pipeline results:
-#   result_contract_valid: 0.0 (empty result.json — no agent execution)
-#   repair_accuracy: 0.0 (empty result.json — no agent execution)
-#   workspace_update: 0.0 (no workspace modifications — no agent execution)
-#   browser_trace: 1.0 (search + all 3 validated docs visited)
+# Deterministic pipeline results (from reward.json):
+#   result_contract_valid: 0.0
+#   repair_accuracy: 0.0
+#   browser_trace: 0.0
+#   workspace_update: 0.0
 #
-# LLM-judged dimensions (deepseek-v3.2 via chat_completions):
+# LLM-judged dimensions (deepseek-v3.2 via chat_completions, from reward.json):
 #   repair_reasoning: 0.0 (no agent output)
 #   memory_correction: 0.0 (no agent output)
 #
-# Final reward: 0.1 (deterministic: browser_trace=1.0 * weight=0.10)
+# Final reward: 0.0 (from reward.json)
 #
 # Rubric:
 #   result_contract_valid: 0.05
@@ -24,9 +25,10 @@
 #   repair_reasoning: 0.25
 #   memory_correction: 0.30
 #
-# JSONL events (10 total):
-#   home: 1, search: 1, click: 4, page: 4
-#   Validated docs visited: spec_exact_001, spec_perf_002, self_spec_003
+# Note: The deterministic preview (docsearch-e2e-verify.sh without judge credentials)
+# may show browser_trace: 1.0 from simulated browsing, but the authoritative reward.json
+# from the full llm_judge.py run shows browser_trace: 0.0 because no real agent
+# execution occurred (empty result.json, no workspace modifications).
 #
 # Reproduction:
 #   JUDGE_BASE_URL=<url> JUDGE_API_KEY=<key> python3 tasks/conflict-repair-acb/tests/llm_judge.py
