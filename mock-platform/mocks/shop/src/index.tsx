@@ -231,7 +231,7 @@ const ProductCard: FC<{ product: Product }> = ({ product: p }) => {
         <span class="rating-text">{rating.toFixed(1)}</span>
         {p.rating_count ? ` (${p.rating_count})` : ""}
       </div>
-      <div class="product-price">${`$${p.price.toFixed(2)}`}</div>
+      <div class="product-price">{`$${p.price.toFixed(2)}`}</div>
       {tags.length > 0 ? <div class="product-tags">{tags}</div> : null}
       <button class="add-to-cart-btn" onclick={`addToCart('${escHtml(p.id)}')`}>Add to Cart</button>
     </div>

@@ -22,8 +22,8 @@ import {
   calculateRelevanceScore,
   searchProducts,
   filterAndSortProducts,
-} from "../../mocks/shop/src/search-algorithm.ts";
-import type { SearchableProduct } from "../../mocks/shop/src/search-algorithm.ts";
+} from "../../mocks/shop/src/search-algorithm.js";
+import type { SearchableProduct } from "../../mocks/shop/src/search-algorithm.js";
 
 const REPO_ROOT = resolve(import.meta.dir, "..", "..", "..");
 const PRODUCTS_PATH = resolve(
