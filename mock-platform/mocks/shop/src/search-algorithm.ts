@@ -157,9 +157,11 @@ export function filterAndSortProducts<T extends SearchableProduct>(
     productsWithScores = new Map(scored.map(([p, s]) => [p.id, s]));
     products = scored.map(([p]) => p);
 
-    // If no results, retry with lower threshold
+    // If no results, retry with lower threshold (matching Python app.py behavior:
+    // Python retries against the already-empty products list, so this always
+    // returns no results — kept here for structural parity only).
     if (!products.length) {
-      scored = searchProducts(sourceProducts, query, 0.0);
+      scored = searchProducts(products, query, 0.0);
       productsWithScores = new Map(scored.map(([p, s]) => [p.id, s]));
       products = scored.map(([p]) => p);
     }

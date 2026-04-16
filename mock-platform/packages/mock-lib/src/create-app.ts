@@ -25,7 +25,7 @@ export function createMockApp(options: CreateMockAppOptions): MockApp {
   // Built-in health check endpoint
   app.get("/health", (c) => {
     return c.json(
-      options.healthResponse ?? { status: "healthy", service: config.name },
+      options.healthResponse ?? { ok: true, status: "healthy", service: config.name },
     );
   });
 
