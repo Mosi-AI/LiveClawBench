@@ -14,8 +14,8 @@
  * Usage: bun run scripts/build-task-images.ts [--dry-run]
  */
 
-import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync, readdirSync } from "node:fs";
+import { join, relative } from "node:path";
 
 const DIST_DIR = join(import.meta.dir, "..", "dist");
 const CONFIG_PATH = join(import.meta.dir, "..", "config", "task-binary-map.json");
@@ -249,10 +249,17 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("");
   }
 
-  // Step 1: Launch Bun mock binaries (if any)
-  if (binaries.length > 0) {
-    lines.push("# Start Bun mock binaries");
-    for (const bin of binaries) {
+  // Binaries that are stubs (health/sentinel only) — the real services are
+  // started by the task's startup.sh.  Implemented binaries (shop, doc-search)
+  // are full Bun replacements and should be launched directly.
+  const STUB_BINARIES = new Set(["email", "airline", "todolist"]);
+  const implementedBinaries = binaries.filter((b) => !STUB_BINARIES.has(b));
+  const hasStubBinaries = binaries.some((b) => STUB_BINARIES.has(b));
+
+  // Step 1: Launch implemented Bun mock binaries (skip stubs)
+  if (implementedBinaries.length > 0) {
+    lines.push("# Start Bun mock binaries (implemented services)");
+    for (const bin of implementedBinaries) {
       const port = BINARY_PORTS[bin];
       if (bin === "doc-search") {
         // Doc-search requires explicit --database and --log flags for verifier
@@ -281,9 +288,9 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       .split("\n")
       .filter((line) => !line.startsWith("#!") && line.trim() !== "set -euo pipefail");
 
-    // When Bun binaries include 'shop', strip Python shop-app startup lines
+    // When implemented binaries include 'shop', strip Python shop-app startup lines
     // to avoid port conflicts (Python start.sh kills processes on port 1234).
-    if (binaries.includes("shop")) {
+    if (implementedBinaries.includes("shop")) {
       // Filter out blocks between "# Start shop-app" and the next "# Start " comment
       let inShopBlock = false;
       filtered = filtered.filter((line) => {
@@ -308,11 +315,11 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       lines.push(stripped);
       lines.push("");
     }
-  } else if (binaries.length > 0) {
-    // Fallback: tasks with binaries but no startup_extra may still need legacy
-    // services (e.g. email-writing runs Python email, flight-booking runs airline app).
-    // Run via bash since startup.sh files use Bash-specific features (set -euo pipefail).
-    lines.push("# Legacy app fallback — run task startup.sh via bash if present");
+  } else if (hasStubBinaries) {
+    // Tasks with stub binaries (email, airline, todolist) and no startup_extra:
+    // start the real Python/Node services from the task's startup.sh instead.
+    // Run via bash since startup.sh files use Bash-specific features.
+    lines.push("# Legacy app fallback — stub binaries, run real services via bash");
     lines.push("if [ -f /workspace/environment/startup.sh ]; then");
     lines.push("  bash /workspace/environment/startup.sh");
     lines.push("fi");
@@ -320,7 +327,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
   }
 
   // Step 3: Final wait for all services to be ready
-  if (binaries.length > 0 || startupExtra) {
+  if (implementedBinaries.length > 0 || startupExtra || hasStubBinaries) {
     lines.push("# Wait for all services to be ready");
     lines.push("sleep 3");
     lines.push("");
@@ -357,9 +364,10 @@ async function buildTaskImage(
       };
     }
 
-    // Reject stale binaries (source newer than compiled artifact)
-    const tsEp = join(MOCKS_DIR, bin, "src", "index.ts");
-    const tsxEp = join(MOCKS_DIR, bin, "src", "index.tsx");
+    // Reject stale binaries (any source file newer than compiled artifact)
+    const srcDir = join(MOCKS_DIR, bin, "src");
+    const tsEp = join(srcDir, "index.ts");
+    const tsxEp = join(srcDir, "index.tsx");
     const entryPoint = existsSync(tsxEp) ? tsxEp : tsEp;
     if (!existsSync(entryPoint)) {
       return {
@@ -372,8 +380,24 @@ async function buildTaskImage(
     }
 
     const binaryStat = statSync(binaryPath);
-    const sourceStat = statSync(entryPoint);
-    if (sourceStat.mtimeMs > binaryStat.mtimeMs) {
+    // Check all .ts/.tsx files in the src directory, not just the entry point,
+    // since imported modules (e.g. search-algorithm.ts) may have changed.
+    function collectTsFiles(dir: string): string[] {
+      const results: string[] = [];
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          results.push(...collectTsFiles(full));
+        } else if (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx")) {
+          results.push(full);
+        }
+      }
+      return results;
+    }
+    const srcFiles = collectTsFiles(srcDir);
+    const staleFile = srcFiles.find((f) => statSync(f).mtimeMs > binaryStat.mtimeMs);
+    if (staleFile) {
+      const sourceStat = statSync(staleFile);
       return {
         task,
         success: false,
