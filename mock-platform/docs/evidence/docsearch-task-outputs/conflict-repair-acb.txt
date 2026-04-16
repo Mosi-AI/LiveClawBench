@@ -1,22 +1,20 @@
 # Task: conflict-repair-acb (doc-search, Bun mock)
-# Date: 2026-04-15T15:05:00Z
+# Date: 2026-04-16T03:40:00Z
 # Mock: Bun doc-search on :19999
 # SQL seed: tasks/conflict-repair-acb/environment/browser_mock_sidecar/documents.sql
-# Verifier: llm_judge.py (deterministic_checks.py + LLM judge API)
+# Verifier: llm_judge.py (deterministic_checks.py + LLM judge API via deepseek-v3.2)
 #
 # Deterministic pipeline results:
-#   result_contract_valid: 0.0 (empty result.json — agent artifact)
-#   repair_accuracy: 0.0 (empty result.json — agent artifact)
-#   workspace_update: 0.0 (no workspace modifications — agent artifact)
+#   result_contract_valid: 0.0 (empty result.json — no agent execution)
+#   repair_accuracy: 0.0 (empty result.json — no agent execution)
+#   workspace_update: 0.0 (no workspace modifications — no agent execution)
 #   browser_trace: 1.0 (search + all 3 validated docs visited)
 #
-# LLM-judged dimensions (require JUDGE_BASE_URL + JUDGE_API_KEY):
-#   repair_reasoning: weight 0.25
-#   memory_correction: weight 0.30
-#   Total LLM weight: 0.55
+# LLM-judged dimensions (deepseek-v3.2 via chat_completions):
+#   repair_reasoning: 0.0 (no agent output)
+#   memory_correction: 0.0 (no agent output)
 #
-# Deterministic reward (LLM portion would be added): 0.1
-# Full reward requires production Docker environment with LLM API access.
+# Final reward: 0.1 (deterministic: browser_trace=1.0 * weight=0.10)
 #
 # Rubric:
 #   result_contract_valid: 0.05
@@ -31,7 +29,8 @@
 #   Validated docs visited: spec_exact_001, spec_perf_002, self_spec_003
 #
 # Reproduction:
-#   BROWSER_MOCK_DATA_DIR=tasks/conflict-repair-acb/environment/browser_mock_sidecar \
-#     bun run mocks/doc-search/src/index.ts --port 19999 \
-#     --database /tmp/doc.db --log /tmp/access.jsonl
-#   # Then simulate browsing and run deterministic_checks.py
+#   JUDGE_BASE_URL=<url> JUDGE_API_KEY=<key> python3 tasks/conflict-repair-acb/tests/llm_judge.py
+#
+# Authoritative verifier outputs:
+#   - conflict-repair-acb-reward.json (from /logs/verifier/reward.json)
+#   - conflict-repair-acb-reward.txt (from /logs/verifier/reward.txt)

@@ -1,0 +1,15 @@
+{
+  "result_contract_valid": 0.0,
+  "repair_accuracy": 0.0,
+  "browser_trace": 0.0,
+  "workspace_update": 0.0,
+  "repair_reasoning": 0.0,
+  "memory_correction": 0.0,
+  "_meta_rationales": {
+    "repair_reasoning": "The agent provided no output or reasoning. There is no explanation for why any of the three stale beliefs are wrong, nor any citation of evidence. Therefore, the score is 0.0.",
+    "memory_correction": "The agent provided no durable workspace artifacts. There are no notes, updates, or corrections to the prior memory beliefs. Therefore, the score is 0.0."
+  },
+  "_meta_judge_model": "deepseek-v3.2",
+  "_meta_judge_mode": "chat_completions",
+  "reward": 0.0
+}

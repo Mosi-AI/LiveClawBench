@@ -6,3 +6,4 @@ docs/evidence/**/docsearch-server.log
 docs/evidence/**/shop-server.log
 docs/evidence/**/email-server.log
 docs/evidence/**/email-inject.log
+docs/evidence/**/*-stderr.log

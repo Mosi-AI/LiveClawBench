@@ -1,0 +1,16 @@
+{
+  "result_contract_valid": 0.0,
+  "database_integrity": 0.0,
+  "query_accuracy": 0.0,
+  "browser_trace": 0.0,
+  "workspace_update": 0.0,
+  "integration_reasoning": 0.0,
+  "note_quality": 0.0,
+  "_meta_rationales": {
+    "integration_reasoning": "The agent provided no output. The result.json is an empty object `{}`. There are no workspace notes, output files, or any structured data containing source IDs, evidence IDs, or query answers. Therefore, none of the four required integration behaviors (using local corpus, using browser portal, identifying low-confidence pages, and linking facts to sources) are demonstrated. The scoring rule states that 0.0 is assigned when result.json, workspace notes, AND output files are ALL completely empty or contain zero substantive content, which is the case here.",
+    "note_quality": "The agent provided no output. There is no result.json field `query_answers`, no durable workspace note, and no human-readable output files containing any substantive answers to the 7 questions. The content is completely empty. According to the mandatory rule, 0.0 is reserved for when neither result.json nor workspace notes contain ANY substantive answers to the questions, which is true here."
+  },
+  "_meta_judge_model": "deepseek-v3.2",
+  "_meta_judge_mode": "chat_completions",
+  "reward": 0.0
+}
