@@ -1,17 +1,16 @@
 === Negative-Path Checks ===
-Date: 2026-04-18
+Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.aaaLmr09WY
 
 --- Test 1: Corrupted products.json → exit non-zero ---
-  PASS: Corrupted products.json exits non-zero (rc=127)
-
+  PASS: Corrupted products.json exits non-zero
 --- Test 2: Missing products.json → exit non-zero ---
-  PASS: Missing products.json exits non-zero (rc=127)
-
+  PASS: Missing products.json exits non-zero
 --- Test 3: Doc-search missing SQL seed → exit non-zero ---
-  PASS: Missing SQL seed exits non-zero (rc=127)
-
+  PASS: Missing SQL seed exits non-zero
 --- Test 4-11: HTTP validation tests ---
   PASS: Malformed JSON to cart/add returns 400 (got 400)
+2026-04-18 01:08:08.426 curl[54294:178243067] CFPropertyListCreateFromXMLData(): Old-style plist parser: missing semicolon or value in dictionary on line 1. Parsing will be abandoned. Break on _CFPropertyListMissingSemicolonOrValue to debug.
+2026-04-18 01:08:08.427 curl[54294:178243067] CFPropertyListCreateFromXMLData(): Old-style plist parser: missing semicolon or value in dictionary on line 1. Parsing will be abandoned. Break on _CFPropertyListMissingSemicolonOrValue to debug.
   PASS: Malformed JSON to cart/update returns 400 (got 400)
   PASS: Malformed JSON to user/update returns 400 (got 400)
   PASS: Invalid min_price to /search returns 400 (got 400)
