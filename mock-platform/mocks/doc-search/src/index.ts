@@ -135,12 +135,8 @@ function initDatabase(): void {
   try {
     mkdirSync(outputDir, { recursive: true });
   } catch (err) {
-    // mkdirSync with recursive:true is idempotent; failure here means
-    // a real filesystem problem (permission denied, read-only mount, etc.)
-    const code = (err as NodeJS.ErrnoException)?.code;
-    if (code !== "EEXIST") {
-      console.warn(`mock-doc-search: mkdirSync(${outputDir}) failed (${code}), attempting to continue`, err);
-    }
+    console.error(`mock-doc-search: FATAL: cannot create database directory: ${outputDir}`, err);
+    process.exit(1);
   }
 
   // Delete existing DB to start fresh (matches Python behavior)
@@ -149,7 +145,8 @@ function initDatabase(): void {
   } catch (err) {
     const code = (err as NodeJS.ErrnoException)?.code;
     if (code !== "ENOENT") {
-      console.warn(`mock-doc-search: unlinkSync(${DB_PATH}) failed (${code}), attempting to continue`, err);
+      console.error(`mock-doc-search: FATAL: cannot remove stale database: ${DB_PATH}`, err);
+      process.exit(1);
     }
   }
 
@@ -183,7 +180,8 @@ function loadDynamicConfig(): void {
     const exampleRows = db.query("SELECT query FROM query_examples ORDER BY position ASC").all() as Array<{ query: string }>;
     queryExamples = exampleRows.map((r) => r.query);
   } catch (err) {
-    console.error("mock-doc-search: failed to load dynamic config", err);
+    console.error("mock-doc-search: FATAL: failed to load dynamic config from database", err);
+    process.exit(1);
   }
 }
 
