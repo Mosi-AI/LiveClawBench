@@ -335,7 +335,9 @@ function renderDoc(doc: Document, sid: string, rank: string): string {
   }
 
   // Split body on double newlines into paragraphs
-  const paragraphs = doc.body.split("\n\n").map((p) => `<p>${escHtml(p.trim())}</p>`).join("\n");
+  // SQL seeds store literal \n\n escapes — normalize before splitting
+  const normalizedBody = doc.body.replace(/\\n/g, "\n");
+  const paragraphs = normalizedBody.split("\n\n").map((p) => `<p>${escHtml(p.trim())}</p>`).join("\n");
 
   // Split tags on pipe
   const tagPills = doc.tags.split("|").map((t) => t.trim()).filter((t) => t).map((t) => `<span class="pill">${escHtml(t)}</span>`).join(" ");
