@@ -148,6 +148,45 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 > How to identify: if `tests/test.sh` calls `python3 /tests/llm_judge.py`, the task needs judge credentials.
 > See [`docs/en/guide/running-tasks.md`](docs/en/guide/running-tasks.md#llm-judge-tasks) for the full example.
 
+## Mock Platform
+
+The `mock-platform/` directory contains Bun+Hono mock services that simulate real-world APIs inside
+task containers. Each mock compiles to a standalone binary via `bun build --compile`.
+
+### Mock Services
+
+| Service | Directory | Binary | Description |
+|---|---|---|---|
+| Shop | `mocks/shop/` | `mock-shop` | E-commerce: products, cart, orders, user profile, search |
+| Doc-search | `mocks/doc-search/` | `mock-doc-search` | Full-text search with FTS5, BM25 ranking, JSONL access log |
+| Airline | `mocks/airline/` | `mock-airline` | Flight booking, seat selection, baggage tracking |
+| Email | `mocks/email/` | `mock-email` | Email inbox, compose, reply |
+| Todolist | `mocks/todolist/` | `mock-todolist` | Task management |
+
+### Build Commands
+
+```bash
+cd mock-platform
+
+bun run build          # Build all mock binaries → dist/
+bun run build:images   # Build per-task Docker images (requires base image first)
+```
+
+### Architecture
+
+- `packages/mock-lib/` — Shared library (Hono app factory, SQLite helpers, render utilities, types)
+- `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented)
+- `scripts/build-all.ts` — Builds all mock binaries
+- `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set
+
+### Key Files
+
+| File | Purpose |
+|---|---|
+| `mocks/shop/src/index.tsx` | Shop UI and API (Hono TSX rendering) |
+| `mocks/shop/src/search-algorithm.ts` | Extracted search logic (single source of truth) |
+| `mocks/doc-search/src/index.ts` | Doc-search with FTS5 + JSONL browser trace logging |
+
 ## Task List
 
 | Task Dir | Domain | Difficulty | Verifier |
@@ -189,7 +228,7 @@ LiveClawBench uses a three-layer Docker image architecture:
 
 1. **Base layer** (`liveclawbench-base:latest`): Shared runtime
    - Pre-built by `setup.sh` step 3
-   - Pre-bakes: `python3 python3-pip python3-venv curl sqlite3`, Playwright Chromium, directory scaffolding (`/workspace`, `/workspace/output`)
+   - Pre-bakes: `python3 python3-pip python3-venv curl sqlite3 unzip`, Playwright Chromium, Bun runtime, directory scaffolding (`/workspace`, `/workspace/output`), mock infrastructure (`/opt/mock/bin/`, `/opt/mock/startup.d/`, `/opt/mock/data/`)
    - Built from: `docker/base/Dockerfile`
 
 2. **Per-task layer** (`liveclawbench-{task}-base:latest`): Task-specific mock binaries and startup
@@ -331,6 +370,7 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 | `tasks/*/tests/` | ✓ | future (TODO) |
 | `tasks/*/common/` | ✓ | — |
 | `tasks/*/environment/` | ✓ | — |
+| `mock-platform/docs/evidence/` | ✓ | — |
 | `tasks/skill-dependency-fix/environment/skills/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/.skill_snapshot/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/skills/` | excluded (intentional fixture) | — |
