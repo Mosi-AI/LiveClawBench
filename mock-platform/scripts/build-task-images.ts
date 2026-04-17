@@ -312,6 +312,32 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       });
     }
 
+    // When implemented binaries include 'doc-search', strip Python sqlite bootstrap
+    // because the Bun binary handles DB initialization via initDatabase().
+    // The Python bootstrap would delete/recreate the DB after Bun has opened it.
+    if (implementedBinaries.includes("doc-search")) {
+      let inSqliteBlock = false;
+      filtered = filtered.filter((line) => {
+        const l = line.trim();
+        // Match the python3 sqlite bootstrap heredoc
+        if (l.match(/^python3\s+-.*documents\.sql.*<<'PY'$/)) {
+          inSqliteBlock = true;
+          return false;
+        }
+        if (inSqliteBlock) {
+          if (l === "PY") {
+            inSqliteBlock = false;
+          }
+          return false;
+        }
+        // Also strip the log truncation line (Bun binary handles this)
+        if (l.match(/^:\s*>\s*"\$\{BROWSER_MOCK_LOG\}"$/)) {
+          return false;
+        }
+        return true;
+      });
+    }
+
     const stripped = filtered.join("\n").trimEnd();
     if (stripped) {
       lines.push("# Task-specific legacy startup (embedded from startup_extra)");
