@@ -265,6 +265,9 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         // Doc-search requires explicit --database and --log flags for verifier
         const outputBase = "${HOME:-/home/node}/.openclaw/output";
         lines.push(`/opt/mock/bin/mock-doc-search --port ${port} --database "${outputBase}/browser_mock_documents.sqlite" --log "${outputBase}/browser_mock_access.jsonl" &`);
+        // Signal to solution/solve.sh that Bun mock is already running,
+        // preventing it from starting the legacy Python sidecar on the same port
+        lines.push(`export BROWSER_MOCK_BASE_URL="http://127.0.0.1:${port}"`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }
