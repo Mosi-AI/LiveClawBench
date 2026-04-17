@@ -1147,7 +1147,7 @@ const app = createMockApp({
 
 // Load products from static assets at startup
 try {
-  const productsPath = "/opt/mock/static/shop/products.json";
+  const productsPath = process.env.MOCK_PRODUCTS_PATH ?? "/opt/mock/static/shop/products.json";
   const content = Bun.file(productsPath);
   allProducts = await content.json();
   console.log(`mock-shop: loaded ${allProducts.length} products from ${productsPath}`);

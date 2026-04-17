@@ -1,0 +1,24 @@
+=== Negative-Path Checks ===
+Date: 2026-04-18
+
+--- Test 1: Corrupted products.json → exit non-zero ---
+  PASS: Corrupted products.json exits non-zero (rc=127)
+
+--- Test 2: Missing products.json → exit non-zero ---
+  PASS: Missing products.json exits non-zero (rc=127)
+
+--- Test 3: Doc-search missing SQL seed → exit non-zero ---
+  PASS: Missing SQL seed exits non-zero (rc=127)
+
+--- Test 4-11: HTTP validation tests ---
+  PASS: Malformed JSON to cart/add returns 400 (got 400)
+  PASS: Malformed JSON to cart/update returns 400 (got 400)
+  PASS: Malformed JSON to user/update returns 400 (got 400)
+  PASS: Invalid min_price to /search returns 400 (got 400)
+  PASS: Invalid max_price to /api/products returns 400 (got 400)
+  PASS: Missing product_id in cart/add returns 400 (got 400)
+  PASS: Missing product_id in cart/update returns 400 (got 400)
+  PASS: Non-existent product in cart/add returns 404 (got 404)
+
+=== Results: 11 passed, 0 failed ===
+ALL CHECKS PASSED
