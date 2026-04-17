@@ -17,11 +17,11 @@ Usage (from repo root):
 Output: JSON with per-product scores and final filter flow results to stdout.
 """
 
-import json
-import sys
-import os
 import ast
+import json
+import os
 import re
+import sys
 from collections import Counter
 
 # Resolve paths
@@ -91,9 +91,9 @@ def run_parity_test():
 
     print(f"# Product count: {len(products)}", file=sys.stderr)
     print(f"# Using REAL functions from {APP_PY_PATH}:", file=sys.stderr)
-    print(f"#   - calculate_relevance_score()", file=sys.stderr)
-    print(f"#   - search_products()", file=sys.stderr)
-    print(f"#   - filter_and_sort_products()", file=sys.stderr)
+    print("#   - calculate_relevance_score()", file=sys.stderr)
+    print("#   - search_products()", file=sys.stderr)
+    print("#   - filter_and_sort_products()", file=sys.stderr)
 
     output = {
         "product_count": len(products),
