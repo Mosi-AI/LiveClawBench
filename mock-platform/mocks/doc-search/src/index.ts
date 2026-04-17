@@ -134,15 +134,23 @@ function initDatabase(): void {
   const outputDir = DB_PATH.substring(0, DB_PATH.lastIndexOf("/"));
   try {
     mkdirSync(outputDir, { recursive: true });
-  } catch {
-    // Directory may already exist
+  } catch (err) {
+    // mkdirSync with recursive:true is idempotent; failure here means
+    // a real filesystem problem (permission denied, read-only mount, etc.)
+    const code = (err as NodeJS.ErrnoException)?.code;
+    if (code !== "EEXIST") {
+      console.warn(`mock-doc-search: mkdirSync(${outputDir}) failed (${code}), attempting to continue`, err);
+    }
   }
 
   // Delete existing DB to start fresh (matches Python behavior)
   try {
     unlinkSync(DB_PATH);
-  } catch {
-    // File may not exist
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException)?.code;
+    if (code !== "ENOENT") {
+      console.warn(`mock-doc-search: unlinkSync(${DB_PATH}) failed (${code}), attempting to continue`, err);
+    }
   }
 
   db = new Database(DB_PATH, { create: true });
@@ -183,12 +191,19 @@ function loadDynamicConfig(): void {
 // JSONL access log
 // ---------------------------------------------------------------------------
 
-function writeEvent(event: AccessEvent): void {
+/** Set to true after the first disk write failure; skips subsequent write attempts. */
+let logDiskDegraded = false;
+
+function writeEvent(event: AccessEvent): boolean {
+  if (logDiskDegraded) return false;
   const line = JSON.stringify(event) + "\n";
   try {
     appendFileSync(LOG_PATH, line);
+    return true;
   } catch (err) {
-    console.error("mock-doc-search: failed to write access log", err);
+    console.error("mock-doc-search: access log write failed, entering degraded mode", err);
+    logDiskDegraded = true;
+    return false;
   }
 }
 
@@ -196,14 +211,16 @@ function initAccessLog(): void {
   const logDir = LOG_PATH.substring(0, LOG_PATH.lastIndexOf("/"));
   try {
     mkdirSync(logDir, { recursive: true });
-  } catch {
-    // Directory may already exist
+  } catch (err) {
+    console.error(`mock-doc-search: FATAL: cannot create access-log directory: ${logDir}`, err);
+    process.exit(1);
   }
   // Truncate/create the log file (matches Python `: > "$BROWSER_MOCK_LOG"`)
   try {
     writeFileSync(LOG_PATH, "");
-  } catch {
-    // Ignore
+  } catch (err) {
+    console.error(`mock-doc-search: FATAL: cannot create access log file: ${LOG_PATH}`, err);
+    process.exit(1);
   }
 }
 
@@ -370,7 +387,9 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
   // GET / — Home page
   app.get("/", (c) => {
-    writeEvent({ event: "home", path: c.req.path });
+    if (!writeEvent({ event: "home", path: c.req.path })) {
+      return c.json({ error: "access log unavailable" }, 500);
+    }
     return c.html(renderHome());
   });
 
@@ -422,13 +441,15 @@ function registerRoutes(app: Hono<AppEnv>): void {
     }));
 
     // Write search event
-    writeEvent({
+    if (!writeEvent({
       event: "search",
       sid,
       path,
       query,
       results: logResults,
-    });
+    })) {
+      return c.json({ error: "access log unavailable" }, 500);
+    }
 
     return c.html(renderSearch(query, results, sid));
   });
@@ -450,25 +471,29 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
     // Write click event (only if sid is non-empty)
     if (sid) {
-      writeEvent({
+      if (!writeEvent({
         event: "click",
         sid,
         rank,
         path,
         doc_id: doc.id,
         slug: doc.slug,
-      });
+      })) {
+        return c.json({ error: "access log unavailable" }, 500);
+      }
     }
 
     // Always write page event for successful document views
-    writeEvent({
+    if (!writeEvent({
       event: "page",
       sid,
       rank,
       path,
       doc_id: doc.id,
       slug: doc.slug,
-    });
+    })) {
+      return c.json({ error: "access log unavailable" }, 500);
+    }
 
     return c.html(renderDoc(doc, sid, rank));
   });

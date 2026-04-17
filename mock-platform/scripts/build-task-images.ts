@@ -438,9 +438,10 @@ async function buildTaskImage(
     "",
   ];
 
-  // Create mock user for shop data directory ownership (task11a bootstrap)
+  // Create mock user for shop data directory ownership
+  // Tolerate only user-exists error (exit code 9); fail on other errors.
   if (binaries.includes("shop")) {
-    dockerfileLines.push("RUN useradd -r -s /bin/false mock || true");
+    dockerfileLines.push("RUN useradd -r -s /bin/false mock 2>/dev/null || [ $? -eq 9 ] || (echo 'mock user creation failed' >&2 && exit 1)");
     dockerfileLines.push("");
   }
 
@@ -535,10 +536,16 @@ async function buildTaskImage(
     return { task, success: true, imageTag, binariesIncluded: binaries };
   }
 
-  const proc = Bun.spawn(
-    ["docker", "build", "-t", imageTag, "-f", dockerfilePath, DIST_DIR],
-    { stdout: "pipe", stderr: "pipe" },
-  );
+  let proc;
+  try {
+    proc = Bun.spawn(
+      ["docker", "build", "-t", imageTag, "-f", dockerfilePath, DIST_DIR],
+      { stdout: "pipe", stderr: "pipe" },
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { task, success: false, imageTag, binariesIncluded: binaries, error: `docker spawn failed: ${msg}` };
+  }
   const exitCode = await proc.exited;
   if (exitCode !== 0) {
     const stderr = await new Response(proc.stderr).text();

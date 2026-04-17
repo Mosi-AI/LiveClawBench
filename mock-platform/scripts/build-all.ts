@@ -103,8 +103,9 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
         missingSentinels.push(result.name);
       }
     } catch (err) {
-      // If we can't read the binary, we can't verify sentinel
-      console.error(`Warning: Could not read ${result.name} for sentinel check: ${err}`);
+      console.error(`Error: Could not read ${result.name} for sentinel check: ${err}`);
+      result.success = false;
+      result.error = `Binary read failed: ${err instanceof Error ? err.message : String(err)}`;
     }
   }
 
@@ -130,7 +131,9 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
           violations.set(result.name, foundViolations);
         }
       } catch (err) {
-        console.error(`Warning: Could not read ${result.name} for cross-contamination check: ${err}`);
+        console.error(`Error: Could not read ${result.name} for cross-contamination check: ${err}`);
+        result.success = false;
+        result.error = `Binary read failed: ${err instanceof Error ? err.message : String(err)}`;
       }
     }
   }

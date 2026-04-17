@@ -52,6 +52,7 @@ interface CartItem {
 
 interface OrderItem {
   product_id: string;
+  id?: string;
   title: string;
   price: number;
   quantity: number;
@@ -731,6 +732,10 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const maxPrice = c.req.query("max_price") ? parseFloat(c.req.query("max_price")!) : undefined;
     const minRating = c.req.query("min_rating") ? parseFloat(c.req.query("min_rating")!) : undefined;
 
+    if ([minPrice, maxPrice, minRating].some((v) => v != null && Number.isNaN(v))) {
+      return c.json({ error: "Invalid numeric filter parameter" }, 400);
+    }
+
     let currentProducts: Product[] = [];
     let totalPages = 0;
 
@@ -785,6 +790,10 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const maxPrice = c.req.query("max_price") ? parseFloat(c.req.query("max_price")!) : undefined;
     const minRating = c.req.query("min_rating") ? parseFloat(c.req.query("min_rating")!) : undefined;
 
+    if ([minPrice, maxPrice, minRating].some((v) => v != null && Number.isNaN(v))) {
+      return c.json({ error: "Invalid numeric filter parameter" }, 400);
+    }
+
     const filtered = filterAndSortProducts(allProducts, {
       query,
       minPrice,
@@ -815,12 +824,17 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   app.post("/api/cart/add", async (c) => {
-    const body = await c.req.json<{ product_id?: string }>();
+    let body: { product_id?: string };
+    try {
+      body = await c.req.json<{ product_id?: string }>();
+    } catch {
+      return c.json({ error: "Invalid JSON body" }, 400);
+    }
     const productId = body.product_id;
-    if (!productId) return c.json({ success: false, message: "product_id required" });
+    if (!productId) return c.json({ error: "product_id required" }, 400);
 
     const product = allProducts.find((p) => p.id === productId);
-    if (!product) return c.json({ success: false, message: "Product not found" });
+    if (!product) return c.json({ error: "Product not found" }, 404);
 
     const cart = loadCart();
     const existing = cart.find((item) => item.id === productId);
@@ -836,7 +850,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
         quantity: 1,
       });
     }
-    saveCart(cart);
+    try {
+      saveCart(cart);
+    } catch (err) {
+      console.error("mock-shop: failed to save cart", err);
+      return c.json({ error: "Failed to save cart" }, 500);
+    }
 
     return c.json({
       success: true,
@@ -867,7 +886,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   app.put("/api/cart/update", async (c) => {
-    const body = await c.req.json<{ product_id?: string; quantity?: number }>();
+    let body: { product_id?: string; quantity?: number };
+    try {
+      body = await c.req.json<{ product_id?: string; quantity?: number }>();
+    } catch {
+      return c.json({ error: "Invalid JSON body" }, 400);
+    }
     const productId = body.product_id;
     const quantity = body.quantity ?? 1;
 
@@ -881,7 +905,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
         item.quantity = quantity;
       }
     }
-    saveCart(cart);
+    try {
+      saveCart(cart);
+    } catch (err) {
+      console.error("mock-shop: failed to save cart", err);
+      return c.json({ error: "Failed to save cart" }, 500);
+    }
 
     return c.json({
       success: true,
@@ -897,7 +926,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
   app.post("/api/checkout", (c) => {
     const cart = loadCart();
-    if (!cart.length) return c.json({ success: false, message: "Cart is empty" });
+    if (!cart.length) return c.json({ error: "Cart is empty" }, 400);
 
     const orders = loadOrders();
     const user = loadUser();
@@ -912,9 +941,16 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const order: Order = {
       order_id: orderId,
       user_id: user.username,
-      // Python stores cart items verbatim — checkout orders keep `id` field
-      // (seeded orders use `product_id`). Verifier checks ORD000008.items[0].id.
-      items: cart as unknown as OrderItem[],
+      // Map cart items to order items: keep `id` for verifier compatibility
+      // (ORD000008.items[0].id is checked), add `product_id` for schema consistency.
+      items: cart.map((item) => ({
+        id: item.id,
+        product_id: item.id,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        image_url: item.image_url,
+      })),
       total_amount: Math.round(totalAmount * 100) / 100,
       status: "Pending Shipment",
       create_time: new Date().toISOString().replace("T", " ").slice(0, 19),
@@ -923,7 +959,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
     orders.push(order);
     orders.sort((a, b) => b.order_id.localeCompare(a.order_id));
-    saveOrders(orders);
+    try {
+      saveOrders(orders);
+    } catch (err) {
+      console.error("mock-shop: failed to save orders", err);
+      return c.json({ error: "Failed to save order" }, 500);
+    }
     clearCart();
 
     return c.json({
@@ -938,17 +979,27 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   app.post("/api/user/update", async (c) => {
-    const body = await c.req.json<{ field?: string; value?: string }>();
+    let body: { field?: string; value?: string };
+    try {
+      body = await c.req.json<{ field?: string; value?: string }>();
+    } catch {
+      return c.json({ error: "Invalid JSON body" }, 400);
+    }
     const field = body.field;
     const value = body.value;
-    if (!field || !value) return c.json({ success: false, message: "Field and value are required" });
+    if (!field || !value) return c.json({ error: "Field and value are required" }, 400);
 
     const allowed = ["username", "gender", "email", "phone", "address"];
-    if (!allowed.includes(field)) return c.json({ success: false, message: "Invalid field" });
+    if (!allowed.includes(field)) return c.json({ error: "Invalid field" }, 400);
 
     const user: Record<string, unknown> = loadUser() as unknown as Record<string, unknown>;
     user[field] = value;
-    saveUser(user as unknown as UserData);
+    try {
+      saveUser(user as unknown as UserData);
+    } catch (err) {
+      console.error("mock-shop: failed to save user", err);
+      return c.json({ error: "Failed to save user profile" }, 500);
+    }
 
     return c.json({ success: true, message: `${field} updated successfully` });
   });
@@ -962,15 +1013,20 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const oid = c.req.param("order_id");
     const orders = loadOrders();
     const order = orders.find((o) => o.order_id === oid);
-    if (!order) return c.json({ success: false, message: "Order not found" });
+    if (!order) return c.json({ error: "Order not found" }, 404);
 
     const allowedStatuses = ["Pending Shipment", "Delivered", "Shipped", "Completed"];
     if (!allowedStatuses.includes(order.status)) {
-      return c.json({ success: false, message: "This order cannot be returned" });
+      return c.json({ error: "This order cannot be returned" }, 400);
     }
 
     order.status = "Returning";
-    saveOrders(orders);
+    try {
+      saveOrders(orders);
+    } catch (err) {
+      console.error("mock-shop: failed to save orders", err);
+      return c.json({ error: "Failed to update order" }, 500);
+    }
     return c.json({
       success: true,
       message: "Return request received. Customer service will contact you regarding the return.",
@@ -981,13 +1037,18 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const oid = c.req.param("order_id");
     const orders = loadOrders();
     const order = orders.find((o) => o.order_id === oid);
-    if (!order) return c.json({ success: false, message: "Order not found" });
+    if (!order) return c.json({ error: "Order not found" }, 404);
     if (order.status !== "Delivered") {
-      return c.json({ success: false, message: "Only delivered orders can be confirmed" });
+      return c.json({ error: "Only delivered orders can be confirmed" }, 400);
     }
 
     order.status = "Completed";
-    saveOrders(orders);
+    try {
+      saveOrders(orders);
+    } catch (err) {
+      console.error("mock-shop: failed to save orders", err);
+      return c.json({ error: "Failed to update order" }, 500);
+    }
     return c.json({ success: true, message: "Order confirmed as completed." });
   });
 }
@@ -1070,8 +1131,8 @@ try {
   allProducts = await content.json();
   console.log(`mock-shop: loaded ${allProducts.length} products from ${productsPath}`);
 } catch (err) {
-  console.error(`mock-shop: failed to load products, falling back to empty list`, err);
-  allProducts = [];
+  console.error(`mock-shop: FATAL: failed to load products.json`, err);
+  process.exit(1);
 }
 
 startServer(app, {

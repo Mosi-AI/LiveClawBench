@@ -29,7 +29,7 @@ function parseCliPort(): number | undefined {
  * - Uses --port CLI flag if provided, otherwise falls back to config.port
  * - In dev mode: enables Hono logger middleware
  * - Calls optional seed function before starting
- * - Logs and continues if seed() throws (non-blocking for production)
+ * - Seed failures are fatal: the process exits with code 1
  *
  * @returns Bun server instance for lifecycle management (shutdown, health checks, etc.)
  */
@@ -51,15 +51,13 @@ export async function startServer(
     mockApp.app.use("*", logger());
   }
 
-  // Run seed callback if provided (non-blocking: log error but continue startup)
+  // Run seed callback if provided (fatal: exit on seed failure)
   if (options?.seed) {
     try {
       await options.seed();
     } catch (err) {
-      console.error(
-        `mock-${mockApp.config.name}: seed() failed, continuing startup`,
-        err,
-      );
+      console.error(`mock-${mockApp.config.name}: FATAL: seed() failed`, err);
+      process.exit(1);
     }
   }
 
