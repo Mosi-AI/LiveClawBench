@@ -34,14 +34,27 @@ finally:
     conn.close()
 PY
 
-python3 "${BROWSER_MOCK_DIR}/browser_mock_server.py" \
-  --database "${BROWSER_MOCK_DB}" \
-  --log "${BROWSER_MOCK_LOG}" \
-  --host "127.0.0.1" \
-  --port "8123" \
-  > "${BROWSER_MOCK_SERVER_LOG}" 2>&1 &
+# Skip starting Python sidecar if Bun mock-doc-search is already running
+# (detect healthy response from pre-started Bun binary)
+if python3 -c "
+import urllib.request, json, sys
+try:
+    r = urllib.request.urlopen('http://127.0.0.1:8123/health', timeout=1)
+    ok = json.load(r).get('ok', False)
+    sys.exit(0 if ok else 1)
+except SystemExit: raise
+except: sys.exit(1)
+" 2>/dev/null; then
+  echo "Bun mock-doc-search already running, skipping Python sidecar"
+else
+  python3 "${BROWSER_MOCK_DIR}/browser_mock_server.py" \
+    --database "${BROWSER_MOCK_DB}" \
+    --log "${BROWSER_MOCK_LOG}" \
+    --host "127.0.0.1" \
+    --port "8123" \
+    > "${BROWSER_MOCK_SERVER_LOG}" 2>&1 &
 
-python3 - "${BROWSER_MOCK_BASE_URL}" <<'PY'
+  python3 - "${BROWSER_MOCK_BASE_URL}" <<'PY'
 import json
 import sys
 import time
@@ -62,3 +75,4 @@ while time.time() < deadline:
     time.sleep(0.2)
 raise SystemExit(f"browser mock server did not become ready: {last_error}")
 PY
+fi
