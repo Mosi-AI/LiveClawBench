@@ -61,14 +61,24 @@ def run_parity_test():
     )
 
     if len(func_sources) < 2:
-        missing = {"calculate_relevance_score", "search_products", "filter_and_sort_products"} - set(func_sources.keys())
-        raise ValueError(f"Could not extract functions from {APP_PY_PATH}: missing {missing}")
+        missing = {
+            "calculate_relevance_score",
+            "search_products",
+            "filter_and_sort_products",
+        } - set(func_sources.keys())
+        raise ValueError(
+            f"Could not extract functions from {APP_PY_PATH}: missing {missing}"
+        )
 
     # Build a namespace with all dependencies needed by the functions
     local_ns = {"re": re, "Counter": Counter}
     builtins = {
-        "Dict": dict, "Any": object, "List": list, "Tuple": tuple,
-        "Optional": type(None), "ceil": __import__("math").ceil,
+        "Dict": dict,
+        "Any": object,
+        "List": list,
+        "Tuple": tuple,
+        "Optional": type(None),
+        "ceil": __import__("math").ceil,
         "datetime": __import__("datetime").datetime,
     }
     local_ns.update(builtins)
@@ -98,7 +108,11 @@ def run_parity_test():
     output = {
         "product_count": len(products),
         "source": APP_PY_PATH,
-        "functions_used": ["calculate_relevance_score", "search_products", "filter_and_sort_products"],
+        "functions_used": [
+            "calculate_relevance_score",
+            "search_products",
+            "filter_and_sort_products",
+        ],
         "queries": {},
     }
 
