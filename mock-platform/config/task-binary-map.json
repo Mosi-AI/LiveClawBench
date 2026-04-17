@@ -34,7 +34,7 @@
       ]
     },
     "email-watch-shop": {
-      "binaries": ["shop"],
+      "binaries": ["shop", "email"],
       "startup_extra": "tasks/email-watch-shop/environment/startup.sh",
       "assets": [
         { "src": "tasks/email-watch-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
@@ -42,7 +42,7 @@
       ]
     },
     "email-washer-change": {
-      "binaries": ["shop"],
+      "binaries": ["shop", "email"],
       "startup_extra": "tasks/email-washer-change/environment/startup.sh",
       "assets": [
         { "src": "tasks/email-washer-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
@@ -70,6 +70,7 @@
     "noise-filtering": { "binaries": [] },
     "mixed-tool-memory": {
       "binaries": ["doc-search"],
+      "startup_extra": "tasks/mixed-tool-memory/environment/startup.sh",
       "assets": [
         { "src": "tasks/mixed-tool-memory/environment/browser_mock_sidecar/documents.sql", "dest": "/opt/mock/data/documents.sql" }
       ]
@@ -78,6 +79,7 @@
     "live-web-research-sqlite-fts5": { "binaries": [] },
     "conflict-repair-acb": {
       "binaries": ["doc-search"],
+      "startup_extra": "tasks/conflict-repair-acb/environment/startup.sh",
       "assets": [
         { "src": "tasks/conflict-repair-acb/environment/browser_mock_sidecar/documents.sql", "dest": "/opt/mock/data/documents.sql" }
       ]
