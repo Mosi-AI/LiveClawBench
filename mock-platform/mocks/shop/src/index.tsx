@@ -876,12 +876,20 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
   app.delete("/api/cart/remove/:product_id", (c) => {
     const pid = c.req.param("product_id");
-    const cart = loadCart().filter((item) => item.id !== pid);
-    saveCart(cart);
+    const cart = loadCart();
+    const itemExists = cart.some((item) => item.id === pid);
+    if (!itemExists) return c.json({ error: "Item not found in cart" }, 404);
+    const updatedCart = cart.filter((item) => item.id !== pid);
+    try {
+      saveCart(updatedCart);
+    } catch (err) {
+      console.error("mock-shop: failed to save cart", err);
+      return c.json({ error: "Failed to save cart" }, 500);
+    }
     return c.json({
       success: true,
       message: "Item removed from cart",
-      cart_count: cart.reduce((s, i) => s + i.quantity, 0),
+      cart_count: updatedCart.reduce((s, i) => s + i.quantity, 0),
     });
   });
 
@@ -893,17 +901,20 @@ function registerRoutes(app: Hono<AppEnv>): void {
       return c.json({ error: "Invalid JSON body" }, 400);
     }
     const productId = body.product_id;
+    if (!productId) return c.json({ error: "product_id required" }, 400);
     const quantity = body.quantity ?? 1;
+    if (typeof quantity !== "number" || !Number.isFinite(quantity)) {
+      return c.json({ error: "quantity must be a finite number" }, 400);
+    }
 
     const cart = loadCart();
     const item = cart.find((i) => i.id === productId);
-    if (item) {
-      if (quantity <= 0) {
-        const idx = cart.indexOf(item);
-        if (idx >= 0) cart.splice(idx, 1);
-      } else {
-        item.quantity = quantity;
-      }
+    if (!item) return c.json({ error: "Item not found in cart" }, 404);
+    if (quantity <= 0) {
+      const idx = cart.indexOf(item);
+      if (idx >= 0) cart.splice(idx, 1);
+    } else {
+      item.quantity = quantity;
     }
     try {
       saveCart(cart);
@@ -920,7 +931,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   app.post("/api/cart/clear", (c) => {
-    clearCart();
+    try {
+      clearCart();
+    } catch (err) {
+      console.error("mock-shop: failed to clear cart", err);
+      return c.json({ error: "Failed to clear cart" }, 500);
+    }
     return c.json({ success: true, message: "Cart cleared" });
   });
 
@@ -965,7 +981,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
       console.error("mock-shop: failed to save orders", err);
       return c.json({ error: "Failed to save order" }, 500);
     }
-    clearCart();
+    try {
+      clearCart();
+    } catch (err) {
+      console.error("mock-shop: order saved but cart clear failed", err);
+      return c.json({ success: true, message: "Order placed successfully!", order_id: orderId, warning: "Cart clear failed" });
+    }
 
     return c.json({
       success: true,
