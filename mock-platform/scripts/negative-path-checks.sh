@@ -209,9 +209,10 @@ done
 curl -sf -X POST http://localhost:19998/api/cart/add \
   -H "Content-Type: application/json" -d '{"product_id": "p1"}' >/dev/null 2>&1 || true
 
-# Make data dir/files read-only after seeding (reads must succeed for routes to reach writes)
-chmod 555 "$TMPDIR/writefail/data"
-chmod 444 "$TMPDIR/writefail/data"/*
+# Make specific files read-only after seeding (reads succeed, writes fail)
+chmod 444 "$TMPDIR/writefail/data/mosi_shop_cart.json"
+chmod 444 "$TMPDIR/writefail/data/mosi_shop_orders.json"
+chmod 444 "$TMPDIR/writefail/data/mosi_shop_user.json"
 
 # Test 12: cart/remove should fail on saveCart
 R=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE http://localhost:19998/api/cart/remove/p1 \
@@ -230,8 +231,12 @@ R=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:19998/api/ch
   2>/dev/null || echo "000")
 check "Write failure on checkout returns 500 (got $R)" "$([ "$R" = "500" ] && echo PASS || echo FAIL)"
 
+# Test 15: cart/clear should fail on saveCart
+R=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:19998/api/cart/clear \
+  -H "Content-Type: application/json" 2>/dev/null || echo "000")
+check "Write failure on cart/clear returns 500 (got $R)" "$([ "$R" = "500" ] && echo PASS || echo FAIL)"
+
 # Restore write permissions for cleanup
-chmod 755 "$TMPDIR/writefail/data"
 chmod 644 "$TMPDIR/writefail/data"/*
 kill $WF_PID 2>/dev/null || true
 wait $WF_PID 2>/dev/null || true

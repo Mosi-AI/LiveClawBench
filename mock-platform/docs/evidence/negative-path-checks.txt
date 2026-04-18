@@ -1,5 +1,5 @@
 === Negative-Path Checks ===
-Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.Rzwg6WH5KB
+Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.5wwvH8Qnho
 
 --- Test 1: Corrupted products.json → exit non-zero ---
   PASS: Corrupted products.json exits non-zero
@@ -20,6 +20,7 @@ Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.Rzwg6WH5KB
   PASS: Write failure on cart/remove returns 500 (got 500)
   PASS: Write failure on user/update returns 500 (got 500)
   PASS: Write failure on checkout returns 500 (got 500)
+  PASS: Write failure on cart/clear returns 500 (got 500)
 
-=== Results: 14 passed, 0 failed ===
+=== Results: 15 passed, 0 failed ===
 ALL CHECKS PASSED
