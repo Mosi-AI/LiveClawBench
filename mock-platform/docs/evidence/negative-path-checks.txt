@@ -1,5 +1,5 @@
 === Negative-Path Checks ===
-Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.5wwvH8Qnho
+Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.N7YKEJnGE1
 
 --- Test 1: Corrupted products.json → exit non-zero ---
   PASS: Corrupted products.json exits non-zero
