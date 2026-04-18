@@ -34,7 +34,7 @@
             "kwargs": {},
             "env": {
                 "CUSTOM_BASE_URL": "https://ark.cn-beijing.volces.com/api/coding/v3",
-                "CUSTOM_API_KEY": "566c57b3-fab6-4de2-b587-519ca8c98b9b"
+                "CUSTOM_API_KEY": "<REDACTED>"
             }
         },
         "environment": {
@@ -50,7 +50,7 @@
             "mounts_json": null,
             "env": {
                 "JUDGE_BASE_URL": "https://ark.cn-beijing.volces.com/api/coding/v3",
-                "JUDGE_API_KEY": "566c57b3-fab6-4de2-b587-519ca8c98b9b"
+                "JUDGE_API_KEY": "<REDACTED>"
             },
             "kwargs": {}
         },
