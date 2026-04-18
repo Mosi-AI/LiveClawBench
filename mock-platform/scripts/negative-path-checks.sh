@@ -27,7 +27,7 @@ check() {
 
 cleanup() {
   # Kill any lingering mock processes
-  for pid in ${SHOP_PID:-} ${DOC_PID:-} ; do
+  for pid in ${SHOP_PID:-} ${DOC_PID:-} ${WF_PID:-} ; do
     kill "$pid" 2>/dev/null || true
   done
   wait 2>/dev/null || true
@@ -179,6 +179,62 @@ fi
 # Kill shop
 kill $SHOP_PID 2>/dev/null || true
 wait $SHOP_PID 2>/dev/null || true
+
+# ---------------------------------------------------------------
+# Test 12-15: Write-failure tests
+# ---------------------------------------------------------------
+echo "--- Test 12-15: Write-failure tests ---"
+
+# Create a fresh data dir and start shop
+mkdir -p "$TMPDIR/writefail/static/shop" "$TMPDIR/writefail/data"
+cat > "$TMPDIR/writefail/static/shop/products.json" <<'PRODUCTS'
+[{"id":"p1","title":"Test Widget","price":29.99,"rating":4.5,"rating_count":"(100)","image_url":"/img/widget.jpg"}]
+PRODUCTS
+
+# Start shop with fresh data dir
+MOCK_PRODUCTS_PATH="$TMPDIR/writefail/static/shop/products.json" \
+  MOCK_DATA_DIR="$TMPDIR/writefail/data" \
+  bun run "$SHOP_SRC" --port 19998 >/dev/null 2>&1 &
+WF_PID=$!
+
+# Wait for healthy
+for i in $(seq 1 15); do
+  if curl -sf http://localhost:19998/health 2>/dev/null | grep -q "healthy"; then
+    break
+  fi
+  sleep 1
+done
+
+# Seed writable state BEFORE locking the data dir
+curl -sf -X POST http://localhost:19998/api/cart/add \
+  -H "Content-Type: application/json" -d '{"product_id": "p1"}' >/dev/null 2>&1 || true
+
+# Make data dir/files read-only after seeding (reads must succeed for routes to reach writes)
+chmod 555 "$TMPDIR/writefail/data"
+chmod 444 "$TMPDIR/writefail/data"/*
+
+# Test 12: cart/remove should fail on saveCart
+R=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE http://localhost:19998/api/cart/remove/p1 \
+  -H "Content-Type: application/json" 2>/dev/null || echo "000")
+check "Write failure on cart/remove returns 500 (got $R)" "$([ "$R" = "500" ] && echo PASS || echo FAIL)"
+
+# Test 13: user/update should fail on saveUser
+R=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:19998/api/user/update \
+  -H "Content-Type: application/json" -d '{"field": "address", "value": "123 Main St"}' \
+  2>/dev/null || echo "000")
+check "Write failure on user/update returns 500 (got $R)" "$([ "$R" = "500" ] && echo PASS || echo FAIL)"
+
+# Test 14: checkout should fail on saveOrders or clearCart
+R=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:19998/api/checkout \
+  -H "Content-Type: application/json" -d '{}' \
+  2>/dev/null || echo "000")
+check "Write failure on checkout returns 500 (got $R)" "$([ "$R" = "500" ] && echo PASS || echo FAIL)"
+
+# Restore write permissions for cleanup
+chmod 755 "$TMPDIR/writefail/data"
+chmod 644 "$TMPDIR/writefail/data"/*
+kill $WF_PID 2>/dev/null || true
+wait $WF_PID 2>/dev/null || true
 
 # ---------------------------------------------------------------
 # Summary

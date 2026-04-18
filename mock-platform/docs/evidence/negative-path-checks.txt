@@ -1,5 +1,5 @@
 === Negative-Path Checks ===
-Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.aaaLmr09WY
+Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.Rzwg6WH5KB
 
 --- Test 1: Corrupted products.json → exit non-zero ---
   PASS: Corrupted products.json exits non-zero
@@ -9,8 +9,6 @@ Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.aaaLmr09WY
   PASS: Missing SQL seed exits non-zero
 --- Test 4-11: HTTP validation tests ---
   PASS: Malformed JSON to cart/add returns 400 (got 400)
-2026-04-18 01:08:08.426 curl[54294:178243067] CFPropertyListCreateFromXMLData(): Old-style plist parser: missing semicolon or value in dictionary on line 1. Parsing will be abandoned. Break on _CFPropertyListMissingSemicolonOrValue to debug.
-2026-04-18 01:08:08.427 curl[54294:178243067] CFPropertyListCreateFromXMLData(): Old-style plist parser: missing semicolon or value in dictionary on line 1. Parsing will be abandoned. Break on _CFPropertyListMissingSemicolonOrValue to debug.
   PASS: Malformed JSON to cart/update returns 400 (got 400)
   PASS: Malformed JSON to user/update returns 400 (got 400)
   PASS: Invalid min_price to /search returns 400 (got 400)
@@ -18,6 +16,10 @@ Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.aaaLmr09WY
   PASS: Missing product_id in cart/add returns 400 (got 400)
   PASS: Missing product_id in cart/update returns 400 (got 400)
   PASS: Non-existent product in cart/add returns 404 (got 404)
+--- Test 12-15: Write-failure tests ---
+  PASS: Write failure on cart/remove returns 500 (got 500)
+  PASS: Write failure on user/update returns 500 (got 500)
+  PASS: Write failure on checkout returns 500 (got 500)
 
-=== Results: 11 passed, 0 failed ===
+=== Results: 14 passed, 0 failed ===
 ALL CHECKS PASSED
