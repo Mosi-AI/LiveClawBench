@@ -985,7 +985,8 @@ function registerRoutes(app: Hono<AppEnv>): void {
       clearCart();
     } catch (err) {
       console.error("mock-shop: order saved but cart clear failed", err);
-      return c.json({ success: true, message: "Order placed successfully!", order_id: orderId, warning: "Cart clear failed" });
+      // Order is already persisted; returning 500 per write-failure contract
+      return c.json({ error: "Order saved but cart clear failed" }, 500);
     }
 
     return c.json({
