@@ -39,12 +39,16 @@ async function compileMock(name: string): Promise<BuildResult> {
   const outputPath = join(DIST_DIR, `mock-${name}`);
 
   try {
-    // NOTE: Using --target bun-linux-x64 requires network access on first run
+    // Auto-detect host architecture for cross-compilation target selection
+    // ARM64 hosts build aarch64 binaries, x64 hosts build x86_64 binaries
+    const hostArch = process.arch; // 'arm64' or 'x64'
+    const target = hostArch === 'arm64' ? 'bun-linux-aarch64' : 'bun-linux-x64';
+
+    // NOTE: Using --target requires network access on first run
     // to download the Linux runtime bundle. Offline or restricted-network
-    // environments will fail with "Failed to download 'bun-linux-x64-v1.3.11'".
-    // This is a known limitation for Plan 1; Plan 2 can address offline builds.
+    // environments will fail with a "Failed to download" error.
     const proc = Bun.spawn([
-      "bun", "build", "--compile", "--target", "bun-linux-x64",
+      "bun", "build", "--compile", "--target", target,
       entryPoint, "--outfile", outputPath,
     ], {
       stdout: "pipe",
