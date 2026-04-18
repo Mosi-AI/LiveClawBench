@@ -1,5 +1,5 @@
 === Negative-Path Checks ===
-Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.N7YKEJnGE1
+Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.C8PahImjy0
 
 --- Test 1: Corrupted products.json → exit non-zero ---
   PASS: Corrupted products.json exits non-zero
@@ -16,11 +16,12 @@ Temp dir: /var/folders/jc/qqqwhv4s09n739mcjkktvrk40000gn/T/tmp.N7YKEJnGE1
   PASS: Missing product_id in cart/add returns 400 (got 400)
   PASS: Missing product_id in cart/update returns 400 (got 400)
   PASS: Non-existent product in cart/add returns 404 (got 404)
---- Test 12-15: Write-failure tests ---
-  PASS: Write failure on cart/remove returns 500 (got 500)
-  PASS: Write failure on user/update returns 500 (got 500)
-  PASS: Write failure on checkout returns 500 (got 500)
-  PASS: Write failure on cart/clear returns 500 (got 500)
+--- Test 12-16: Write-failure tests ---
+  PASS: Write failure on cart/remove returns body with Failed to save cart
+  PASS: Write failure on user/update returns body with Failed to save user profile
+  PASS: Write failure on checkout saveOrders returns body with Failed to save order
+  PASS: Write failure on checkout clearCart returns body with Order saved but cart clear failed
+  PASS: Write failure on cart/clear returns body with Failed to clear cart
 
-=== Results: 15 passed, 0 failed ===
+=== Results: 16 passed, 0 failed ===
 ALL CHECKS PASSED

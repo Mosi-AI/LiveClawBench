@@ -181,9 +181,9 @@ kill $SHOP_PID 2>/dev/null || true
 wait $SHOP_PID 2>/dev/null || true
 
 # ---------------------------------------------------------------
-# Test 12-15: Write-failure tests
+# Test 12-16: Write-failure tests
 # ---------------------------------------------------------------
-echo "--- Test 12-15: Write-failure tests ---"
+echo "--- Test 12-16: Write-failure tests ---"
 
 # Create a fresh data dir and start shop
 mkdir -p "$TMPDIR/writefail/static/shop" "$TMPDIR/writefail/data"
@@ -209,35 +209,65 @@ done
 curl -sf -X POST http://localhost:19998/api/cart/add \
   -H "Content-Type: application/json" -d '{"product_id": "p1"}' >/dev/null 2>&1 || true
 
-# Make specific files read-only after seeding (reads succeed, writes fail)
-chmod 444 "$TMPDIR/writefail/data/mosi_shop_cart.json"
-chmod 444 "$TMPDIR/writefail/data/mosi_shop_orders.json"
-chmod 444 "$TMPDIR/writefail/data/mosi_shop_user.json"
-
 # Test 12: cart/remove should fail on saveCart
-R=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE http://localhost:19998/api/cart/remove/p1 \
-  -H "Content-Type: application/json" 2>/dev/null || echo "000")
-check "Write failure on cart/remove returns 500 (got $R)" "$([ "$R" = "500" ] && echo PASS || echo FAIL)"
+chmod 444 "$TMPDIR/writefail/data/mosi_shop_cart.json"
+BODY=$(curl -s -X DELETE http://localhost:19998/api/cart/remove/p1 \
+  -H "Content-Type: application/json" 2>/dev/null || echo "")
+if echo "$BODY" | grep -q '"error".*"Failed to save cart"'; then
+  check "Write failure on cart/remove returns body with Failed to save cart" "PASS"
+else
+  check "Write failure on cart/remove returns body with Failed to save cart" "FAIL (body: $BODY)"
+fi
+chmod 644 "$TMPDIR/writefail/data/mosi_shop_cart.json"
 
 # Test 13: user/update should fail on saveUser
-R=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:19998/api/user/update \
+chmod 444 "$TMPDIR/writefail/data/mosi_shop_user.json"
+BODY=$(curl -s -X POST http://localhost:19998/api/user/update \
   -H "Content-Type: application/json" -d '{"field": "address", "value": "123 Main St"}' \
-  2>/dev/null || echo "000")
-check "Write failure on user/update returns 500 (got $R)" "$([ "$R" = "500" ] && echo PASS || echo FAIL)"
+  2>/dev/null || echo "")
+if echo "$BODY" | grep -q '"error".*"Failed to save user profile"'; then
+  check "Write failure on user/update returns body with Failed to save user profile" "PASS"
+else
+  check "Write failure on user/update returns body with Failed to save user profile" "FAIL (body: $BODY)"
+fi
+chmod 644 "$TMPDIR/writefail/data/mosi_shop_user.json"
 
-# Test 14: checkout should fail on saveOrders or clearCart
-R=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:19998/api/checkout \
+# Test 14a: checkout should fail on saveOrders
+chmod 444 "$TMPDIR/writefail/data/mosi_shop_orders.json"
+BODY=$(curl -s -X POST http://localhost:19998/api/checkout \
   -H "Content-Type: application/json" -d '{}' \
-  2>/dev/null || echo "000")
-check "Write failure on checkout returns 500 (got $R)" "$([ "$R" = "500" ] && echo PASS || echo FAIL)"
+  2>/dev/null || echo "")
+if echo "$BODY" | grep -q '"error".*"Failed to save order"'; then
+  check "Write failure on checkout saveOrders returns body with Failed to save order" "PASS"
+else
+  check "Write failure on checkout saveOrders returns body with Failed to save order" "FAIL (body: $BODY)"
+fi
+chmod 644 "$TMPDIR/writefail/data/mosi_shop_orders.json"
+
+# Test 14b: checkout clearCart after successful saveOrders
+chmod 444 "$TMPDIR/writefail/data/mosi_shop_cart.json"
+BODY=$(curl -s -X POST http://localhost:19998/api/checkout \
+  -H "Content-Type: application/json" -d '{}' \
+  2>/dev/null || echo "")
+if echo "$BODY" | grep -q '"error".*"Order saved but cart clear failed"'; then
+  check "Write failure on checkout clearCart returns body with Order saved but cart clear failed" "PASS"
+else
+  check "Write failure on checkout clearCart returns body with Order saved but cart clear failed" "FAIL (body: $BODY)"
+fi
+chmod 644 "$TMPDIR/writefail/data/mosi_shop_cart.json"
 
 # Test 15: cart/clear should fail on saveCart
-R=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:19998/api/cart/clear \
-  -H "Content-Type: application/json" 2>/dev/null || echo "000")
-check "Write failure on cart/clear returns 500 (got $R)" "$([ "$R" = "500" ] && echo PASS || echo FAIL)"
+chmod 444 "$TMPDIR/writefail/data/mosi_shop_cart.json"
+BODY=$(curl -s -X POST http://localhost:19998/api/cart/clear \
+  -H "Content-Type: application/json" 2>/dev/null || echo "")
+if echo "$BODY" | grep -q '"error".*"Failed to clear cart"'; then
+  check "Write failure on cart/clear returns body with Failed to clear cart" "PASS"
+else
+  check "Write failure on cart/clear returns body with Failed to clear cart" "FAIL (body: $BODY)"
+fi
+chmod 644 "$TMPDIR/writefail/data/mosi_shop_cart.json"
 
-# Restore write permissions for cleanup
-chmod 644 "$TMPDIR/writefail/data"/*
+# Cleanup
 kill $WF_PID 2>/dev/null || true
 wait $WF_PID 2>/dev/null || true
 
