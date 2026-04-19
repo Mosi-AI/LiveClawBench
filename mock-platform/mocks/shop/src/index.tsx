@@ -90,6 +90,10 @@ function isUserField(value: string): value is UserField {
   return ["username", "gender", "email", "phone", "address"].includes(value);
 }
 
+function isSortBy(value: string): value is NonNullable<FilterOptions["sortBy"]> {
+  return ["similarity", "price_asc", "price_desc", "rating"].includes(value);
+}
+
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
@@ -838,6 +842,10 @@ function registerRoutes(app: Hono<AppEnv>): void {
       return c.json({ error: "Invalid numeric filter parameter" }, 400);
     }
 
+    if (!isSortBy(sort)) {
+      return c.json({ error: "Invalid sort parameter" }, 400);
+    }
+
     let currentProducts: Product[] = [];
     let totalPages = 0;
 
@@ -894,6 +902,10 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
     if ([minPrice, maxPrice, minRating].some((v) => v != null && Number.isNaN(v))) {
       return c.json({ error: "Invalid numeric filter parameter" }, 400);
+    }
+
+    if (!isSortBy(sort)) {
+      return c.json({ error: "Invalid sort parameter" }, 400);
     }
 
     const filtered = filterAndSortProducts(allProducts, {

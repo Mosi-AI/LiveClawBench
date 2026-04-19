@@ -178,13 +178,25 @@ function validateDocumentRow(row: unknown): Document {
     throw new Error("Invalid document row: expected object");
   }
   const r = row as Record<string, unknown>;
-  const required = ["id", "slug", "title", "kind", "status", "reliability", "updated_at", "owner", "summary", "body", "tags"];
+  const required = ["id", "slug", "title", "kind", "status", "reliability", "updated_at", "owner", "summary", "body", "tags"] as const;
   for (const key of required) {
     if (typeof r[key] !== "string") {
       throw new Error(`Document row missing required field "${key}"`);
     }
   }
-  return r as Document;
+  return {
+    id: r.id as string,
+    slug: r.slug as string,
+    title: r.title as string,
+    kind: r.kind as string,
+    status: r.status as string,
+    reliability: r.reliability as string,
+    updated_at: r.updated_at as string,
+    owner: r.owner as string,
+    summary: r.summary as string,
+    body: r.body as string,
+    tags: r.tags as string,
+  };
 }
 
 function loadDynamicConfig(): void {
