@@ -152,7 +152,7 @@ function initDatabase(): void {
 
   db = new Database(DB_PATH, { create: true });
 
-  // Load and execute SQL seed file — fail fast if missing (AC-6.3)
+  // Load and execute SQL seed file — fail fast if missing
   if (!existsSync(SQL_PATH)) {
     console.error(`mock-doc-search: FATAL: SQL seed file not found at ${SQL_PATH}`);
     console.error(`mock-doc-search: Ensure the per-task asset (documents.sql) is staged at /opt/mock/data/`);
@@ -412,7 +412,7 @@ function renderNotFound(): string {
 // ---------------------------------------------------------------------------
 
 function registerRoutes(app: Hono<AppEnv>): void {
-  // Sentinel route for binary isolation verification (AC-1.1).
+  // Sentinel route for binary isolation verification.
   app.get("/__mock_sentinel__/doc-search", (c) =>
     c.json({ mock: "doc-search", sentinel: true }),
   );
@@ -425,7 +425,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     return c.html(renderHome());
   });
 
-  // GET /health — provided by mock-lib default (AC-1.1 contract)
+  // GET /health — provided by mock-lib default
 
   // GET /search — Search results page
   app.get("/search", (c) => {

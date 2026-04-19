@@ -2,7 +2,7 @@ import { createMockApp, startServer } from "mock-lib";
 
 const app = createMockApp({ name: "todolist" });
 
-// Sentinel route for binary isolation verification (AC-1.1).
+// Sentinel route for binary isolation verification.
 app.app.get("/__mock_sentinel__/todolist", (c) =>
   c.json({ mock: "todolist", sentinel: true }),
 );

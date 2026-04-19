@@ -1,5 +1,5 @@
 #!/bin/bash
-# negative-path-checks.sh — AC-7 targeted fail-fast and error-handling checks
+# negative-path-checks.sh — targeted fail-fast and error-handling checks
 #
 # Runs mock TypeScript source directly via bun on the host (no Docker needed).
 # Uses env var overrides to point at temp directories.
@@ -54,7 +54,7 @@ echo "Temp dir: $TMPDIR"
 echo ""
 
 # ---------------------------------------------------------------
-# Test 1: Corrupted products.json → exit non-zero (AC-7)
+# Test 1: Corrupted products.json → exit non-zero
 # ---------------------------------------------------------------
 echo "--- Test 1: Corrupted products.json → exit non-zero ---"
 mkdir -p "$TMPDIR/corrupt/static/shop"
@@ -75,7 +75,7 @@ fi
 wait $TEST_PID 2>/dev/null || true
 
 # ---------------------------------------------------------------
-# Test 2: Missing products.json → exit non-zero (AC-7)
+# Test 2: Missing products.json → exit non-zero
 # ---------------------------------------------------------------
 echo "--- Test 2: Missing products.json → exit non-zero ---"
 mkdir -p "$TMPDIR/missing/static/shop"
@@ -95,7 +95,7 @@ fi
 wait $TEST_PID 2>/dev/null || true
 
 # ---------------------------------------------------------------
-# Test 3: Missing SQL seed for doc-search → exit non-zero (AC-7)
+# Test 3: Missing SQL seed for doc-search → exit non-zero
 # ---------------------------------------------------------------
 echo "--- Test 3: Doc-search missing SQL seed → exit non-zero ---"
 mkdir -p "$TMPDIR/docsearch-missing"

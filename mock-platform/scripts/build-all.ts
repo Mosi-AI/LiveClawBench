@@ -69,7 +69,7 @@ async function compileMock(name: string): Promise<BuildResult> {
 }
 
 /**
- * Binary isolation verification (AC-1.1).
+ * Binary isolation verification.
  *
  * Two-phase check per compiled binary:
  * 1. POSITIVE control: binary MUST contain its own sentinel route string
@@ -237,7 +237,7 @@ async function main() {
     process.exit(1);
   }
 
-  // Exit with error if isolation verification failed (AC-1.1 violation)
+  // Exit with error if isolation verification failed
   if (!isolationPass) {
     console.error("\nERROR: Isolation verification failed. Build pipeline cannot continue.");
     console.error("  Fix: Ensure each mock contains its own sentinel route and no foreign sentinels.");

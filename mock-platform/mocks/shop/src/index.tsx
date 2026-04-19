@@ -819,7 +819,7 @@ const OrdersPage: FC<{ user: UserData; orders: Order[] }> = ({ user, orders }) =
 // ---------------------------------------------------------------------------
 
 function registerRoutes(app: Hono<AppEnv>): void {
-  // Sentinel route for binary isolation verification (AC-1.1).
+  // Sentinel route for binary isolation verification.
   app.get("/__mock_sentinel__/shop", (c) =>
     c.json({ mock: "shop", sentinel: true }),
   );
