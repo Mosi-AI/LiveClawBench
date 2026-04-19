@@ -14,8 +14,8 @@
  * Usage: bun run scripts/build-task-images.ts [--dry-run]
  */
 
-import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync, readdirSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync, readdirSync, realpathSync } from "node:fs";
+import { join, relative, resolve, sep } from "node:path";
 
 const DIST_DIR = join(import.meta.dir, "..", "dist");
 const CONFIG_PATH = join(import.meta.dir, "..", "config", "task-binary-map.json");
@@ -291,10 +291,35 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       .split("\n")
       .filter((line) => !line.startsWith("#!") && line.trim() !== "set -euo pipefail");
 
+    // -------------------------------------------------------------------------
+    // Regex-based startup script filtering contract
+    // -------------------------------------------------------------------------
+    // The filters below rely on EXACT comment conventions used in task
+    // startup_extra files. Any change to these conventions in the source
+    // files MUST be mirrored here.
+    //
+    // Shop-app block filter (port-conflict avoidance):
+    //   - Trigger: a line matching /^#\s*Start\s+shop-app/i  (case-insensitive)
+    //   - Terminator: the next line matching /^#\s*Start\s+/i (any service)
+    //   - Behavior: drops every line between trigger (exclusive) and
+    //     terminator (exclusive). The terminator line is KEPT because it
+    //     begins a different service block.
+    //   - Example:
+    //       # Start shop-app
+    //       cd /workspace/environment/shop-app && python3 app.py &
+    //       # Start email-service   <-- terminator, kept
+    //
+    // Doc-search SQLite bootstrap filter (DB lifecycle collision avoidance):
+    //   - Trigger: a line matching /^python3\s+-.*documents\.sql.*<<'PY'$/
+    //   - Terminator: a line that is exactly "PY" (heredoc end marker)
+    //   - Behavior: drops trigger, terminator, and every line in between.
+    //   - Also drops: /^:\s*>\s*"\$\{BROWSER_MOCK_LOG\}"$/ (log truncation
+    //     that collides with Bun binary log init).
+    // -------------------------------------------------------------------------
+
     // When implemented binaries include 'shop', strip Python shop-app startup lines
     // to avoid port conflicts (Python start.sh kills processes on port 1234).
     if (implementedBinaries.includes("shop")) {
-      // Filter out blocks between "# Start shop-app" and the next "# Start " comment
       let inShopBlock = false;
       filtered = filtered.filter((line) => {
         const l = line.trim();
@@ -411,12 +436,22 @@ async function buildTaskImage(
     const binaryStat = statSync(binaryPath);
     // Check all .ts/.tsx files in the src directory, not just the entry point,
     // since imported modules (e.g. search-algorithm.ts) may have changed.
-    function collectTsFiles(dir: string): string[] {
+    function collectTsFiles(dir: string, visited = new Set<string>()): string[] {
+      // Symlink cycle protection: track realpaths to avoid infinite recursion
+      let realDir: string;
+      try {
+        realDir = realpathSync(dir);
+      } catch {
+        realDir = dir;
+      }
+      if (visited.has(realDir)) return [];
+      visited.add(realDir);
+
       const results: string[] = [];
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) {
-          results.push(...collectTsFiles(full));
+          results.push(...collectTsFiles(full, visited));
         } else if (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx")) {
           results.push(full);
         }
@@ -479,7 +514,7 @@ async function buildTaskImage(
   // Stage and COPY per-task assets (CSS, JSON, SQL sidecars)
   // Asset source files are copied into DIST_DIR (build context) so Docker COPY can find them.
   if (assets && assets.length > 0) {
-    const repoRoot = join(import.meta.dir, "..", "..");
+    const repoRoot = resolve(import.meta.dir, "..", "..");
     const destDirs = new Set<string>();
     const assetCopyLines: string[] = [];
 
@@ -488,7 +523,29 @@ async function buildTaskImage(
       const destDir = asset.dest.substring(0, asset.dest.lastIndexOf("/"));
       if (destDir) destDirs.add(destDir);
 
-      const srcAbsPath = join(repoRoot, asset.src);
+      // Validate asset.src has no trailing slash (prevents empty filename from pop())
+      if (asset.src.endsWith("/")) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Asset src must not end with trailing slash: "${asset.src}"`,
+        };
+      }
+
+      // Resolve to absolute path and validate containment within repo root
+      const srcAbsPath = resolve(repoRoot, asset.src);
+      if (!srcAbsPath.startsWith(repoRoot + sep)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Asset path escapes repo root: "${asset.src}" -> ${srcAbsPath}`,
+        };
+      }
+
       if (!existsSync(srcAbsPath)) {
         return {
           task,

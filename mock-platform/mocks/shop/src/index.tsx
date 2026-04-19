@@ -84,6 +84,8 @@ interface UserData {
   payment_methods?: PaymentMethod[];
 }
 
+type UserField = "username" | "gender" | "email" | "phone" | "address";
+
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
@@ -151,6 +153,10 @@ function saveOrders(orders: Order[]): void {
 
 function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function escJs(s: string): string {
+  return s.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, "\\n").replace(/\r/g, "\\r");
 }
 
 // ---------------------------------------------------------------------------
@@ -234,7 +240,7 @@ const ProductCard: FC<{ product: Product }> = ({ product: p }) => {
       </div>
       <div class="product-price">{`$${p.price.toFixed(2)}`}</div>
       {tags.length > 0 ? <div class="product-tags">{tags}</div> : null}
-      <button class="add-to-cart-btn" onclick={`addToCart('${escHtml(p.id)}')`}>Add to Cart</button>
+      <button class="add-to-cart-btn" onclick={`addToCart('${escJs(p.id)}')`}>Add to Cart</button>
     </div>
   </div>;
 };
@@ -321,12 +327,12 @@ const CartItem: FC<{ item: CartItem }> = ({ item }) => {
     <span class="cart-item-title">{item.title}</span>
     <span class="cart-item-price">{`$${item.price.toFixed(2)}`}</span>
     <span class="cart-item-quantity">
-      <button onclick={`updateCart('${escHtml(item.id)}', ${item.quantity - 1})`}>-</button>
+      <button onclick={`updateCart('${escJs(item.id)}', ${item.quantity - 1})`}>-</button>
       <span>{item.quantity}</span>
-      <button onclick={`updateCart('${escHtml(item.id)}', ${item.quantity + 1})`}>+</button>
+      <button onclick={`updateCart('${escJs(item.id)}', ${item.quantity + 1})`}>+</button>
     </span>
     <span class="cart-item-subtotal">{`$${(item.price * item.quantity).toFixed(2)}`}</span>
-    <button onclick={`removeFromCart('${escHtml(item.id)}')`}>Remove</button>
+    <button onclick={`removeFromCart('${escJs(item.id)}')`}>Remove</button>
   </div>;
 };
 
@@ -475,17 +481,58 @@ textarea.edit-field-input { resize: vertical; min-height: 100px; }
 const PROFILE_JS = `function editField(fieldName, currentValue) {
   var labels = { username: 'Username', gender: 'Gender', email: 'Email', phone: 'Phone', address: 'Delivery Address' };
   var isTextarea = fieldName === 'address';
-  var inputEl = isTextarea
-    ? '<textarea class="edit-field-input" id="editInput">' + currentValue + '</textarea>'
-    : '<input type="text" class="edit-field-input" id="editInput" value="' + currentValue + '">';
-  var modalHtml = '<div class="edit-modal active" id="editModal" onclick="closeEditModal(event)">'
-    + '<div class="edit-modal-content" onclick="event.stopPropagation()">'
-    + '<div class="edit-modal-header"><div class="edit-modal-title">Edit ' + labels[fieldName] + '</div>'
-    + '<button class="edit-modal-close" onclick="closeEditModal()">&times;</button></div>'
-    + '<div class="edit-modal-body"><div class="edit-field-label">' + labels[fieldName] + '</div>' + inputEl + '</div>'
-    + '<div class="edit-modal-actions"><button class="cancel-btn" onclick="closeEditModal()">Cancel</button>'
-    + '<button class="save-btn" onclick="saveField(\''+fieldName+'\')">Save</button></div></div></div>';
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  var modal = document.createElement('div');
+  modal.className = 'edit-modal active';
+  modal.id = 'editModal';
+  modal.onclick = closeEditModal;
+  var content = document.createElement('div');
+  content.className = 'edit-modal-content';
+  content.onclick = function(e) { e.stopPropagation(); };
+  var header = document.createElement('div');
+  header.className = 'edit-modal-header';
+  var title = document.createElement('div');
+  title.className = 'edit-modal-title';
+  title.textContent = 'Edit ' + labels[fieldName];
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'edit-modal-close';
+  closeBtn.textContent = '\u00D7';
+  closeBtn.onclick = closeEditModal;
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  var body = document.createElement('div');
+  body.className = 'edit-modal-body';
+  var label = document.createElement('div');
+  label.className = 'edit-field-label';
+  label.textContent = labels[fieldName];
+  var input;
+  if (isTextarea) {
+    input = document.createElement('textarea');
+  } else {
+    input = document.createElement('input');
+    input.type = 'text';
+  }
+  input.className = 'edit-field-input';
+  input.id = 'editInput';
+  input.value = currentValue;
+  body.appendChild(label);
+  body.appendChild(input);
+  var actions = document.createElement('div');
+  actions.className = 'edit-modal-actions';
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'cancel-btn';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.onclick = closeEditModal;
+  var saveBtn = document.createElement('button');
+  saveBtn.className = 'save-btn';
+  saveBtn.textContent = 'Save';
+  saveBtn.onclick = function() { saveField(fieldName); };
+  actions.appendChild(cancelBtn);
+  actions.appendChild(saveBtn);
+  content.appendChild(header);
+  content.appendChild(body);
+  content.appendChild(actions);
+  modal.appendChild(content);
+  document.body.appendChild(modal);
   setTimeout(function() {
     var inp = document.getElementById('editInput');
     if (inp) { inp.focus(); if (!isTextarea) inp.select(); }
@@ -527,16 +574,67 @@ async function saveField(fieldName) {
 }
 
 function showPaymentDetail(type, account, balance) {
-  var modalHtml = '<div class="payment-modal active" id="paymentModal" onclick="closeModal(event)">'
-    + '<div class="modal-content" onclick="event.stopPropagation()">'
-    + '<div class="modal-header"><div class="modal-title">' + type + '</div>'
-    + '<button class="modal-close" onclick="closeModal()">&times;</button></div>'
-    + '<div class="modal-body">'
-    + '<div class="detail-row"><span class="detail-label">Account</span><span class="detail-value">' + account + '</span></div>'
-    + (balance ? '<div class="detail-row"><span class="detail-label">Balance</span><span class="detail-value" style="color:#1e8e3e;">' + balance + '</span></div>' : '')
-    + '<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="color:#1e8e3e;">&#10003; Active</span></div>'
-    + '</div></div></div>';
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  var modal = document.createElement('div');
+  modal.className = 'payment-modal active';
+  modal.id = 'paymentModal';
+  modal.onclick = closeModal;
+  var content = document.createElement('div');
+  content.className = 'modal-content';
+  content.onclick = function(e) { e.stopPropagation(); };
+  var header = document.createElement('div');
+  header.className = 'modal-header';
+  var title = document.createElement('div');
+  title.className = 'modal-title';
+  title.textContent = type;
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'modal-close';
+  closeBtn.textContent = '\u00D7';
+  closeBtn.onclick = closeModal;
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  var body = document.createElement('div');
+  body.className = 'modal-body';
+  var accountRow = document.createElement('div');
+  accountRow.className = 'detail-row';
+  var accountLabel = document.createElement('span');
+  accountLabel.className = 'detail-label';
+  accountLabel.textContent = 'Account';
+  var accountValue = document.createElement('span');
+  accountValue.className = 'detail-value';
+  accountValue.textContent = account;
+  accountRow.appendChild(accountLabel);
+  accountRow.appendChild(accountValue);
+  body.appendChild(accountRow);
+  if (balance) {
+    var balanceRow = document.createElement('div');
+    balanceRow.className = 'detail-row';
+    var balanceLabel = document.createElement('span');
+    balanceLabel.className = 'detail-label';
+    balanceLabel.textContent = 'Balance';
+    var balanceValue = document.createElement('span');
+    balanceValue.className = 'detail-value';
+    balanceValue.style.color = '#1e8e3e';
+    balanceValue.textContent = balance;
+    balanceRow.appendChild(balanceLabel);
+    balanceRow.appendChild(balanceValue);
+    body.appendChild(balanceRow);
+  }
+  var statusRow = document.createElement('div');
+  statusRow.className = 'detail-row';
+  var statusLabel = document.createElement('span');
+  statusLabel.className = 'detail-label';
+  statusLabel.textContent = 'Status';
+  var statusValue = document.createElement('span');
+  statusValue.className = 'detail-value';
+  statusValue.style.color = '#1e8e3e';
+  statusValue.textContent = '\u2713 Active';
+  statusRow.appendChild(statusLabel);
+  statusRow.appendChild(statusValue);
+  body.appendChild(statusRow);
+  content.appendChild(header);
+  content.appendChild(body);
+  modal.appendChild(content);
+  document.body.appendChild(modal);
 }
 
 function closeModal(event) {
@@ -556,8 +654,8 @@ const ProfilePage: FC<{ user: UserData }> = ({ user }) => {
   const editIcon = "\u270F\uFE0F";
   const paymentItems: Child[] = payments.map((m) => {
     const icon = getPaymentIcon(m.type);
-    const balanceArg = m.balance ? `, '${escHtml(m.balance)}'` : "";
-    return <div class="payment-item" onclick={`showPaymentDetail('${escHtml(m.type)}', '${escHtml(m.account)}'${balanceArg})`}>
+    const balanceArg = m.balance ? `, '${escJs(m.balance)}'` : "";
+    return <div class="payment-item" onclick={`showPaymentDetail('${escJs(m.type)}', '${escJs(m.account)}'${balanceArg})`}>
       <div class="payment-icon">{icon}</div>
       <div class="payment-info">
         <div class="payment-type">{m.type}</div>
@@ -582,35 +680,35 @@ const ProfilePage: FC<{ user: UserData }> = ({ user }) => {
               <label>Username</label>
               <div class="info-value" id="username-display">
                 <span class="value-text">{user.username}</span>
-                <button class="edit-btn" onclick={`editField('username', '${escHtml(user.username)}')`}>{editIcon}</button>
+                <button class="edit-btn" onclick={`editField('username', '${escJs(user.username)}')`}>{editIcon}</button>
               </div>
             </div>
             <div class="info-item">
               <label>Gender</label>
               <div class="info-value" id="gender-display">
                 <span class="value-text">{user.gender}</span>
-                <button class="edit-btn" onclick={`editField('gender', '${escHtml(user.gender)}')`}>{editIcon}</button>
+                <button class="edit-btn" onclick={`editField('gender', '${escJs(user.gender)}')`}>{editIcon}</button>
               </div>
             </div>
             <div class="info-item">
               <label>Email</label>
               <div class="info-value" id="email-display">
                 <span class="value-text">{user.email}</span>
-                <button class="edit-btn" onclick={`editField('email', '${escHtml(user.email)}')`}>{editIcon}</button>
+                <button class="edit-btn" onclick={`editField('email', '${escJs(user.email)}')`}>{editIcon}</button>
               </div>
             </div>
             <div class="info-item">
               <label>Phone</label>
               <div class="info-value" id="phone-display">
                 <span class="value-text">{user.phone}</span>
-                <button class="edit-btn" onclick={`editField('phone', '${escHtml(user.phone)}')`}>{editIcon}</button>
+                <button class="edit-btn" onclick={`editField('phone', '${escJs(user.phone)}')`}>{editIcon}</button>
               </div>
             </div>
             <div class="info-item full-width">
               <label>Delivery Address</label>
               <div class="info-value" id="address-display">
                 <span class="value-text">{user.address}</span>
-                <button class="edit-btn" onclick={`editField('address', '${escHtml(user.address)}')`}>{editIcon}</button>
+                <button class="edit-btn" onclick={`editField('address', '${escJs(user.address)}')`}>{editIcon}</button>
               </div>
             </div>
           </div>
@@ -680,11 +778,11 @@ const OrdersPage: FC<{ user: UserData; orders: Order[] }> = ({ user, orders }) =
     let actionButtons: Child = null;
     if (order.status === "Delivered") {
       actionButtons = <>
-        <button onclick={`confirmOrder('${escHtml(order.order_id)}')`}>Confirm Receipt</button>
-        <button onclick={`returnOrder('${escHtml(order.order_id)}')`}>Return</button>
+        <button onclick={`confirmOrder('${escJs(order.order_id)}')`}>Confirm Receipt</button>
+        <button onclick={`returnOrder('${escJs(order.order_id)}')`}>Return</button>
       </>;
     } else if (["Pending Shipment", "Shipped", "Completed"].includes(order.status)) {
-      actionButtons = <button onclick={`returnOrder('${escHtml(order.order_id)}')`}>Return</button>;
+      actionButtons = <button onclick={`returnOrder('${escJs(order.order_id)}')`}>Return</button>;
     }
 
     return <div class="order">
@@ -1011,13 +1109,13 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const value = body.value;
     if (!field || !value) return c.json({ error: "Field and value are required" }, 400);
 
-    const allowed = ["username", "gender", "email", "phone", "address"];
-    if (!allowed.includes(field)) return c.json({ error: "Invalid field" }, 400);
+    const allowed: UserField[] = ["username", "gender", "email", "phone", "address"];
+    if (!allowed.includes(field as UserField)) return c.json({ error: "Invalid field" }, 400);
 
-    const user: Record<string, unknown> = loadUser() as unknown as Record<string, unknown>;
-    user[field] = value;
+    const user = loadUser();
+    user[field as UserField] = value;
     try {
-      saveUser(user as unknown as UserData);
+      saveUser(user);
     } catch (err) {
       console.error("mock-shop: failed to save user", err);
       return c.json({ error: "Failed to save user profile" }, 500);

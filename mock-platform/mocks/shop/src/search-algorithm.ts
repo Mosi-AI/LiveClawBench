@@ -22,7 +22,7 @@ export interface FilterOptions {
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
-  sortBy?: string;
+  sortBy?: "similarity" | "price_asc" | "price_desc" | "rating";
   useSearch?: boolean;
 }
 

@@ -78,10 +78,10 @@ async function compileMock(name: string): Promise<BuildResult> {
  * This proves both that each binary is self-contained and that cross-contamination
  * did not occur during compilation.
  */
-async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Map<string, string[]>; missingSentinels: string[]; readErrors: string[] }> {
+async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Map<string, string[]>; missingSentinels: string[]; readErrors: Map<string, string> }> {
   const violations = new Map<string, string[]>();
   const missingSentinels: string[] = [];
-  const readErrors: string[] = [];
+  const readErrors = new Map<string, string>();
 
   // Sentinel routes registered by each mock stub — must match mocks/*/src/index.ts
   const sentinelPatterns: Record<string, string> = {
@@ -109,9 +109,7 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
       }
     } catch (err) {
       console.error(`Error: Could not read ${result.name} for sentinel check: ${err}`);
-      result.success = false;
-      result.error = `Binary read failed: ${err instanceof Error ? err.message : String(err)}`;
-      readErrors.push(result.name);
+      readErrors.set(result.name, `Binary read failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
@@ -138,9 +136,7 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
         }
       } catch (err) {
         console.error(`Error: Could not read ${result.name} for cross-contamination check: ${err}`);
-        result.success = false;
-        result.error = `Binary read failed: ${err instanceof Error ? err.message : String(err)}`;
-        readErrors.push(result.name);
+        readErrors.set(result.name, `Binary read failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
   }
@@ -182,7 +178,15 @@ async function main() {
   console.log(`\n=== Binary Isolation Verification ===`);
   const { violations, missingSentinels, readErrors } = await verifyIsolation(results);
 
-  // Compute passed/failed AFTER verifyIsolation, which may mutate result.success
+  // Apply read errors to results (verifyIsolation no longer mutates its input)
+  for (const [name, errorMsg] of readErrors) {
+    const result = results.find((r) => r.name === name);
+    if (result) {
+      result.success = false;
+      result.error = errorMsg;
+    }
+  }
+
   const passed = results.filter((r) => r.success);
   const failed = results.filter((r) => !r.success);
 
@@ -203,14 +207,14 @@ async function main() {
   }
 
   // Report binary read errors
-  if (readErrors.length > 0) {
+  if (readErrors.size > 0) {
     console.log("FAIL: Binary read errors during isolation verification:");
-    for (const name of readErrors) {
+    for (const name of readErrors.keys()) {
       console.log(`  mock-${name} could not be read for isolation check`);
     }
   }
 
-  const isolationPass = violations.size === 0 && missingSentinels.length === 0 && readErrors.length === 0;
+  const isolationPass = violations.size === 0 && missingSentinels.length === 0 && readErrors.size === 0;
   if (isolationPass) {
     console.log("PASS: All binaries contain own sentinel, no cross-contamination.");
   }

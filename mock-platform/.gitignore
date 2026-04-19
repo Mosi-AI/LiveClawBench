@@ -1,5 +1,6 @@
 dist/
 .tmp-images/
+jobs/
 
 # Evidence runtime logs
 docs/evidence/**/docsearch-server.log

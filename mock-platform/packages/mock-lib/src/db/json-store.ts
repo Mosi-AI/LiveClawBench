@@ -29,8 +29,11 @@ export class JsonStore {
     try {
       const content = readFileSync(join(this.dir, `${key}.json`), "utf-8");
       return JSON.parse(content) as T;
-    } catch {
-      return defaultValue;
+    } catch (err) {
+      if (err instanceof Error && (err as NodeJS.ErrnoException).code === "ENOENT") {
+        return defaultValue;
+      }
+      throw new Error(`JsonStore read failed for "${key}": ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
@@ -38,10 +41,15 @@ export class JsonStore {
    * Write a JSON file to the store.
    */
   write<T>(key: string, data: T): void {
-    writeFileSync(
-      join(this.dir, `${key}.json`),
-      JSON.stringify(data, null, 2),
-      "utf-8",
-    );
+    const path = join(this.dir, `${key}.json`);
+    try {
+      writeFileSync(
+        path,
+        JSON.stringify(data, null, 2),
+        "utf-8",
+      );
+    } catch (err) {
+      throw new Error(`JsonStore write failed for "${key}" at ${path}: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 }

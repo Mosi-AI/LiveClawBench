@@ -123,7 +123,7 @@ let metadata: Metadata = {
 let queryExamples: string[] = [];
 
 // SQLite database (opened once, reused)
-let db: Database;
+let db: Database | null = null;
 
 // ---------------------------------------------------------------------------
 // Database initialization
@@ -166,9 +166,31 @@ function initDatabase(): void {
   loadDynamicConfig();
 }
 
+function assertDb(): Database {
+  if (!db) {
+    throw new Error("Database not initialized");
+  }
+  return db;
+}
+
+function validateDocumentRow(row: unknown): Document {
+  if (!row || typeof row !== "object") {
+    throw new Error("Invalid document row: expected object");
+  }
+  const r = row as Record<string, unknown>;
+  const required = ["id", "slug", "title", "kind", "status", "reliability", "updated_at", "owner", "summary", "body", "tags"];
+  for (const key of required) {
+    if (typeof r[key] !== "string") {
+      throw new Error(`Document row missing required field "${key}"`);
+    }
+  }
+  return r as Document;
+}
+
 function loadDynamicConfig(): void {
+  const database = assertDb();
   try {
-    const metaRows = db.query("SELECT key, value FROM metadata").all() as Array<{ key: string; value: string }>;
+    const metaRows = database.query("SELECT key, value FROM metadata").all() as Array<{ key: string; value: string }>;
     const metaMap = new Map(metaRows.map((r) => [r.key, r.value]));
     metadata = {
       site_title: metaMap.get("site_title") ?? metadata.site_title,
@@ -177,7 +199,7 @@ function loadDynamicConfig(): void {
       search_placeholder: metaMap.get("search_placeholder") ?? metadata.search_placeholder,
     };
 
-    const exampleRows = db.query("SELECT query FROM query_examples ORDER BY position ASC").all() as Array<{ query: string }>;
+    const exampleRows = database.query("SELECT query FROM query_examples ORDER BY position ASC").all() as Array<{ query: string }>;
     queryExamples = exampleRows.map((r) => r.query);
   } catch (err) {
     console.error("mock-doc-search: FATAL: failed to load dynamic config from database", err);
@@ -395,6 +417,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
   // GET /search — Search results page
   app.get("/search", (c) => {
+    if (!db) return c.json({ error: "Service not ready" }, 503);
     const query = c.req.query("q") ?? "";
     const path = c.req.path + (c.req.url.includes("?") ? "?" + c.req.url.split("?")[1] : "");
 
@@ -414,7 +437,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
                  d.title ASC
         LIMIT 8
       `);
-      results = stmt.all(matchQuery) as Array<Document & { rank_score?: number }>;
+      results = stmt.all(matchQuery).map((row) => validateDocumentRow(row));
     } else {
       // Empty query: return top documents sorted by reliability then title
       const stmt = db.query(`
@@ -424,7 +447,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
                  title ASC
         LIMIT 8
       `);
-      results = stmt.all() as Array<Document & { rank_score?: number }>;
+      results = stmt.all().map((row) => validateDocumentRow(row));
     }
 
     // Generate session ID
@@ -454,6 +477,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
   // GET /docs/:slug — Document page
   app.get("/docs/:slug", (c) => {
+    if (!db) return c.json({ error: "Service not ready" }, 503);
     const slug = c.req.param("slug");
     const sid = c.req.query("sid") ?? "";
     const rank = c.req.query("rank") ?? "";
@@ -461,7 +485,8 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
     // Look up document by slug
     const stmt = db.query("SELECT * FROM documents WHERE slug = ?");
-    const doc = stmt.get(slug) as Document | undefined;
+    const rawDoc = stmt.get(slug);
+    const doc = rawDoc ? validateDocumentRow(rawDoc) : undefined;
 
     if (!doc) {
       return c.html(renderNotFound(), 404);
