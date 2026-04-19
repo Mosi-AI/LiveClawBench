@@ -86,6 +86,10 @@ interface UserData {
 
 type UserField = "username" | "gender" | "email" | "phone" | "address";
 
+function isUserField(value: string): value is UserField {
+  return ["username", "gender", "email", "phone", "address"].includes(value);
+}
+
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
@@ -1109,11 +1113,10 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const value = body.value;
     if (!field || !value) return c.json({ error: "Field and value are required" }, 400);
 
-    const allowed: UserField[] = ["username", "gender", "email", "phone", "address"];
-    if (!allowed.includes(field as UserField)) return c.json({ error: "Invalid field" }, 400);
+    if (!isUserField(field)) return c.json({ error: "Invalid field" }, 400);
 
     const user = loadUser();
-    user[field as UserField] = value;
+    user[field] = value;
     try {
       saveUser(user);
     } catch (err) {

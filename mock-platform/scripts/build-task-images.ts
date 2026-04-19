@@ -515,6 +515,7 @@ async function buildTaskImage(
   // Asset source files are copied into DIST_DIR (build context) so Docker COPY can find them.
   if (assets && assets.length > 0) {
     const repoRoot = resolve(import.meta.dir, "..", "..");
+    const canonicalRepoRoot = realpathSync(repoRoot);
     const destDirs = new Set<string>();
     const assetCopyLines: string[] = [];
 
@@ -553,6 +554,21 @@ async function buildTaskImage(
           imageTag,
           binariesIncluded: binaries,
           error: `Asset source not found: ${srcAbsPath}`,
+        };
+      }
+
+      // Canonical symlink-safe containment check
+      const canonicalSrcPath = realpathSync(srcAbsPath);
+      if (
+        canonicalSrcPath !== canonicalRepoRoot &&
+        !canonicalSrcPath.startsWith(canonicalRepoRoot + sep)
+      ) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Asset path escapes repo root (symlink): "${asset.src}" -> ${canonicalSrcPath}`,
         };
       }
       const srcFileName = asset.src.split("/").pop()!;
