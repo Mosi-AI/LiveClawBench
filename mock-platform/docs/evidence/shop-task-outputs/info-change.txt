@@ -1,6 +1,0 @@
-# Task: info-change
-# Date: 2026-04-15T14:00:39Z
-# Mock: Bun shop on :19999
-# Data dir: /tmp/shop-e2e-verify-data
-
-Score: 1.0/1.0

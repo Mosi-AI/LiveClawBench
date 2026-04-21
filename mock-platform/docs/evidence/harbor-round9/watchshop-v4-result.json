@@ -1,8 +1,0 @@
-{
-  "task": "watch-shop",
-  "run_id": "round9-watchshop-v4",
-  "trial_id": "watch-shop__F5A89qB",
-  "timestamp": "2026-04-18T23:19:19",
-  "reward": 1.0,
-  "verifier_type": "verify.py"
-}

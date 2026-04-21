@@ -1,8 +1,0 @@
-# Task: email-watch-shop (hybrid: Bun shop + Python email)
-# Date: 2026-04-15T21:11:26Z
-# Shop: Bun mock on :19999 — {"status":"healthy","service":"shop-mosi-backend"}
-# Email: Python Flask on :5001 — JWT for peter
-# Port analysis: services on different ports — no conflict
-# Verifier checks: shop data only (/tmp/mosi_shop_*.json)
-
-Score: 1.0/1.0
