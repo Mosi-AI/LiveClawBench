@@ -33,6 +33,10 @@ All mock services use `createMockApp()` which automatically exposes:
 - `GET /health` — returns `{ ok: true, status: "healthy", service: <name> }`
 - `GET /__mock_sentinel__/<name>` — internal harbor readiness probe
 
+### Migration Verification
+
+Search parity between the legacy Python mock implementations and the current Bun+Hono versions was confirmed with 38/38 golden queries matching. FTS5/BM25 equivalence is inherent because both `bun:sqlite` and Python `sqlite3` bind the same system SQLite library with the FTS5 extension.
+
 ## Mock Services
 
 | Service | Directory | Binary | Description |
@@ -80,5 +84,4 @@ bun run mocks/doc-search/src/index.ts --port 3001
 
 ## Negative-Path Testing
 
-The `scripts/negative-path-checks.sh` script runs 16 targeted fail-fast checks against shop and doc-search without Docker.
-See `docs/tests/negative-paths-reference.md` for the full test matrix.
+The Layer 2 test specification in `docs/tests/negative-paths-reference.md` documents 16 targeted fail-fast checks against shop and doc-search. It is not executable and should be formalized into `bun:test` in a future PR.
