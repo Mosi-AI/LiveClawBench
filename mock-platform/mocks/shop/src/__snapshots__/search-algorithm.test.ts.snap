@@ -1,0 +1,499 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`calculateRelevanceScore exact title match scores highest 1`] = `273.6`;
+
+exports[`calculateRelevanceScore partial word match scores lower 1`] = `73.6`;
+
+exports[`calculateRelevanceScore partial word match scores lower 2`] = `34.4`;
+
+exports[`calculateRelevanceScore no match returns low score 1`] = `23`;
+
+exports[`calculateRelevanceScore best_seller and overall_pick boosts 1`] = `89.4`;
+
+exports[`calculateRelevanceScore best_seller and overall_pick boosts 2`] = `88`;
+
+exports[`calculateRelevanceScore rating boost 1`] = `74.6`;
+
+exports[`calculateRelevanceScore rating boost 2`] = `88`;
+
+exports[`searchProducts empty query returns all products with 0 score 1`] = `
+[
+  [
+    {
+      "id": "p1",
+      "price": 399,
+      "rating": 4.8,
+      "title": "Apple Watch Series 9",
+    },
+    0,
+  ],
+  [
+    {
+      "id": "p2",
+      "price": 299,
+      "rating": 4.5,
+      "title": "Samsung Galaxy Watch 6",
+    },
+    0,
+  ],
+  [
+    {
+      "best_seller": true,
+      "id": "p3",
+      "price": 599,
+      "rating": 4.7,
+      "title": "Garmin Fenix 7",
+    },
+    0,
+  ],
+  [
+    {
+      "id": "p4",
+      "price": 149,
+      "rating": 4.2,
+      "title": "Fitbit Charge 5",
+    },
+    0,
+  ],
+  [
+    {
+      "id": "p5",
+      "overall_pick": true,
+      "price": 49,
+      "rating": 4,
+      "title": "Casio Vintage Watch",
+    },
+    0,
+  ],
+]
+`;
+
+exports[`searchProducts filters by minRelevance 1`] = `
+[
+  [
+    {
+      "id": "p5",
+      "overall_pick": true,
+      "price": 49,
+      "rating": 4,
+      "title": "Casio Vintage Watch",
+    },
+    86,
+  ],
+  [
+    {
+      "id": "p1",
+      "price": 399,
+      "rating": 4.8,
+      "title": "Apple Watch Series 9",
+    },
+    73.6,
+  ],
+  [
+    {
+      "id": "p2",
+      "price": 299,
+      "rating": 4.5,
+      "title": "Samsung Galaxy Watch 6",
+    },
+    72,
+  ],
+]
+`;
+
+exports[`searchProducts returns matches sorted by relevance 1`] = `
+[
+  [
+    {
+      "id": "p5",
+      "overall_pick": true,
+      "price": 49,
+      "rating": 4,
+      "title": "Casio Vintage Watch",
+    },
+    86,
+  ],
+  [
+    {
+      "id": "p1",
+      "price": 399,
+      "rating": 4.8,
+      "title": "Apple Watch Series 9",
+    },
+    73.6,
+  ],
+  [
+    {
+      "id": "p2",
+      "price": 299,
+      "rating": 4.5,
+      "title": "Samsung Galaxy Watch 6",
+    },
+    72,
+  ],
+  [
+    {
+      "best_seller": true,
+      "id": "p3",
+      "price": 599,
+      "rating": 4.7,
+      "title": "Garmin Fenix 7",
+    },
+    24.4,
+  ],
+]
+`;
+
+exports[`searchProducts no matches returns empty array 1`] = `
+[
+  [
+    {
+      "best_seller": true,
+      "id": "p3",
+      "price": 599,
+      "rating": 4.7,
+      "title": "Garmin Fenix 7",
+    },
+    24.4,
+  ],
+  [
+    {
+      "id": "p5",
+      "overall_pick": true,
+      "price": 49,
+      "rating": 4,
+      "title": "Casio Vintage Watch",
+    },
+    23,
+  ],
+]
+`;
+
+exports[`filterAndSortProducts no filters returns all products 1`] = `
+[
+  {
+    "id": "p1",
+    "price": 399,
+    "rating": 4.8,
+    "title": "Apple Watch Series 9",
+  },
+  {
+    "best_seller": true,
+    "id": "p3",
+    "price": 599,
+    "rating": 4.7,
+    "title": "Garmin Fenix 7",
+  },
+  {
+    "id": "p2",
+    "price": 299,
+    "rating": 4.5,
+    "title": "Samsung Galaxy Watch 6",
+  },
+  {
+    "id": "p4",
+    "price": 149,
+    "rating": 4.2,
+    "title": "Fitbit Charge 5",
+  },
+  {
+    "id": "p5",
+    "overall_pick": true,
+    "price": 49,
+    "rating": 4,
+    "title": "Casio Vintage Watch",
+  },
+]
+`;
+
+exports[`filterAndSortProducts price filters 1`] = `
+[
+  {
+    "id": "p1",
+    "price": 399,
+    "rating": 4.8,
+    "title": "Apple Watch Series 9",
+  },
+  {
+    "best_seller": true,
+    "id": "p3",
+    "price": 599,
+    "rating": 4.7,
+    "title": "Garmin Fenix 7",
+  },
+  {
+    "id": "p2",
+    "price": 299,
+    "rating": 4.5,
+    "title": "Samsung Galaxy Watch 6",
+  },
+]
+`;
+
+exports[`filterAndSortProducts price filters 2`] = `
+[
+  {
+    "id": "p4",
+    "price": 149,
+    "rating": 4.2,
+    "title": "Fitbit Charge 5",
+  },
+  {
+    "id": "p5",
+    "overall_pick": true,
+    "price": 49,
+    "rating": 4,
+    "title": "Casio Vintage Watch",
+  },
+]
+`;
+
+exports[`filterAndSortProducts price filters 3`] = `
+[
+  {
+    "id": "p1",
+    "price": 399,
+    "rating": 4.8,
+    "title": "Apple Watch Series 9",
+  },
+  {
+    "id": "p2",
+    "price": 299,
+    "rating": 4.5,
+    "title": "Samsung Galaxy Watch 6",
+  },
+  {
+    "id": "p4",
+    "price": 149,
+    "rating": 4.2,
+    "title": "Fitbit Charge 5",
+  },
+]
+`;
+
+exports[`filterAndSortProducts rating filter 1`] = `
+[
+  {
+    "id": "p1",
+    "price": 399,
+    "rating": 4.8,
+    "title": "Apple Watch Series 9",
+  },
+  {
+    "best_seller": true,
+    "id": "p3",
+    "price": 599,
+    "rating": 4.7,
+    "title": "Garmin Fenix 7",
+  },
+  {
+    "id": "p2",
+    "price": 299,
+    "rating": 4.5,
+    "title": "Samsung Galaxy Watch 6",
+  },
+]
+`;
+
+exports[`filterAndSortProducts sort by price_asc 1`] = `
+[
+  {
+    "id": "p5",
+    "overall_pick": true,
+    "price": 49,
+    "rating": 4,
+    "title": "Casio Vintage Watch",
+  },
+  {
+    "id": "p4",
+    "price": 149,
+    "rating": 4.2,
+    "title": "Fitbit Charge 5",
+  },
+  {
+    "id": "p2",
+    "price": 299,
+    "rating": 4.5,
+    "title": "Samsung Galaxy Watch 6",
+  },
+  {
+    "id": "p1",
+    "price": 399,
+    "rating": 4.8,
+    "title": "Apple Watch Series 9",
+  },
+  {
+    "best_seller": true,
+    "id": "p3",
+    "price": 599,
+    "rating": 4.7,
+    "title": "Garmin Fenix 7",
+  },
+]
+`;
+
+exports[`filterAndSortProducts sort by price_desc 1`] = `
+[
+  {
+    "best_seller": true,
+    "id": "p3",
+    "price": 599,
+    "rating": 4.7,
+    "title": "Garmin Fenix 7",
+  },
+  {
+    "id": "p1",
+    "price": 399,
+    "rating": 4.8,
+    "title": "Apple Watch Series 9",
+  },
+  {
+    "id": "p2",
+    "price": 299,
+    "rating": 4.5,
+    "title": "Samsung Galaxy Watch 6",
+  },
+  {
+    "id": "p4",
+    "price": 149,
+    "rating": 4.2,
+    "title": "Fitbit Charge 5",
+  },
+  {
+    "id": "p5",
+    "overall_pick": true,
+    "price": 49,
+    "rating": 4,
+    "title": "Casio Vintage Watch",
+  },
+]
+`;
+
+exports[`filterAndSortProducts sort by rating 1`] = `
+[
+  {
+    "id": "p1",
+    "price": 399,
+    "rating": 4.8,
+    "title": "Apple Watch Series 9",
+  },
+  {
+    "best_seller": true,
+    "id": "p3",
+    "price": 599,
+    "rating": 4.7,
+    "title": "Garmin Fenix 7",
+  },
+  {
+    "id": "p2",
+    "price": 299,
+    "rating": 4.5,
+    "title": "Samsung Galaxy Watch 6",
+  },
+  {
+    "id": "p4",
+    "price": 149,
+    "rating": 4.2,
+    "title": "Fitbit Charge 5",
+  },
+  {
+    "id": "p5",
+    "overall_pick": true,
+    "price": 49,
+    "rating": 4,
+    "title": "Casio Vintage Watch",
+  },
+]
+`;
+
+exports[`filterAndSortProducts query with similarity sort 1`] = `
+[
+  {
+    "id": "p5",
+    "overall_pick": true,
+    "price": 49,
+    "rating": 4,
+    "title": "Casio Vintage Watch",
+  },
+  {
+    "id": "p1",
+    "price": 399,
+    "rating": 4.8,
+    "title": "Apple Watch Series 9",
+  },
+  {
+    "id": "p2",
+    "price": 299,
+    "rating": 4.5,
+    "title": "Samsung Galaxy Watch 6",
+  },
+  {
+    "best_seller": true,
+    "id": "p3",
+    "price": 599,
+    "rating": 4.7,
+    "title": "Garmin Fenix 7",
+  },
+]
+`;
+
+exports[`filterAndSortProducts query + price filter combined 1`] = `
+[
+  {
+    "id": "p1",
+    "price": 399,
+    "rating": 4.8,
+    "title": "Apple Watch Series 9",
+  },
+  {
+    "id": "p2",
+    "price": 299,
+    "rating": 4.5,
+    "title": "Samsung Galaxy Watch 6",
+  },
+  {
+    "best_seller": true,
+    "id": "p3",
+    "price": 599,
+    "rating": 4.7,
+    "title": "Garmin Fenix 7",
+  },
+]
+`;
+
+exports[`filterAndSortProducts useSearch=false ignores query 1`] = `
+[
+  {
+    "id": "p1",
+    "price": 399,
+    "rating": 4.8,
+    "title": "Apple Watch Series 9",
+  },
+  {
+    "best_seller": true,
+    "id": "p3",
+    "price": 599,
+    "rating": 4.7,
+    "title": "Garmin Fenix 7",
+  },
+  {
+    "id": "p2",
+    "price": 299,
+    "rating": 4.5,
+    "title": "Samsung Galaxy Watch 6",
+  },
+  {
+    "id": "p4",
+    "price": 149,
+    "rating": 4.2,
+    "title": "Fitbit Charge 5",
+  },
+  {
+    "id": "p5",
+    "overall_pick": true,
+    "price": 49,
+    "rating": 4,
+    "title": "Casio Vintage Watch",
+  },
+]
+`;

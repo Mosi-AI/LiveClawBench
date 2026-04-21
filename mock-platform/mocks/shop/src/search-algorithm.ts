@@ -3,9 +3,8 @@
  * search_products(), and filter_and_sort_products() from
  * tasks/watch-shop/environment/shop-app/backend/app.py.
  *
- * Extracted into a standalone module for:
- * 1. Direct import by the evidence parity test (no HTTP server needed)
- * 2. Shared usage by the Hono shop mock (index.tsx imports from here)
+ * Extracted into a standalone module for shared usage by the Hono shop mock
+ * (index.tsx imports from here) and Layer 1 unit tests.
  */
 
 export interface SearchableProduct {

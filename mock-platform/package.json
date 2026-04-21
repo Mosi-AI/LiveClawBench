@@ -6,7 +6,8 @@
   "scripts": {
     "build": "bun run scripts/build-all.ts",
     "build:images": "bun run scripts/build-task-images.ts",
-    "create-mock": "bun run tools/create-mock/index.ts"
+    "create-mock": "bun run tools/create-mock/index.ts",
+    "test": "bun test"
   },
   "devDependencies": {
     "typescript": "^5.8.0",
