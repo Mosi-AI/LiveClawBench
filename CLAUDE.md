@@ -183,7 +183,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 
 | File | Purpose |
 |---|---|
-| `README.md` | Architecture overview, build flow, and development commands |
+| `mock-platform/README.md` | Architecture overview, build flow, and development commands |
 | `mocks/shop/src/index.tsx` | Shop UI and API (Hono TSX rendering) |
 | `mocks/shop/src/search-algorithm.ts` | Extracted search logic (single source of truth) |
 | `mocks/shop/src/search-algorithm.test.ts` | Layer 1 unit tests (bun:test snapshot tests) |

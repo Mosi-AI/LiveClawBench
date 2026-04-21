@@ -73,12 +73,33 @@ Every user interaction is appended to a JSONL file (`BROWSER_MOCK_ACCESS_LOG`, d
 #### `home`
 Recorded on every visit to `GET /`.
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `event` | string | Event type — always `"home"` |
+| `path` | string | Request path |
+
 ```json
 { "event": "home", "path": "/" }
 ```
 
 #### `search`
 Recorded on every `GET /search` request.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `event` | string | Event type — always `"search"` |
+| `sid` | string | Search session ID (e.g. `search_0001`) |
+| `path` | string | Full request path including query string |
+| `query` | string | Raw search query |
+| `results` | `SearchResult[]` | Ranked result list |
+
+`SearchResult` fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `rank` | number | 1-based position in result list |
+| `doc_id` | string | Document `id` |
+| `slug` | string | Document `slug` |
 
 ```json
 {
@@ -96,6 +117,15 @@ Recorded on every `GET /search` request.
 #### `click`
 Recorded when a user clicks a search result link (non-empty `sid`).
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `event` | string | Event type — always `"click"` |
+| `sid` | string | Search session ID |
+| `rank` | string | Result rank as a string (from query param) |
+| `path` | string | Full request path including query string |
+| `doc_id` | string | Document `id` |
+| `slug` | string | Document `slug` |
+
 ```json
 {
   "event": "click",
@@ -109,6 +139,15 @@ Recorded when a user clicks a search result link (non-empty `sid`).
 
 #### `page`
 Recorded on every successful `GET /docs/:slug` view.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `event` | string | Event type — always `"page"` |
+| `sid` | string | Search session ID (empty if direct navigation) |
+| `rank` | string | Result rank as a string (empty if direct navigation) |
+| `path` | string | Full request path including query string |
+| `doc_id` | string | Document `id` |
+| `slug` | string | Document `slug` |
 
 ```json
 {
@@ -220,13 +259,28 @@ When BM25 scores are equal or the query is empty, results are sorted by:
 
 ## Configuration
 
-Environment variables (CLI args override env vars):
+CLI arguments take precedence over environment variables, which take precedence over defaults.
+
+### CLI Arguments
+
+| Argument | Description | Default |
+|----------|-------------|---------|
+| `--database <path>` | SQLite database file path | see below |
+| `--log <path>` | JSONL access log file path | see below |
+
+### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `BROWSER_MOCK_DB_PATH` | `~/.openclaw/output/browser_mock_documents.sqlite` | SQLite database path |
 | `BROWSER_MOCK_ACCESS_LOG` | `~/.openclaw/output/browser_mock_access.jsonl` | JSONL access log path |
 | `BROWSER_MOCK_DATA_DIR` | `/opt/mock/data` | Directory containing `documents.sql` seed file |
+
+### Precedence
+
+1. `--database <path>` / `--log <path>` (CLI argument)
+2. `BROWSER_MOCK_DB_PATH` / `BROWSER_MOCK_ACCESS_LOG` (environment variable)
+3. `~/.openclaw/output/browser_mock_documents.sqlite` / `~/.openclaw/output/browser_mock_access.jsonl` (default)
 
 ---
 
