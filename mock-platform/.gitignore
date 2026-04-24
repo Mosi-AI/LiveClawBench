@@ -4,4 +4,5 @@ dist/openapi/*.yaml
 dist/openapi/*.yml
 .tmp-images/
 jobs/
+mocks/*/dist/
 
