@@ -66,11 +66,12 @@ check "1. GET /health" "$(curl -sf "$BASE/health")" '"ok":true'
 # Check 2: GET /__mock_sentinel__/mint-diet → {"sentinel":true}
 check "2. GET /__mock_sentinel__/mint-diet" "$(curl -sf "$BASE/__mock_sentinel__/mint-diet")" '"sentinel":true'
 
-# Check 3: GET /log → 302 redirect to today's dated route
+# Check 3: GET /log → 302 redirect to today's exact dated route
+TODAY=$(date +%Y-%m-%d)
 REDIR_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/log")
 REDIR_LOC=$(curl -sD - -o /dev/null "$BASE/log" | grep -i "^location:" | tr -d '\r\n' | sed 's/[Ll]ocation: *//')
 check "3a. GET /log returns 302" "$REDIR_STATUS" "^302$"
-check "3b. GET /log redirects to /log/YYYY-MM-DD" "$REDIR_LOC" "^/log/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$"
+check "3b. GET /log redirects to today's date (/log/$TODAY)" "$REDIR_LOC" "^/log/${TODAY}$"
 
 # Check 4: GET /log/2026-04-22 → all four slot labels present
 DAY_VIEW_4="$(curl -sf "$BASE/log/2026-04-22")"
@@ -98,16 +99,17 @@ else
   echo "SKIP 7: could not find entry id"; PASS=$((PASS + 1))
 fi
 
-# Check 8: POST /log/entries/:id → day-view totals reflect new calories
-# We posted 150g / 195kcal; now edit to 200g / 260kcal and verify 260 kcal in totals.
+# Check 8: POST edit with new quantity → day view summary total reflects new calories
+# Before edit: entry was posted at 195 kcal; SummaryPanel renders "{calories} kcal" (space before kcal),
+# while entry rows render "{calories}kcal" (no space) — "195 kcal" is uniquely from the summary total.
 if [[ -n "$ENTRY_ID" ]]; then
+  DAY_BEFORE="$(curl -sf "$BASE/log/2026-04-22")"
+  check "8a. Day view summary shows original total (195 kcal)" "$DAY_BEFORE" "195 kcal"
   curl -sf -X POST "$BASE/log/entries/$ENTRY_ID" \
     -d "food_name=White+Rice&quantity_value=200&quantity_unit=g&calories_kcal=260&protein_g=5.4&carbs_g=57&fat_g=0.5" \
     -o /dev/null
-  DAY_VIEW_8="$(curl -sf "$BASE/log/2026-04-22")"
-  check "8a. Day view shows updated entry name" "$DAY_VIEW_8" "White Rice"
-  # SummaryPanel renders "Consumed: 260 kcal"; entry row renders "260kcal" — verify totals updated
-  check "8b. Day view totals show updated calories (260)" "$DAY_VIEW_8" "260"
+  DAY_AFTER_EDIT="$(curl -sf "$BASE/log/2026-04-22")"
+  check "8b. Day view summary shows updated total (260 kcal)" "$DAY_AFTER_EDIT" "260 kcal"
 fi
 
 # Check 9: POST /log/entries/:id/delete → entry gone from day view
@@ -122,6 +124,7 @@ if [[ -n "$ENTRY_ID" ]]; then
 fi
 
 # Check 10: POST /plans with target_calories_kcal → day view shows plan budget + note
+# Plan covers 2026-04-20 through 2026-04-25 (6 days)
 STATUS=$(curl -sf -X POST "$BASE/plans" \
   -d "title=Smoke+Plan&start_date=2026-04-20&end_date=2026-04-25&status=active&target_calories_kcal=1800&notes=smoke+test" \
   -w "%{http_code}" -o /tmp/smoke-plan.html)
@@ -129,13 +132,20 @@ check "10a. POST /plans returns 303" "$STATUS" "^303$"
 check "10b. Day view shows plan budget" "$(curl -sf "$BASE/log/2026-04-22")" "1800"
 check "10c. Day view shows from-plan note" "$(curl -sf "$BASE/log/2026-04-22")" "Smoke Plan\|Budget from plan"
 
-# Check 11: GET /plans/:id → all days present
+# Check 11: GET /plans/:id → all 6 days present, ingredients tab empty
 PLAN_ID="$(curl -sf "$BASE/plans" | grep -o 'href="/plans/[0-9]*"' | head -1 | grep -o '[0-9]*')"
 if [[ -n "$PLAN_ID" ]]; then
-  check "11. GET /plans/:id shows plan days" \
-    "$(curl -sf "$BASE/plans/$PLAN_ID")" "2026-04-20\|2026-04-21\|2026-04-22"
+  PLAN_VIEW="$(curl -sf "$BASE/plans/$PLAN_ID")"
+  check "11a. Plan shows day 2026-04-20" "$PLAN_VIEW" "2026-04-20"
+  check "11b. Plan shows day 2026-04-21" "$PLAN_VIEW" "2026-04-21"
+  check "11c. Plan shows day 2026-04-22" "$PLAN_VIEW" "2026-04-22"
+  check "11d. Plan shows day 2026-04-23" "$PLAN_VIEW" "2026-04-23"
+  check "11e. Plan shows day 2026-04-24" "$PLAN_VIEW" "2026-04-24"
+  check "11f. Plan shows day 2026-04-25" "$PLAN_VIEW" "2026-04-25"
+  ING_VIEW="$(curl -sf "$BASE/plans/$PLAN_ID?tab=ingredients")"
+  check "11g. Ingredients tab shows empty state" "$ING_VIEW" "No ingredients added yet"
 else
-  echo "SKIP 11: could not find plan id"; PASS=$((PASS + 1))
+  echo "SKIP 11: could not find plan id"; PASS=$((PASS + 7))
 fi
 
 # Check 12: POST /plans/:id/items → item appears on day/slot edit page
@@ -146,6 +156,14 @@ if [[ -n "$PLAN_ID" ]]; then
   check "12a. POST /plans/:id/items returns 303" "$STATUS" "^303$"
   check "12b. Item appears on slot editor" \
     "$(curl -sf "$BASE/plans/$PLAN_ID/days/2026-04-22/slots/breakfast/edit")" "Oatmeal"
+fi
+
+# Add a survivor item on 2026-04-23 (a day that will NOT be removed by the shrink below).
+# This item must still be present after the subsequent expand to prove existing days are intact.
+if [[ -n "$PLAN_ID" ]]; then
+  curl -sf -X POST "$BASE/plans/$PLAN_ID/items" \
+    -d "plan_date=2026-04-23&meal_slot=breakfast&dish_name=Porridge&notes=" \
+    -o /dev/null
 fi
 
 # Check 13: POST plan edit to shorter date range → removed day cascaded
@@ -161,14 +179,16 @@ if [[ -n "$PLAN_ID" ]]; then
   fi
 fi
 
-# Check 14: POST plan edit to longer date range → new days added, existing intact
+# Check 14: POST plan edit to longer date range → new days added, existing day items intact
 if [[ -n "$PLAN_ID" ]]; then
   curl -sf -X POST "$BASE/plans/$PLAN_ID" \
     -d "title=Smoke+Plan&start_date=2026-04-22&end_date=2026-04-27&status=active&target_calories_kcal=1800&notes=expanded" \
     -o /dev/null
   EXPANDED="$(curl -sf "$BASE/plans/$PLAN_ID")"
   check "14a. Expand plan - new day added" "$EXPANDED" "2026-04-26\|2026-04-27"
-  check "14b. Expand plan - existing days intact" "$EXPANDED" "2026-04-23\|2026-04-24"
+  # Porridge was added to 2026-04-23 before the shrink; that day survived the shrink and
+  # must survive the expand too — proving existing day items are intact after expand.
+  check "14b. Expand plan - surviving day item (Porridge) still present" "$EXPANDED" "Porridge"
 fi
 
 # Check 15: POST /plans/:id/delete → plan gone from list; GET /plans/:id returns 404

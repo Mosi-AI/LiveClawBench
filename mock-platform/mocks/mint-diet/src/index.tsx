@@ -461,6 +461,7 @@ const IngredientTable: FC<IngredientTableProps> = ({ plan, ingredients, error, p
         </div>
       </form>
     </div>
+    {ingredients.length === 0 && <p class="note" style="margin-top:0.5rem">No ingredients added yet.</p>}
     {ingredients.length > 0 && (
       <table>
         <thead><tr><th>Name</th><th>Qty</th><th>Unit</th><th></th></tr></thead>
