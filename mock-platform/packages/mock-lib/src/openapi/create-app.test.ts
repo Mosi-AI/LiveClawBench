@@ -341,13 +341,16 @@ describe("onError JSON parse handling", () => {
 describe("startServer compatibility", () => {
   test("startServer accepts MockAppV2 without API changes", async () => {
     const { startServer } = await import("../index");
-    const mockApp: MockAppV2 = createMockApp({ name: "compat" });
+    const mockApp: MockAppV2 = createMockApp({ name: "compat", port: 0 });
 
     // startServer expects MockApp (older interface) which has the same shape
     // { config, app }. Passing MockAppV2 should compile and run.
     const server = await startServer(mockApp);
-    expect(server).toBeDefined();
-    expect(typeof server.stop).toBe("function");
-    server.stop(true);
+    try {
+      expect(server).toBeDefined();
+      expect(typeof server.stop).toBe("function");
+    } finally {
+      server.stop(true);
+    }
   });
 });
