@@ -343,14 +343,27 @@ describe("startServer compatibility", () => {
     const { startServer } = await import("../index");
     const mockApp: MockAppV2 = createMockApp({ name: "compat", port: 0 });
 
-    // startServer expects MockApp (older interface) which has the same shape
-    // { config, app }. Passing MockAppV2 should compile and run.
-    const server = await startServer(mockApp);
+    // Capture the arguments passed to Bun.serve without opening a real socket
+    let capturedArgs: any;
+    const originalServe = Bun.serve;
+    Bun.serve = (args: any) => {
+      capturedArgs = args;
+      return { stop: () => {} } as any;
+    };
+
     try {
+      const server = await startServer(mockApp);
+
+      // Assert that Bun.serve was called with the correct arguments
+      expect(capturedArgs).toBeDefined();
+      expect(capturedArgs.port).toBe(0);
+      expect(capturedArgs.fetch).toBe(mockApp.app.fetch);
+
+      // Assert that the returned object exposes a stop function
       expect(server).toBeDefined();
       expect(typeof server.stop).toBe("function");
     } finally {
-      server.stop(true);
+      Bun.serve = originalServe;
     }
   });
 });
