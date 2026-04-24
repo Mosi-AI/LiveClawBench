@@ -7,6 +7,7 @@
     "build": "bun run scripts/build-all.ts",
     "build:images": "bun run scripts/build-task-images.ts",
     "create-mock": "bun run tools/create-mock/index.ts",
+    "check-openapi": "bun run scripts/generate-openapi.ts && git diff --exit-code dist/openapi/",
     "test": "bun test"
   },
   "devDependencies": {
