@@ -3,11 +3,11 @@
  *
  * For each mock service:
  * 1. Dynamically imports the mock's entry point
- * 2. Calls the exported `createApp()` factory (must be guarded by `import.meta.main`)
+ * 2. Calls the exported factory function (e.g. `createShopApp`) (must be guarded by `import.meta.main`)
  * 3. Calls `app.getOpenAPI31Document()` on the OpenAPI-enabled app
  * 4. Writes the resulting JSON to `dist/openapi/{name}.json`
  *
- * Mocks that do not export `createApp` or do not enable OpenAPI are skipped.
+ * Mocks without a known factory mapping are skipped.
  */
 
 import { readdir, mkdir, writeFile } from "node:fs/promises";
@@ -16,6 +16,14 @@ import { existsSync } from "node:fs";
 
 const MOCKS_DIR = join(import.meta.dir, "..", "mocks");
 const DIST_DIR = join(import.meta.dir, "..", "dist", "openapi");
+
+const factoryNames: Record<string, string> = {
+  airline: "createAirlineApp",
+  email: "createEmailApp",
+  todolist: "createTodolistApp",
+  // "doc-search": "createDocSearchApp",  // queued for Round 2
+  // shop: "createShopApp",               // queued for Round 2
+};
 
 interface GenerateResult {
   name: string;
@@ -41,17 +49,26 @@ async function generateForMock(name: string): Promise<GenerateResult> {
     return { name, success: false, error: `Entry point not found: ${entryPoint}` };
   }
 
+  const factoryName = factoryNames[name];
+  if (!factoryName) {
+    return {
+      name,
+      success: false,
+      error: `No factory mapping for mock "${name}" — skipping`,
+    };
+  }
+
   try {
     // Dynamic import — safe because mocks guard server startup with import.meta.main
     const mockModule = await import(entryPoint);
 
-    // Look for exported createApp factory function
-    const createApp = mockModule.createApp;
+    // Look for the specific factory function for this mock
+    const createApp = mockModule[factoryName];
     if (typeof createApp !== "function") {
       return {
         name,
         success: false,
-        error: `No exported 'createApp' function found in ${entryPoint}`,
+        error: `No exported '${factoryName}' function found in ${entryPoint}`,
       };
     }
 
@@ -61,7 +78,7 @@ async function generateForMock(name: string): Promise<GenerateResult> {
       return {
         name,
         success: false,
-        error: `createApp() did not return a valid MockAppV2`,
+        error: `${factoryName}() did not return a valid MockAppV2`,
       };
     }
 
@@ -143,7 +160,17 @@ async function main() {
     }
   }
 
-  // Exit 0 even if some mocks were skipped (they may not be migrated yet)
+  // Exit 1 if any mapped mock failed generation; unmapped mocks are truly skipped
+  const failedMapped = results.filter(
+    (r) => !r.success && factoryNames[r.name],
+  );
+  if (failedMapped.length > 0) {
+    console.error(
+      `\nERROR: ${failedMapped.length} mapped mock(s) failed generation.`,
+    );
+    process.exit(1);
+  }
+
   console.log("\nOpenAPI generation complete.");
 }
 

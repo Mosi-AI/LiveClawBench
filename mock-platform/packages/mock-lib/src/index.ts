@@ -29,4 +29,4 @@ export type { RouteConfig } from "./openapi/types";
 export { createRoute } from "./openapi/types";
 export { ErrorResponseSchema, FactoryValidationSchema } from "./openapi/schemas";
 export { createOpenAPIMockApp } from "./openapi/create-app";
-export type { OpenApiConfig as OpenApiFactoryConfig } from "./openapi/create-app";
+export type { OpenApiConfig } from "./types";

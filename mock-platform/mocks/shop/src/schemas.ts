@@ -6,6 +6,7 @@
  */
 
 import { z } from "zod";
+import { ErrorResponseSchema } from "mock-lib";
 
 // ---------------------------------------------------------------------------
 // Entity schemas
@@ -33,7 +34,7 @@ export const CartItemSchema = z.object({
   price: z.number(),
   rating: z.number(),
   image_url: z.string(),
-  quantity: z.number(),
+  quantity: z.number().int().min(1),
 });
 
 export const OrderItemSchema = z.object({
@@ -80,7 +81,7 @@ const coercePage = z.preprocess(
     if (val === undefined || val === "" || val === null) return 1;
     const n = Number(val);
     if (Number.isNaN(n) || n < 1) return 1;
-    return n;
+    return Math.floor(n);
   },
   z.number().int().min(1),
 );
@@ -132,17 +133,17 @@ export const ListProductsQuerySchema = z.object({
 });
 
 export const AddToCartBodySchema = z.object({
-  product_id: z.string(),
+  product_id: z.string().min(1),
 });
 
 export const UpdateCartBodySchema = z.object({
   product_id: z.string(),
-  quantity: z.number().optional().default(1),
+  quantity: z.number().int().min(0),
 });
 
 export const UpdateUserBodySchema = z.object({
   field: z.enum(["username", "gender", "email", "phone", "address"]),
-  value: z.string(),
+  value: z.string().min(1),
 });
 
 // ---------------------------------------------------------------------------
@@ -165,7 +166,7 @@ export const CartResponseSchema = z.object({
 
 export const CartMutationResponseSchema = z.object({
   success: z.boolean(),
-  message: z.string(),
+  message: z.string().optional(),
   cart_count: z.number().optional(),
 });
 
@@ -185,6 +186,3 @@ export const GenericSuccessResponseSchema = z.object({
   message: z.string(),
 });
 
-export const ErrorResponseSchema = z.object({
-  error: z.string(),
-});

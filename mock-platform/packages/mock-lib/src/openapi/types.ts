@@ -1,7 +1,7 @@
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import type { AppEnv, MockConfig } from "../types";
 
-export type { createRoute } from "@hono/zod-openapi";
+export { createRoute } from "@hono/zod-openapi";
 export type { RouteConfig } from "@hono/zod-openapi";
 
 /**

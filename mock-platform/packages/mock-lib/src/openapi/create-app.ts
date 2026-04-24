@@ -1,22 +1,11 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import type { RouteConfig, RouteHandler } from "@hono/zod-openapi";
-import type { AppEnv, MockConfig } from "../types";
+import { HTTPException } from "hono/http-exception";
+import type { AppEnv, MockConfig, OpenApiConfig } from "../types";
 import type { OpenAPIApp, MockAppV2, RouteOptions } from "./types";
 import { FactoryValidationSchema } from "./schemas";
 
 const DEFAULT_PORT = 3000;
-
-/**
- * Configuration for OpenAPI document generation.
- */
-export interface OpenApiConfig {
-  /** Enable OpenAPI document generation and the /openapi.json endpoint */
-  enabled?: boolean;
-  /** OpenAPI document title */
-  title?: string;
-  /** OpenAPI document version */
-  version?: string;
-}
 
 /**
  * Create an OpenAPI-enabled mock application.
@@ -43,7 +32,10 @@ export function createOpenAPIMockApp(
   const hono = new OpenAPIHono<AppEnv>({
     defaultHook: (result, c) => {
       if (!result.success) {
-        return c.json({ error: result.error.message }, 400);
+        const message = result.error.issues
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join("; ");
+        return c.json({ error: message }, 400);
       }
     },
   });
@@ -68,8 +60,14 @@ export function createOpenAPIMockApp(
     // Deep-clone route to avoid mutating caller's object
     const mergedRoute: RouteConfig = { ...route };
 
-    // Auto-inject 400 validation response if not explicitly defined
-    const has400 = Object.keys(mergedRoute.responses).some(
+    // Merge rawOpenApi metadata first
+    if (options?.rawOpenApi) {
+      Object.assign(mergedRoute, options.rawOpenApi);
+    }
+
+    // Auto-inject 400 validation response only when the ORIGINAL route has no explicit 400/4XX
+    // rawOpenApi cannot prevent auto-injection
+    const has400 = Object.keys(route.responses).some(
       (k) => k === "400" || k === "4XX",
     );
     if (!has400) {
@@ -91,21 +89,22 @@ export function createOpenAPIMockApp(
       mergedRoute.security = [{ bearerAuth: [] }];
     }
 
-    // Merge rawOpenApi metadata over auto-generated fields
-    if (options?.rawOpenApi) {
-      Object.assign(mergedRoute, options.rawOpenApi);
-    }
-
     hono.openapi(mergedRoute as R, handler);
   };
 
-  // Catch SyntaxError from invalid JSON bodies
+  // Catch JSON parse errors from invalid request bodies; return 500 for everything else
   app.onError((err, c) => {
     if (err instanceof SyntaxError) {
       return c.json({ error: "Invalid JSON body" }, 400);
     }
-    // Re-throw for default Hono error handling
-    throw err;
+    if (
+      err instanceof HTTPException &&
+      err.status === 400 &&
+      err.message.includes("Malformed JSON")
+    ) {
+      return c.json({ error: "Invalid JSON body" }, 400);
+    }
+    return c.json({ error: "Internal server error" }, 500);
   });
 
   // Built-in health check endpoint
