@@ -1,5 +1,6 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import type { RouteConfig, RouteHandler } from "@hono/zod-openapi";
+import type { Handler } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { AppEnv, MockConfig, OpenApiConfig } from "../types";
 import type { OpenAPIApp, MockAppV2, RouteOptions } from "./types";
@@ -44,8 +45,8 @@ export function createOpenAPIMockApp(
   const app = hono as unknown as OpenAPIApp;
 
   // page(): register plain GET routes excluded from OpenAPI docs
-  app.page = (path: string, handler: Parameters<typeof hono.get>[1]) => {
-    hono.get(path, handler);
+  app.page = (path: string, handler: Handler<AppEnv>) => {
+    hono.get(path, handler as any);
   };
 
   // openApiRoute(): register typed routes with auto-injected metadata
@@ -67,9 +68,10 @@ export function createOpenAPIMockApp(
 
     // Auto-inject 400 validation response only when the ORIGINAL route has no explicit 400/4XX
     // rawOpenApi cannot prevent auto-injection
-    const has400 = Object.keys(route.responses).some(
-      (k) => k === "400" || k === "4XX",
-    );
+    // Note: runtime guard for compile-contract tests that use @ts-expect-error
+    const has400 =
+      route.responses !== undefined &&
+      Object.keys(route.responses).some((k) => k === "400" || k === "4XX");
     if (!has400) {
       mergedRoute.responses = {
         ...mergedRoute.responses,
@@ -89,7 +91,10 @@ export function createOpenAPIMockApp(
       mergedRoute.security = [{ bearerAuth: [] }];
     }
 
-    hono.openapi(mergedRoute as R, handler);
+    // Type assertion needed: @hono/zod-openapi ships duplicate type definitions
+    // from its @asteasolutions/zod-to-openapi dependency, causing "two different
+    // types with this name exist, but they are unrelated" errors.
+    hono.openapi(mergedRoute as R, handler as any);
   };
 
   // Catch JSON parse errors from invalid request bodies; return 500 for everything else

@@ -43,7 +43,7 @@ describe("createMockApp — factory basics", () => {
       info: { title: "test", version: "1.0.0" },
     });
     expect(spec.paths).toHaveProperty("/api/items");
-    expect(spec.paths["/api/items"]).toHaveProperty("get");
+    expect(spec.paths!["/api/items"]).toHaveProperty("get");
   });
 });
 
@@ -55,8 +55,8 @@ describe("page() — exclusion from OpenAPI spec", () => {
     });
     const app = mockApp.app as OpenAPIApp;
 
-    app.page("/", (c) => c.html("<h1>Home</h1>"));
-    app.page("/about", (c) => c.html("<h1>About</h1>"));
+    app.page("/", (c) => c.html("<h1>Home</h1>") as any);
+    app.page("/about", (c) => c.html("<h1>About</h1>") as any);
 
     const spec = app.getOpenAPI31Document({
       openapi: "3.1.0",
@@ -91,7 +91,7 @@ describe("auth security field", () => {
       openapi: "3.1.0",
       info: { title: "test", version: "1.0.0" },
     });
-    const route = spec.paths["/api/protected"].get;
+    const route = spec.paths!["/api/protected"].get!;
     expect(route.security).toEqual([{ bearerAuth: [] }]);
   });
 
@@ -135,7 +135,7 @@ describe("auth security field", () => {
       openapi: "3.1.0",
       info: { title: "test", version: "1.0.0" },
     });
-    const route = spec.paths["/api/public"].get;
+    const route = spec.paths!["/api/public"].get!;
     expect(route.security).toBeUndefined();
   });
 });
@@ -163,7 +163,7 @@ describe("auto-injection of 400 response", () => {
       openapi: "3.1.0",
       info: { title: "test", version: "1.0.0" },
     });
-    const responses = spec.paths["/api/no-400"].get.responses;
+    const responses = spec.paths!["/api/no-400"].get!.responses!;
     expect(responses).toHaveProperty("400");
     expect(responses["400"].description).toBe("Validation error");
   });
@@ -198,7 +198,7 @@ describe("auto-injection of 400 response", () => {
       openapi: "3.1.0",
       info: { title: "test", version: "1.0.0" },
     });
-    const responses = spec.paths["/api/with-400"].get.responses;
+    const responses = spec.paths!["/api/with-400"].get!.responses!;
     expect(responses).toHaveProperty("400");
     expect(responses["400"].description).toBe("Custom bad request");
   });
@@ -234,7 +234,7 @@ describe("auto-injection of 400 response", () => {
       openapi: "3.1.0",
       info: { title: "test", version: "1.0.0" },
     });
-    const responses = spec.paths["/api/raw-override"].get.responses;
+    const responses = spec.paths!["/api/raw-override"].get!.responses!;
     expect(responses).toHaveProperty("400");
     // rawOpenApi is merged before auto-injection, so auto-injected 400 wins
     expect(responses["400"].description).toBe("Validation error");

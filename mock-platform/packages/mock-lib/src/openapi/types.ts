@@ -1,4 +1,5 @@
 import type { OpenAPIHono } from "@hono/zod-openapi";
+import type { Handler } from "hono";
 import type { AppEnv, MockConfig } from "../types";
 
 export { createRoute } from "@hono/zod-openapi";
@@ -19,7 +20,7 @@ export interface OpenAPIApp extends OpenAPIHono<AppEnv> {
    * These routes are added to the Hono router but excluded from the
    * OpenAPI registry so they do not appear in `/openapi.json`.
    */
-  page(path: string, handler: Parameters<OpenAPIHono<AppEnv>["get"]>[1]): void;
+  page(path: string, handler: Handler<AppEnv>): void;
 
   /**
    * Register a typed OpenAPI route.
