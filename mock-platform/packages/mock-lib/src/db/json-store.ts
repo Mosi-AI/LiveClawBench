@@ -15,10 +15,16 @@ export interface JsonStoreOptions {
 
 export class JsonStore {
   private dir: string;
+  private ensured = false;
 
   constructor(options?: JsonStoreOptions) {
     this.dir = options?.dir ?? join(process.cwd(), "data");
+  }
+
+  private ensureDir(): void {
+    if (this.ensured) return;
     mkdirSync(this.dir, { recursive: true });
+    this.ensured = true;
   }
 
   /**
@@ -26,6 +32,7 @@ export class JsonStore {
    * Returns defaultValue if file doesn't exist.
    */
   read<T>(key: string, defaultValue: T): T {
+    this.ensureDir();
     try {
       const content = readFileSync(join(this.dir, `${key}.json`), "utf-8");
       return JSON.parse(content) as T;
@@ -41,6 +48,7 @@ export class JsonStore {
    * Write a JSON file to the store.
    */
   write<T>(key: string, data: T): void {
+    this.ensureDir();
     const path = join(this.dir, `${key}.json`);
     try {
       writeFileSync(

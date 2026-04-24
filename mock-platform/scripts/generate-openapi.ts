@@ -21,8 +21,8 @@ const factoryNames: Record<string, string> = {
   airline: "createAirlineApp",
   email: "createEmailApp",
   todolist: "createTodolistApp",
-  // "doc-search": "createDocSearchApp",  // queued for Round 2
-  // shop: "createShopApp",               // queued for Round 2
+  "doc-search": "createDocSearchApp",
+  shop: "createShopApp",
 };
 
 interface GenerateResult {
