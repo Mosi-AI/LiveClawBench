@@ -57,7 +57,7 @@ export function createOpenAPIMockApp(
     handler: H,
     options?: RouteOptions,
   ) => {
-    // Deep-clone route to avoid mutating caller's object
+    // Shallow-copy route to avoid mutating top-level properties
     const mergedRoute: RouteConfig = { ...route };
 
     // Merge rawOpenApi metadata first

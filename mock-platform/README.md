@@ -84,4 +84,4 @@ bun run mocks/doc-search/src/index.ts --port 3001
 
 ## Negative-Path Testing
 
-The Layer 2 test specification in `docs/tests/negative-paths-reference.md` documents 16 targeted fail-fast checks against shop and doc-search. It is not executable and should be formalized into `bun:test` in a future PR.
+The Layer 2 test specification in `docs/tests/negative-paths-reference.md` documents 16 targeted fail-fast checks against shop and doc-search. Layer 1 `bun:test` suites already provide executable negative-path coverage: shop has 39 tests in `mocks/shop/src/index.test.ts` and doc-search has 18 tests in `mocks/doc-search/src/index.test.ts`. Run them with `bun test`.
