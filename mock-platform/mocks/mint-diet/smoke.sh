@@ -144,18 +144,45 @@ if [[ -n "$PLAN_ID" ]]; then
   check "11f. Plan shows day 2026-04-25" "$PLAN_VIEW" "2026-04-25"
   ING_VIEW="$(curl -sf "$BASE/plans/$PLAN_ID?tab=ingredients")"
   check "11g. Ingredients tab shows empty state" "$ING_VIEW" "No ingredients added yet"
+  # Check 11h/11i: add ingredient, verify appears, then delete it and verify gone
+  # This exercises the browser-facing delete path (formaction attribute on Del button)
+  curl -sf -X POST "$BASE/plans/$PLAN_ID/ingredients" \
+    -d "name=Brown+Rice&quantity_value=100&quantity_unit=g" -o /dev/null
+  ING_VIEW2="$(curl -sf "$BASE/plans/$PLAN_ID?tab=ingredients")"
+  check "11h. Ingredient appears after add" "$ING_VIEW2" "Brown Rice"
+  ING_ID="$(echo "$ING_VIEW2" | grep -o 'formaction="/plans/[0-9]*/ingredients/[0-9]*/delete"' | head -1 | grep -o 'ingredients/[0-9]*' | grep -o '[0-9]*$')"
+  if [[ -n "$ING_ID" ]]; then
+    curl -sf -X POST "$BASE/plans/$PLAN_ID/ingredients/$ING_ID/delete" -o /dev/null
+    ING_VIEW3="$(curl -sf "$BASE/plans/$PLAN_ID?tab=ingredients")"
+    check "11i. Ingredient gone after delete" "$ING_VIEW3" "No ingredients added yet"
+  else
+    echo "SKIP 11i: could not find ingredient id"; PASS=$((PASS + 1))
+  fi
 else
-  echo "SKIP 11: could not find plan id"; PASS=$((PASS + 7))
+  echo "SKIP 11: could not find plan id"; PASS=$((PASS + 9))
 fi
 
-# Check 12: POST /plans/:id/items → item appears on day/slot edit page
+# Check 12: POST /plans/:id/items → item appears on day/slot edit page; explicit item delete path
 if [[ -n "$PLAN_ID" ]]; then
   STATUS=$(curl -sf -X POST "$BASE/plans/$PLAN_ID/items" \
     -d "plan_date=2026-04-22&meal_slot=breakfast&dish_name=Oatmeal&notes=" \
     -w "%{http_code}" -o /tmp/smoke-item.html)
   check "12a. POST /plans/:id/items returns 303" "$STATUS" "^303$"
-  check "12b. Item appears on slot editor" \
-    "$(curl -sf "$BASE/plans/$PLAN_ID/days/2026-04-22/slots/breakfast/edit")" "Oatmeal"
+  SLOT_VIEW="$(curl -sf "$BASE/plans/$PLAN_ID/days/2026-04-22/slots/breakfast/edit")"
+  check "12b. Item appears on slot editor" "$SLOT_VIEW" "Oatmeal"
+  # Check 12c: delete item via formaction path; verifies the fix to nested-form bug
+  ITEM_ID="$(echo "$SLOT_VIEW" | grep -o 'formaction="/plans/[0-9]*/items/[0-9]*/delete"' | head -1 | grep -o 'items/[0-9]*' | grep -o '[0-9]*$')"
+  if [[ -n "$ITEM_ID" ]]; then
+    curl -sf -X POST "$BASE/plans/$PLAN_ID/items/$ITEM_ID/delete" -o /dev/null
+    SLOT_AFTER="$(curl -sf "$BASE/plans/$PLAN_ID/days/2026-04-22/slots/breakfast/edit")"
+    if echo "$SLOT_AFTER" | grep -q "Oatmeal"; then
+      echo "FAIL: 12c. Plan item still present after delete"; FAIL=$((FAIL + 1))
+    else
+      echo "PASS: 12c. Plan item gone after delete"; PASS=$((PASS + 1))
+    fi
+  else
+    echo "SKIP 12c: could not find item id"; PASS=$((PASS + 1))
+  fi
 fi
 
 # Add a survivor item on 2026-04-23 (a day that will NOT be removed by the shrink below).

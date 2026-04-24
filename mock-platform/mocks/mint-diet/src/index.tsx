@@ -478,9 +478,7 @@ const IngredientTable: FC<IngredientTableProps> = ({ plan, ingredients, error, p
                         {INGREDIENT_UNITS.map(u => <option value={u} selected={u === ing.quantity_unit}>{u}</option>)}
                       </select>
                       <button type="submit" class="btn btn-primary btn-sm">Save</button>
-                      <form class="inline" method="post" action={`/plans/${plan.id}/ingredients/${ing.id}/delete`}>
-                        <button type="submit" class="btn btn-danger btn-sm">Del</button>
-                      </form>
+                      <button type="submit" formaction={`/plans/${plan.id}/ingredients/${ing.id}/delete`} class="btn btn-danger btn-sm">Del</button>
                     </div>
                   </form>
                 </div>
@@ -526,9 +524,7 @@ const SlotEditorPage: FC<SlotEditorPageProps> = ({ plan, day, slot, items, error
             <input name="dish_name" value={item.dish_name} required style="flex:2;min-width:100px" />
             <input name="notes" value={item.notes ?? ""} placeholder="Notes" style="flex:1;min-width:80px" />
             <button type="submit" class="btn btn-primary btn-sm">Save</button>
-            <form class="inline" method="post" action={`/plans/${plan.id}/items/${item.id}/delete`}>
-              <button type="submit" class="btn btn-danger btn-sm">Del</button>
-            </form>
+            <button type="submit" formaction={`/plans/${plan.id}/items/${item.id}/delete`} class="btn btn-danger btn-sm">Del</button>
           </div>
         </form>
       </div>
