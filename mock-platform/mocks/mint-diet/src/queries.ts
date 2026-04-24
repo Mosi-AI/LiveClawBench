@@ -291,12 +291,19 @@ export interface CreatePlanInput {
   notes: string | null;
 }
 
+function localDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 function eachDateInRange(start: string, end: string): string[] {
   const dates: string[] = [];
   const cur = new Date(start + "T00:00:00");
   const last = new Date(end + "T00:00:00");
   while (cur <= last) {
-    dates.push(cur.toISOString().slice(0, 10));
+    dates.push(localDateStr(cur));
     cur.setDate(cur.getDate() + 1);
   }
   return dates;
@@ -432,4 +439,26 @@ export function updateIngredientItem(db: Database, id: number, input: Ingredient
 
 export function deleteIngredientItem(db: Database, id: number): void {
   db.prepare("DELETE FROM ingredient_item WHERE id = ?").run(id);
+}
+
+// ---------------------------------------------------------------------------
+// Ownership-scoped lookups (verify child belongs to given plan)
+// ---------------------------------------------------------------------------
+
+export function getMealPlanItemForPlan(db: Database, planId: number, itemId: number): MealPlanItem | null {
+  return db.query(`
+    SELECT mi.* FROM meal_plan_item mi
+    JOIN meal_plan_day md ON mi.meal_plan_day_id = md.id
+    WHERE mi.id = ? AND md.meal_plan_id = ?
+  `).get(itemId, planId) as MealPlanItem | null;
+}
+
+export function getIngredientItemForPlan(db: Database, planId: number, ingId: number): IngredientItem | null {
+  return db.query(
+    "SELECT * FROM ingredient_item WHERE id = ? AND meal_plan_id = ?"
+  ).get(ingId, planId) as IngredientItem | null;
+}
+
+export function getMealPlanDayById(db: Database, dayId: number): MealPlanDay | null {
+  return db.query("SELECT * FROM meal_plan_day WHERE id = ?").get(dayId) as MealPlanDay | null;
 }

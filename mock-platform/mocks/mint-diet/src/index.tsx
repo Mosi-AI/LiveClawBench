@@ -10,9 +10,10 @@ import {
   ensureDailyLog, listEntriesByDay, computeDailyTotals, resolveEffectiveBudget,
   searchFoodCatalog, getFoodById, scaleMacros, insertFoodEntry, getFoodEntry,
   updateFoodEntry, deleteFoodEntry, listPlans, getPlanDetail, createPlan, updatePlan,
-  deletePlan, getDayByPlanAndDate, getMealPlanItem, insertMealPlanItem, updateMealPlanItem,
-  deleteMealPlanItem, getIngredientItem, insertIngredientItem, updateIngredientItem,
-  deleteIngredientItem, isValidLocalDate,
+  deletePlan, getDayByPlanAndDate, getMealPlanItem, getMealPlanItemForPlan,
+  insertMealPlanItem, updateMealPlanItem, deleteMealPlanItem,
+  getIngredientItem, getIngredientItemForPlan, insertIngredientItem, updateIngredientItem,
+  deleteIngredientItem, isValidLocalDate, getMealPlanDayById,
 } from "./queries";
 import type {
   DailyLog, FoodCatalog, FoodEntry, MealPlan, MealPlanDay, MealPlanItem,
@@ -52,7 +53,18 @@ function parseNonNegFloat(s: string | undefined): number | null {
 }
 
 function todayLocal(): string {
-  return new Date().toLocaleDateString("sv-SE");
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function localDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -108,6 +120,8 @@ th { background: #f5f5f5; font-weight: 700; }
 .note { font-size: 0.8rem; color: #888; margin-top: 0.25rem; }
 h1 { font-size: 1.4rem; margin-bottom: 0.75rem; }
 h2 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+.edit-form-row { background: #f9fbe7; border: 1px solid #dce775; border-radius: 4px; padding: 0.5rem; margin-bottom: 0.5rem; }
+.edit-form-row .form-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 `;
 
 // ---------------------------------------------------------------------------
@@ -134,10 +148,10 @@ const Layout: FC<{ title: string; children: unknown }> = ({ title, children }) =
 
 const DayNav: FC<{ date: string }> = ({ date }) => {
   const d = new Date(date + "T00:00:00");
-  const prev = new Date(d); prev.setDate(d.getDate() - 1);
-  const next = new Date(d); next.setDate(d.getDate() + 1);
-  const prevStr = prev.toISOString().slice(0, 10);
-  const nextStr = next.toISOString().slice(0, 10);
+  const prevDate = new Date(d); prevDate.setDate(d.getDate() - 1);
+  const nextDate = new Date(d); nextDate.setDate(d.getDate() + 1);
+  const prevStr = localDateStr(prevDate);
+  const nextStr = localDateStr(nextDate);
   return (
     <div class="daynav">
       <a href={`/log/${prevStr}`}>← Prev</a>
@@ -427,18 +441,21 @@ const PlanDayGrid: FC<PlanDayGridProps> = ({ plan, days, itemsByDayBySlot }) => 
 interface IngredientTableProps {
   plan: MealPlan;
   ingredients: IngredientItem[];
+  error?: string;
+  prefill?: Record<string, string>;
 }
 
-const IngredientTable: FC<IngredientTableProps> = ({ plan, ingredients }) => (
+const IngredientTable: FC<IngredientTableProps> = ({ plan, ingredients, error, prefill }) => (
   <div>
     <h2>Add Ingredient</h2>
+    {error && <p class="error">{error}</p>}
     <div class="card">
       <form method="post" action={`/plans/${plan.id}/ingredients`}>
         <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-          <input name="name" placeholder="Name" required style="flex:2;min-width:120px" />
-          <input type="number" step="0.1" name="quantity_value" placeholder="Qty" style="flex:1;min-width:60px" />
+          <input name="name" placeholder="Name" required style="flex:2;min-width:120px" value={prefill?.name ?? ""} />
+          <input type="number" step="0.1" name="quantity_value" placeholder="Qty" style="flex:1;min-width:60px" value={prefill?.quantity_value ?? ""} />
           <select name="quantity_unit" style="flex:1;min-width:60px">
-            {INGREDIENT_UNITS.map(u => <option value={u}>{u}</option>)}
+            {INGREDIENT_UNITS.map(u => <option value={u} selected={u === (prefill?.quantity_unit ?? "g")}>{u}</option>)}
           </select>
           <button type="submit" class="btn btn-primary">Add</button>
         </div>
@@ -450,13 +467,22 @@ const IngredientTable: FC<IngredientTableProps> = ({ plan, ingredients }) => (
         <tbody>
           {ingredients.map(ing => (
             <tr key={ing.id}>
-              <td>{ing.name}</td>
-              <td>{ing.quantity_value}</td>
-              <td>{ing.quantity_unit}</td>
-              <td>
-                <form class="inline" method="post" action={`/plans/${plan.id}/ingredients/${ing.id}/delete`}>
-                  <button type="submit" class="btn btn-danger btn-sm">Del</button>
-                </form>
+              <td colspan={4}>
+                <div class="edit-form-row">
+                  <form method="post" action={`/plans/${plan.id}/ingredients/${ing.id}`}>
+                    <div class="form-row">
+                      <input name="name" value={ing.name} required style="flex:2;min-width:100px" />
+                      <input type="number" step="0.1" name="quantity_value" value={String(ing.quantity_value)} style="flex:1;min-width:60px" />
+                      <select name="quantity_unit" style="flex:1;min-width:60px">
+                        {INGREDIENT_UNITS.map(u => <option value={u} selected={u === ing.quantity_unit}>{u}</option>)}
+                      </select>
+                      <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                      <form class="inline" method="post" action={`/plans/${plan.id}/ingredients/${ing.id}/delete`}>
+                        <button type="submit" class="btn btn-danger btn-sm">Del</button>
+                      </form>
+                    </div>
+                  </form>
+                </div>
               </td>
             </tr>
           ))}
@@ -464,6 +490,49 @@ const IngredientTable: FC<IngredientTableProps> = ({ plan, ingredients }) => (
       </table>
     )}
   </div>
+);
+
+interface SlotEditorPageProps {
+  plan: MealPlan;
+  day: MealPlanDay;
+  slot: string;
+  items: MealPlanItem[];
+  error?: string;
+  prefill?: Record<string, string>;
+}
+
+const SlotEditorPage: FC<SlotEditorPageProps> = ({ plan, day, slot, items, error, prefill }) => (
+  <Layout title={`Edit ${slot} — ${day.plan_date}`}>
+    <h1>Edit {slot.charAt(0).toUpperCase() + slot.slice(1)} — {day.plan_date}</h1>
+    <a href={`/plans/${plan.id}`} class="btn btn-secondary btn-sm" style="margin-bottom:1rem;display:inline-block">← Back to plan</a>
+    {error && <p class="error">{error}</p>}
+    <div class="card">
+      <form method="post" action={`/plans/${plan.id}/items`}>
+        <input type="hidden" name="plan_date" value={day.plan_date} />
+        <input type="hidden" name="meal_slot" value={slot} />
+        <div style="display:flex;gap:0.5rem">
+          <input name="dish_name" placeholder="Dish name" required style="flex:1" value={prefill?.dish_name ?? ""} />
+          <input name="notes" placeholder="Notes (optional)" style="flex:1" value={prefill?.notes ?? ""} />
+          <button type="submit" class="btn btn-primary">Add</button>
+        </div>
+      </form>
+    </div>
+    {items.map(item => (
+      <div class="edit-form-row" key={item.id}>
+        <form method="post" action={`/plans/${plan.id}/items/${item.id}`}>
+          <input type="hidden" name="meal_slot" value={item.meal_slot} />
+          <div class="form-row">
+            <input name="dish_name" value={item.dish_name} required style="flex:2;min-width:100px" />
+            <input name="notes" value={item.notes ?? ""} placeholder="Notes" style="flex:1;min-width:80px" />
+            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            <form class="inline" method="post" action={`/plans/${plan.id}/items/${item.id}/delete`}>
+              <button type="submit" class="btn btn-danger btn-sm">Del</button>
+            </form>
+          </div>
+        </form>
+      </div>
+    ))}
+  </Layout>
 );
 
 // ---------------------------------------------------------------------------
@@ -551,8 +620,22 @@ const mockApp = createMockApp({
       const quantityValue = parseNonNegFloat(String(body.quantity_value ?? ""));
       const quantityUnit = String(body.quantity_unit ?? "");
 
-      if (!foodName) return c.html(<Layout title="Error"><p class="error">Food name is required</p></Layout>, 422);
-      if (quantityValue === null) return c.html(<Layout title="Error"><p class="error">Invalid quantity</p></Layout>, 422);
+      const makePrefill = () => ({
+        food_name: String(body.food_name ?? ""),
+        quantity_value: String(body.quantity_value ?? ""),
+        quantity_unit: quantityUnit,
+        calories_kcal: String(body.calories_kcal ?? "0"),
+        protein_g: String(body.protein_g ?? "0"),
+        carbs_g: String(body.carbs_g ?? "0"),
+        fat_g: String(body.fat_g ?? "0"),
+      });
+
+      if (!foodName) return c.html(
+        <EntryForm date={date} slot={mealSlot} error="Food name is required" prefill={makePrefill()} />, 422
+      );
+      if (quantityValue === null) return c.html(
+        <EntryForm date={date} slot={mealSlot} error="Invalid quantity" prefill={makePrefill()} />, 422
+      );
 
       let caloriesKcal = 0, proteinG = 0, carbsG = 0, fatG = 0;
 
@@ -573,7 +656,9 @@ const mockApp = createMockApp({
         fatG = parseNonNegFloat(String(body.fat_g ?? "")) ?? 0;
       }
 
-      if (caloriesKcal > 100000) return c.html(<Layout title="Error"><p class="error">Calories value too large</p></Layout>, 422);
+      if (caloriesKcal > 100000) return c.html(
+        <EntryForm date={date} slot={mealSlot} error="Calories value too large (max 100000)" prefill={makePrefill()} />, 422
+      );
 
       const d = getDatabase();
       const log = ensureDailyLog(d, date);
@@ -612,13 +697,30 @@ const mockApp = createMockApp({
       const log = d.query("SELECT log_date FROM daily_log WHERE id = ?").get(entry.daily_log_id) as { log_date: string } | null;
       const date = log?.log_date ?? todayLocal();
 
+      let food: FoodCatalog | null = null;
+      if (entry.food_catalog_id) food = getFoodById(d, entry.food_catalog_id);
+
       const body = await c.req.parseBody();
       const foodName = String(body.food_name ?? "").trim();
       const quantityValue = parseNonNegFloat(String(body.quantity_value ?? ""));
       const quantityUnit = String(body.quantity_unit ?? "");
 
-      if (!foodName) return c.html(<Layout title="Error"><p class="error">Food name is required</p></Layout>, 422);
-      if (quantityValue === null) return c.html(<Layout title="Error"><p class="error">Invalid quantity</p></Layout>, 422);
+      const makePrefill = () => ({
+        food_name: String(body.food_name ?? ""),
+        quantity_value: String(body.quantity_value ?? ""),
+        quantity_unit: quantityUnit,
+        calories_kcal: String(body.calories_kcal ?? "0"),
+        protein_g: String(body.protein_g ?? "0"),
+        carbs_g: String(body.carbs_g ?? "0"),
+        fat_g: String(body.fat_g ?? "0"),
+      });
+
+      if (!foodName) return c.html(
+        <EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Food name is required" prefill={makePrefill()} />, 422
+      );
+      if (quantityValue === null) return c.html(
+        <EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Invalid quantity" prefill={makePrefill()} />, 422
+      );
 
       let caloriesKcal = entry.calories_kcal, proteinG = entry.protein_g, carbsG = entry.carbs_g, fatG = entry.fat_g;
 
@@ -638,7 +740,9 @@ const mockApp = createMockApp({
         fatG = parseNonNegFloat(String(body.fat_g ?? "")) ?? 0;
       }
 
-      if (caloriesKcal > 100000) return c.html(<Layout title="Error"><p class="error">Calories value too large</p></Layout>, 422);
+      if (caloriesKcal > 100000) return c.html(
+        <EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Calories value too large (max 100000)" prefill={makePrefill()} />, 422
+      );
 
       updateFoodEntry(d, entryId, { foodName, quantityValue, quantityUnit, caloriesKcal, proteinG, carbsG, fatG });
       return c.redirect(`/log/${date}`, 303);
@@ -686,20 +790,21 @@ const mockApp = createMockApp({
       const targetRaw = String(body.target_calories_kcal ?? "").trim();
       const notes = String(body.notes ?? "").trim() || null;
 
-      if (!title) return c.html(<PlanForm error="Title is required" prefill={{ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" }} />, 422);
-      if (!isValidLocalDate(startDate) || !isValidLocalDate(endDate)) return c.html(<PlanForm error="Invalid date format" prefill={{ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" }} />, 422);
-      if (startDate > endDate) return c.html(<PlanForm error="Start date must be before end date" prefill={{ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" }} />, 422);
+      const makePrefill = () => ({ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" });
 
-      // Span check: max 365 days
+      if (!title) return c.html(<PlanForm error="Title is required" prefill={makePrefill()} />, 422);
+      if (!isValidLocalDate(startDate) || !isValidLocalDate(endDate)) return c.html(<PlanForm error="Invalid date format" prefill={makePrefill()} />, 422);
+      if (startDate > endDate) return c.html(<PlanForm error="Start date must be before end date" prefill={makePrefill()} />, 422);
+
       const start = new Date(startDate + "T00:00:00");
       const end = new Date(endDate + "T00:00:00");
       const days = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
-      if (days > 365) return c.html(<PlanForm error="Plan span must be 365 days or fewer" prefill={{ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" }} />, 422);
+      if (days > 365) return c.html(<PlanForm error="Plan span must be 365 days or fewer" prefill={makePrefill()} />, 422);
 
-      if (!(["draft", "active", "archived"] as string[]).includes(status)) return c.html(<PlanForm error="Invalid status" prefill={{ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" }} />, 422);
+      if (!(["draft", "active", "archived"] as string[]).includes(status)) return c.html(<PlanForm error="Invalid status" prefill={makePrefill()} />, 422);
 
       const targetCaloriesKcal = targetRaw ? parseNonNegFloat(targetRaw) : null;
-      if (targetRaw && targetCaloriesKcal === null) return c.html(<PlanForm error="Invalid calorie target" prefill={{ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" }} />, 422);
+      if (targetRaw && targetCaloriesKcal === null) return c.html(<PlanForm error="Invalid calorie target" prefill={makePrefill()} />, 422);
 
       const d = getDatabase();
       const planId = createPlan(d, { title, startDate, endDate, status, targetCaloriesKcal, notes });
@@ -784,6 +889,9 @@ const mockApp = createMockApp({
       if (!planId) return c.html(<Layout title="Bad Request"><p>Invalid plan ID</p></Layout>, 400);
 
       const d = getDatabase();
+      const existing = d.query("SELECT id FROM meal_plan WHERE id = ?").get(planId);
+      if (!existing) return c.html(<Layout title="Not Found"><p>Plan not found</p></Layout>, 404);
+
       deletePlan(d, planId);
       return c.redirect("/plans", 303);
     });
@@ -806,32 +914,7 @@ const mockApp = createMockApp({
       if (!day) return c.html(<Layout title="Not Found"><p>Day not found in plan</p></Layout>, 404);
 
       const items = detail.itemsByDayBySlot[day.id]?.[slot] ?? [];
-
-      return c.html(
-        <Layout title={`Edit ${slot} — ${date}`}>
-          <h1>Edit {slot.charAt(0).toUpperCase() + slot.slice(1)} — {date}</h1>
-          <a href={`/plans/${planId}`} class="btn btn-secondary btn-sm" style="margin-bottom:1rem;display:inline-block">← Back to plan</a>
-          <div class="card">
-            <form method="post" action={`/plans/${planId}/items`}>
-              <input type="hidden" name="plan_date" value={date} />
-              <input type="hidden" name="meal_slot" value={slot} />
-              <div style="display:flex;gap:0.5rem">
-                <input name="dish_name" placeholder="Dish name" required style="flex:1" />
-                <input name="notes" placeholder="Notes (optional)" style="flex:1" />
-                <button type="submit" class="btn btn-primary">Add</button>
-              </div>
-            </form>
-          </div>
-          {items.map(item => (
-            <div class="entry-row" key={item.id}>
-              <span>{item.dish_name}{item.notes ? ` — ${item.notes}` : ""}</span>
-              <form class="inline" method="post" action={`/plans/${planId}/items/${item.id}/delete`}>
-                <button type="submit" class="btn btn-danger btn-sm">Del</button>
-              </form>
-            </div>
-          ))}
-        </Layout>
-      );
+      return c.html(<SlotEditorPage plan={detail.plan} day={day} slot={slot} items={items} />);
     });
 
     app.post("/plans/:planId/items", async (c) => {
@@ -846,11 +929,23 @@ const mockApp = createMockApp({
 
       if (!isValidLocalDate(planDate)) return c.html(<Layout title="Bad Request"><p>Invalid date</p></Layout>, 400);
       if (!(PLAN_SLOTS as readonly string[]).includes(mealSlot)) return c.html(<Layout title="Bad Request"><p>Invalid slot</p></Layout>, 400);
-      if (!dishName) return c.html(<Layout title="Error"><p class="error">Dish name is required</p></Layout>, 422);
 
       const d = getDatabase();
+      const detail = getPlanDetail(d, planId);
+      if (!detail) return c.html(<Layout title="Not Found"><p>Plan not found</p></Layout>, 404);
+
       const day = getDayByPlanAndDate(d, planId, planDate);
       if (!day) return c.html(<Layout title="Not Found"><p>Day not found in plan</p></Layout>, 404);
+
+      if (!dishName) {
+        const items = detail.itemsByDayBySlot[day.id]?.[mealSlot] ?? [];
+        return c.html(
+          <SlotEditorPage plan={detail.plan} day={day} slot={mealSlot} items={items}
+            error="Dish name is required"
+            prefill={{ dish_name: String(body.dish_name ?? ""), notes: String(body.notes ?? "") }} />,
+          422
+        );
+      }
 
       insertMealPlanItem(d, { mealPlanDayId: day.id, mealSlot, dishName, notes });
       return c.redirect(`/plans/${planId}/days/${planDate}/slots/${mealSlot}/edit`, 303);
@@ -862,7 +957,7 @@ const mockApp = createMockApp({
       if (!planId || !itemId) return c.html(<Layout title="Bad Request"><p>Invalid ID</p></Layout>, 400);
 
       const d = getDatabase();
-      const item = getMealPlanItem(d, itemId);
+      const item = getMealPlanItemForPlan(d, planId, itemId);
       if (!item) return c.html(<Layout title="Not Found"><p>Item not found</p></Layout>, 404);
 
       const body = await c.req.parseBody();
@@ -871,10 +966,28 @@ const mockApp = createMockApp({
       const notes = String(body.notes ?? "").trim() || null;
 
       if (!(PLAN_SLOTS as readonly string[]).includes(mealSlot)) return c.html(<Layout title="Bad Request"><p>Invalid slot</p></Layout>, 400);
-      if (!dishName) return c.html(<Layout title="Error"><p class="error">Dish name is required</p></Layout>, 422);
+
+      // Determine the day/date for redirect and error re-render
+      const day = getMealPlanDayById(d, item.meal_plan_day_id);
+      const planDate = day?.plan_date ?? "";
+
+      if (!dishName) {
+        const detail = getPlanDetail(d, planId);
+        const items = day ? (detail?.itemsByDayBySlot[day.id]?.[mealSlot] ?? []) : [];
+        return c.html(
+          <SlotEditorPage
+            plan={detail?.plan ?? { id: planId, title: "", start_date: "", end_date: "", status: "draft", target_calories_kcal: null, notes: null }}
+            day={day ?? { id: item.meal_plan_day_id, meal_plan_id: planId, plan_date: planDate }}
+            slot={mealSlot}
+            items={items}
+            error="Dish name is required"
+            prefill={{ dish_name: String(body.dish_name ?? ""), notes: String(body.notes ?? "") }} />,
+          422
+        );
+      }
 
       updateMealPlanItem(d, itemId, { mealSlot, dishName, notes });
-      return c.redirect(`/plans/${planId}`, 303);
+      return c.redirect(`/plans/${planId}/days/${planDate}/slots/${mealSlot}/edit`, 303);
     });
 
     app.post("/plans/:planId/items/:itemId/delete", async (c) => {
@@ -883,11 +996,14 @@ const mockApp = createMockApp({
       if (!planId || !itemId) return c.html(<Layout title="Bad Request"><p>Invalid ID</p></Layout>, 400);
 
       const d = getDatabase();
-      const item = getMealPlanItem(d, itemId);
+      const item = getMealPlanItemForPlan(d, planId, itemId);
       if (!item) return c.html(<Layout title="Not Found"><p>Item not found</p></Layout>, 404);
 
+      const day = getMealPlanDayById(d, item.meal_plan_day_id);
+      const planDate = day?.plan_date ?? "";
+
       deleteMealPlanItem(d, itemId);
-      return c.redirect(`/plans/${planId}`, 303);
+      return c.redirect(`/plans/${planId}/days/${planDate}/slots/${item.meal_slot}/edit`, 303);
     });
 
     // ---------------------------------------------------------------------------
@@ -903,12 +1019,29 @@ const mockApp = createMockApp({
       const quantityUnit = String(body.quantity_unit ?? "g");
       const notes = String(body.notes ?? "").trim() || null;
 
-      if (!name) return c.html(<Layout title="Error"><p class="error">Ingredient name is required</p></Layout>, 422);
-      if (!(INGREDIENT_UNITS as readonly string[]).includes(quantityUnit)) return c.html(<Layout title="Bad Request"><p>Invalid unit</p></Layout>, 400);
-
       const d = getDatabase();
       const existing = getPlanDetail(d, planId);
       if (!existing) return c.html(<Layout title="Not Found"><p>Plan not found</p></Layout>, 404);
+
+      if (!name) {
+        const makePrefill = () => ({ name: String(body.name ?? ""), quantity_value: String(body.quantity_value ?? ""), quantity_unit: quantityUnit });
+        return c.html(
+          <Layout title={existing.plan.title}>
+            <h1>{existing.plan.title}</h1>
+            <p class="entry-meta">{existing.plan.start_date} → {existing.plan.end_date} · {existing.plan.status}</p>
+            <div style="display:flex;gap:0.5rem;margin:0.75rem 0">
+              <a href={`/plans/${planId}?tab=days`} class="btn btn-secondary btn-sm">Days</a>
+              <a href={`/plans/${planId}?tab=ingredients`} class="btn btn-primary btn-sm">Ingredients</a>
+              <a href={`/plans/${planId}/edit`} class="btn btn-secondary btn-sm">Edit Plan</a>
+            </div>
+            <IngredientTable plan={existing.plan} ingredients={existing.ingredients}
+              error="Ingredient name is required" prefill={makePrefill()} />
+          </Layout>,
+          422
+        );
+      }
+
+      if (!(INGREDIENT_UNITS as readonly string[]).includes(quantityUnit)) return c.html(<Layout title="Bad Request"><p>Invalid unit</p></Layout>, 400);
 
       insertIngredientItem(d, { mealPlanId: planId, name, quantityValue, quantityUnit, notes });
       return c.redirect(`/plans/${planId}?tab=ingredients`, 303);
@@ -920,7 +1053,7 @@ const mockApp = createMockApp({
       if (!planId || !ingId) return c.html(<Layout title="Bad Request"><p>Invalid ID</p></Layout>, 400);
 
       const d = getDatabase();
-      const ing = getIngredientItem(d, ingId);
+      const ing = getIngredientItemForPlan(d, planId, ingId);
       if (!ing) return c.html(<Layout title="Not Found"><p>Ingredient not found</p></Layout>, 404);
 
       const body = await c.req.parseBody();
@@ -929,7 +1062,17 @@ const mockApp = createMockApp({
       const quantityUnit = String(body.quantity_unit ?? "g");
       const notes = String(body.notes ?? "").trim() || null;
 
-      if (!name) return c.html(<Layout title="Error"><p class="error">Ingredient name is required</p></Layout>, 422);
+      if (!name) {
+        const detail = getPlanDetail(d, planId);
+        const makePrefill = () => ({ name: String(body.name ?? ""), quantity_value: String(body.quantity_value ?? ""), quantity_unit: quantityUnit });
+        return c.html(
+          <Layout title={detail?.plan.title ?? "Plan"}>
+            <IngredientTable plan={ing as unknown as MealPlan} ingredients={detail?.ingredients ?? []}
+              error="Ingredient name is required" prefill={makePrefill()} />
+          </Layout>,
+          422
+        );
+      }
 
       updateIngredientItem(d, ingId, { name, quantityValue, quantityUnit, notes });
       return c.redirect(`/plans/${planId}?tab=ingredients`, 303);
@@ -941,6 +1084,9 @@ const mockApp = createMockApp({
       if (!planId || !ingId) return c.html(<Layout title="Bad Request"><p>Invalid ID</p></Layout>, 400);
 
       const d = getDatabase();
+      const ing = getIngredientItemForPlan(d, planId, ingId);
+      if (!ing) return c.html(<Layout title="Not Found"><p>Ingredient not found</p></Layout>, 404);
+
       deleteIngredientItem(d, ingId);
       return c.redirect(`/plans/${planId}?tab=ingredients`, 303);
     });
