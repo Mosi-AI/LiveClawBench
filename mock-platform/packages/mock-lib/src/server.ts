@@ -41,7 +41,7 @@ export async function startServer(
     /** Dev mode: enable Hono logger. Defaults to mockApp.config.dev */
     dev?: boolean;
   },
-): Promise<Server> {
+): Promise<ReturnType<typeof Bun.serve>> {
   const dev = options?.dev ?? mockApp.config.dev ?? false;
   const port = parseCliPort() ?? mockApp.config.port ?? 3000;
 

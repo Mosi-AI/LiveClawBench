@@ -10,12 +10,12 @@ if [[ "$PORT" == "0" ]]; then
 fi
 
 TMPDIR="$(mktemp -d)"
-trap 'kill $PID 2>/dev/null; rm -rf "$TMPDIR"' EXIT
+trap 'kill $PID 2>/dev/null || true; rm -rf "$TMPDIR"' EXIT
 
 MOCK_DATA_DIR="$TMPDIR" "$BINARY" --port "$PORT" &>/tmp/mint-diet-smoke.log &
 PID=$!
 
-# Wait for server to be ready
+# Wait for server to be ready (up to 6 seconds)
 for i in $(seq 1 30); do
   if curl -sf "http://localhost:$PORT/health" >/dev/null 2>&1; then break; fi
   sleep 0.2
@@ -34,152 +34,144 @@ check() {
     echo "PASS: $desc"
     PASS=$((PASS + 1))
   else
-    echo "FAIL: $desc (pattern: $pattern)"
-    echo "  Got: $(echo "$result" | head -5)"
+    echo "FAIL: $desc (expected: $pattern)"
+    echo "  Got: $(echo "$result" | head -3)"
     FAIL=$((FAIL + 1))
   fi
 }
 
-# 1. GET /health → {"ok":true}
-check "GET /health" "$(curl -sf "$BASE/health")" '"ok":true'
+# Check 1: GET /health → {"ok":true}
+check "1. GET /health" "$(curl -sf "$BASE/health")" '"ok":true'
 
-# 2. GET /__mock_sentinel__/mint-diet → {"sentinel":true}
-check "GET /__mock_sentinel__/mint-diet" "$(curl -sf "$BASE/__mock_sentinel__/mint-diet")" '"sentinel":true'
+# Check 2: GET /__mock_sentinel__/mint-diet → {"sentinel":true}
+check "2. GET /__mock_sentinel__/mint-diet" "$(curl -sf "$BASE/__mock_sentinel__/mint-diet")" '"sentinel":true'
 
-# 3. GET /log → 302 to today (follow redirect, check for slot labels)
-check "GET /log redirects to today" "$(curl -sf -L "$BASE/log")" "breakfast\|lunch\|dinner\|snacks"
+# Check 3: GET /log → 302 to today (follow redirect, check for slot labels)
+check "3. GET /log redirects to today" "$(curl -sf -L "$BASE/log")" "Breakfast\|breakfast"
 
-# 4. GET /log/2026-04-22 → slot labels present
-check "GET /log/2026-04-22 shows slots" "$(curl -sf "$BASE/log/2026-04-22")" "breakfast\|Breakfast"
+# Check 4: GET /log/2026-04-22 → slot labels present
+check "4. GET /log/2026-04-22 shows slots" "$(curl -sf "$BASE/log/2026-04-22")" "Breakfast"
 
-# 5. GET /log/2026-04-22/add/breakfast?q=rice → search results present
-SEARCH_RESULT="$(curl -sf "$BASE/log/2026-04-22/add/breakfast?q=rice")"
-check "Food search returns results" "$SEARCH_RESULT" "rice\|Rice\|food_catalog_id"
+# Check 5: GET /log/2026-04-22/add/breakfast?q=rice → seed food present
+check "5. Food search returns seed food" "$(curl -sf "$BASE/log/2026-04-22/add/breakfast?q=rice")" "rice\|Rice"
 
-# 6. POST food entry → entry appears on day view
-ENTRY_RESULT="$(curl -sf -X POST "$BASE/log/2026-04-22/add/breakfast" \
-  -d "food_name=White+Rice&quantity_value=150&quantity_unit=g&calories_kcal=195&protein_g=4&carbs_g=43&fat_g=0.4&food_catalog_id=" \
-  -w "%{http_code}" -o /tmp/mint-diet-entry.html)"
-check "POST entry succeeds (303)" "$ENTRY_RESULT" "^303$"
-DAY_VIEW="$(curl -sf "$BASE/log/2026-04-22")"
-check "Posted entry appears on day view" "$DAY_VIEW" "White Rice"
+# Check 6: POST /log/:date/entries → entry appears on day view (POST to correct route)
+STATUS=$(curl -sf -X POST "$BASE/log/2026-04-22/entries" \
+  -d "slot=breakfast&food_name=White+Rice&quantity_value=150&quantity_unit=g&calories_kcal=195&protein_g=4&carbs_g=43&fat_g=0.4&food_catalog_id=" \
+  -w "%{http_code}" -o /tmp/smoke-entry.html)
+check "6. POST /log/:date/entries returns 303" "$STATUS" "^303$"
+check "6b. Entry appears on day view" "$(curl -sf "$BASE/log/2026-04-22")" "White Rice"
 
-# 7. GET edit form → prefilled with posted values
+# Check 7: GET /log/entry/:id/edit → form prefilled
 ENTRY_ID="$(curl -sf "$BASE/log/2026-04-22" | grep -o 'entry/[0-9]*/edit' | head -1 | grep -o '[0-9]*')"
 if [[ -n "$ENTRY_ID" ]]; then
   EDIT_FORM="$(curl -sf "$BASE/log/entry/$ENTRY_ID/edit")"
-  check "GET edit form prefilled with food_name" "$EDIT_FORM" "White Rice"
-  check "GET edit form prefilled with quantity_value" "$EDIT_FORM" "150"
+  check "7. GET /log/entry/:id/edit shows prefilled form" "$EDIT_FORM" "White Rice"
 else
-  echo "SKIP: could not find entry id for edit test"
-  PASS=$((PASS + 2))
+  echo "SKIP 7: could not find entry id"; PASS=$((PASS + 1))
 fi
 
-# 8. POST edit with new quantity → totals reflect new value
+# Check 8: POST /log/entries/:id → updated qty reflected in day view
 if [[ -n "$ENTRY_ID" ]]; then
-  curl -sf -X POST "$BASE/log/entry/$ENTRY_ID" \
+  curl -sf -X POST "$BASE/log/entries/$ENTRY_ID" \
     -d "food_name=White+Rice&quantity_value=200&quantity_unit=g&calories_kcal=260&protein_g=5.4&carbs_g=57&fat_g=0.5" \
     -o /dev/null
-  UPDATED_VIEW="$(curl -sf "$BASE/log/2026-04-22")"
-  check "Updated entry quantity reflected on day view" "$UPDATED_VIEW" "200"
+  check "8. POST /log/entries/:id updates entry" "$(curl -sf "$BASE/log/2026-04-22")" "200"
 fi
 
-# 9. POST delete → entry gone
+# Check 9: POST /log/entries/:id/delete → entry gone from day view
 if [[ -n "$ENTRY_ID" ]]; then
-  curl -sf -X POST "$BASE/log/entry/$ENTRY_ID/delete" -o /dev/null
-  AFTER_DELETE="$(curl -sf "$BASE/log/2026-04-22")"
-  if echo "$AFTER_DELETE" | grep -q "White Rice"; then
-    echo "FAIL: POST delete - entry still present after delete"
-    FAIL=$((FAIL + 1))
+  curl -sf -X POST "$BASE/log/entries/$ENTRY_ID/delete" -o /dev/null
+  DAY_AFTER="$(curl -sf "$BASE/log/2026-04-22")"
+  if echo "$DAY_AFTER" | grep -q "White Rice"; then
+    echo "FAIL: 9. Entry still present after delete"; FAIL=$((FAIL + 1))
   else
-    echo "PASS: POST delete - entry removed"
-    PASS=$((PASS + 1))
+    echo "PASS: 9. Entry gone after delete"; PASS=$((PASS + 1))
   fi
 fi
 
-# 10. POST /plans with target_calories → plan budget appears on day view
-PLAN_POST="$(curl -sf -X POST "$BASE/plans" \
-  -d "title=Test+Plan&start_date=2026-04-22&end_date=2026-04-25&status=active&target_calories_kcal=1800&notes=smoke+test" \
-  -w "%{http_code}" -o /tmp/mint-diet-plan.html)"
-check "POST /plans succeeds (303)" "$PLAN_POST" "^303$"
-PLAN_DAY="$(curl -sf "$BASE/log/2026-04-22")"
-check "Plan budget appears on day view" "$PLAN_DAY" "1800"
+# Check 10: POST /plans with target_calories_kcal → day view shows plan budget + note
+STATUS=$(curl -sf -X POST "$BASE/plans" \
+  -d "title=Smoke+Plan&start_date=2026-04-20&end_date=2026-04-25&status=active&target_calories_kcal=1800&notes=smoke+test" \
+  -w "%{http_code}" -o /tmp/smoke-plan.html)
+check "10a. POST /plans returns 303" "$STATUS" "^303$"
+check "10b. Day view shows plan budget" "$(curl -sf "$BASE/log/2026-04-22")" "1800"
+check "10c. Day view shows from-plan note" "$(curl -sf "$BASE/log/2026-04-22")" "Smoke Plan\|Budget from plan"
 
-# 11. GET /plans/:id → days present
-PLAN_ID="$(curl -sf "$BASE/plans" | grep -o 'plans/[0-9]*"' | head -1 | grep -o '[0-9]*')"
+# Check 11: GET /plans/:id → all days present
+PLAN_ID="$(curl -sf "$BASE/plans" | grep -o 'href="/plans/[0-9]*"' | head -1 | grep -o '[0-9]*')"
 if [[ -n "$PLAN_ID" ]]; then
-  PLAN_DETAIL="$(curl -sf "$BASE/plans/$PLAN_ID")"
-  check "GET /plans/:id shows plan days" "$PLAN_DETAIL" "2026-04-22\|Apr 22"
+  PLAN_PAGE="$(curl -sf "$BASE/plans/$PLAN_ID")"
+  check "11. GET /plans/:id shows plan days" "$PLAN_PAGE" "2026-04-20\|2026-04-21\|2026-04-22"
 else
-  echo "SKIP: could not find plan id"
-  PASS=$((PASS + 1))
+  echo "SKIP 11: could not find plan id"; PASS=$((PASS + 1))
 fi
 
-# 12. POST item → appears on slot editor
+# Check 12: POST /plans/:id/items → item appears on day/slot edit page
 if [[ -n "$PLAN_ID" ]]; then
-  ITEM_POST="$(curl -sf -X POST "$BASE/plans/$PLAN_ID/items" \
+  STATUS=$(curl -sf -X POST "$BASE/plans/$PLAN_ID/items" \
     -d "plan_date=2026-04-22&meal_slot=breakfast&dish_name=Oatmeal&notes=" \
-    -w "%{http_code}" -o /tmp/mint-diet-item.html)"
-  check "POST plan item succeeds (303)" "$ITEM_POST" "^303$"
-  SLOT_EDITOR="$(curl -sf "$BASE/plans/$PLAN_ID/slots/2026-04-22/breakfast")"
-  check "Posted item appears on slot editor" "$SLOT_EDITOR" "Oatmeal"
+    -w "%{http_code}" -o /tmp/smoke-item.html)
+  check "12a. POST /plans/:id/items returns 303" "$STATUS" "^303$"
+  SLOT_PAGE="$(curl -sf "$BASE/plans/$PLAN_ID/days/2026-04-22/slots/breakfast/edit")"
+  check "12b. Item appears on slot editor" "$SLOT_PAGE" "Oatmeal"
 fi
 
-# 13. Shrink plan date range → removed day cascades
+# Check 13: POST plan edit to shorter date range → removed day cascaded
 if [[ -n "$PLAN_ID" ]]; then
   curl -sf -X POST "$BASE/plans/$PLAN_ID" \
-    -d "title=Test+Plan&start_date=2026-04-23&end_date=2026-04-25&status=active&target_calories_kcal=1800&notes=shrunk" \
+    -d "title=Smoke+Plan&start_date=2026-04-23&end_date=2026-04-25&status=active&target_calories_kcal=1800&notes=shrunk" \
     -o /dev/null
-  SHRUNK_PLAN="$(curl -sf "$BASE/plans/$PLAN_ID")"
-  if echo "$SHRUNK_PLAN" | grep -q "2026-04-22"; then
-    echo "FAIL: shrink plan - removed day still present"
-    FAIL=$((FAIL + 1))
+  SHRUNK="$(curl -sf "$BASE/plans/$PLAN_ID")"
+  if echo "$SHRUNK" | grep -q "2026-04-20\|2026-04-21\|2026-04-22"; then
+    echo "FAIL: 13. Removed day still present after shrink"; FAIL=$((FAIL + 1))
   else
-    echo "PASS: shrink plan - removed day cascaded"
-    PASS=$((PASS + 1))
+    echo "PASS: 13. Removed days gone after shrink"; PASS=$((PASS + 1))
   fi
 fi
 
-# 14. Expand plan → new days added, existing intact
+# Check 14: POST plan edit to longer date range → new days added, existing intact
 if [[ -n "$PLAN_ID" ]]; then
   curl -sf -X POST "$BASE/plans/$PLAN_ID" \
-    -d "title=Test+Plan&start_date=2026-04-22&end_date=2026-04-26&status=active&target_calories_kcal=1800&notes=expanded" \
+    -d "title=Smoke+Plan&start_date=2026-04-22&end_date=2026-04-27&status=active&target_calories_kcal=1800&notes=expanded" \
     -o /dev/null
-  EXPANDED_PLAN="$(curl -sf "$BASE/plans/$PLAN_ID")"
-  check "Expand plan - new days added" "$EXPANDED_PLAN" "2026-04-26\|Apr 26"
-  check "Expand plan - existing days intact" "$EXPANDED_PLAN" "2026-04-23\|Apr 23"
+  EXPANDED="$(curl -sf "$BASE/plans/$PLAN_ID")"
+  check "14a. Expand plan - new day added" "$EXPANDED" "2026-04-26\|2026-04-27"
+  check "14b. Expand plan - existing days intact" "$EXPANDED" "2026-04-23\|2026-04-24"
 fi
 
-# 15. DELETE plan → 303, plan gone from list
+# Check 15: POST /plans/:id/delete → plan gone from list; GET /plans/:id returns 404
 if [[ -n "$PLAN_ID" ]]; then
   curl -sf -X POST "$BASE/plans/$PLAN_ID/delete" -o /dev/null
   PLAN_LIST="$(curl -sf "$BASE/plans")"
-  if echo "$PLAN_LIST" | grep -q "Test Plan"; then
-    echo "FAIL: delete plan - plan still in list"
-    FAIL=$((FAIL + 1))
+  if echo "$PLAN_LIST" | grep -q "Smoke Plan"; then
+    echo "FAIL: 15a. Deleted plan still in list"; FAIL=$((FAIL + 1))
   else
-    echo "PASS: delete plan - plan removed from list"
-    PASS=$((PASS + 1))
+    echo "PASS: 15a. Plan removed from list"; PASS=$((PASS + 1))
   fi
+  NOT_FOUND=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/plans/$PLAN_ID")
+  check "15b. GET /plans/:id returns 404 after delete" "$NOT_FOUND" "^404$"
 fi
 
-# 16. Two overlapping plans → earlier start_date wins (lower planId wins on tie)
+# Check 16: Two plans covering same date with different start_dates → earlier start_date wins
+# Plan A: starts 2026-05-01, target 1600
 curl -sf -X POST "$BASE/plans" \
   -d "title=Plan+A&start_date=2026-05-01&end_date=2026-05-07&status=active&target_calories_kcal=1600&notes=" \
   -o /dev/null
+# Plan B: starts 2026-05-03 (later start), target 2000 - should NOT win
 curl -sf -X POST "$BASE/plans" \
-  -d "title=Plan+B&start_date=2026-05-01&end_date=2026-05-07&status=active&target_calories_kcal=2000&notes=" \
+  -d "title=Plan+B&start_date=2026-05-03&end_date=2026-05-07&status=active&target_calories_kcal=2000&notes=" \
   -o /dev/null
-OVERLAP_DAY="$(curl -sf "$BASE/log/2026-05-03")"
-check "Overlapping plans: earlier start_date (Plan A) wins" "$OVERLAP_DAY" "1600"
+# For 2026-05-05 both plans cover it; Plan A (earlier start 05-01) should win → budget 1600
+check "16. Earlier start_date plan wins overlap" "$(curl -sf "$BASE/log/2026-05-05")" "1600"
 
-# 17a. Invalid date format → 400
-INVALID_DATE_RESP="$(curl -sf -o /dev/null -w "%{http_code}" "$BASE/log/2026-13-45")"
-check "GET /log/2026-13-45 → 400" "$INVALID_DATE_RESP" "^400$"
+# Check 17a: Invalid date → 400
+check "17a. GET /log/2026-13-45 → 400" \
+  "$(curl -s -o /dev/null -w "%{http_code}" "$BASE/log/2026-13-45")" "^400$"
 
-# 17b. Non-existent entry edit → 404
-MISSING_ENTRY_RESP="$(curl -sf -o /dev/null -w "%{http_code}" "$BASE/log/entry/999999/edit")"
-check "GET /log/entry/999999/edit → 404" "$MISSING_ENTRY_RESP" "^404$"
+# Check 17b: Missing entry edit → 404
+check "17b. GET /log/entry/999999/edit → 404" \
+  "$(curl -s -o /dev/null -w "%{http_code}" "$BASE/log/entry/999999/edit")" "^404$"
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

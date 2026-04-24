@@ -633,7 +633,10 @@ const mockApp = createMockApp({
       if (!foodName) return c.html(
         <EntryForm date={date} slot={mealSlot} error="Food name is required" prefill={makePrefill()} />, 422
       );
-      if (quantityValue === null) return c.html(
+      if (foodName.length > 200) return c.html(
+        <EntryForm date={date} slot={mealSlot} error="Food name must be 200 characters or fewer" prefill={makePrefill()} />, 422
+      );
+      if (quantityValue === null || quantityValue < 0) return c.html(
         <EntryForm date={date} slot={mealSlot} error="Invalid quantity" prefill={makePrefill()} />, 422
       );
 
@@ -718,7 +721,10 @@ const mockApp = createMockApp({
       if (!foodName) return c.html(
         <EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Food name is required" prefill={makePrefill()} />, 422
       );
-      if (quantityValue === null) return c.html(
+      if (foodName.length > 200) return c.html(
+        <EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Food name must be 200 characters or fewer" prefill={makePrefill()} />, 422
+      );
+      if (quantityValue === null || quantityValue < 0) return c.html(
         <EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Invalid quantity" prefill={makePrefill()} />, 422
       );
 
@@ -793,6 +799,7 @@ const mockApp = createMockApp({
       const makePrefill = () => ({ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" });
 
       if (!title) return c.html(<PlanForm error="Title is required" prefill={makePrefill()} />, 422);
+      if (title.length > 200) return c.html(<PlanForm error="Title must be 200 characters or fewer" prefill={makePrefill()} />, 422);
       if (!isValidLocalDate(startDate) || !isValidLocalDate(endDate)) return c.html(<PlanForm error="Invalid date format" prefill={makePrefill()} />, 422);
       if (startDate > endDate) return c.html(<PlanForm error="Start date must be before end date" prefill={makePrefill()} />, 422);
 
@@ -867,18 +874,21 @@ const mockApp = createMockApp({
       const targetRaw = String(body.target_calories_kcal ?? "").trim();
       const notes = String(body.notes ?? "").trim() || null;
 
-      if (!title) return c.html(<PlanForm plan={existing.plan} error="Title is required" />, 422);
-      if (!isValidLocalDate(startDate) || !isValidLocalDate(endDate)) return c.html(<PlanForm plan={existing.plan} error="Invalid date format" />, 422);
-      if (startDate > endDate) return c.html(<PlanForm plan={existing.plan} error="Start date must be before end date" />, 422);
+      const makePrefill = () => ({ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" });
+
+      if (!title) return c.html(<PlanForm plan={existing.plan} error="Title is required" prefill={makePrefill()} />, 422);
+      if (title.length > 200) return c.html(<PlanForm plan={existing.plan} error="Title must be 200 characters or fewer" prefill={makePrefill()} />, 422);
+      if (!isValidLocalDate(startDate) || !isValidLocalDate(endDate)) return c.html(<PlanForm plan={existing.plan} error="Invalid date format" prefill={makePrefill()} />, 422);
+      if (startDate > endDate) return c.html(<PlanForm plan={existing.plan} error="Start date must be before end date" prefill={makePrefill()} />, 422);
 
       const start = new Date(startDate + "T00:00:00");
       const end = new Date(endDate + "T00:00:00");
       const daySpan = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
-      if (daySpan > 365) return c.html(<PlanForm plan={existing.plan} error="Plan span must be 365 days or fewer" />, 422);
-      if (!(["draft", "active", "archived"] as string[]).includes(status)) return c.html(<PlanForm plan={existing.plan} error="Invalid status" />, 422);
+      if (daySpan > 365) return c.html(<PlanForm plan={existing.plan} error="Plan span must be 365 days or fewer" prefill={makePrefill()} />, 422);
+      if (!(["draft", "active", "archived"] as string[]).includes(status)) return c.html(<PlanForm plan={existing.plan} error="Invalid status" prefill={makePrefill()} />, 422);
 
       const targetCaloriesKcal = targetRaw ? parseNonNegFloat(targetRaw) : null;
-      if (targetRaw && targetCaloriesKcal === null) return c.html(<PlanForm plan={existing.plan} error="Invalid calorie target" />, 422);
+      if (targetRaw && targetCaloriesKcal === null) return c.html(<PlanForm plan={existing.plan} error="Invalid calorie target" prefill={makePrefill()} />, 422);
 
       updatePlan(d, planId, { title, startDate, endDate, status, targetCaloriesKcal, notes });
       return c.redirect(`/plans/${planId}`, 303);
@@ -946,6 +956,15 @@ const mockApp = createMockApp({
           422
         );
       }
+      if (dishName.length > 200) {
+        const items = detail.itemsByDayBySlot[day.id]?.[mealSlot] ?? [];
+        return c.html(
+          <SlotEditorPage plan={detail.plan} day={day} slot={mealSlot} items={items}
+            error="Dish name must be 200 characters or fewer"
+            prefill={{ dish_name: String(body.dish_name ?? ""), notes: String(body.notes ?? "") }} />,
+          422
+        );
+      }
 
       insertMealPlanItem(d, { mealPlanDayId: day.id, mealSlot, dishName, notes });
       return c.redirect(`/plans/${planId}/days/${planDate}/slots/${mealSlot}/edit`, 303);
@@ -971,6 +990,7 @@ const mockApp = createMockApp({
       const day = getMealPlanDayById(d, item.meal_plan_day_id);
       const planDate = day?.plan_date ?? "";
 
+      const makePrefill = () => ({ dish_name: String(body.dish_name ?? ""), notes: String(body.notes ?? "") });
       if (!dishName) {
         const detail = getPlanDetail(d, planId);
         const items = day ? (detail?.itemsByDayBySlot[day.id]?.[mealSlot] ?? []) : [];
@@ -981,7 +1001,21 @@ const mockApp = createMockApp({
             slot={mealSlot}
             items={items}
             error="Dish name is required"
-            prefill={{ dish_name: String(body.dish_name ?? ""), notes: String(body.notes ?? "") }} />,
+            prefill={makePrefill()} />,
+          422
+        );
+      }
+      if (dishName.length > 200) {
+        const detail = getPlanDetail(d, planId);
+        const items = day ? (detail?.itemsByDayBySlot[day.id]?.[mealSlot] ?? []) : [];
+        return c.html(
+          <SlotEditorPage
+            plan={detail?.plan ?? { id: planId, title: "", start_date: "", end_date: "", status: "draft", target_calories_kcal: null, notes: null }}
+            day={day ?? { id: item.meal_plan_day_id, meal_plan_id: planId, plan_date: planDate }}
+            slot={mealSlot}
+            items={items}
+            error="Dish name must be 200 characters or fewer"
+            prefill={makePrefill()} />,
           422
         );
       }
@@ -1015,7 +1049,7 @@ const mockApp = createMockApp({
 
       const body = await c.req.parseBody();
       const name = String(body.name ?? "").trim();
-      const quantityValue = parseNonNegFloat(String(body.quantity_value ?? "")) ?? 0;
+      const quantityValueRaw = parseNonNegFloat(String(body.quantity_value ?? ""));
       const quantityUnit = String(body.quantity_unit ?? "g");
       const notes = String(body.notes ?? "").trim() || null;
 
@@ -1023,26 +1057,29 @@ const mockApp = createMockApp({
       const existing = getPlanDetail(d, planId);
       if (!existing) return c.html(<Layout title="Not Found"><p>Plan not found</p></Layout>, 404);
 
-      if (!name) {
-        const makePrefill = () => ({ name: String(body.name ?? ""), quantity_value: String(body.quantity_value ?? ""), quantity_unit: quantityUnit });
-        return c.html(
-          <Layout title={existing.plan.title}>
-            <h1>{existing.plan.title}</h1>
-            <p class="entry-meta">{existing.plan.start_date} → {existing.plan.end_date} · {existing.plan.status}</p>
-            <div style="display:flex;gap:0.5rem;margin:0.75rem 0">
-              <a href={`/plans/${planId}?tab=days`} class="btn btn-secondary btn-sm">Days</a>
-              <a href={`/plans/${planId}?tab=ingredients`} class="btn btn-primary btn-sm">Ingredients</a>
-              <a href={`/plans/${planId}/edit`} class="btn btn-secondary btn-sm">Edit Plan</a>
-            </div>
-            <IngredientTable plan={existing.plan} ingredients={existing.ingredients}
-              error="Ingredient name is required" prefill={makePrefill()} />
-          </Layout>,
-          422
-        );
-      }
+      const makePrefillIng = () => ({ name: String(body.name ?? ""), quantity_value: String(body.quantity_value ?? ""), quantity_unit: quantityUnit });
 
-      if (!(INGREDIENT_UNITS as readonly string[]).includes(quantityUnit)) return c.html(<Layout title="Bad Request"><p>Invalid unit</p></Layout>, 400);
+      const renderIngError = (error: string) => c.html(
+        <Layout title={existing.plan.title}>
+          <h1>{existing.plan.title}</h1>
+          <p class="entry-meta">{existing.plan.start_date} → {existing.plan.end_date} · {existing.plan.status}</p>
+          <div style="display:flex;gap:0.5rem;margin:0.75rem 0">
+            <a href={`/plans/${planId}?tab=days`} class="btn btn-secondary btn-sm">Days</a>
+            <a href={`/plans/${planId}?tab=ingredients`} class="btn btn-primary btn-sm">Ingredients</a>
+            <a href={`/plans/${planId}/edit`} class="btn btn-secondary btn-sm">Edit Plan</a>
+          </div>
+          <IngredientTable plan={existing.plan} ingredients={existing.ingredients}
+            error={error} prefill={makePrefillIng()} />
+        </Layout>,
+        422
+      );
 
+      if (!name) return renderIngError("Ingredient name is required");
+      if (name.length > 200) return renderIngError("Ingredient name must be 200 characters or fewer");
+      if (quantityValueRaw === null || quantityValueRaw < 0) return renderIngError("Invalid quantity value");
+      if (!(INGREDIENT_UNITS as readonly string[]).includes(quantityUnit)) return renderIngError("Invalid unit");
+
+      const quantityValue = quantityValueRaw;
       insertIngredientItem(d, { mealPlanId: planId, name, quantityValue, quantityUnit, notes });
       return c.redirect(`/plans/${planId}?tab=ingredients`, 303);
     });
@@ -1058,22 +1095,34 @@ const mockApp = createMockApp({
 
       const body = await c.req.parseBody();
       const name = String(body.name ?? "").trim();
-      const quantityValue = parseNonNegFloat(String(body.quantity_value ?? "")) ?? 0;
+      const quantityValueRaw = parseNonNegFloat(String(body.quantity_value ?? ""));
       const quantityUnit = String(body.quantity_unit ?? "g");
       const notes = String(body.notes ?? "").trim() || null;
 
-      if (!name) {
-        const detail = getPlanDetail(d, planId);
-        const makePrefill = () => ({ name: String(body.name ?? ""), quantity_value: String(body.quantity_value ?? ""), quantity_unit: quantityUnit });
-        return c.html(
-          <Layout title={detail?.plan.title ?? "Plan"}>
-            <IngredientTable plan={ing as unknown as MealPlan} ingredients={detail?.ingredients ?? []}
-              error="Ingredient name is required" prefill={makePrefill()} />
-          </Layout>,
-          422
-        );
-      }
+      const detail = getPlanDetail(d, planId);
+      const makePrefillUpd = () => ({ name: String(body.name ?? ""), quantity_value: String(body.quantity_value ?? ""), quantity_unit: quantityUnit });
 
+      const renderUpdError = (error: string) => c.html(
+        <Layout title={detail?.plan.title ?? "Plan"}>
+          <h1>{detail?.plan.title ?? "Plan"}</h1>
+          <p class="entry-meta">{detail?.plan.start_date} → {detail?.plan.end_date} · {detail?.plan.status}</p>
+          <div style="display:flex;gap:0.5rem;margin:0.75rem 0">
+            <a href={`/plans/${planId}?tab=days`} class="btn btn-secondary btn-sm">Days</a>
+            <a href={`/plans/${planId}?tab=ingredients`} class="btn btn-primary btn-sm">Ingredients</a>
+            <a href={`/plans/${planId}/edit`} class="btn btn-secondary btn-sm">Edit Plan</a>
+          </div>
+          <IngredientTable plan={detail!.plan} ingredients={detail?.ingredients ?? []}
+            error={error} prefill={makePrefillUpd()} />
+        </Layout>,
+        422
+      );
+
+      if (!name) return renderUpdError("Ingredient name is required");
+      if (name.length > 200) return renderUpdError("Ingredient name must be 200 characters or fewer");
+      if (quantityValueRaw === null || quantityValueRaw < 0) return renderUpdError("Invalid quantity value");
+      if (!(INGREDIENT_UNITS as readonly string[]).includes(quantityUnit)) return renderUpdError("Invalid unit");
+
+      const quantityValue = quantityValueRaw;
       updateIngredientItem(d, ingId, { name, quantityValue, quantityUnit, notes });
       return c.redirect(`/plans/${planId}?tab=ingredients`, 303);
     });
