@@ -19,7 +19,7 @@ export function createMockApp(options: CreateMockAppOptions): MockAppV2 {
   const config = {
     name: options.name,
     port: options.port ?? DEFAULT_PORT,
-    dev: options.dev ?? false,
+    dev: options.dev,
   };
 
   const mockApp = createOpenAPIMockApp(
