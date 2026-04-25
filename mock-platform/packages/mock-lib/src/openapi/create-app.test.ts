@@ -241,6 +241,41 @@ describe("auth security field", () => {
     expect(body).toEqual({ secret: "data" });
   });
 
+  test("auth: required works with OpenAPI path templates ({param} syntax)", async () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/items/{id}",
+        request: {
+          params: z.object({ id: z.string() }),
+        },
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ itemId: c.req.valid("param").id }),
+      { auth: "required" },
+    );
+
+    // No auth header → 401 (middleware rejects before handler)
+    const res = await app.request("/api/items/abc");
+    expect(res.status).toBe(401);
+
+    // Valid auth → 200 (middleware passes, handler runs)
+    const res2 = await app.request("/api/items/abc", {
+      headers: { Authorization: "Bearer valid-token" },
+    });
+    expect(res2.status).toBe(200);
+    const body = await res2.json();
+    expect(body).toEqual({ itemId: "abc" });
+  });
+
   test("auth: required rejects before Zod validation (401 not 400)", async () => {
     const mockApp = createMockApp({
       name: "test",

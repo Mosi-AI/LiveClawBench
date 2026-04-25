@@ -95,7 +95,9 @@ export function createOpenAPIMockApp(
       // Register middleware to reject unauthenticated requests BEFORE
       // hono.openapi() performs Zod validation. Without this, an unauthenticated
       // request with invalid body would get 400 instead of 401.
-      hono.use(route.path, async (c, next) => {
+      // Convert OpenAPI {param} to Hono :param for middleware path matching.
+      const middlewarePath = route.path.replace(/\{(\w+)\}/g, ":$1");
+      hono.use(middlewarePath, async (c, next) => {
         const authHeader = c.req.header("Authorization");
         if (!authHeader || !authHeader.startsWith("Bearer ") || authHeader.slice(7).trim() === "") {
           return c.json({ error: "Unauthorized" }, 401);
