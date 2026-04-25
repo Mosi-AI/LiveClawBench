@@ -84,7 +84,7 @@ interface UserData {
 ```typescript
 interface PaymentMethod {
   type: string;
-  last4: string;
-  expiry: string;
+  account: string;
+  balance?: string;
 }
 ```
