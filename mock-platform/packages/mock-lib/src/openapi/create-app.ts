@@ -27,7 +27,10 @@ export function createOpenAPIMockApp(
   const resolvedConfig = {
     name: config.name,
     port: config.port ?? DEFAULT_PORT,
-    dev: config.dev ?? false,
+    // Dev mode: explicit config flag OR MOCK_DEV=1 env var. Gates the runtime
+    // /openapi.json endpoint so it's reachable in local development but not
+    // exposed inside benchmark task containers.
+    dev: config.dev ?? process.env.MOCK_DEV === "1",
   };
 
   // Create OpenAPIHono with custom defaultHook for validation errors
