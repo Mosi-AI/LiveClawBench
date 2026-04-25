@@ -92,26 +92,22 @@ export function createOpenAPIMockApp(
     // Add bearer-auth security when auth is required
     if (options?.auth === "required") {
       mergedRoute.security = [{ bearerAuth: [] }];
+      // Register middleware to reject unauthenticated requests BEFORE
+      // hono.openapi() performs Zod validation. Without this, an unauthenticated
+      // request with invalid body would get 400 instead of 401.
+      hono.use(route.path, async (c, next) => {
+        const authHeader = c.req.header("Authorization");
+        if (!authHeader || !authHeader.startsWith("Bearer ") || authHeader.slice(7).trim() === "") {
+          return c.json({ error: "Unauthorized" }, 401);
+        }
+        await next();
+      });
     }
 
     // Type assertion needed: @hono/zod-openapi ships duplicate type definitions
     // from its @asteasolutions/zod-to-openapi dependency, causing "two different
     // types with this name exist, but they are unrelated" errors.
-    //
-    // When auth is required, wrap the handler with a runtime bearer-token check.
-    // The handler itself is only invoked after the Authorization header is validated.
-    if (options?.auth === "required") {
-      const originalHandler = handler;
-      hono.openapi(mergedRoute as R, ((c: any) => {
-        const authHeader = c.req.header("Authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ") || authHeader.slice(7).trim() === "") {
-          return c.json({ error: "Unauthorized" }, 401);
-        }
-        return (originalHandler as any)(c);
-      }) as any);
-    } else {
-      hono.openapi(mergedRoute as R, handler as any);
-    }
+    hono.openapi(mergedRoute as R, handler as any);
   };
 
   // Catch JSON parse errors from invalid request bodies; return 500 for everything else
@@ -149,12 +145,17 @@ export function createOpenAPIMockApp(
     : undefined;
 
   if (openApi?.enabled) {
-    app.doc31("/openapi.json", {
-      openapi: "3.1.0",
-      info: resolvedInfo!,
-    });
+    // Only expose /openapi.json endpoint in dev mode to avoid leaking API
+    // surface to evaluated agents in production containers. The spec is still
+    // generated at build time via generate-openapi.ts using getOpenAPI31Document().
+    if (resolvedConfig.dev) {
+      app.doc31("/openapi.json", {
+        openapi: "3.1.0",
+        info: resolvedInfo!,
+      });
+    }
 
-    // Register bearerAuth security scheme
+    // Register bearerAuth security scheme (needed for spec generation)
     app.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
       type: "http",
       scheme: "bearer",

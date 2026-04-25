@@ -240,6 +240,88 @@ describe("auth security field", () => {
     const body = await res.json();
     expect(body).toEqual({ secret: "data" });
   });
+
+  test("auth: required rejects before Zod validation (401 not 400)", async () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/protected-zod",
+        request: {
+          body: {
+            content: {
+              "application/json": {
+                schema: z.object({ name: z.string().min(1) }),
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ ok: true }),
+      { auth: "required" },
+    );
+
+    // No auth header + invalid body → should be 401 (not 400)
+    const res = await app.request("/api/protected-zod", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: 123 }),
+    });
+    expect(res.status).toBe(401);
+    const body = await res.json();
+    expect(body).toEqual({ error: "Unauthorized" });
+  });
+});
+
+describe("/openapi.json endpoint gating", () => {
+  test("/openapi.json is available in dev mode", async () => {
+    const mockApp = createMockApp({
+      name: "test",
+      dev: true,
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    const res = await app.request("/openapi.json");
+    expect(res.status).toBe(200);
+    const spec = await res.json();
+    expect(spec.openapi).toBe("3.1.0");
+  });
+
+  test("/openapi.json is NOT available without dev mode", async () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    const res = await app.request("/openapi.json");
+    expect(res.status).toBe(404);
+  });
+
+  test("spec generation still works without dev mode", () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    // getOpenAPI31Document() should still work for build-time generation
+    const spec = app.getOpenAPI31Document({
+      openapi: "3.1.0",
+      info: { title: "test", version: "1.0.0" },
+    });
+    expect(spec.openapi).toBe("3.1.0");
+    expect(spec.info.title).toBe("test");
+  });
 });
 
 describe("auto-injection of 400 response", () => {
