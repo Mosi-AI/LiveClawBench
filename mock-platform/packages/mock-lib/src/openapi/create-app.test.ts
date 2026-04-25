@@ -733,6 +733,38 @@ describe("Content-Type enforcement for JSON body routes", () => {
     const res = await app.request("/api/no-body");
     expect(res.status).toBe(200);
   });
+
+  test("application/jsonp Content-Type is rejected (not a substring match)", async () => {
+    const mockApp = createMockApp({ name: "test" });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/jsonp-test",
+        request: {
+          body: {
+            content: {
+              "application/json": {
+                schema: z.object({ name: z.string() }),
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c): any => c.json({ ok: true }),
+    );
+
+    const res = await app.request("/api/jsonp-test", {
+      method: "POST",
+      headers: { "Content-Type": "application/jsonp" },
+      body: "callback({name:'foo'})",
+    });
+    expect(res.status).toBe(415);
+  });
 });
 
 describe("onError JSON parse handling", () => {

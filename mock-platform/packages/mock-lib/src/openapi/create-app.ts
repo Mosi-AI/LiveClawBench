@@ -130,8 +130,11 @@ export function createOpenAPIMockApp(
     ) {
       const mwPath = mergedRoute.path.replace(/\{(\w+)\}/g, ":$1");
       hono.use(mwPath, async (c, next) => {
-        const ct = c.req.header("content-type");
-        if (!ct || !ct.toLowerCase().includes("application/json")) {
+        const ct = c.req.header("content-type") ?? "";
+        // Parse media type token before ';' (charset) and reject substrings
+        // like "application/jsonp" that would match includes("application/json").
+        const mediaType = ct.split(";")[0].trim().toLowerCase();
+        if (mediaType !== "application/json") {
           return c.json({ error: "Content-Type must be application/json" }, 415);
         }
         await next();
