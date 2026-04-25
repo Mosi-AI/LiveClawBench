@@ -59,4 +59,6 @@ export interface MockAppV2 {
   app: OpenAPIApp;
   /** Resolved OpenAPI document info (title, version) for spec generation */
   openApiInfo?: { title: string; version: string };
+  /** Optional seed function for initializing mock data (databases, products, etc.) */
+  seed?: () => unknown;
 }

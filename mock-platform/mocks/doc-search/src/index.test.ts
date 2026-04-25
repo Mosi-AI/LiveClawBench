@@ -38,7 +38,7 @@ describe("createDocSearchApp — Layer 1 route tests", () => {
 
     docSearch = createDocSearchApp();
     app = docSearch.app;
-    docSearch.seed();
+    docSearch.seed!();
   });
 
   afterEach(() => {
@@ -268,7 +268,7 @@ describe("createDocSearchApp — Layer 1 route tests", () => {
 
     // Create app and seed with valid log path
     const badApp = createDocSearchApp();
-    badApp.seed();
+    badApp.seed!();
 
     // Verify the app works before breaking the log
     const okRes = await badApp.app.request("/");

@@ -26,7 +26,7 @@ describe("createShopApp — Layer 1 route tests", () => {
 
     shop = createShopApp();
     app = shop.app;
-    await shop.seed();
+    await shop.seed!();
   });
 
   afterEach(() => {

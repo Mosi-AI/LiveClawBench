@@ -11,8 +11,8 @@ import type { OpenAPIApp } from "./types";
  */
 type IsAny<T> = 0 extends (1 & T) ? true : false;
 
-describe("type-inference — c.req.valid() returns typed values", () => {
-  test("query and params are typed (not any) via IsAny check", async () => {
+describe("type-inference — route config provides typed validation", () => {
+  test("query and params are typed via hono.openapi (not any)", async () => {
     const mockApp = createOpenAPIMockApp({ name: "test", port: 0 });
     const app = mockApp.app as OpenAPIApp;
 
@@ -35,7 +35,10 @@ describe("type-inference — c.req.valid() returns typed values", () => {
       },
     });
 
-    app.openApiRoute(route, (c) => {
+    // Use app.openapi() directly for compile-time type inference tests.
+    // openApiRoute() uses Handler<AppEnv> (relaxed) so mock handlers can
+    // return error statuses not declared in the route schema.
+    app.openapi(route, (c) => {
       const query = c.req.valid("query");
       const params = c.req.valid("param");
 
@@ -57,7 +60,7 @@ describe("type-inference — c.req.valid() returns typed values", () => {
     expect(body).toEqual({ ok: true, id: "abc" });
   });
 
-  test("JSON body via request.body is typed (not any)", async () => {
+  test("JSON body via request.body is typed via hono.openapi (not any)", async () => {
     const mockApp = createOpenAPIMockApp({ name: "test", port: 0 });
     const app = mockApp.app as OpenAPIApp;
 
@@ -85,7 +88,7 @@ describe("type-inference — c.req.valid() returns typed values", () => {
       },
     });
 
-    app.openApiRoute(route, (c) => {
+    app.openapi(route, (c) => {
       const json = c.req.valid("json");
 
       // Compile-time assertion: must NOT be `any`
@@ -127,7 +130,7 @@ describe("type-inference — c.req.valid() returns typed values", () => {
       },
     });
 
-    app.openApiRoute(route, (c) => {
+    app.openapi(route, (c) => {
       const query = c.req.valid("query");
 
       // z.coerce.number() should yield `number`, not `string`
@@ -171,7 +174,8 @@ describe("type-inference — @ts-expect-error negative cases", () => {
       },
     });
 
-    app.openApiRoute(route, (c) => {
+    // Test via app.openapi() for compile-time type checking
+    app.openapi(route, (c) => {
       const query = c.req.valid("query");
 
       // @ts-expect-error — query.q is string, not number
@@ -199,7 +203,8 @@ describe("type-inference — @ts-expect-error negative cases", () => {
       },
     });
 
-    app.openApiRoute(route, (c) => {
+    // Test via app.openapi() for compile-time type checking
+    app.openapi(route, (c) => {
       // @ts-expect-error — "json" not valid when only query is defined
       const _noJson = c.req.valid("json");
 
