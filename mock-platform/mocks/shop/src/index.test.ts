@@ -598,6 +598,63 @@ describe("createShopApp — Layer 1 route tests", () => {
     const res = await app.request("/search?min_price=abc");
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Invalid numeric filter parameter");
+    expect(body).toHaveProperty("error");
+    expect(body.error).toContain("min_price");
+  });
+
+  // ---------------------------------------------------------------------------
+  // Search page vs API parity — shared ListProductsQuerySchema validation
+  // ---------------------------------------------------------------------------
+
+  test("GET /search with invalid sort returns 400 (parity with /api/products)", async () => {
+    const pageRes = await app.request("/search?sort=bogus");
+    const apiRes = await app.request("/api/products?sort=bogus");
+    expect(pageRes.status).toBe(400);
+    expect(apiRes.status).toBe(400);
+    const pageBody = await pageRes.json();
+    const apiBody = await apiRes.json();
+    expect(pageBody.error).toContain("sort");
+    expect(apiBody.error).toContain("sort");
+  });
+
+  test("GET /search with invalid page silently falls back to 1 (parity with /api/products)", async () => {
+    const pageRes = await app.request("/search?q=watch&page=abc");
+    expect(pageRes.status).toBe(200);
+    expect(pageRes.headers.get("content-type")).toContain("text/html");
+    const text = await pageRes.text();
+    expect(text).toContain("Search Results");
+
+    const apiRes = await app.request("/api/products?q=watch&page=abc");
+    expect(apiRes.status).toBe(200);
+    const apiBody = await apiRes.json();
+    expect(apiBody.current_page).toBe(1);
+  });
+
+  test("GET /search with empty min_price returns 200 (parity with /api/products)", async () => {
+    const pageRes = await app.request("/search?q=watch&min_price=");
+    expect(pageRes.status).toBe(200);
+    expect(pageRes.headers.get("content-type")).toContain("text/html");
+
+    const apiRes = await app.request("/api/products?q=watch&min_price=");
+    expect(apiRes.status).toBe(200);
+  });
+
+  test("GET /search with valid sort returns 200 HTML", async () => {
+    for (const sort of ["similarity", "price_asc", "price_desc", "rating"]) {
+      const res = await app.request(`/search?q=watch&sort=${sort}`);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toContain("text/html");
+    }
+  });
+
+  test("GET /search with missing sort defaults to similarity (parity with /api/products)", async () => {
+    const pageRes = await app.request("/search?q=watch");
+    expect(pageRes.status).toBe(200);
+    expect(pageRes.headers.get("content-type")).toContain("text/html");
+
+    const apiRes = await app.request("/api/products?q=watch");
+    expect(apiRes.status).toBe(200);
+    const apiBody = await apiRes.json();
+    expect(apiBody.current_page).toBe(1);
   });
 });

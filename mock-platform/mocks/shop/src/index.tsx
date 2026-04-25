@@ -929,26 +929,32 @@ async function confirmOrder(orderId) {
   app.page("/", (c) => c.html(<HomePage />));
 
   app.page("/search", (c) => {
-    const query = c.req.query("q") ?? "";
-    const sort = c.req.query("sort") ?? "similarity";
-    const page = Math.max(1, parseInt(c.req.query("page") ?? "1", 10) || 1);
-    const minPrice = c.req.query("min_price") ? parseFloat(c.req.query("min_price")!) : undefined;
-    const maxPrice = c.req.query("max_price") ? parseFloat(c.req.query("max_price")!) : undefined;
-    const minRating = c.req.query("min_rating") ? parseFloat(c.req.query("min_rating")!) : undefined;
-
-    if ([minPrice, maxPrice, minRating].some((v) => v != null && Number.isNaN(v))) {
-      return c.json({ error: "Invalid numeric filter parameter" }, 400);
+    const rawQuery = {
+      q: c.req.query("q"),
+      sort: c.req.query("sort"),
+      page: c.req.query("page"),
+      min_price: c.req.query("min_price"),
+      max_price: c.req.query("max_price"),
+      min_rating: c.req.query("min_rating"),
+    };
+    const parsed = ListProductsQuerySchema.safeParse(rawQuery);
+    if (!parsed.success) {
+      const message = parsed.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ");
+      return c.json({ error: message }, 400);
     }
+    const { q = "", sort, page, min_price, max_price, min_rating } = parsed.data;
 
     let currentProducts: Product[] = [];
     let totalPages = 0;
 
-    if (query) {
+    if (q) {
       const allResults = filterAndSortProducts(allProducts, {
-        query,
-        minPrice,
-        maxPrice,
-        minRating,
+        query: q,
+        minPrice: min_price,
+        maxPrice: max_price,
+        minRating: min_rating,
         sortBy: sort as FilterOptions["sortBy"],
         useSearch: true,
       });
@@ -959,14 +965,14 @@ async function confirmOrder(orderId) {
 
     return c.html(
       <ResultsPage
-        query={query}
+        query={q}
         products={currentProducts}
         currentSort={sort}
         currentPage={page}
         totalPages={totalPages}
-        minPrice={minPrice}
-        maxPrice={maxPrice}
-        minRating={minRating}
+        minPrice={min_price}
+        maxPrice={max_price}
+        minRating={min_rating}
       />,
     );
   });
