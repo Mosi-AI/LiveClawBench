@@ -128,6 +128,24 @@ export function createOpenAPIMockApp(
       mergedRoute.request?.body?.content?.["application/json"] &&
       !mergedRoute.request.body.content["application/*"]
     ) {
+      // Auto-inject 415 response in spec when the route has no explicit 415/4XX
+      const has415 =
+        route.responses !== undefined &&
+        Object.keys(route.responses).some((k) => k === "415" || k === "4XX");
+      if (!has415) {
+        mergedRoute.responses = {
+          ...mergedRoute.responses,
+          415: {
+            description: "Unsupported Media Type",
+            content: {
+              "application/json": {
+                schema: FactoryValidationSchema,
+              },
+            },
+          },
+        };
+      }
+
       const mwPath = mergedRoute.path.replace(/\{(\w+)\}/g, ":$1");
       hono.use(mwPath, async (c, next) => {
         const ct = c.req.header("content-type") ?? "";

@@ -765,6 +765,78 @@ describe("Content-Type enforcement for JSON body routes", () => {
     });
     expect(res.status).toBe(415);
   });
+
+  test("415 response is auto-injected in spec for JSON body routes", () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/spec-415",
+        request: {
+          body: {
+            content: {
+              "application/json": {
+                schema: z.object({ name: z.string() }),
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c): any => c.json({ ok: true }),
+    );
+
+    const spec = app.getOpenAPI31Document({
+      openapi: "3.1.0",
+      info: { title: "test", version: "1.0.0" },
+    });
+    const responses = spec.paths!["/api/spec-415"].post!.responses!;
+    expect(responses).toHaveProperty("415");
+    expect(responses["415"].description).toBe("Unsupported Media Type");
+  });
+
+  test("explicit 415 in route is preserved (not overwritten)", () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/explicit-415",
+        request: {
+          body: {
+            content: {
+              "application/json": {
+                schema: z.object({ name: z.string() }),
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "OK" },
+          415: { description: "Custom unsupported" },
+        },
+      }),
+      (c): any => c.json({ ok: true }),
+    );
+
+    const spec = app.getOpenAPI31Document({
+      openapi: "3.1.0",
+      info: { title: "test", version: "1.0.0" },
+    });
+    const responses = spec.paths!["/api/explicit-415"].post!.responses!;
+    expect(responses["415"].description).toBe("Custom unsupported");
+  });
 });
 
 describe("onError JSON parse handling", () => {
