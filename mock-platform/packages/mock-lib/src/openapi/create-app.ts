@@ -5,6 +5,7 @@ import { HTTPException } from "hono/http-exception";
 import type { AppEnv, MockConfig, OpenApiConfig } from "../types";
 import type { OpenAPIApp, MockAppV2, RouteOptions } from "./types";
 import { FactoryValidationSchema } from "./schemas";
+import { authRequired } from "../auth/middleware";
 
 const DEFAULT_PORT = 3000;
 
@@ -109,18 +110,11 @@ export function createOpenAPIMockApp(
           },
         };
       }
-      // Register middleware to reject unauthenticated requests BEFORE
-      // hono.openapi() performs Zod validation. Without this, an unauthenticated
-      // request with invalid body would get 400 instead of 401.
-      // Convert OpenAPI {param} to Hono :param for middleware path matching.
+      // Delegate to the existing authRequired middleware for JWT verification,
+      // cookie-based auth, and userId population. Runs before hono.openapi()
+      // Zod validation so unauthenticated requests get 401, not 400.
       const middlewarePath = route.path.replace(/\{(\w+)\}/g, ":$1");
-      hono.use(middlewarePath, async (c, next) => {
-        const authHeader = c.req.header("Authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ") || authHeader.slice(7).trim() === "") {
-          return c.json({ error: "Unauthorized" }, 401);
-        }
-        await next();
-      });
+      hono.use(middlewarePath, authRequired);
     }
 
     // Type assertion needed: @hono/zod-openapi ships duplicate type definitions

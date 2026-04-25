@@ -1,7 +1,8 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, beforeAll } from "bun:test";
 import { z } from "zod";
 import { createMockApp, createRoute } from "../index";
 import type { MockAppV2, OpenAPIApp } from "../index";
+import { sign, _resetSecret } from "../auth/jwt";
 
 describe("createMockApp — factory basics", () => {
   test("returns { config, app } with app extending OpenAPIHono", () => {
@@ -225,7 +226,7 @@ describe("auth security field", () => {
     const res = await app.request("/api/protected-runtime");
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body).toEqual({ error: "Unauthorized" });
+    expect(body).toEqual({ error: "Authentication required" });
   });
 
   test("auth: required returns 401 when Authorization has no Bearer prefix", async () => {
@@ -278,7 +279,7 @@ describe("auth security field", () => {
     expect(res.status).toBe(401);
   });
 
-  test("auth: required passes through with valid Bearer token", async () => {
+  test("auth: required passes through with valid JWT token", async () => {
     const mockApp = createMockApp({
       name: "test",
       openApi: { enabled: true },
@@ -297,12 +298,38 @@ describe("auth security field", () => {
       { auth: "required" },
     );
 
+    const token = await sign({ userId: 42 });
     const res = await app.request("/api/protected-valid", {
-      headers: { Authorization: "Bearer valid-token-123" },
+      headers: { Authorization: `Bearer ${token}` },
     });
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toEqual({ secret: "data" });
+  });
+
+  test("auth: required rejects invalid JWT token", async () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/protected-invalid-jwt",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ secret: "data" }),
+      { auth: "required" },
+    );
+
+    const res = await app.request("/api/protected-invalid-jwt", {
+      headers: { Authorization: "Bearer not-a-real-jwt" },
+    });
+    expect(res.status).toBe(401);
   });
 
   test("auth: required works with OpenAPI path templates ({param} syntax)", async () => {
@@ -331,9 +358,10 @@ describe("auth security field", () => {
     const res = await app.request("/api/items/abc");
     expect(res.status).toBe(401);
 
-    // Valid auth → 200 (middleware passes, handler runs)
+    // Valid JWT → 200 (middleware passes, handler runs)
+    const token = await sign({ userId: 1 });
     const res2 = await app.request("/api/items/abc", {
-      headers: { Authorization: "Bearer valid-token" },
+      headers: { Authorization: `Bearer ${token}` },
     });
     expect(res2.status).toBe(200);
     const body = await res2.json();
@@ -376,7 +404,7 @@ describe("auth security field", () => {
     });
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body).toEqual({ error: "Unauthorized" });
+    expect(body).toEqual({ error: "Authentication required" });
   });
 });
 
