@@ -62,6 +62,9 @@ export function createOpenAPIMockApp(
     const mergedRoute: RouteConfig = { ...route };
 
     // Merge rawOpenApi metadata first
+    // WARNING: Object.assign is shallow — nested objects (e.g. rawOpenApi.responses)
+    // will replace the entire corresponding key rather than deep-merge.
+    // Use flat keys only (e.g. rawOpenApi.security, rawOpenApi.operationId).
     if (options?.rawOpenApi) {
       Object.assign(mergedRoute, options.rawOpenApi);
     }
@@ -94,7 +97,21 @@ export function createOpenAPIMockApp(
     // Type assertion needed: @hono/zod-openapi ships duplicate type definitions
     // from its @asteasolutions/zod-to-openapi dependency, causing "two different
     // types with this name exist, but they are unrelated" errors.
-    hono.openapi(mergedRoute as R, handler as any);
+    //
+    // When auth is required, wrap the handler with a runtime bearer-token check.
+    // The handler itself is only invoked after the Authorization header is validated.
+    if (options?.auth === "required") {
+      const originalHandler = handler;
+      hono.openapi(mergedRoute as R, ((c: any) => {
+        const authHeader = c.req.header("Authorization");
+        if (!authHeader || !authHeader.startsWith("Bearer ") || authHeader.slice(7).trim() === "") {
+          return c.json({ error: "Unauthorized" }, 401);
+        }
+        return (originalHandler as any)(c);
+      }) as any);
+    } else {
+      hono.openapi(mergedRoute as R, handler as any);
+    }
   };
 
   // Catch JSON parse errors from invalid request bodies; return 500 for everything else

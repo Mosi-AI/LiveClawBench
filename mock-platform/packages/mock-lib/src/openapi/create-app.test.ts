@@ -138,6 +138,108 @@ describe("auth security field", () => {
     const route = spec.paths!["/api/public"].get!;
     expect(route.security).toBeUndefined();
   });
+
+  test("auth: required returns 401 when no Authorization header", async () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/protected-runtime",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ secret: "data" }),
+      { auth: "required" },
+    );
+
+    const res = await app.request("/api/protected-runtime");
+    expect(res.status).toBe(401);
+    const body = await res.json();
+    expect(body).toEqual({ error: "Unauthorized" });
+  });
+
+  test("auth: required returns 401 when Authorization has no Bearer prefix", async () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/protected-bad-scheme",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ secret: "data" }),
+      { auth: "required" },
+    );
+
+    const res = await app.request("/api/protected-bad-scheme", {
+      headers: { Authorization: "Basic abc123" },
+    });
+    expect(res.status).toBe(401);
+  });
+
+  test("auth: required returns 401 when Bearer token is empty", async () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/protected-empty-token",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ secret: "data" }),
+      { auth: "required" },
+    );
+
+    const res = await app.request("/api/protected-empty-token", {
+      headers: { Authorization: "Bearer " },
+    });
+    expect(res.status).toBe(401);
+  });
+
+  test("auth: required passes through with valid Bearer token", async () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/protected-valid",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ secret: "data" }),
+      { auth: "required" },
+    );
+
+    const res = await app.request("/api/protected-valid", {
+      headers: { Authorization: "Bearer valid-token-123" },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({ secret: "data" });
+  });
 });
 
 describe("auto-injection of 400 response", () => {
