@@ -92,14 +92,14 @@ async function generateForMock(name: string): Promise<GenerateResult> {
       };
     }
 
-    // Generate the OpenAPI 3.1 document
-    const document = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: {
-        title: mockApp.config.name,
-        version: "1.0.0",
-      },
-    });
+    // Generate the OpenAPI 3.1 document using the mock's configured metadata.
+    // openApiInfo is resolved at app creation and matches what the runtime
+    // /openapi.json endpoint returns.
+    const document = app.getOpenAPI31Document(
+      mockApp.openApiInfo
+        ? { openapi: "3.1.0", info: mockApp.openApiInfo }
+        : undefined,
+    );
 
     // Write JSON output
     const outputPath = join(DIST_DIR, `${name}.json`);

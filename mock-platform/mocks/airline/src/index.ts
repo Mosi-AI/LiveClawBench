@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createMockApp, createRoute, startServer } from "mock-lib";
 
 export function createAirlineApp() {
-  const { config, app } = createMockApp({
+  const mockApp = createMockApp({
     name: "airline",
     port: 5000,
     openApi: {
@@ -28,12 +28,12 @@ export function createAirlineApp() {
     },
   });
 
-  app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
+  mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
-  return { config, app };
+  return mockApp;
 }
 
 if (import.meta.main) {
-  const { config, app } = createAirlineApp();
-  startServer({ config, app });
+  const mockApp = createAirlineApp();
+  startServer(mockApp);
 }

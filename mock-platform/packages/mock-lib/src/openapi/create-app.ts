@@ -124,13 +124,17 @@ export function createOpenAPIMockApp(
   });
 
   // Register /openapi.json and bearerAuth security scheme when enabled
+  const resolvedInfo = openApi?.enabled
+    ? {
+        title: openApi.title ?? resolvedConfig.name,
+        version: openApi.version ?? "1.0.0",
+      }
+    : undefined;
+
   if (openApi?.enabled) {
     app.doc31("/openapi.json", {
       openapi: "3.1.0",
-      info: {
-        title: openApi.title ?? resolvedConfig.name,
-        version: openApi.version ?? "1.0.0",
-      },
+      info: resolvedInfo,
     });
 
     // Register bearerAuth security scheme
@@ -141,5 +145,5 @@ export function createOpenAPIMockApp(
     });
   }
 
-  return { config: resolvedConfig, app };
+  return { config: resolvedConfig, app, openApiInfo: resolvedInfo };
 }

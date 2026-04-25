@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createMockApp, createRoute, startServer } from "mock-lib";
 
 export function createTodolistApp() {
-  const { config, app } = createMockApp({
+  const mockApp = createMockApp({
     name: "todolist",
     port: 5002,
     openApi: {
@@ -28,12 +28,12 @@ export function createTodolistApp() {
     },
   });
 
-  app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
+  mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
-  return { config, app };
+  return mockApp;
 }
 
 if (import.meta.main) {
-  const { config, app } = createTodolistApp();
-  startServer({ config, app });
+  const mockApp = createTodolistApp();
+  startServer(mockApp);
 }

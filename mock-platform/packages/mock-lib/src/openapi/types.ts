@@ -57,4 +57,6 @@ export interface MockAppV2 {
   config: MockConfig;
   /** The OpenAPI-enabled Hono application instance */
   app: OpenAPIApp;
+  /** Resolved OpenAPI document info (title, version) for spec generation */
+  openApiInfo?: { title: string; version: string };
 }

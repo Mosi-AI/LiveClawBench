@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createMockApp, createRoute, startServer } from "mock-lib";
 
 export function createEmailApp() {
-  const { config, app } = createMockApp({
+  const mockApp = createMockApp({
     name: "email",
     port: 5001,
     openApi: {
@@ -28,12 +28,12 @@ export function createEmailApp() {
     },
   });
 
-  app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
+  mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
-  return { config, app };
+  return mockApp;
 }
 
 if (import.meta.main) {
-  const { config, app } = createEmailApp();
-  startServer({ config, app });
+  const mockApp = createEmailApp();
+  startServer(mockApp);
 }
