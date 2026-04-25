@@ -1,3 +1,4 @@
+/** @jsxImportSource hono/jsx */
 /**
  * Shop mock service — E-Commerce Mosi Shop
  *
