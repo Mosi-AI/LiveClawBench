@@ -120,6 +120,24 @@ export function createOpenAPIMockApp(
       hono.use(middlewarePath, authRequired);
     }
 
+    // Enforce Content-Type: application/json for routes declaring JSON body schemas.
+    // @hono/zod-openapi skips validation when Content-Type doesn't match, causing
+    // c.req.valid("json") to return {} and handlers to run with undefined fields.
+    // Return 415 (Unsupported Media Type) to fail fast instead of proceeding.
+    if (
+      mergedRoute.request?.body?.content?.["application/json"] &&
+      !mergedRoute.request.body.content["application/*"]
+    ) {
+      const mwPath = mergedRoute.path.replace(/\{(\w+)\}/g, ":$1");
+      hono.use(mwPath, async (c, next) => {
+        const ct = c.req.header("content-type");
+        if (!ct || !ct.toLowerCase().includes("application/json")) {
+          return c.json({ error: "Content-Type must be application/json" }, 415);
+        }
+        await next();
+      });
+    }
+
     // Type assertion needed: @hono/zod-openapi ships duplicate type definitions
     // from its @asteasolutions/zod-to-openapi dependency, causing "two different
     // types with this name exist, but they are unrelated" errors.

@@ -613,6 +613,128 @@ describe("defaultHook validation errors", () => {
   });
 });
 
+describe("Content-Type enforcement for JSON body routes", () => {
+  test("POST without Content-Type returns 415", async () => {
+    const mockApp = createMockApp({ name: "test" });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/items",
+        request: {
+          body: {
+            content: {
+              "application/json": {
+                schema: z.object({ name: z.string() }),
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c): any => {
+        const body = c.req.valid("json");
+        return c.json({ received: body });
+      },
+    );
+
+    // POST JSON body without Content-Type header
+    const res = await app.request("/api/items", {
+      method: "POST",
+      body: JSON.stringify({ name: "foo" }),
+    });
+    expect(res.status).toBe(415);
+    const body = await res.json();
+    expect(body.error).toBe("Content-Type must be application/json");
+  });
+
+  test("POST with wrong Content-Type returns 415", async () => {
+    const mockApp = createMockApp({ name: "test" });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/items2",
+        request: {
+          body: {
+            content: {
+              "application/json": {
+                schema: z.object({ name: z.string() }),
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c): any => c.json({ ok: true }),
+    );
+
+    const res = await app.request("/api/items2", {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ name: "foo" }),
+    });
+    expect(res.status).toBe(415);
+  });
+
+  test("POST with application/json charset passes through", async () => {
+    const mockApp = createMockApp({ name: "test" });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/items3",
+        request: {
+          body: {
+            content: {
+              "application/json": {
+                schema: z.object({ name: z.string() }),
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c): any => c.json({ ok: true }),
+    );
+
+    const res = await app.request("/api/items3", {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify({ name: "foo" }),
+    });
+    expect(res.status).toBe(200);
+  });
+
+  test("route without body schema does not enforce Content-Type", async () => {
+    const mockApp = createMockApp({ name: "test" });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/no-body",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ ok: true }),
+    );
+
+    const res = await app.request("/api/no-body");
+    expect(res.status).toBe(200);
+  });
+});
+
 describe("onError JSON parse handling", () => {
   test("malformed JSON body returns { error: Invalid JSON body } 400", async () => {
     const mockApp = createMockApp({ name: "test" });
