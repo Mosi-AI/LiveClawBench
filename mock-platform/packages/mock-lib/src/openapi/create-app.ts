@@ -92,6 +92,23 @@ export function createOpenAPIMockApp(
     // Add bearer-auth security when auth is required
     if (options?.auth === "required") {
       mergedRoute.security = [{ bearerAuth: [] }];
+      // Auto-inject 401 response when the route has no explicit 401
+      const has401 =
+        route.responses !== undefined &&
+        Object.keys(route.responses).some((k) => k === "401" || k === "4XX");
+      if (!has401) {
+        mergedRoute.responses = {
+          ...mergedRoute.responses,
+          401: {
+            description: "Unauthorized",
+            content: {
+              "application/json": {
+                schema: FactoryValidationSchema,
+              },
+            },
+          },
+        };
+      }
       // Register middleware to reject unauthenticated requests BEFORE
       // hono.openapi() performs Zod validation. Without this, an unauthenticated
       // request with invalid body would get 400 instead of 401.

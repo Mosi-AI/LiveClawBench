@@ -95,6 +95,70 @@ describe("auth security field", () => {
     expect(route.security).toEqual([{ bearerAuth: [] }]);
   });
 
+  test("auth: required auto-injects 401 response in spec", () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/protected-401",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ ok: true }),
+      { auth: "required" },
+    );
+
+    const spec = app.getOpenAPI31Document({
+      openapi: "3.1.0",
+      info: { title: "test", version: "1.0.0" },
+    });
+    const responses = spec.paths!["/api/protected-401"].get!.responses!;
+    expect(responses).toHaveProperty("401");
+    expect(responses["401"].description).toBe("Unauthorized");
+  });
+
+  test("auth: required preserves explicit 401 response", () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/protected-explicit-401",
+        responses: {
+          200: { description: "OK" },
+          401: {
+            description: "Custom unauthorized",
+            content: {
+              "application/json": {
+                schema: z.object({ custom: z.string() }),
+              },
+            },
+          },
+        },
+      }),
+      (c) => c.json({ ok: true }),
+      { auth: "required" },
+    );
+
+    const spec = app.getOpenAPI31Document({
+      openapi: "3.1.0",
+      info: { title: "test", version: "1.0.0" },
+    });
+    const responses = spec.paths!["/api/protected-explicit-401"].get!.responses!;
+    expect(responses).toHaveProperty("401");
+    expect(responses["401"].description).toBe("Custom unauthorized");
+  });
+
   test("components.securitySchemes.bearerAuth exists when openApi.enabled", () => {
     const mockApp = createMockApp({
       name: "test",
