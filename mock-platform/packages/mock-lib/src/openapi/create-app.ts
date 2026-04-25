@@ -134,7 +134,7 @@ export function createOpenAPIMockApp(
   if (openApi?.enabled) {
     app.doc31("/openapi.json", {
       openapi: "3.1.0",
-      info: resolvedInfo,
+      info: resolvedInfo!,
     });
 
     // Register bearerAuth security scheme
