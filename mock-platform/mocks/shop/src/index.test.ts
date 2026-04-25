@@ -60,6 +60,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/html");
     const text = await res.text();
+    expect(text).not.toContain("[object Object]");
     expect(text).toContain("Welcome to Mosi Shop");
   });
 
@@ -68,6 +69,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/html");
     const text = await res.text();
+    expect(text).not.toContain("[object Object]");
     expect(text).toContain("Search Results");
   });
 
@@ -76,6 +78,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/html");
     const text = await res.text();
+    expect(text).not.toContain("[object Object]");
     expect(text).toContain("Shopping Cart");
   });
 
@@ -84,6 +87,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/html");
     const text = await res.text();
+    expect(text).not.toContain("[object Object]");
     expect(text).toContain("Peter Griffin");
   });
 
@@ -92,6 +96,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/html");
     const text = await res.text();
+    expect(text).not.toContain("[object Object]");
     expect(text).toContain("Order History");
   });
 
