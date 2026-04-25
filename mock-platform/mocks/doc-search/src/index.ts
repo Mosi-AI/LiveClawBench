@@ -525,7 +525,7 @@ export function createDocSearchApp(): MockAppV2 {
 
     // Look up document by slug
     const stmt = db.query("SELECT * FROM documents WHERE slug = ?");
-    const rawDoc = stmt.get(slug);
+    const rawDoc = stmt.get(slug!);
     const doc = rawDoc ? validateDocumentRow(rawDoc) : undefined;
 
     if (!doc) {

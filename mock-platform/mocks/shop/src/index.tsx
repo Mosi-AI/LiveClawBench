@@ -1066,7 +1066,7 @@ async function confirmOrder(orderId) {
     },
   });
 
-  app.openApiRoute(getProductRoute, (c) => {
+  app.openApiRoute(getProductRoute, (c): any => {
     const { product_id } = c.req.valid("param");
     const product = allProducts.find((p) => p.id === product_id);
     if (!product) return c.json({ error: "Product not found" }, 404);
@@ -1107,7 +1107,7 @@ async function confirmOrder(orderId) {
     },
   });
 
-  app.openApiRoute(addToCartRoute, (c) => {
+  app.openApiRoute(addToCartRoute, (c): any => {
     const { product_id } = c.req.valid("json");
 
     const product = allProducts.find((p) => p.id === product_id);
@@ -1196,7 +1196,7 @@ async function confirmOrder(orderId) {
     },
   });
 
-  app.openApiRoute(removeFromCartRoute, (c) => {
+  app.openApiRoute(removeFromCartRoute, (c): any => {
     const { product_id } = c.req.valid("param");
     const cart = loadCart();
     const itemExists = cart.some((item) => item.id === product_id);
@@ -1249,7 +1249,7 @@ async function confirmOrder(orderId) {
     },
   });
 
-  app.openApiRoute(updateCartRoute, (c) => {
+  app.openApiRoute(updateCartRoute, (c): any => {
     const { product_id, quantity } = c.req.valid("json");
 
     const cart = loadCart();
@@ -1292,7 +1292,7 @@ async function confirmOrder(orderId) {
     },
   });
 
-  app.openApiRoute(clearCartRoute, (c) => {
+  app.openApiRoute(clearCartRoute, (c): any => {
     try {
       clearCart();
     } catch (err) {
@@ -1327,7 +1327,7 @@ async function confirmOrder(orderId) {
     },
   });
 
-  app.openApiRoute(checkoutRoute, (c) => {
+  app.openApiRoute(checkoutRoute, (c): any => {
     const cart = loadCart();
     if (!cart.length) return c.json({ error: "Cart is empty" }, 400);
 
@@ -1430,11 +1430,11 @@ async function confirmOrder(orderId) {
     },
   });
 
-  app.openApiRoute(updateUserRoute, (c) => {
+  app.openApiRoute(updateUserRoute, (c): any => {
     const { field, value } = c.req.valid("json");
 
     const user = loadUser();
-    (user as Record<string, unknown>)[field] = value;
+    (user as unknown as Record<string, unknown>)[field] = value;
     try {
       saveUser(user);
     } catch (err) {
@@ -1503,7 +1503,7 @@ async function confirmOrder(orderId) {
     },
   });
 
-  app.openApiRoute(returnOrderRoute, (c) => {
+  app.openApiRoute(returnOrderRoute, (c): any => {
     const { order_id } = c.req.valid("param");
     const orders = loadOrders();
     const order = orders.find((o) => o.order_id === order_id);
@@ -1563,7 +1563,7 @@ async function confirmOrder(orderId) {
     },
   });
 
-  app.openApiRoute(confirmOrderRoute, (c) => {
+  app.openApiRoute(confirmOrderRoute, (c): any => {
     const { order_id } = c.req.valid("param");
     const orders = loadOrders();
     const order = orders.find((o) => o.order_id === order_id);
