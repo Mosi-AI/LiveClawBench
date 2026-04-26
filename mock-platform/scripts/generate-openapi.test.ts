@@ -1,26 +1,46 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import type { Dirent } from "node:fs";
 
 const MOCKS_DIR = join(import.meta.dir, "..", "mocks");
 
-const factoryNames: Record<string, string> = {
-  airline: "createAirlineApp",
-  email: "createEmailApp",
-  todolist: "createTodolistApp",
-  "doc-search": "createDocSearchApp",
-  shop: "createShopApp",
-};
+/**
+ * Derive the conventional factory function name from a kebab-case mock name.
+ * Mirrors the same convention used by generate-openapi.ts and tools/create-mock.
+ */
+function factoryNameFor(mockName: string): string {
+  const pascal = mockName
+    .split("-")
+    .filter((segment) => segment.length > 0)
+    .map((segment) => segment[0].toUpperCase() + segment.slice(1))
+    .join("");
+  return `create${pascal}App`;
+}
+
+/**
+ * Discover mock directories dynamically — same approach as the generator.
+ * Any new mock added via tools/create-mock is automatically covered.
+ */
+function discoverMocks(): string[] {
+  return readdirSync(MOCKS_DIR, { withFileTypes: true })
+    .filter((e: Dirent) => e.isDirectory())
+    .map((e: Dirent) => e.name)
+    .sort();
+}
 
 async function generateForMock(name: string): Promise<{ document?: object; error?: string }> {
   const tsPath = join(MOCKS_DIR, name, "src", "index.ts");
   const tsxPath = join(MOCKS_DIR, name, "src", "index.tsx");
   const entryPoint = existsSync(tsxPath) ? tsxPath : tsPath;
 
+  if (!existsSync(entryPoint)) {
+    return { error: `Entry point not found: ${entryPoint}` };
+  }
+
   try {
     const mockModule = await import(entryPoint);
-    const factoryName = factoryNames[name];
-    if (!factoryName) return { error: `No factory mapping for ${name}` };
+    const factoryName = factoryNameFor(name);
 
     const createApp = mockModule[factoryName];
     if (typeof createApp !== "function") {
@@ -48,11 +68,38 @@ async function generateForMock(name: string): Promise<{ document?: object; error
   }
 }
 
-describe("OpenAPI generation — all mocks", () => {
+describe("OpenAPI generation — discovery", () => {
+  test("all discovered mocks generate valid specs", async () => {
+    const mocks = discoverMocks();
+    expect(mocks.length).toBeGreaterThanOrEqual(5);
+
+    const results: { name: string; document?: object; error?: string }[] = [];
+    for (const name of mocks) {
+      results.push({ name, ...(await generateForMock(name)) });
+    }
+
+    const failed = results.filter((r) => r.error);
+    if (failed.length > 0) {
+      const details = failed.map((f) => `${f.name}: ${f.error}`).join("\n  ");
+      expect(failed.length, `Failed mocks:\n  ${details}`).toBe(0);
+    }
+
+    // Every discovered mock must produce a document with at least a sentinel route
+    for (const r of results) {
+      const doc = r.document as any;
+      expect(doc.paths).toBeDefined();
+      expect(
+        Object.keys(doc.paths).length,
+        `${r.name} should have at least one path`,
+      ).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("OpenAPI generation — per-mock assertions", () => {
   test("airline generates valid spec with sentinel", async () => {
     const { document, error } = await generateForMock("airline");
     expect(error).toBeUndefined();
-    expect(document).toBeDefined();
     const paths = (document as any).paths;
     expect(paths).toHaveProperty("/__mock_sentinel__/airline");
   });
@@ -60,7 +107,6 @@ describe("OpenAPI generation — all mocks", () => {
   test("email generates valid spec with sentinel", async () => {
     const { document, error } = await generateForMock("email");
     expect(error).toBeUndefined();
-    expect(document).toBeDefined();
     const paths = (document as any).paths;
     expect(paths).toHaveProperty("/__mock_sentinel__/email");
   });
@@ -68,7 +114,6 @@ describe("OpenAPI generation — all mocks", () => {
   test("todolist generates valid spec with sentinel", async () => {
     const { document, error } = await generateForMock("todolist");
     expect(error).toBeUndefined();
-    expect(document).toBeDefined();
     const paths = (document as any).paths;
     expect(paths).toHaveProperty("/__mock_sentinel__/todolist");
   });
@@ -76,7 +121,6 @@ describe("OpenAPI generation — all mocks", () => {
   test("doc-search generates valid spec with sentinel", async () => {
     const { document, error } = await generateForMock("doc-search");
     expect(error).toBeUndefined();
-    expect(document).toBeDefined();
     const paths = (document as any).paths;
     expect(paths).toHaveProperty("/__mock_sentinel__/doc-search");
     // HTML pages should NOT appear in the spec
@@ -88,7 +132,6 @@ describe("OpenAPI generation — all mocks", () => {
   test("shop generates valid spec with sentinel", async () => {
     const { document, error } = await generateForMock("shop");
     expect(error).toBeUndefined();
-    expect(document).toBeDefined();
     const paths = (document as any).paths;
     expect(paths).toHaveProperty("/__mock_sentinel__/shop");
     expect(paths).toHaveProperty("/api/products");
