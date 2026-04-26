@@ -3,29 +3,49 @@
  *
  * For each mock service:
  * 1. Dynamically imports the mock's entry point
- * 2. Calls the exported factory function (e.g. `createShopApp`) (must be guarded by `import.meta.main`)
+ * 2. Calls the conventional factory function `create<PascalCase>App`
+ *    derived from the directory name (e.g. `doc-search` → `createDocSearchApp`).
+ *    Server startup must be guarded by `import.meta.main` so the import
+ *    is side-effect-free.
  * 3. Calls `app.getOpenAPI31Document()` on the OpenAPI-enabled app
  * 4. Writes the resulting JSON to `dist/openapi/{name}.json`
  *
- * Any discovered mock without a factory mapping is a hard failure — every
- * mock under `mocks/` must be reachable via `factoryNames`, otherwise the
+ * Stale-output cleanup: every `*.json` under `dist/openapi/` is removed
+ * before the regeneration loop. Mocks that are still present get re-emitted;
+ * orphans (renamed or deleted mocks) surface to `git diff --exit-code` as
+ * deletions so `bun run check-openapi` can catch them.
+ *
+ * Any discovered mock whose conventional factory is missing or unusable
+ * is a hard failure — every directory under `mocks/` must export the
+ * conventional `create<PascalCase>App` function, otherwise the
  * spec-generation gate would silently miss new packages.
  */
 
-import { readdir, mkdir, writeFile } from "node:fs/promises";
+import { readdir, mkdir, writeFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 
 const MOCKS_DIR = join(import.meta.dir, "..", "mocks");
 const DIST_DIR = join(import.meta.dir, "..", "dist", "openapi");
 
-const factoryNames: Record<string, string> = {
-  airline: "createAirlineApp",
-  email: "createEmailApp",
-  todolist: "createTodolistApp",
-  "doc-search": "createDocSearchApp",
-  shop: "createShopApp",
-};
+/**
+ * Convert a kebab-case mock directory name to its conventional factory
+ * function name. Examples:
+ *   `airline`     → `createAirlineApp`
+ *   `doc-search`  → `createDocSearchApp`
+ *   `todolist`    → `createTodolistApp`
+ *
+ * The same convention is used by `tools/create-mock`, so a freshly
+ * scaffolded mock works with the generator without any registry edits.
+ */
+function factoryNameFor(mockName: string): string {
+  const pascal = mockName
+    .split("-")
+    .filter((segment) => segment.length > 0)
+    .map((segment) => segment[0].toUpperCase() + segment.slice(1))
+    .join("");
+  return `create${pascal}App`;
+}
 
 interface GenerateResult {
   name: string;
@@ -42,6 +62,19 @@ async function discoverMocks(): Promise<string[]> {
     .sort();
 }
 
+async function clearStaleSpecs(): Promise<number> {
+  if (!existsSync(DIST_DIR)) return 0;
+  const entries = await readdir(DIST_DIR, { withFileTypes: true });
+  let removed = 0;
+  for (const entry of entries) {
+    if (entry.isFile() && entry.name.endsWith(".json")) {
+      await unlink(join(DIST_DIR, entry.name));
+      removed += 1;
+    }
+  }
+  return removed;
+}
+
 async function generateForMock(name: string): Promise<GenerateResult> {
   const tsPath = join(MOCKS_DIR, name, "src", "index.ts");
   const tsxPath = join(MOCKS_DIR, name, "src", "index.tsx");
@@ -51,26 +84,22 @@ async function generateForMock(name: string): Promise<GenerateResult> {
     return { name, success: false, error: `Entry point not found: ${entryPoint}` };
   }
 
-  const factoryName = factoryNames[name];
-  if (!factoryName) {
-    return {
-      name,
-      success: false,
-      error: `No factory mapping for mock "${name}" — add an entry to factoryNames in scripts/generate-openapi.ts`,
-    };
-  }
+  const factoryName = factoryNameFor(name);
 
   try {
     // Dynamic import — safe because mocks guard server startup with import.meta.main
     const mockModule = await import(entryPoint);
 
-    // Look for the specific factory function for this mock
+    // Look for the conventional factory function for this mock
     const createApp = mockModule[factoryName];
     if (typeof createApp !== "function") {
       return {
         name,
         success: false,
-        error: `No exported '${factoryName}' function found in ${entryPoint}`,
+        error:
+          `No exported '${factoryName}' function found in ${entryPoint}. ` +
+          `Every mock under mocks/ must export create<PascalCase>App() ` +
+          `following the kebab-case → PascalCase convention.`,
       };
     }
 
@@ -122,7 +151,13 @@ async function main() {
 
   // Ensure output directory exists
   await mkdir(DIST_DIR, { recursive: true });
-  console.log(`Output directory: ${DIST_DIR}\n`);
+  console.log(`Output directory: ${DIST_DIR}`);
+
+  // Clear any pre-existing JSON outputs so renamed/deleted mocks surface as
+  // deletions to `git diff --exit-code`. Regeneration immediately follows;
+  // if it fails the chain stops here with a non-zero exit code.
+  const cleared = await clearStaleSpecs();
+  console.log(`Cleared ${cleared} stale spec file(s) from output directory\n`);
 
   // Discover all mock packages
   const mocks = await discoverMocks();
