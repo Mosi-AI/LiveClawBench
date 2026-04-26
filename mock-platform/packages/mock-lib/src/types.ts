@@ -50,8 +50,8 @@ export interface MockApp {
  * Options for the createMockApp factory.
  */
 export interface CreateMockAppOptions extends MockConfig {
-  /** Custom route registration callback. Receives the Hono app to add routes. */
-  routes?: (app: Hono<AppEnv>) => void;
+  /** Custom route registration callback. Receives the OpenAPI-enabled app. */
+  routes?: (app: import("./openapi/types").OpenAPIApp) => void;
   /** Health check response body. Defaults to { status: "healthy", service: config.name } */
   healthResponse?: Record<string, unknown>;
   /** OpenAPI document generation configuration */
