@@ -7,7 +7,9 @@
  * 3. Calls `app.getOpenAPI31Document()` on the OpenAPI-enabled app
  * 4. Writes the resulting JSON to `dist/openapi/{name}.json`
  *
- * Mocks without a known factory mapping are skipped.
+ * Any discovered mock without a factory mapping is a hard failure — every
+ * mock under `mocks/` must be reachable via `factoryNames`, otherwise the
+ * spec-generation gate would silently miss new packages.
  */
 
 import { readdir, mkdir, writeFile } from "node:fs/promises";
@@ -54,7 +56,7 @@ async function generateForMock(name: string): Promise<GenerateResult> {
     return {
       name,
       success: false,
-      error: `No factory mapping for mock "${name}" — skipping`,
+      error: `No factory mapping for mock "${name}" — add an entry to factoryNames in scripts/generate-openapi.ts`,
     };
   }
 
@@ -140,33 +142,27 @@ async function main() {
     if (result.success) {
       console.log(`OK → ${result.outputPath}`);
     } else {
-      console.log(`SKIPPED`);
+      console.log(`FAIL`);
       console.error(`  Reason: ${result.error}`);
     }
   }
 
   // Summary report
   const passed = results.filter((r) => r.success);
-  const skipped = results.filter((r) => !r.success);
+  const failed = results.filter((r) => !r.success);
 
   console.log(`\n=== Generation Summary ===`);
   console.log(`Generated: ${passed.length}/${results.length}`);
-  console.log(`Skipped:   ${skipped.length}/${results.length}`);
+  console.log(`Failed:    ${failed.length}/${results.length}`);
 
-  if (skipped.length > 0) {
-    console.log("\nSkipped mocks:");
-    for (const s of skipped) {
-      console.log(`  - ${s.name}: ${s.error}`);
+  if (failed.length > 0) {
+    console.log("\nFailed mocks:");
+    for (const f of failed) {
+      console.log(`  - ${f.name}: ${f.error}`);
     }
-  }
-
-  // Exit 1 if any mapped mock failed generation; unmapped mocks are truly skipped
-  const failedMapped = results.filter(
-    (r) => !r.success && factoryNames[r.name],
-  );
-  if (failedMapped.length > 0) {
     console.error(
-      `\nERROR: ${failedMapped.length} mapped mock(s) failed generation.`,
+      `\nERROR: ${failed.length} mock(s) failed generation. ` +
+        `Every mock under mocks/ must succeed — otherwise the spec-generation gate is incomplete.`,
     );
     process.exit(1);
   }
