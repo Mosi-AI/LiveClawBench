@@ -31,6 +31,16 @@ describe("ListProductsQuerySchema — page (silent fallback)", () => {
     const result = ListProductsQuerySchema.parse({});
     expect(result.page).toBe(1);
   });
+
+  test('"Infinity" → 1', () => {
+    const result = ListProductsQuerySchema.parse({ page: "Infinity" });
+    expect(result.page).toBe(1);
+  });
+
+  test('"1e309" (overflow) → 1', () => {
+    const result = ListProductsQuerySchema.parse({ page: "1e309" });
+    expect(result.page).toBe(1);
+  });
 });
 
 describe("ListProductsQuerySchema — min_price / max_price / min_rating (strict validation)", () => {
@@ -64,6 +74,17 @@ describe("ListProductsQuerySchema — min_price / max_price / min_rating (strict
 
   test("missing → undefined", () => {
     const result = ListProductsQuerySchema.parse({});
+    expect(result.min_price).toBeUndefined();
+    expect(result.max_price).toBeUndefined();
+    expect(result.min_rating).toBeUndefined();
+  });
+
+  test("whitespace-only → undefined (not zero)", () => {
+    const result = ListProductsQuerySchema.parse({
+      min_price: "  ",
+      max_price: "  ",
+      min_rating: "  ",
+    });
     expect(result.min_price).toBeUndefined();
     expect(result.max_price).toBeUndefined();
     expect(result.min_rating).toBeUndefined();

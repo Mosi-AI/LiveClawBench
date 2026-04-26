@@ -80,7 +80,7 @@ const coercePage = z.preprocess(
   (val) => {
     if (val === undefined || val === "" || val === null) return 1;
     const n = Number(val);
-    if (Number.isNaN(n) || n < 1) return 1;
+    if (!Number.isFinite(n) || n < 1) return 1;
     return Math.floor(n);
   },
   z.number().int().min(1),
@@ -89,9 +89,10 @@ const coercePage = z.preprocess(
 const coerceMinPrice = z.preprocess(
   (val) => {
     if (val === undefined || val === "" || val === null) return undefined;
-    const n = Number(val);
+    const trimmed = typeof val === "string" ? val.trim() : val;
+    if (trimmed === "") return undefined;
+    const n = Number(trimmed);
     if (Number.isNaN(n)) {
-      // strict validation: NaN is invalid
       return NaN;
     }
     return n;
@@ -102,7 +103,9 @@ const coerceMinPrice = z.preprocess(
 const coerceMaxPrice = z.preprocess(
   (val) => {
     if (val === undefined || val === "" || val === null) return undefined;
-    const n = Number(val);
+    const trimmed = typeof val === "string" ? val.trim() : val;
+    if (trimmed === "") return undefined;
+    const n = Number(trimmed);
     if (Number.isNaN(n)) {
       return NaN;
     }
@@ -114,7 +117,9 @@ const coerceMaxPrice = z.preprocess(
 const coerceMinRating = z.preprocess(
   (val) => {
     if (val === undefined || val === "" || val === null) return undefined;
-    const n = Number(val);
+    const trimmed = typeof val === "string" ? val.trim() : val;
+    if (trimmed === "") return undefined;
+    const n = Number(trimmed);
     if (Number.isNaN(n)) {
       return NaN;
     }
