@@ -449,6 +449,110 @@ describe("/openapi.json endpoint gating", () => {
     expect(spec.openapi).toBe("3.1.0");
     expect(spec.info.title).toBe("test");
   });
+
+  test("startServer({ dev: true }) flips /openapi.json from 404 to 200", async () => {
+    const { startServer } = await import("../index");
+
+    // Construction-time view: dev=false, so /openapi.json should be 404 here.
+    // Verified separately by the test above ("/openapi.json is NOT available
+    // without dev mode"); we can't `app.request()` before startServer because
+    // Hono builds its router matcher on first request, which prevents
+    // startServer's logger middleware registration from succeeding.
+
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+
+    // Monkey-patch Bun.serve so startServer doesn't open a real socket
+    const originalServe = Bun.serve;
+    Bun.serve = (() => ({ stop: () => {} } as any)) as any;
+    try {
+      await startServer(mockApp, { dev: true });
+    } finally {
+      Bun.serve = originalServe;
+    }
+
+    // After startServer with dev override: closure now sees dev=true → 200
+    const after = await mockApp.app.request("/openapi.json");
+    expect(after.status).toBe(200);
+    const spec = await after.json();
+    expect(spec.openapi).toBe("3.1.0");
+    // Sanity check: the override propagated to mockApp.config.dev
+    expect(mockApp.config.dev).toBe(true);
+  });
+
+  test("startServer without dev override leaves /openapi.json at 404", async () => {
+    const { startServer } = await import("../index");
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+
+    const originalServe = Bun.serve;
+    Bun.serve = (() => ({ stop: () => {} } as any)) as any;
+    try {
+      await startServer(mockApp);
+    } finally {
+      Bun.serve = originalServe;
+    }
+
+    const res = await mockApp.app.request("/openapi.json");
+    expect(res.status).toBe(404);
+    expect(mockApp.config.dev).toBe(false);
+  });
+});
+
+describe("/health endpoint", () => {
+  test("/health appears in generated OpenAPI spec with 200 response", () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    const spec = app.getOpenAPI31Document({
+      openapi: "3.1.0",
+      info: { title: "test", version: "1.0.0" },
+    });
+    expect(spec.paths).toBeDefined();
+    expect(spec.paths!["/health"]).toBeDefined();
+    expect(spec.paths!["/health"].get).toBeDefined();
+    expect(spec.paths!["/health"].get!.responses!["200"]).toBeDefined();
+    expect(spec.paths!["/health"].get!.responses!["200"].description).toBe(
+      "Service is healthy",
+    );
+  });
+
+  test("GET /health returns default shape when no healthResponse provided", async () => {
+    const mockApp = createMockApp({ name: "test-svc" });
+    const res = await mockApp.app.request("/health");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({
+      ok: true,
+      status: "healthy",
+      service: "test-svc",
+    });
+  });
+
+  test("GET /health returns custom healthResponse without ok field (shop parity)", async () => {
+    // Mirrors mocks/shop usage: healthResponse omits `ok` and only includes
+    // status + service. The route must serve this shape unchanged because
+    // Zod-OpenAPI does not validate response bodies, and the registered schema
+    // uses `.passthrough()` to document arbitrary additional keys.
+    const mockApp = createMockApp({
+      name: "test",
+      healthResponse: { status: "healthy", service: "shop-mosi-backend" },
+    });
+    const res = await mockApp.app.request("/health");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({
+      status: "healthy",
+      service: "shop-mosi-backend",
+    });
+  });
 });
 
 describe("auto-injection of 400 response", () => {

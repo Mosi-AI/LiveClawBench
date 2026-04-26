@@ -2,6 +2,7 @@ import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import type { RouteConfig, RouteHandler } from "@hono/zod-openapi";
 import type { Handler } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { z } from "zod";
 import type { AppEnv, MockConfig, OpenApiConfig } from "../types";
 import type { OpenAPIApp, MockAppV2, RouteOptions } from "./types";
 import { FactoryValidationSchema } from "./schemas";
@@ -187,8 +188,34 @@ export function createOpenAPIMockApp(
     return c.json({ error: "Internal server error" }, 500);
   });
 
-  // Built-in health check endpoint
-  app.get("/health", (c) => {
+  // Built-in health check endpoint. Registered via openApiRoute so the route
+  // appears in the generated OpenAPI specs alongside the rest of the API. The
+  // response schema uses `.passthrough()` to accommodate arbitrary custom
+  // healthResponse shapes (e.g. shop's `{ status, service }` without `ok`)
+  // without runtime validation — Zod-OpenAPI does not validate response bodies.
+  const healthRoute = createRoute({
+    method: "get",
+    path: "/health",
+    tags: ["health"],
+    summary: "Health check",
+    responses: {
+      200: {
+        description: "Service is healthy",
+        content: {
+          "application/json": {
+            schema: z
+              .object({
+                ok: z.boolean().optional(),
+                status: z.string().optional(),
+                service: z.string().optional(),
+              })
+              .passthrough(),
+          },
+        },
+      },
+    },
+  });
+  app.openApiRoute(healthRoute, ((c): any => {
     return c.json(
       healthResponse ?? {
         ok: true,
@@ -196,7 +223,7 @@ export function createOpenAPIMockApp(
         service: resolvedConfig.name,
       },
     );
-  });
+  }) as RouteHandler<typeof healthRoute, AppEnv>);
 
   // Register /openapi.json and bearerAuth security scheme when enabled
   const resolvedInfo = openApi?.enabled
@@ -207,15 +234,19 @@ export function createOpenAPIMockApp(
     : undefined;
 
   if (openApi?.enabled) {
-    // Only expose /openapi.json endpoint in dev mode to avoid leaking API
-    // surface to evaluated agents in production containers. The spec is still
-    // generated at build time via generate-openapi.ts using getOpenAPI31Document().
-    if (resolvedConfig.dev) {
-      app.doc31("/openapi.json", {
-        openapi: "3.1.0",
-        info: resolvedInfo!,
-      });
-    }
+    // Register the /openapi.json route unconditionally and gate it at request
+    // time. The middleware closure reads `resolvedConfig.dev` lazily, so
+    // `startServer(app, { dev: true })` — which propagates the override into
+    // `mockApp.config.dev` (same object as `resolvedConfig`) — flips the gate
+    // even though the route was registered at construction time.
+    hono.use("/openapi.json", async (c, next) => {
+      if (!resolvedConfig.dev) return c.notFound();
+      return next();
+    });
+    app.doc31("/openapi.json", {
+      openapi: "3.1.0",
+      info: resolvedInfo!,
+    });
 
     // Register bearerAuth security scheme (needed for spec generation)
     app.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
