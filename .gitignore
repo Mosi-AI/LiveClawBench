@@ -32,6 +32,9 @@ run_*.sh
 # Humanize plugin state (drafts, plans, plan QA, bitlesson, config)
 .humanize/
 
+# Superpowers design specs (development artifacts, not maintained docs)
+docs/superpowers/
+
 # Local venv (symlink to main repo)
 .venv
 .venv/

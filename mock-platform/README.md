@@ -47,7 +47,7 @@ Search parity between the legacy Python mock implementations and the current Bun
 | Email | `mocks/email/` | `mock-email` | Email inbox, compose, reply |
 | Todolist | `mocks/todolist/` | `mock-todolist` | Task management |
 
-See `docs/api/shop.md` and `docs/api/doc-search.md` for full endpoint documentation.
+API documentation is auto-generated as OpenAPI 3.1 specs in `dist/openapi/*.json`. Run `bun run generate-openapi` to regenerate after route changes.
 
 ## Build Commands
 
