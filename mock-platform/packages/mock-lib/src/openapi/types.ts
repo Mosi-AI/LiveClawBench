@@ -1,4 +1,4 @@
-import type { OpenAPIHono } from "@hono/zod-openapi";
+import type { OpenAPIHono, RouteConfig, RouteHandler } from "@hono/zod-openapi";
 import type { Handler } from "hono";
 import type { AppEnv, MockConfig } from "../types";
 
@@ -29,10 +29,7 @@ export interface OpenAPIApp extends OpenAPIHono<AppEnv> {
    * none is explicitly defined, and adds bearer-auth security when
    * `auth: "required"` is set.
    */
-  openApiRoute<
-    R extends import("@hono/zod-openapi").RouteConfig,
-    H extends import("@hono/zod-openapi").RouteHandler<R, AppEnv>,
-  >(
+  openApiRoute<R extends RouteConfig, H extends RouteHandler<R, AppEnv>>(
     route: R,
     handler: H,
     options?: RouteOptions,

@@ -4,6 +4,30 @@ import { createMockApp, createRoute } from "../index";
 import type { MockAppV2, OpenAPIApp } from "../index";
 import { sign, _resetSecret } from "../auth/jwt";
 
+/** Helper: create a test app with common defaults. */
+function createTestApp(options?: {
+  openApi?: boolean;
+  dev?: boolean;
+  name?: string;
+  healthResponse?: Record<string, unknown>;
+}): OpenAPIApp {
+  const mockApp = createMockApp({
+    name: options?.name ?? "test",
+    dev: options?.dev,
+    openApi: options?.openApi !== false ? { enabled: true } : undefined,
+    healthResponse: options?.healthResponse,
+  });
+  return mockApp.app as OpenAPIApp;
+}
+
+/** Helper: generate OpenAPI 3.1 spec from an app with standard test metadata. */
+function getSpec(app: OpenAPIApp) {
+  return app.getOpenAPI31Document({
+    openapi: "3.1.0",
+    info: { title: "test", version: "1.0.0" },
+  });
+}
+
 describe("createMockApp — factory basics", () => {
   test("returns { config, app } with app extending OpenAPIHono", () => {
     const mockApp = createMockApp({ name: "test" });
@@ -15,11 +39,7 @@ describe("createMockApp — factory basics", () => {
   });
 
   test("openApiRoute registers routes in OpenAPI spec", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -39,10 +59,7 @@ describe("createMockApp — factory basics", () => {
       (c) => c.json({ count: 0 }),
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     expect(spec.paths).toHaveProperty("/api/items");
     expect(spec.paths!["/api/items"]).toHaveProperty("get");
   });
@@ -50,19 +67,12 @@ describe("createMockApp — factory basics", () => {
 
 describe("page() — exclusion from OpenAPI spec", () => {
   test("page routes do NOT appear in spec.paths", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.page("/", (c) => c.html("<h1>Home</h1>") as any);
     app.page("/about", (c) => c.html("<h1>About</h1>") as any);
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     expect(spec.paths).not.toHaveProperty("/");
     expect(spec.paths).not.toHaveProperty("/about");
   });
@@ -70,11 +80,7 @@ describe("page() — exclusion from OpenAPI spec", () => {
 
 describe("auth security field", () => {
   test("auth: required generates security: [{ bearerAuth: [] }]", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -88,20 +94,13 @@ describe("auth security field", () => {
       { auth: "required" },
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const route = spec.paths!["/api/protected"].get!;
     expect(route.security).toEqual([{ bearerAuth: [] }]);
   });
 
   test("auth: required auto-injects 401 response in spec", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -115,21 +114,14 @@ describe("auth security field", () => {
       { auth: "required" },
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const responses = spec.paths!["/api/protected-401"].get!.responses!;
     expect(responses).toHaveProperty("401");
     expect(responses["401"].description).toBe("Unauthorized");
   });
 
   test("auth: required preserves explicit 401 response", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -151,26 +143,16 @@ describe("auth security field", () => {
       { auth: "required" },
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const responses = spec.paths!["/api/protected-explicit-401"].get!.responses!;
     expect(responses).toHaveProperty("401");
     expect(responses["401"].description).toBe("Custom unauthorized");
   });
 
   test("components.securitySchemes.bearerAuth exists when openApi.enabled", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     expect(spec.components?.securitySchemes).toHaveProperty("bearerAuth");
     expect((spec.components?.securitySchemes as any)?.bearerAuth).toMatchObject({
       type: "http",
@@ -179,11 +161,7 @@ describe("auth security field", () => {
   });
 
   test("auth: optional (default) does NOT generate security field", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -196,20 +174,13 @@ describe("auth security field", () => {
       (c) => c.json({ ok: true }),
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const route = spec.paths!["/api/public"].get!;
     expect(route.security).toBeUndefined();
   });
 
   test("auth: required returns 401 when no Authorization header", async () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -230,11 +201,7 @@ describe("auth security field", () => {
   });
 
   test("auth: required returns 401 when Authorization has no Bearer prefix", async () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -255,11 +222,7 @@ describe("auth security field", () => {
   });
 
   test("auth: required returns 401 when Bearer token is empty", async () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -280,11 +243,7 @@ describe("auth security field", () => {
   });
 
   test("auth: required passes through with valid JWT token", async () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -308,11 +267,7 @@ describe("auth security field", () => {
   });
 
   test("auth: required rejects invalid JWT token", async () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -333,11 +288,7 @@ describe("auth security field", () => {
   });
 
   test("auth: required works with OpenAPI path templates ({param} syntax)", async () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -369,11 +320,7 @@ describe("auth security field", () => {
   });
 
   test("auth: required rejects before Zod validation (401 not 400)", async () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -408,11 +355,7 @@ describe("auth security field", () => {
   });
 
   test("auth middleware on parameterized route does not block sibling static routes", async () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     // Register the STATIC sibling first so Hono routes to it.
     // (Hono uses first-match-wins for static vs parameterized on the same prefix.)
@@ -464,12 +407,7 @@ describe("auth security field", () => {
 
 describe("/openapi.json endpoint gating", () => {
   test("/openapi.json is available in dev mode", async () => {
-    const mockApp = createMockApp({
-      name: "test",
-      dev: true,
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ dev: true });
 
     const res = await app.request("/openapi.json");
     expect(res.status).toBe(200);
@@ -478,28 +416,17 @@ describe("/openapi.json endpoint gating", () => {
   });
 
   test("/openapi.json is NOT available without dev mode", async () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     const res = await app.request("/openapi.json");
     expect(res.status).toBe(404);
   });
 
   test("spec generation still works without dev mode", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     // getOpenAPI31Document() should still work for build-time generation
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     expect(spec.openapi).toBe("3.1.0");
     expect(spec.info.title).toBe("test");
   });
@@ -559,16 +486,9 @@ describe("/openapi.json endpoint gating", () => {
 
 describe("/health endpoint", () => {
   test("/health appears in generated OpenAPI spec with 200 response", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     expect(spec.paths).toBeDefined();
     expect(spec.paths!["/health"]).toBeDefined();
     expect(spec.paths!["/health"].get).toBeDefined();
@@ -611,11 +531,7 @@ describe("/health endpoint", () => {
 
 describe("auto-injection of 400 response", () => {
   test("routes with request schema and without explicit 400 include 400 in spec", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -631,21 +547,14 @@ describe("auto-injection of 400 response", () => {
       (c) => c.json({ ok: true }),
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const responses = spec.paths!["/api/no-400"].get!.responses!;
     expect(responses).toHaveProperty("400");
     expect(responses["400"].description).toBe("Validation error");
   });
 
   test("routes without request schema do NOT include 400 in spec", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -658,20 +567,13 @@ describe("auto-injection of 400 response", () => {
       (c) => c.json({ ok: true }),
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const responses = spec.paths!["/api/no-request"].get!.responses!;
     expect(responses).not.toHaveProperty("400");
   });
 
   test("routes with explicit 400 preserve explicit definition", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -692,21 +594,14 @@ describe("auto-injection of 400 response", () => {
       (c) => c.json({ ok: true }),
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const responses = spec.paths!["/api/with-400"].get!.responses!;
     expect(responses).toHaveProperty("400");
     expect(responses["400"].description).toBe("Custom bad request");
   });
 
   test("rawOpenApi cannot override auto-injected 400 when route has no explicit 400", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -731,10 +626,7 @@ describe("auto-injection of 400 response", () => {
       },
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const responses = spec.paths!["/api/raw-override"].get!.responses!;
     expect(responses).toHaveProperty("400");
     // rawOpenApi is merged before auto-injection, so auto-injected 400 wins
@@ -742,11 +634,7 @@ describe("auto-injection of 400 response", () => {
   });
 
   test("rawOpenApi deep-merges nested objects and concatenates arrays", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -773,10 +661,7 @@ describe("auto-injection of 400 response", () => {
       },
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const op = spec.paths!["/api/deep-merge"].get!;
     // Original responses preserved (200, 404) + auto-injected 400 + rawOpenApi 429
     const responses = op.responses!;
@@ -794,8 +679,7 @@ describe("auto-injection of 400 response", () => {
 
 describe("defaultHook validation errors", () => {
   test("invalid query param returns { error: string } 400", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     app.openApiRoute(
       createRoute({
@@ -819,8 +703,7 @@ describe("defaultHook validation errors", () => {
   });
 
   test("valid request body passes through without 400", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     app.openApiRoute(
       createRoute({
@@ -855,8 +738,7 @@ describe("defaultHook validation errors", () => {
 
 describe("Content-Type enforcement for JSON body routes", () => {
   test("POST without Content-Type returns 415", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     app.openApiRoute(
       createRoute({
@@ -892,8 +774,7 @@ describe("Content-Type enforcement for JSON body routes", () => {
   });
 
   test("POST with wrong Content-Type returns 415", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     app.openApiRoute(
       createRoute({
@@ -924,8 +805,7 @@ describe("Content-Type enforcement for JSON body routes", () => {
   });
 
   test("POST with application/json charset passes through", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     app.openApiRoute(
       createRoute({
@@ -956,8 +836,7 @@ describe("Content-Type enforcement for JSON body routes", () => {
   });
 
   test("route without body schema does not enforce Content-Type", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     app.openApiRoute(
       createRoute({
@@ -975,8 +854,7 @@ describe("Content-Type enforcement for JSON body routes", () => {
   });
 
   test("application/jsonp Content-Type is rejected (not a substring match)", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     app.openApiRoute(
       createRoute({
@@ -1007,11 +885,7 @@ describe("Content-Type enforcement for JSON body routes", () => {
   });
 
   test("415 response is auto-injected in spec for JSON body routes", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -1033,21 +907,14 @@ describe("Content-Type enforcement for JSON body routes", () => {
       (c): any => c.json({ ok: true }),
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const responses = spec.paths!["/api/spec-415"].post!.responses!;
     expect(responses).toHaveProperty("415");
     expect(responses["415"].description).toBe("Unsupported Media Type");
   });
 
   test("explicit 415 in route is preserved (not overwritten)", () => {
-    const mockApp = createMockApp({
-      name: "test",
-      openApi: { enabled: true },
-    });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp();
 
     app.openApiRoute(
       createRoute({
@@ -1070,17 +937,13 @@ describe("Content-Type enforcement for JSON body routes", () => {
       (c): any => c.json({ ok: true }),
     );
 
-    const spec = app.getOpenAPI31Document({
-      openapi: "3.1.0",
-      info: { title: "test", version: "1.0.0" },
-    });
+    const spec = getSpec(app);
     const responses = spec.paths!["/api/explicit-415"].post!.responses!;
     expect(responses["415"].description).toBe("Custom unsupported");
   });
 
   test("Content-Type middleware only applies to declared method, not other methods", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     // Register a POST route with JSON body
     app.openApiRoute(
@@ -1123,8 +986,7 @@ describe("Content-Type enforcement for JSON body routes", () => {
   });
 
   test("auth middleware only applies to declared method, not other methods", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     // Register a protected POST route
     app.openApiRoute(
@@ -1163,8 +1025,7 @@ describe("Content-Type enforcement for JSON body routes", () => {
   });
 
   test("CT middleware on parameterized route does not block sibling static routes", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     // Register the STATIC sibling first so Hono routes to it
     app.openApiRoute(
@@ -1218,8 +1079,7 @@ describe("Content-Type enforcement for JSON body routes", () => {
 
 describe("onError JSON parse handling", () => {
   test("malformed JSON body returns { error: Invalid JSON body } 400", async () => {
-    const mockApp = createMockApp({ name: "test" });
-    const app = mockApp.app as OpenAPIApp;
+    const app = createTestApp({ openApi: false });
 
     app.openApiRoute(
       createRoute({

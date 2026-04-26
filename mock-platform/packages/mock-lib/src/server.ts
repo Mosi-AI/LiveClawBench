@@ -50,7 +50,7 @@ export async function startServer(
   // disagree.
   mockApp.config.dev = dev;
   const cliPort = parseCliPort();
-  const port = cliPort !== undefined ? cliPort : (mockApp.config.port !== undefined ? mockApp.config.port : 3000);
+  const port = cliPort ?? mockApp.config.port ?? 3000;
 
   // Apply dev mode middleware
   if (dev) {

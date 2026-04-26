@@ -38,7 +38,7 @@ const DIST_DIR = join(import.meta.dir, "..", "dist", "openapi");
  * The same convention is used by `tools/create-mock`, so a freshly
  * scaffolded mock works with the generator without any registry edits.
  */
-function factoryNameFor(mockName: string): string {
+export function factoryNameFor(mockName: string): string {
   const pascal = mockName
     .split("-")
     .filter((segment) => segment.length > 0)
@@ -54,7 +54,7 @@ interface GenerateResult {
   error?: string;
 }
 
-async function discoverMocks(): Promise<string[]> {
+export async function discoverMocks(): Promise<string[]> {
   const entries = await readdir(MOCKS_DIR, { withFileTypes: true });
   return entries
     .filter((e) => e.isDirectory())

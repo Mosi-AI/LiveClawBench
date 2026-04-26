@@ -10,6 +10,29 @@ import { authRequired } from "../auth/middleware";
 
 const DEFAULT_PORT = 3000;
 
+/** Check whether a route already declares a given status code (or 4XX wildcard). */
+function hasStatusCode(route: RouteConfig, code: string): boolean {
+  return (
+    route.responses !== undefined &&
+    Object.keys(route.responses).some((k) => k === code || k === "4XX")
+  );
+}
+
+/**
+ * Wrap a handler with a guard function.
+ * Used for parameterized routes where hono.use() would overmatch sibling static routes.
+ */
+function wrapHandler(
+  handler: any,
+  guard: (c: any) => Response | undefined | Promise<Response | undefined>,
+): any {
+  return async (c: any): Promise<any> => {
+    const result = await guard(c);
+    if (result) return result;
+    return handler(c);
+  };
+}
+
 /**
  * Create an OpenAPI-enabled mock application.
  *
@@ -73,20 +96,18 @@ export function createOpenAPIMockApp(
     if (options?.rawOpenApi) {
       for (const [key, value] of Object.entries(options.rawOpenApi)) {
         if (value == null) continue;
-        const existing = (mergedRoute as any)[key];
+        const existing = (mergedRoute as Record<string, unknown>)[key];
         if (Array.isArray(existing) && Array.isArray(value)) {
-          (mergedRoute as any)[key] = [...existing, ...value];
+          (mergedRoute as Record<string, unknown>)[key] = [...existing, ...value];
         } else if (
           existing &&
           typeof existing === "object" &&
-          !Array.isArray(existing) &&
           value &&
-          typeof value === "object" &&
-          !Array.isArray(value)
+          typeof value === "object"
         ) {
-          (mergedRoute as any)[key] = { ...existing, ...value };
+          (mergedRoute as Record<string, unknown>)[key] = { ...existing, ...value };
         } else {
-          (mergedRoute as any)[key] = value;
+          (mergedRoute as Record<string, unknown>)[key] = value;
         }
       }
     }
@@ -105,10 +126,7 @@ export function createOpenAPIMockApp(
         route.request.cookies !== undefined ||
         route.request.body !== undefined);
 
-    const has400 =
-      route.responses !== undefined &&
-      Object.keys(route.responses).some((k) => k === "400" || k === "4XX");
-    if (hasRequestSchema && !has400) {
+    if (hasRequestSchema && !hasStatusCode(route, "400")) {
       mergedRoute.responses = {
         ...mergedRoute.responses,
         400: {
@@ -132,10 +150,7 @@ export function createOpenAPIMockApp(
     if (options?.auth === "required") {
       mergedRoute.security = [{ bearerAuth: [] }];
       // Auto-inject 401 response when the route has no explicit 401
-      const has401 =
-        route.responses !== undefined &&
-        Object.keys(route.responses).some((k) => k === "401" || k === "4XX");
-      if (!has401) {
+      if (!hasStatusCode(route, "401")) {
         mergedRoute.responses = {
           ...mergedRoute.responses,
           401: {
@@ -155,12 +170,9 @@ export function createOpenAPIMockApp(
         // Wrapping the handler avoids the overmatch at the cost of running auth
         // AFTER Zod validation (so 400 may precede 401). No current parameterized
         // routes use auth: "required", so this trade-off is acceptable.
-        const inner = finalHandler;
-        finalHandler = async (c: any): Promise<any> => {
-          const authResponse = await authRequired(c, async () => {});
-          if (authResponse) return authResponse;
-          return inner(c);
-        };
+        finalHandler = wrapHandler(finalHandler, (c) =>
+          authRequired(c, async () => {}),
+        );
       } else {
         // Non-parameterized: hono.use() matches the exact path, no overmatch risk.
         // Runs before hono.openapi() Zod validation so unauthenticated requests
@@ -182,10 +194,7 @@ export function createOpenAPIMockApp(
       !mergedRoute.request.body.content["application/*"]
     ) {
       // Auto-inject 415 response in spec when the route has no explicit 415/4XX
-      const has415 =
-        route.responses !== undefined &&
-        Object.keys(route.responses).some((k) => k === "415" || k === "4XX");
-      if (!has415) {
+      if (!hasStatusCode(route, "415")) {
         mergedRoute.responses = {
           ...mergedRoute.responses,
           415: {
@@ -201,15 +210,13 @@ export function createOpenAPIMockApp(
 
       if (isParameterized) {
         // Handler wrapping for parameterized routes (same rationale as auth above).
-        const inner = finalHandler;
-        finalHandler = async (c: any): Promise<any> => {
+        finalHandler = wrapHandler(finalHandler, (c) => {
           const ct = c.req.header("content-type") ?? "";
           const mediaType = ct.split(";")[0].trim().toLowerCase();
           if (mediaType !== "application/json") {
             return c.json({ error: "Content-Type must be application/json" }, 415);
           }
-          return inner(c);
-        };
+        });
       } else {
         // Non-parameterized: hono.use() matches the exact path.
         const mwMethod = route.method.toUpperCase();

@@ -10,7 +10,8 @@ export const ErrorResponseSchema = z.object({
 /**
  * Validation error response schema injected automatically by the
  * `openApiRoute()` helper when no explicit 400 response is defined.
+ *
+ * Same shape as ErrorResponseSchema but exported separately for
+ * semantic clarity in OpenAPI spec documentation.
  */
-export const FactoryValidationSchema = z.object({
-  error: z.string(),
-});
+export const FactoryValidationSchema = ErrorResponseSchema;

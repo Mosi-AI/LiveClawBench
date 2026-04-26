@@ -1,33 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
-import type { Dirent } from "node:fs";
+import { factoryNameFor, discoverMocks } from "./generate-openapi";
 
 const MOCKS_DIR = join(import.meta.dir, "..", "mocks");
-
-/**
- * Derive the conventional factory function name from a kebab-case mock name.
- * Mirrors the same convention used by generate-openapi.ts and tools/create-mock.
- */
-function factoryNameFor(mockName: string): string {
-  const pascal = mockName
-    .split("-")
-    .filter((segment) => segment.length > 0)
-    .map((segment) => segment[0].toUpperCase() + segment.slice(1))
-    .join("");
-  return `create${pascal}App`;
-}
-
-/**
- * Discover mock directories dynamically — same approach as the generator.
- * Any new mock added via tools/create-mock is automatically covered.
- */
-function discoverMocks(): string[] {
-  return readdirSync(MOCKS_DIR, { withFileTypes: true })
-    .filter((e: Dirent) => e.isDirectory())
-    .map((e: Dirent) => e.name)
-    .sort();
-}
 
 async function generateForMock(name: string): Promise<{ document?: object; error?: string }> {
   const tsPath = join(MOCKS_DIR, name, "src", "index.ts");
@@ -70,7 +46,7 @@ async function generateForMock(name: string): Promise<{ document?: object; error
 
 describe("OpenAPI generation — discovery", () => {
   test("all discovered mocks generate valid specs", async () => {
-    const mocks = discoverMocks();
+    const mocks = await discoverMocks();
     expect(mocks.length).toBeGreaterThanOrEqual(5);
 
     const results: { name: string; document?: object; error?: string }[] = [];
