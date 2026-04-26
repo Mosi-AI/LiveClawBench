@@ -116,8 +116,13 @@ export function createOpenAPIMockApp(
       // Delegate to the existing authRequired middleware for JWT verification,
       // cookie-based auth, and userId population. Runs before hono.openapi()
       // Zod validation so unauthenticated requests get 401, not 400.
+      // Guard on method to avoid blocking unrelated methods on the same path.
+      const authMethod = route.method.toUpperCase();
       const middlewarePath = route.path.replace(/\{(\w+)\}/g, ":$1");
-      hono.use(middlewarePath, authRequired);
+      hono.use(middlewarePath, async (c, next) => {
+        if (c.req.method !== authMethod) return next();
+        return authRequired(c, next);
+      });
     }
 
     // Enforce Content-Type: application/json for routes declaring JSON body schemas.
@@ -147,7 +152,9 @@ export function createOpenAPIMockApp(
       }
 
       const mwPath = mergedRoute.path.replace(/\{(\w+)\}/g, ":$1");
+      const mwMethod = route.method.toUpperCase();
       hono.use(mwPath, async (c, next) => {
+        if (c.req.method !== mwMethod) return next();
         const ct = c.req.header("content-type") ?? "";
         // Parse media type token before ';' (charset) and reject substrings
         // like "application/jsonp" that would match includes("application/json").

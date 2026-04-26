@@ -837,6 +837,90 @@ describe("Content-Type enforcement for JSON body routes", () => {
     const responses = spec.paths!["/api/explicit-415"].post!.responses!;
     expect(responses["415"].description).toBe("Custom unsupported");
   });
+
+  test("Content-Type middleware only applies to declared method, not other methods", async () => {
+    const mockApp = createMockApp({ name: "test" });
+    const app = mockApp.app as OpenAPIApp;
+
+    // Register a POST route with JSON body
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/method-scope",
+        request: {
+          body: {
+            content: {
+              "application/json": {
+                schema: z.object({ name: z.string() }),
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c): any => c.json({ ok: true }),
+    );
+
+    // Register a GET route on the same path
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/method-scope",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ items: [] }),
+    );
+
+    // GET should work without Content-Type (not blocked by POST's CT check)
+    const getRes = await app.request("/api/method-scope");
+    expect(getRes.status).toBe(200);
+    const getBody = await getRes.json();
+    expect(getBody).toEqual({ items: [] });
+  });
+
+  test("auth middleware only applies to declared method, not other methods", async () => {
+    const mockApp = createMockApp({ name: "test" });
+    const app = mockApp.app as OpenAPIApp;
+
+    // Register a protected POST route
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/auth-method-scope",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c): any => c.json({ ok: true }),
+      { auth: "required" },
+    );
+
+    // Register an unprotected GET route on the same path
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/auth-method-scope",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ public: true }),
+    );
+
+    // POST without auth → 401
+    const postRes = await app.request("/api/auth-method-scope", { method: "POST" });
+    expect(postRes.status).toBe(401);
+
+    // GET without auth → 200 (not blocked by POST's auth check)
+    const getRes = await app.request("/api/auth-method-scope");
+    expect(getRes.status).toBe(200);
+    const getBody = await getRes.json();
+    expect(getBody).toEqual({ public: true });
+  });
 });
 
 describe("onError JSON parse handling", () => {
