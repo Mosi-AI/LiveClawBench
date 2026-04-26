@@ -146,8 +146,10 @@ describe("UpdateCartBodySchema — product_id and quantity", () => {
     expect(result.quantity).toBe(3);
   });
 
-  test("missing quantity → 400 (throws)", () => {
-    expect(() => UpdateCartBodySchema.parse({ product_id: "p-123" })).toThrow();
+  test("missing quantity → defaults to 1", () => {
+    const result = UpdateCartBodySchema.parse({ product_id: "p-123" });
+    expect(result.product_id).toBe("p-123");
+    expect(result.quantity).toBe(1);
   });
 
   test("negative quantity → 400 (throws)", () => {

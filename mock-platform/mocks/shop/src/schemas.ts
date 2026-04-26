@@ -143,7 +143,7 @@ export const AddToCartBodySchema = z.object({
 
 export const UpdateCartBodySchema = z.object({
   product_id: z.string(),
-  quantity: z.number().int().min(0),
+  quantity: z.number().int().min(0).optional().default(1),
 });
 
 export const UpdateUserBodySchema = z.object({
