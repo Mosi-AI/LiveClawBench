@@ -74,13 +74,24 @@ export function createOpenAPIMockApp(
       Object.assign(mergedRoute, options.rawOpenApi);
     }
 
-    // Auto-inject 400 validation response only when the ORIGINAL route has no explicit 400/4XX
-    // rawOpenApi cannot prevent auto-injection
+    // Auto-inject 400 validation response only when the route actually validates
+    // request input (query, params, headers, cookies, or body) AND the ORIGINAL
+    // route has no explicit 400/4XX. Routes without request schemas cannot produce
+    // Zod validation failures, so advertising 400 would make the spec inaccurate.
+    // rawOpenApi cannot prevent auto-injection.
     // Note: runtime guard for compile-contract tests that use @ts-expect-error
+    const hasRequestSchema =
+      route.request !== undefined &&
+      (route.request.query !== undefined ||
+        route.request.params !== undefined ||
+        route.request.headers !== undefined ||
+        route.request.cookies !== undefined ||
+        route.request.body !== undefined);
+
     const has400 =
       route.responses !== undefined &&
       Object.keys(route.responses).some((k) => k === "400" || k === "4XX");
-    if (!has400) {
+    if (hasRequestSchema && !has400) {
       mergedRoute.responses = {
         ...mergedRoute.responses,
         400: {

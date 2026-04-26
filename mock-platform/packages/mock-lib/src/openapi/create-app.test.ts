@@ -556,7 +556,7 @@ describe("/health endpoint", () => {
 });
 
 describe("auto-injection of 400 response", () => {
-  test("routes without explicit 400 include 400 in spec", () => {
+  test("routes with request schema and without explicit 400 include 400 in spec", () => {
     const mockApp = createMockApp({
       name: "test",
       openApi: { enabled: true },
@@ -567,6 +567,9 @@ describe("auto-injection of 400 response", () => {
       createRoute({
         method: "get",
         path: "/api/no-400",
+        request: {
+          query: z.object({ q: z.string().optional() }),
+        },
         responses: {
           200: { description: "OK" },
         },
@@ -581,6 +584,32 @@ describe("auto-injection of 400 response", () => {
     const responses = spec.paths!["/api/no-400"].get!.responses!;
     expect(responses).toHaveProperty("400");
     expect(responses["400"].description).toBe("Validation error");
+  });
+
+  test("routes without request schema do NOT include 400 in spec", () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/no-request",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ ok: true }),
+    );
+
+    const spec = app.getOpenAPI31Document({
+      openapi: "3.1.0",
+      info: { title: "test", version: "1.0.0" },
+    });
+    const responses = spec.paths!["/api/no-request"].get!.responses!;
+    expect(responses).not.toHaveProperty("400");
   });
 
   test("routes with explicit 400 preserve explicit definition", () => {
@@ -629,6 +658,9 @@ describe("auto-injection of 400 response", () => {
       createRoute({
         method: "get",
         path: "/api/raw-override",
+        request: {
+          query: z.object({ q: z.string().optional() }),
+        },
         responses: {
           200: { description: "OK" },
         },
