@@ -354,7 +354,7 @@ describe("auth security field", () => {
       { auth: "required" },
     );
 
-    // No auth header → 401 (middleware rejects before handler)
+    // No auth header → 401 (handler wrapping rejects for parameterized routes)
     const res = await app.request("/api/items/abc");
     expect(res.status).toBe(401);
 
@@ -405,6 +405,60 @@ describe("auth security field", () => {
     expect(res.status).toBe(401);
     const body = await res.json();
     expect(body).toEqual({ error: "Authentication required" });
+  });
+
+  test("auth middleware on parameterized route does not block sibling static routes", async () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    // Register the STATIC sibling first so Hono routes to it.
+    // (Hono uses first-match-wins for static vs parameterized on the same prefix.)
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/items/special",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ special: true }),
+    );
+
+    // Register a parameterized route with auth (handler wrapping, no hono.use)
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/items/{id}",
+        request: {
+          params: z.object({ id: z.string() }),
+        },
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c) => c.json({ itemId: c.req.valid("param").id }),
+      { auth: "required" },
+    );
+
+    // Static sibling should NOT be blocked — no hono.use() overmatching
+    const res = await app.request("/api/items/special");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({ special: true });
+
+    // Parameterized route should still require auth
+    const resNoAuth = await app.request("/api/items/abc");
+    expect(resNoAuth.status).toBe(401);
+
+    const token = await sign({ userId: 1 });
+    const resAuth = await app.request("/api/items/abc", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(resAuth.status).toBe(200);
+    expect(await resAuth.json()).toEqual({ itemId: "abc" });
   });
 });
 
@@ -1056,6 +1110,59 @@ describe("Content-Type enforcement for JSON body routes", () => {
     expect(getRes.status).toBe(200);
     const getBody = await getRes.json();
     expect(getBody).toEqual({ public: true });
+  });
+
+  test("CT middleware on parameterized route does not block sibling static routes", async () => {
+    const mockApp = createMockApp({ name: "test" });
+    const app = mockApp.app as OpenAPIApp;
+
+    // Register the STATIC sibling first so Hono routes to it
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/data/bulk",
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c): any => c.json({ bulk: true }),
+    );
+
+    // Register a parameterized route with JSON body (handler wrapping, no hono.use)
+    app.openApiRoute(
+      createRoute({
+        method: "post",
+        path: "/api/data/{id}",
+        request: {
+          body: {
+            content: {
+              "application/json": {
+                schema: z.object({ value: z.string() }),
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: "OK" },
+        },
+      }),
+      (c): any => c.json({ ok: true }),
+    );
+
+    // Static sibling POST without Content-Type should work (not 415)
+    const res = await app.request("/api/data/bulk", {
+      method: "POST",
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({ bulk: true });
+
+    // Parameterized route should still enforce CT
+    const resBadCT = await app.request("/api/data/abc", {
+      method: "POST",
+      body: JSON.stringify({ value: "test" }),
+    });
+    expect(resBadCT.status).toBe(415);
   });
 });
 

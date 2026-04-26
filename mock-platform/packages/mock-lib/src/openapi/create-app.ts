@@ -105,6 +105,12 @@ export function createOpenAPIMockApp(
       };
     }
 
+    // Detect parameterized routes (e.g. /api/items/{id}) where hono.use() with
+    // :param paths overmatches sibling static routes (e.g. /api/items/stats).
+    // For parameterized routes, auth and CT checks use handler wrapping instead.
+    const isParameterized = /\{\w+\}/.test(route.path);
+    let finalHandler: any = handler;
+
     // Add bearer-auth security when auth is required
     if (options?.auth === "required") {
       mergedRoute.security = [{ bearerAuth: [] }];
@@ -125,16 +131,29 @@ export function createOpenAPIMockApp(
           },
         };
       }
-      // Delegate to the existing authRequired middleware for JWT verification,
-      // cookie-based auth, and userId population. Runs before hono.openapi()
-      // Zod validation so unauthenticated requests get 401, not 400.
-      // Guard on method to avoid blocking unrelated methods on the same path.
-      const authMethod = route.method.toUpperCase();
-      const middlewarePath = route.path.replace(/\{(\w+)\}/g, ":$1");
-      hono.use(middlewarePath, async (c, next) => {
-        if (c.req.method !== authMethod) return next();
-        return authRequired(c, next);
-      });
+
+      if (isParameterized) {
+        // Handler wrapping for parameterized routes: hono.use("/api/items/:id", ...)
+        // would match /api/items/stats because :id is a catch-all segment.
+        // Wrapping the handler avoids the overmatch at the cost of running auth
+        // AFTER Zod validation (so 400 may precede 401). No current parameterized
+        // routes use auth: "required", so this trade-off is acceptable.
+        const inner = finalHandler;
+        finalHandler = async (c: any): Promise<any> => {
+          const authResponse = await authRequired(c, async () => {});
+          if (authResponse) return authResponse;
+          return inner(c);
+        };
+      } else {
+        // Non-parameterized: hono.use() matches the exact path, no overmatch risk.
+        // Runs before hono.openapi() Zod validation so unauthenticated requests
+        // get 401, not 400. Guard on method to avoid blocking other methods.
+        const authMethod = route.method.toUpperCase();
+        hono.use(route.path, async (c, next) => {
+          if (c.req.method !== authMethod) return next();
+          return authRequired(c, next);
+        });
+      }
     }
 
     // Enforce Content-Type: application/json for routes declaring JSON body schemas.
@@ -163,25 +182,38 @@ export function createOpenAPIMockApp(
         };
       }
 
-      const mwPath = mergedRoute.path.replace(/\{(\w+)\}/g, ":$1");
-      const mwMethod = route.method.toUpperCase();
-      hono.use(mwPath, async (c, next) => {
-        if (c.req.method !== mwMethod) return next();
-        const ct = c.req.header("content-type") ?? "";
-        // Parse media type token before ';' (charset) and reject substrings
-        // like "application/jsonp" that would match includes("application/json").
-        const mediaType = ct.split(";")[0].trim().toLowerCase();
-        if (mediaType !== "application/json") {
-          return c.json({ error: "Content-Type must be application/json" }, 415);
-        }
-        await next();
-      });
+      if (isParameterized) {
+        // Handler wrapping for parameterized routes (same rationale as auth above).
+        const inner = finalHandler;
+        finalHandler = async (c: any): Promise<any> => {
+          const ct = c.req.header("content-type") ?? "";
+          const mediaType = ct.split(";")[0].trim().toLowerCase();
+          if (mediaType !== "application/json") {
+            return c.json({ error: "Content-Type must be application/json" }, 415);
+          }
+          return inner(c);
+        };
+      } else {
+        // Non-parameterized: hono.use() matches the exact path.
+        const mwMethod = route.method.toUpperCase();
+        hono.use(mergedRoute.path, async (c, next) => {
+          if (c.req.method !== mwMethod) return next();
+          const ct = c.req.header("content-type") ?? "";
+          // Parse media type token before ';' (charset) and reject substrings
+          // like "application/jsonp" that would match includes("application/json").
+          const mediaType = ct.split(";")[0].trim().toLowerCase();
+          if (mediaType !== "application/json") {
+            return c.json({ error: "Content-Type must be application/json" }, 415);
+          }
+          await next();
+        });
+      }
     }
 
     // Type assertion needed: @hono/zod-openapi ships duplicate type definitions
     // from its @asteasolutions/zod-to-openapi dependency, causing "two different
     // types with this name exist, but they are unrelated" errors.
-    hono.openapi(mergedRoute as R, handler as any);
+    hono.openapi(mergedRoute as R, finalHandler as any);
   };
 
   // Catch JSON parse errors from invalid request bodies; return 500 for everything else
