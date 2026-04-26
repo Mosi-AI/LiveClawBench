@@ -740,6 +740,56 @@ describe("auto-injection of 400 response", () => {
     // rawOpenApi is merged before auto-injection, so auto-injected 400 wins
     expect(responses["400"].description).toBe("Validation error");
   });
+
+  test("rawOpenApi deep-merges nested objects and concatenates arrays", () => {
+    const mockApp = createMockApp({
+      name: "test",
+      openApi: { enabled: true },
+    });
+    const app = mockApp.app as OpenAPIApp;
+
+    app.openApiRoute(
+      createRoute({
+        method: "get",
+        path: "/api/deep-merge",
+        request: {
+          query: z.object({ q: z.string().optional() }),
+        },
+        responses: {
+          200: { description: "OK" },
+          404: { description: "Not found" },
+        },
+      }),
+      (c) => c.json({ ok: true }),
+      {
+        rawOpenApi: {
+          // responses: should merge, not replace — existing 200/404 preserved
+          responses: {
+            429: { description: "Too many requests" },
+          },
+          // operationId: scalar, replaced
+          operationId: "deepMergeTest",
+        },
+      },
+    );
+
+    const spec = app.getOpenAPI31Document({
+      openapi: "3.1.0",
+      info: { title: "test", version: "1.0.0" },
+    });
+    const op = spec.paths!["/api/deep-merge"].get!;
+    // Original responses preserved (200, 404) + auto-injected 400 + rawOpenApi 429
+    const responses = op.responses!;
+    expect(responses).toHaveProperty("200");
+    expect(responses["200"].description).toBe("OK");
+    expect(responses).toHaveProperty("404");
+    expect(responses["404"].description).toBe("Not found");
+    expect(responses).toHaveProperty("400");
+    expect(responses).toHaveProperty("429");
+    expect(responses["429"].description).toBe("Too many requests");
+    // Scalar replaced
+    expect(op.operationId).toBe("deepMergeTest");
+  });
 });
 
 describe("defaultHook validation errors", () => {

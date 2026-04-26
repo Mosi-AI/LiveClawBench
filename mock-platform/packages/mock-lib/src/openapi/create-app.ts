@@ -66,12 +66,29 @@ export function createOpenAPIMockApp(
     // Shallow-copy route to avoid mutating top-level properties
     const mergedRoute: RouteConfig = { ...route };
 
-    // Merge rawOpenApi metadata first
-    // WARNING: Object.assign is shallow — nested objects (e.g. rawOpenApi.responses)
-    // will replace the entire corresponding key rather than deep-merge.
-    // Use flat keys only (e.g. rawOpenApi.security, rawOpenApi.operationId).
+    // Merge rawOpenApi metadata: arrays are concatenated, plain objects are
+    // shallow-merged, and scalars are replaced. This preserves schema-derived
+    // entries (e.g. Zod-generated parameters) when rawOpenApi adds extra
+    // operation metadata like custom parameters or responses.
     if (options?.rawOpenApi) {
-      Object.assign(mergedRoute, options.rawOpenApi);
+      for (const [key, value] of Object.entries(options.rawOpenApi)) {
+        if (value == null) continue;
+        const existing = (mergedRoute as any)[key];
+        if (Array.isArray(existing) && Array.isArray(value)) {
+          (mergedRoute as any)[key] = [...existing, ...value];
+        } else if (
+          existing &&
+          typeof existing === "object" &&
+          !Array.isArray(existing) &&
+          value &&
+          typeof value === "object" &&
+          !Array.isArray(value)
+        ) {
+          (mergedRoute as any)[key] = { ...existing, ...value };
+        } else {
+          (mergedRoute as any)[key] = value;
+        }
+      }
     }
 
     // Auto-inject 400 validation response only when the route actually validates
