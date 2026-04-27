@@ -27,6 +27,7 @@ mock-platform/
 | `json-store.ts` | JSON file persistence layer with atomic write |
 | `static-assets.ts` | Static file serving from `/opt/mock/static/` |
 | `types.ts` | Shared TypeScript interfaces |
+| `openapi.ts` | Zod schema + `@hono/zod-openapi` integration; auto-generates OpenAPI 3.1 specs |
 
 All mock services use `createMockApp()` which automatically exposes:
 
@@ -66,6 +67,56 @@ bun run build:images
 bun test
 ```
 
+## OpenAPI 3.1 Schema Generation
+
+Mock routes declare request/response schemas via Zod. `@hono/zod-openapi` generates OpenAPI 3.1 specs at build time, producing `dist/openapi/*.json`.
+
+### Design Decisions
+
+**Why Zod + `@hono/zod-openapi`?**
+
+- Single source of truth: route handlers and API docs share the same Zod schema. Changing validation rules updates the spec automatically.
+- Type inference: `z.infer<typeof Schema>` gives TypeScript types without manual duplication.
+- Hono-native: `@hono/zod-openapi` is a first-party Hono package, so middleware composition and type narrowing work out of the box.
+
+**Schema registration pattern**
+
+Each mock defines routes with `createRoute()` from `@hono/zod-openapi`, then registers them on the Hono app instance. Example:
+
+```typescript
+import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { z } from "zod";
+
+const route = createRoute({
+  method: "get",
+  path: "/api/products",
+  request: { query: z.object({ q: z.string().optional() }) },
+  responses: {
+    200: { content: { "application/json": { schema: z.array(ProductSchema) } }, description: "Product list" },
+  },
+});
+
+app.openapi(route, (c) => { ... });
+```
+
+**Security scheme**
+
+All protected routes use a Bearer token scheme (`Authorization: Bearer <jwt>`). The JWT secret is generated in-memory via `crypto.getRandomValues()` at binary startup — no `.env` file, no env var, no command-line arg.
+
+**Validation error injection**
+
+A middleware catches Zod validation errors and returns structured `400` responses with field-level detail, making it easy for both agents and verifiers to diagnose malformed requests.
+
+**Regeneration**
+
+```bash
+# Rebuild all OpenAPI specs after route changes
+bun run generate-openapi
+
+# Verify specs are up to date (CI gate)
+bun run check-openapi
+```
+
 ## Configuration
 
 - `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented)
@@ -90,7 +141,7 @@ MOCK_PRODUCTS_PATH=tasks/watch-shop/environment/shop-app/frontend/data/sample_pr
   bun run mocks/shop/src/index.tsx --port 3000
 
 # Run doc-search mock with a specific task's documents
-BROWSER_MOCK_DATA_DIR=tasks/mixed-tool-memory/environment/browser_mock_sidecar \
+BROWSER_MOCK_DATA_DIR=tasks/mixed-tool-memory/environment \
   bun run mocks/doc-search/src/index.ts --port 3001
 ```
 

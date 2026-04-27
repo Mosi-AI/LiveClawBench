@@ -7,7 +7,7 @@ import {
 } from "./search-algorithm";
 
 // Real product data from the watch-shop task (91 products)
-import rawProducts from "../../../../tasks/watch-shop/environment/shop-app/frontend/data/sample_products.json";
+import rawProducts from "../../../static/shop/sample_products.json";
 
 const PRODUCTS: SearchableProduct[] = (rawProducts as any[]).map((p) => ({
   id: p.id,

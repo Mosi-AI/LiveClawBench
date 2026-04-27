@@ -267,14 +267,8 @@ docker build -t liveclawbench-watch-shop tasks/watch-shop/environment/
 
 > **Harbor Dockerfile discovery**: harbor only builds `environment/Dockerfile` by default
 > (path is hardcoded; build context is the `environment/` directory). Subdirectory
-> Dockerfiles (e.g. `environment/browser_mock_sidecar/Dockerfile`) are **never built
-> automatically** — they are only built if the task author explicitly references them
-> in a custom `environment/docker-compose.yaml`. Files inside those subdirectories are
-> typically `COPY`'d into the main container as runtime assets.
->
-> **browser_mock_sidecar** in `conflict-repair-acb` and `mixed-tool-memory` follows this
-> pattern: the sidecar directory is `COPY`'d into the main container and the Python
-> service runs in-process — there is no separate Docker image for it.
+> Dockerfiles are **never built automatically** — they are only built if the task author
+> explicitly references them in a custom `environment/docker-compose.yaml`.
 
 ## Task Structure
 

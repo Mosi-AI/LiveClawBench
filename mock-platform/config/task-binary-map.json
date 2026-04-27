@@ -8,45 +8,45 @@
     "watch-shop": {
       "binaries": ["shop"],
       "assets": [
-        { "src": "tasks/watch-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/watch-shop/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "washer-shop": {
       "binaries": ["shop"],
       "assets": [
-        { "src": "tasks/washer-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/washer-shop/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "info-change": {
       "binaries": ["shop"],
       "assets": [
-        { "src": "tasks/info-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/info-change/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "washer-change": {
       "binaries": ["shop"],
       "assets": [
-        { "src": "tasks/washer-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/washer-change/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "email-watch-shop": {
       "binaries": ["shop", "email"],
       "startup_extra": "tasks/email-watch-shop/environment/startup.sh",
       "assets": [
-        { "src": "tasks/email-watch-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/email-watch-shop/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "email-washer-change": {
       "binaries": ["shop", "email"],
       "startup_extra": "tasks/email-washer-change/environment/startup.sh",
       "assets": [
-        { "src": "tasks/email-washer-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/email-washer-change/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "email-writing": { "binaries": ["email"] },
@@ -72,7 +72,7 @@
       "binaries": ["doc-search"],
       "startup_extra": "tasks/mixed-tool-memory/environment/startup.sh",
       "assets": [
-        { "src": "tasks/mixed-tool-memory/environment/browser_mock_sidecar/documents.sql", "dest": "/opt/mock/data/documents.sql" }
+        { "src": "tasks/mixed-tool-memory/environment/documents.sql", "dest": "/opt/mock/data/documents.sql" }
       ]
     },
     "incremental-update-ctp": { "binaries": [] },
@@ -81,7 +81,7 @@
       "binaries": ["doc-search"],
       "startup_extra": "tasks/conflict-repair-acb/environment/startup.sh",
       "assets": [
-        { "src": "tasks/conflict-repair-acb/environment/browser_mock_sidecar/documents.sql", "dest": "/opt/mock/data/documents.sql" }
+        { "src": "tasks/conflict-repair-acb/environment/documents.sql", "dest": "/opt/mock/data/documents.sql" }
       ]
     },
     "skill-combination": { "binaries": [] }

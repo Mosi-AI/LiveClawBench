@@ -8,7 +8,7 @@ import type { OpenAPIApp } from "mock-lib";
 // Path to the checked-in SQL seed fixture
 const SQL_PATH = join(
   import.meta.dir,
-  "../../../../tasks/mixed-tool-memory/environment/browser_mock_sidecar/documents.sql",
+  "../../../../tasks/mixed-tool-memory/environment/documents.sql",
 );
 
 describe("createDocSearchApp — Layer 1 route tests", () => {

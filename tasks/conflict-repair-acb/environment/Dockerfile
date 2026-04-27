@@ -12,7 +12,6 @@ USER root
 RUN mkdir -p /home/node/.openclaw/output /home/node/.openclaw/workspace/memory /home/node/.openclaw/tools \
     && chown -R node:node /home/node
 
-COPY browser_mock_sidecar/ /home/node/.openclaw/browser_mock_sidecar/
 COPY corpus/ /home/node/.openclaw/corpus/
 COPY tools/ /home/node/.openclaw/tools/
 COPY workspace_seed/ /home/node/.openclaw/workspace/

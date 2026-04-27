@@ -8,7 +8,7 @@ import type { OpenAPIApp } from "mock-lib";
 // Path to the checked-in product fixture used by watch-shop task
 const PRODUCTS_PATH = join(
   import.meta.dir,
-  "../../../../tasks/watch-shop/environment/shop-app/frontend/data/sample_products.json",
+  "../../../static/shop/sample_products.json",
 );
 
 describe("createShopApp — Layer 1 route tests", () => {

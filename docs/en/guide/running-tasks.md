@@ -67,12 +67,14 @@ harbor run ... \
   --ae OPENAI_API_KEY="$OPENAI_API_KEY"
 ```
 
-You can also source your `.env` file before running so the vars are available in your shell:
+You can also source your `.env` file before running so the vars are available in your shell. If your `.env` uses `KEY=value` without `export`, use `set -a` to auto-export every variable:
 
 ```bash
-source .env
+set -a && source .env && set +a
 harbor run ... --ae VOLCANO_ENGINE_API_KEY="$VOLCANO_ENGINE_API_KEY"
 ```
+
+> **Verify before running:** If the variables are empty, Harbor will pass empty strings into the container and the agent will fail to authenticate. Always confirm the values are set: `echo "$CUSTOM_BASE_URL"`.
 
 ## Model Name Format
 
@@ -173,6 +175,34 @@ harbor run -p tasks/<task> -a openclaw \
   --ae CUSTOM_API_KEY="$API_KEY" \
   --ae CUSTOM_REASONING=true
 ```
+
+> **Important:** When using `moonshot/` with a custom endpoint, you must provide both `CUSTOM_BASE_URL` and `CUSTOM_API_KEY` via `--ae`. The `moonshot` provider name enables `thinking.type` injection, but it does not know your endpoint URL or key.
+>
+> Full example with `.env` file:
+>
+> ```bash
+> set -a && source .env && set +a
+> harbor run -p tasks/watch-shop -a openclaw \
+>   -m moonshot/minimax-m2.5 \
+>   -n 1 -o jobs \
+>   --ae CUSTOM_BASE_URL="$OPENAI_BASE_URL" \
+>   --ae CUSTOM_API_KEY="$OPENAI_API_KEY" \
+>   --timeout-multiplier 2.0
+> ```
+>
+> For LLM-judge tasks, add the judge credentials via `--ee` (same endpoint or a different one):
+>
+> ```bash
+> set -a && source .env && set +a
+> harbor run -p tasks/conflict-repair-acb -a openclaw \
+>   -m moonshot/minimax-m2.5 \
+>   -n 1 -o jobs \
+>   --ae CUSTOM_BASE_URL="$OPENAI_BASE_URL" \
+>   --ae CUSTOM_API_KEY="$OPENAI_API_KEY" \
+>   --ee JUDGE_BASE_URL="$OPENAI_BASE_URL" \
+>   --ee JUDGE_API_KEY="$OPENAI_API_KEY" \
+>   --timeout-multiplier 2.0
+> ```
 
 When `CUSTOM_BASE_URL` is not set, `openrouter` and `moonshot` fall back to their default service endpoints (OpenRouter and Moonshot respectively).
 
