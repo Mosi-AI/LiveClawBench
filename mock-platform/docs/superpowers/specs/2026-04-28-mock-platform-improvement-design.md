@@ -369,7 +369,11 @@ if (import.meta.main) {
 }
 ```
 
-Note: The `startServer` signature changes — it no longer accepts `options.seed`. This is a breaking change for any existing callers. Verify that no other code passes `seed` in `options`.
+Note: The `startServer` signature changes — it no longer accepts `options.seed`.
+
+**Signature safety verification:** `packages/mock-lib/src/openapi/create-app.test.ts` calls `startServer(mockApp, { dev: true })` and `startServer(mockApp)` — neither passes `options.seed`. No other test files or production code pass `seed` in `options`.
+
+**MockApp interface fate:** `MockApp` (in `types.ts`) is the legacy base interface with just `config` + `app: Hono`. `MockAppV2` (in `openapi/types.ts`) is the OpenAPI-extended version with `config` + `app: OpenAPIApp` + `openApiInfo` + `seed`. `startServer` will import `MockAppV2` from `./openapi/types` instead of `MockApp` from `./types`. The `MockApp` export in `mock-lib/src/index.ts` is retained for backward compatibility but marked with `@deprecated` — use `MockAppV2` for all new code.
 
 ### 4.2 Mock Refactoring Layer
 
@@ -400,7 +404,7 @@ Current `mocks/shop/src/index.tsx` (~1608 lines) splits into:
 | `src/search-algorithm.ts` | ~80 | (existing, unchanged) |
 | `src/schemas.ts` | ~60 | (existing, unchanged) |
 
-**CSS-in-JS strategy**: CSS/JS strings are extracted to standalone `.ts` files (`profile-css.ts`, `profile-js.ts`, `orders-page.tsx` contains ORDERS_JS inline since it's shorter). This keeps component files under the soft 300-line limit while avoiding bundler complexity with external CSS files.
+**CSS-in-JS strategy**: CSS/JS strings are extracted to standalone `.ts` files where they would cause the parent component to exceed the 300-line soft limit. PROFILE_CSS (~30 lines) and PROFILE_JS (~160 lines) are extracted to `profile-css.ts` and `profile-js.ts` because the ProfilePage component would otherwise exceed the limit. ORDERS_JS (~30 lines) remains inline in `orders-page.tsx` because the OrdersPage component stays well under 300 lines with it inline. This avoids unnecessary file proliferation while keeping the line-count rule practical.
 
 #### 4.2.2 Doc-search Mock Split
 
@@ -679,7 +683,7 @@ Phase 1 (Global skeleton — no mock logic changes):
 1. Audit and normalize all mock `package.json` files (remove stale react dep from shop)
 2. Add per-mock `tsconfig.json` files
 3. Update `tsconfig.typecheck.json` with explicit includes for all packages and tests
-4. Update `MockAppV2` consumption: modify `startServer()` to read `mockApp.seed` directly
+4. Update `MockAppV2` consumption: modify `startServer()` to read `mockApp.seed` directly. Verify `packages/mock-lib/src/openapi/create-app.test.ts` does not pass `options.seed` to `startServer` (confirmed: it only uses `options.dev`). Update `startServer` import from `./types` (`MockApp`) to `./openapi/types` (`MockAppV2`).
 5. Add `packages/mock-lib/src/cli.ts` with `parseCliArgs()` and `parseCliPort()`
 6. Add `cli` to `packages/mock-lib/src/index.ts` exports
 
@@ -722,7 +726,7 @@ After all changes:
 - [ ] `bun run build` succeeds (all binaries compile)
 - [ ] Binary isolation verification passes (sentinel checks)
 - [ ] `bun run build:images --dry-run` passes
-- [ ] No `src/*.test.ts` files remain (all in `tests/`)
+- [ ] No `mocks/*/src/*.test.ts` files remain (all in `mocks/*/tests/`)
 - [ ] No `__snapshots__` directories remain
 - [ ] No `toMatchSnapshot()` calls remain in algorithm tests
 - [ ] No `as MockAppV2 & { seed() }` type assertions remain
