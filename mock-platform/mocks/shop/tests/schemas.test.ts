@@ -4,7 +4,7 @@ import {
   AddToCartBodySchema,
   UpdateCartBodySchema,
   UpdateUserBodySchema,
-} from "./schemas";
+} from "../src/schemas.js";
 
 describe("ListProductsQuerySchema — page (silent fallback)", () => {
   test('"abc" → 1', () => {
