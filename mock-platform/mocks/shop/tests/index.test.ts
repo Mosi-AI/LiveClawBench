@@ -2,7 +2,7 @@ import { describe, expect, test, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createShopApp } from "./index";
+import { createShopApp } from "../src/index";
 import type { OpenAPIApp } from "mock-lib";
 
 // Path to the checked-in product fixture used by watch-shop task
