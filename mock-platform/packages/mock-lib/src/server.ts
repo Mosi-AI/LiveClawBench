@@ -1,43 +1,19 @@
-import type { MockApp } from "./types";
-
-/**
- * Parse --port CLI flag from process.argv.
- * Returns undefined if not specified (caller should use config default).
- */
-function parseCliPort(): number | undefined {
-  const args = process.argv.slice(2);
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--port" && args[i + 1]) {
-      const port = parseInt(args[i + 1], 10);
-      if (!isNaN(port) && port > 0 && port < 65536) {
-        return port;
-      }
-    }
-    if (args[i].startsWith("--port=")) {
-      const port = parseInt(args[i].split("=")[1], 10);
-      if (!isNaN(port) && port > 0 && port < 65536) {
-        return port;
-      }
-    }
-  }
-  return undefined;
-}
+import type { MockAppV2 } from "./openapi/types";
+import { parseCliPort } from "./cli";
 
 /**
  * Start the mock HTTP server using Bun's native HTTP server.
  *
  * - Uses --port CLI flag if provided, otherwise falls back to config.port
  * - In dev mode: enables Hono logger middleware
- * - Calls optional seed function before starting
+ * - Calls mockApp.seed() directly if present
  * - Seed failures are fatal: the process exits with code 1
  *
  * @returns Bun server instance for lifecycle management (shutdown, health checks, etc.)
  */
 export async function startServer(
-  mockApp: MockApp,
+  mockApp: MockAppV2,
   options?: {
-    /** Callback to seed initial data before server starts */
-    seed?: () => Promise<void> | void;
     /** Dev mode: enable Hono logger. Defaults to mockApp.config.dev */
     dev?: boolean;
   },
@@ -58,10 +34,10 @@ export async function startServer(
     mockApp.app.use("*", logger());
   }
 
-  // Run seed callback if provided (fatal: exit on seed failure)
-  if (options?.seed) {
+  // Run seed from mockApp.seed if present (fatal: exit on seed failure)
+  if (mockApp.seed) {
     try {
-      await options.seed();
+      await mockApp.seed();
     } catch (err) {
       console.error(`mock-${mockApp.config.name}: FATAL: seed() failed`, err);
       process.exit(1);
