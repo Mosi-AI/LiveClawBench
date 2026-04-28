@@ -2,8 +2,10 @@
 /**
  * Shop mock service — E-Commerce Mosi Shop
  *
- * Port of the Python FastAPI app (watch-shop/environment/shop-app/backend/app.py)
- * to Bun + Hono. Implements 19 endpoints: 5 HTML pages (TSX), 14 API routes (JSON),
+ * Port of the legacy Python shop-app backend to Bun + Hono.
+ * (Original: tasks/{task}/environment/shop-app/backend/app.py, removed in Plan 2.5)
+ *
+ * Implements 19 endpoints: 5 HTML pages (TSX), 14 API routes (JSON),
  * plus the health endpoint from mock-lib.
  *
  * Uses JSON file storage via mock-lib's JsonStore for cart, user, and order data.
