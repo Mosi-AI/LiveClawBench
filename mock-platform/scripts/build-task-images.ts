@@ -19,6 +19,9 @@ import { join, relative, resolve, sep } from "node:path";
 
 const DIST_DIR = join(import.meta.dir, "..", "dist");
 const CONFIG_PATH = join(import.meta.dir, "..", "config", "task-binary-map.json");
+// NOTE: entrypoint.sh lives at repo-root/shared/entrypoint.sh, outside mock-platform/.
+// It is copied into the Docker build context (dist/) at build time.
+// Do NOT move this file without updating the copy logic below.
 const ENTRYPOINT_SRC = join(import.meta.dir, "..", "..", "shared", "entrypoint.sh");
 const BASE_IMAGE = "liveclawbench-base:latest";
 
@@ -252,6 +255,9 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
   // Binaries that are stubs (health/sentinel only) — the real services are
   // started by the task's startup.sh.  Implemented binaries (shop, doc-search)
   // are full Bun replacements and should be launched directly.
+  // TODO: Remove this filter block when airline, email, and todolist
+  // are fully migrated from Python stubs to Bun implementations.
+  // Condition: all entries in STUB_BINARIES are removed.
   const STUB_BINARIES = new Set(["email", "airline", "todolist"]);
   const implementedBinaries = binaries.filter((b) => !STUB_BINARIES.has(b));
   const hasStubBinaries = binaries.some((b) => STUB_BINARIES.has(b));
@@ -317,6 +323,9 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     //     that collides with Bun binary log init).
     // -------------------------------------------------------------------------
 
+    // TODO: Remove shop-app block filter when no task uses startup_extra
+    // that contains "# Start shop-app". This filter strips legacy Python
+    // shop-app startup lines when the Bun mock-shop binary is present.
     // When implemented binaries include 'shop', strip Python shop-app startup lines
     // to avoid port conflicts (Python start.sh kills processes on port 1234).
     if (implementedBinaries.includes("shop")) {
@@ -337,6 +346,8 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       });
     }
 
+    // TODO: Remove sqlite bootstrap filter when no task uses startup_extra
+    // that contains the python3 sqlite bootstrap heredoc.
     // When implemented binaries include 'doc-search', strip Python sqlite bootstrap
     // because the Bun binary handles DB initialization via initDatabase().
     // The Python bootstrap would delete/recreate the DB after Bun has opened it.
