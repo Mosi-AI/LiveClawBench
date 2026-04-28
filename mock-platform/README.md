@@ -153,3 +153,33 @@ BROWSER_MOCK_DATA_DIR=tasks/mixed-tool-memory/environment \
 ## Negative-Path Testing
 
 The Layer 2 test specification in `docs/tests/negative-paths-reference.md` documents 16 targeted fail-fast checks against shop and doc-search. Layer 1 `bun:test` suites already provide executable negative-path coverage: shop has 39 tests in `mocks/shop/src/index.test.ts` and doc-search has 18 tests in `mocks/doc-search/src/index.test.ts`. Run them with `bun test`.
+
+## Design Principles
+
+All mocks in this platform follow these conventions:
+
+1. **Factory Pattern**: Each mock exports `createXxxApp()` returning `MockAppV2`. No global state, no side effects on import.
+2. **Server Startup Guarded**: Entry point uses `if (import.meta.main)` so dynamic imports (e.g., OpenAPI generation) never boot a listener.
+3. **Seed Before Listen**: Data initialization goes in `seed()` callback. `startServer()` consumes `mockApp.seed` directly. Seed failures are fatal.
+4. **Self-Contained Binary**: Each mock compiles to a standalone binary via `bun build --compile`. No runtime dependency on node_modules.
+5. **Zod Schema-First**: All request/response validation uses Zod schemas. OpenAPI specs are generated automatically from route definitions.
+6. **Test Isolation**: Tests use `beforeEach` to create fresh app instances. No shared state between tests. `seed()` must be idempotent.
+
+## Adding a New Mock
+
+```bash
+# 1. Scaffold
+bun run create-mock <name>
+
+# 2. Implement in mocks/<name>/src/
+#    - Export create<PascalCase>App() factory returning MockAppV2
+#    - Put seed logic in the seed property of the returned object
+#    - Register routes via app.openApiRoute() or app.page()
+#    - Put tests in mocks/<name>/tests/
+
+# 3. Validate
+bun test                           # Run tests
+bun run check-openapi              # Regenerate and verify specs
+bun run build                      # Compile all binaries
+bun run build:images               # Build per-task Docker images
+```
