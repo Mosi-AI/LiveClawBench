@@ -2,7 +2,7 @@ import { describe, expect, test, beforeEach, afterEach } from "bun:test";
 import { mkdtempSync, rmSync, readFileSync, mkdirSync, chmodSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createDocSearchApp } from "./index";
+import { createDocSearchApp } from "../src/index";
 import type { OpenAPIApp } from "mock-lib";
 
 // Path to the checked-in SQL seed fixture
