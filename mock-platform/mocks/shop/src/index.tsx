@@ -22,6 +22,7 @@ import {
 import {
   ListProductsQuerySchema,
 } from "./schemas.js";
+import type { Product } from "./types.js";
 import { allProducts, loadProducts, seedUser, seedOrders } from "./data/seed.js";
 import { loadCart, loadUser, loadOrders, resetStore } from "./data/store.js";
 import { HomePage } from "./components/home-page.js";
@@ -98,7 +99,7 @@ export function createShopApp(): MockAppV2 {
     }
     const { q = "", sort, page, min_price, max_price, min_rating } = parsed.data;
 
-    let currentProducts = [];
+    let currentProducts: Product[] = [];
     let totalPages = 0;
 
     if (q) {
