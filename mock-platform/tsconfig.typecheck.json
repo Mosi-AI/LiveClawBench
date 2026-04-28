@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "packages/mock-lib/src/openapi/**/*.ts",
+    "mocks/shop/src/**/*.ts",
+    "mocks/shop/src/**/*.tsx",
+    "mocks/doc-search/src/**/*.ts"
+  ],
+  "exclude": []
+}

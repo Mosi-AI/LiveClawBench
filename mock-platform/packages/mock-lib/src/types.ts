@@ -1,6 +1,18 @@
 import type { Hono } from "hono";
 
 /**
+ * Configuration for OpenAPI document generation.
+ */
+export interface OpenApiConfig {
+  /** Enable OpenAPI document generation and the /openapi.json endpoint */
+  enabled?: boolean;
+  /** OpenAPI document title */
+  title?: string;
+  /** OpenAPI document version */
+  version?: string;
+}
+
+/**
  * Configuration for a mock service instance.
  */
 export interface MockConfig {
@@ -38,8 +50,10 @@ export interface MockApp {
  * Options for the createMockApp factory.
  */
 export interface CreateMockAppOptions extends MockConfig {
-  /** Custom route registration callback. Receives the Hono app to add routes. */
-  routes?: (app: Hono<AppEnv>) => void;
+  /** Custom route registration callback. Receives the OpenAPI-enabled app. */
+  routes?: (app: import("./openapi/types").OpenAPIApp) => void;
   /** Health check response body. Defaults to { status: "healthy", service: config.name } */
   healthResponse?: Record<string, unknown>;
+  /** OpenAPI document generation configuration */
+  openApi?: OpenApiConfig;
 }

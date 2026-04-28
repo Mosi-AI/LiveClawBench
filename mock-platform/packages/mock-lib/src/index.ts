@@ -1,7 +1,7 @@
 // mock-lib: shared framework for LiveClawBench mock services
 
 // Types
-export type { MockConfig, MockApp, AppEnv, CreateMockAppOptions } from "./types";
+export type { MockConfig, MockApp, AppEnv, CreateMockAppOptions, OpenApiConfig } from "./types";
 
 // Factory
 export { createMockApp } from "./create-app";
@@ -22,3 +22,10 @@ export type { SqliteOptions, JsonStoreOptions } from "./db";
 // Render
 export { registerStaticAssets } from "./render";
 export type { StaticAssetsOptions } from "./render";
+
+// OpenAPI
+export type { OpenAPIApp, MockAppV2, RouteOptions } from "./openapi/types";
+export type { RouteConfig } from "./openapi/types";
+export { createRoute } from "./openapi/types";
+export { ErrorResponseSchema, FactoryValidationSchema } from "./openapi/schemas";
+export { createOpenAPIMockApp } from "./openapi/create-app";

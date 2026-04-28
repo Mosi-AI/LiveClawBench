@@ -10,11 +10,11 @@
  * Access log: JSONL with home/search/click/page events
  */
 
-import { createMockApp, startServer } from "mock-lib";
-import type { AppEnv } from "mock-lib";
-import { Hono } from "hono";
+import { createMockApp, createRoute, startServer } from "mock-lib";
+import type { MockAppV2 } from "mock-lib";
 import { Database } from "bun:sqlite";
 import { mkdirSync, unlinkSync, appendFileSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { z } from "zod";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -102,160 +102,6 @@ function parseCliArgs(): Record<string, string> {
   return result;
 }
 
-const cliArgs = parseCliArgs();
-const OUTPUT_BASE = `${process.env.HOME ?? "/home/node"}/.openclaw/output`;
-
-const DB_PATH = cliArgs.database ?? process.env.BROWSER_MOCK_DB_PATH ?? `${OUTPUT_BASE}/browser_mock_documents.sqlite`;
-const LOG_PATH = cliArgs.log ?? process.env.BROWSER_MOCK_ACCESS_LOG ?? `${OUTPUT_BASE}/browser_mock_access.jsonl`;
-const DATA_DIR = process.env.BROWSER_MOCK_DATA_DIR ?? "/opt/mock/data";
-const SQL_PATH = `${DATA_DIR}/documents.sql`;
-
-// Session counter (process-local, resets on restart)
-let searchCounter = 0;
-
-// Dynamic config loaded from DB at startup
-let metadata: Metadata = {
-  site_title: "Browser Portal",
-  home_title: "Browser Portal",
-  home_description: "Search this portal for documents.",
-  search_placeholder: "Search for documents",
-};
-let queryExamples: string[] = [];
-
-// SQLite database (opened once, reused)
-let db: Database | null = null;
-
-// ---------------------------------------------------------------------------
-// Database initialization
-// ---------------------------------------------------------------------------
-
-function initDatabase(): void {
-  // Ensure output directory exists
-  const outputDir = DB_PATH.substring(0, DB_PATH.lastIndexOf("/"));
-  try {
-    mkdirSync(outputDir, { recursive: true });
-  } catch (err) {
-    console.error(`mock-doc-search: FATAL: cannot create database directory: ${outputDir}`, err);
-    process.exit(1);
-  }
-
-  // Delete existing DB to start fresh (matches Python behavior)
-  try {
-    unlinkSync(DB_PATH);
-  } catch (err) {
-    const code = (err as NodeJS.ErrnoException)?.code;
-    if (code !== "ENOENT") {
-      console.error(`mock-doc-search: FATAL: cannot remove stale database: ${DB_PATH}`, err);
-      process.exit(1);
-    }
-  }
-
-  db = new Database(DB_PATH, { create: true });
-
-  // Load and execute SQL seed file — fail fast if missing
-  if (!existsSync(SQL_PATH)) {
-    console.error(`mock-doc-search: FATAL: SQL seed file not found at ${SQL_PATH}`);
-    console.error(`mock-doc-search: Ensure the per-task asset (documents.sql) is staged at /opt/mock/data/`);
-    process.exit(1);
-  }
-  const sql = readFileSync(SQL_PATH, "utf-8");
-  db.exec(sql);
-  console.log(`mock-doc-search: initialized DB from ${SQL_PATH}`);
-
-  // Load dynamic configuration from metadata and query_examples tables
-  loadDynamicConfig();
-}
-
-function assertDb(): Database {
-  if (!db) {
-    throw new Error("Database not initialized");
-  }
-  return db;
-}
-
-function validateDocumentRow(row: unknown): Document {
-  if (!row || typeof row !== "object") {
-    throw new Error("Invalid document row: expected object");
-  }
-  const r = row as Record<string, unknown>;
-  const required = ["id", "slug", "title", "kind", "status", "reliability", "updated_at", "owner", "summary", "body", "tags"] as const;
-  for (const key of required) {
-    if (typeof r[key] !== "string") {
-      throw new Error(`Document row missing required field "${key}"`);
-    }
-  }
-  return {
-    id: r.id as string,
-    slug: r.slug as string,
-    title: r.title as string,
-    kind: r.kind as string,
-    status: r.status as string,
-    reliability: r.reliability as string,
-    updated_at: r.updated_at as string,
-    owner: r.owner as string,
-    summary: r.summary as string,
-    body: r.body as string,
-    tags: r.tags as string,
-  };
-}
-
-function loadDynamicConfig(): void {
-  const database = assertDb();
-  try {
-    const metaRows = database.query("SELECT key, value FROM metadata").all() as Array<{ key: string; value: string }>;
-    const metaMap = new Map(metaRows.map((r) => [r.key, r.value]));
-    metadata = {
-      site_title: metaMap.get("site_title") ?? metadata.site_title,
-      home_title: metaMap.get("home_title") ?? metadata.home_title,
-      home_description: metaMap.get("home_description") ?? metadata.home_description,
-      search_placeholder: metaMap.get("search_placeholder") ?? metadata.search_placeholder,
-    };
-
-    const exampleRows = database.query("SELECT query FROM query_examples ORDER BY position ASC").all() as Array<{ query: string }>;
-    queryExamples = exampleRows.map((r) => r.query);
-  } catch (err) {
-    console.error("mock-doc-search: FATAL: failed to load dynamic config from database", err);
-    process.exit(1);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// JSONL access log
-// ---------------------------------------------------------------------------
-
-/** Set to true after the first disk write failure; skips subsequent write attempts. */
-let logDiskDegraded = false;
-
-function writeEvent(event: AccessEvent): boolean {
-  if (logDiskDegraded) return false;
-  const line = JSON.stringify(event) + "\n";
-  try {
-    appendFileSync(LOG_PATH, line);
-    return true;
-  } catch (err) {
-    console.error("mock-doc-search: access log write failed, entering degraded mode", err);
-    logDiskDegraded = true;
-    return false;
-  }
-}
-
-function initAccessLog(): void {
-  const logDir = LOG_PATH.substring(0, LOG_PATH.lastIndexOf("/"));
-  try {
-    mkdirSync(logDir, { recursive: true });
-  } catch (err) {
-    console.error(`mock-doc-search: FATAL: cannot create access-log directory: ${logDir}`, err);
-    process.exit(1);
-  }
-  // Truncate/create the log file (matches Python `: > "$BROWSER_MOCK_LOG"`)
-  try {
-    writeFileSync(LOG_PATH, "");
-  } catch (err) {
-    console.error(`mock-doc-search: FATAL: cannot create access log file: ${LOG_PATH}`, err);
-    process.exit(1);
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Query helpers — faithful ports of Python normalize/tokenize/build_match_query
 // ---------------------------------------------------------------------------
@@ -292,7 +138,7 @@ function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-function renderPage(title: string, bodyContent: string): string {
+function renderPage(metadata: Metadata, title: string, bodyContent: string): string {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -319,10 +165,10 @@ ${bodyContent}
 </html>`;
 }
 
-function renderHome(): string {
+function renderHome(metadata: Metadata, queryExamples: string[]): string {
   const queryListHtml = queryExamples.map((q) => `<li><code>${escHtml(q)}</code></li>`).join("\n");
 
-  return renderPage(metadata.home_title, `
+  return renderPage(metadata, metadata.home_title, `
 <h1>${escHtml(metadata.home_title)}</h1>
 <p>${escHtml(metadata.home_description)}</p>
 <form action="/search" method="get">
@@ -336,7 +182,7 @@ ${queryListHtml}
 </ul>`);
 }
 
-function renderSearch(query: string, results: Array<Document & { rank_score?: number }>, sid: string): string {
+function renderSearch(metadata: Metadata, query: string, results: Array<Document & { rank_score?: number }>, sid: string): string {
   const resultCards = results.map((doc, idx) => {
     const rank = idx + 1;
     const pills = [
@@ -355,7 +201,7 @@ ${pills}
 </div>`;
   }).join("\n");
 
-  return renderPage(`Search: ${query}`, `
+  return renderPage(metadata, `Search: ${query}`, `
 <h1>Search Results</h1>
 <p class="meta">Query: <code>${escHtml(query)}</code></p>
 <p class="meta">Search session: <code>${escHtml(sid)}</code></p>
@@ -367,7 +213,7 @@ ${results.length > 0 ? resultCards : "<p>No documents matched this query.</p>"}
 <p><a href="/">Back to home</a></p>`);
 }
 
-function renderDoc(doc: Document, sid: string, rank: string): string {
+function renderDoc(metadata: Metadata, doc: Document, sid: string, rank: string): string {
   const pills = [
     `source: ${escHtml(doc.id)}`,
     `status: ${escHtml(doc.status)}`,
@@ -391,7 +237,7 @@ function renderDoc(doc: Document, sid: string, rank: string): string {
   // Split tags on pipe
   const tagPills = doc.tags.split("|").map((t) => t.trim()).filter((t) => t).map((t) => `<span class="pill">${escHtml(t)}</span>`).join(" ");
 
-  return renderPage(doc.title, `
+  return renderPage(metadata, doc.title, `
 <h1 class="doc-title">${escHtml(doc.title)}</h1>
 ${pills}
 ${sessionRow}
@@ -403,32 +249,214 @@ ${paragraphs}
 <p><a href="/">Back to home</a></p>`);
 }
 
-function renderNotFound(): string {
-  return renderPage("Not Found", "<h1>Not Found</h1>");
+function renderNotFound(metadata: Metadata): string {
+  return renderPage(metadata, "Not Found", "<h1>Not Found</h1>");
 }
 
 // ---------------------------------------------------------------------------
-// Route registration
+// Factory
 // ---------------------------------------------------------------------------
 
-function registerRoutes(app: Hono<AppEnv>): void {
-  // Sentinel route for binary isolation verification.
-  app.get("/__mock_sentinel__/doc-search", (c) =>
-    c.json({ mock: "doc-search", sentinel: true }),
-  );
+export function createDocSearchApp(): MockAppV2 {
+  const cliArgs = parseCliArgs();
+  const OUTPUT_BASE = `${process.env.HOME ?? "/home/node"}/.openclaw/output`;
+
+  const DB_PATH = cliArgs.database ?? process.env.BROWSER_MOCK_DB_PATH ?? `${OUTPUT_BASE}/browser_mock_documents.sqlite`;
+  const LOG_PATH = cliArgs.log ?? process.env.BROWSER_MOCK_ACCESS_LOG ?? `${OUTPUT_BASE}/browser_mock_access.jsonl`;
+  const DATA_DIR = process.env.BROWSER_MOCK_DATA_DIR ?? "/opt/mock/data";
+  const SQL_PATH = `${DATA_DIR}/documents.sql`;
+
+  // Session counter (process-local, resets on restart)
+  let searchCounter = 0;
+
+  // Dynamic config loaded from DB at startup
+  let metadata: Metadata = {
+    site_title: "Browser Portal",
+    home_title: "Browser Portal",
+    home_description: "Search this portal for documents.",
+    search_placeholder: "Search for documents",
+  };
+  let queryExamples: string[] = [];
+
+  // SQLite database (opened once, reused)
+  let db: Database | null = null;
+
+  // ---------------------------------------------------------------------------
+  // Database initialization
+  // ---------------------------------------------------------------------------
+
+  function initDatabase(): void {
+    // Ensure output directory exists
+    const outputDir = DB_PATH.substring(0, DB_PATH.lastIndexOf("/"));
+    try {
+      mkdirSync(outputDir, { recursive: true });
+    } catch (err) {
+      console.error(`mock-doc-search: FATAL: cannot create database directory: ${outputDir}`, err);
+      process.exit(1);
+    }
+
+    // Delete existing DB to start fresh (matches Python behavior)
+    try {
+      unlinkSync(DB_PATH);
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException)?.code;
+      if (code !== "ENOENT") {
+        console.error(`mock-doc-search: FATAL: cannot remove stale database: ${DB_PATH}`, err);
+        process.exit(1);
+      }
+    }
+
+    db = new Database(DB_PATH, { create: true });
+
+    // Load and execute SQL seed file — fail fast if missing
+    if (!existsSync(SQL_PATH)) {
+      console.error(`mock-doc-search: FATAL: SQL seed file not found at ${SQL_PATH}`);
+      console.error(`mock-doc-search: Ensure the per-task asset (documents.sql) is staged at /opt/mock/data/`);
+      process.exit(1);
+    }
+    const sql = readFileSync(SQL_PATH, "utf-8");
+    db.exec(sql);
+    console.log(`mock-doc-search: initialized DB from ${SQL_PATH}`);
+
+    // Load dynamic configuration from metadata and query_examples tables
+    loadDynamicConfig();
+  }
+
+  function assertDb(): Database {
+    if (!db) {
+      throw new Error("Database not initialized");
+    }
+    return db;
+  }
+
+  function validateDocumentRow(row: unknown): Document {
+    if (!row || typeof row !== "object") {
+      throw new Error("Invalid document row: expected object");
+    }
+    const r = row as Record<string, unknown>;
+    const required = ["id", "slug", "title", "kind", "status", "reliability", "updated_at", "owner", "summary", "body", "tags"] as const;
+    for (const key of required) {
+      if (typeof r[key] !== "string") {
+        throw new Error(`Document row missing required field "${key}"`);
+      }
+    }
+    return {
+      id: r.id as string,
+      slug: r.slug as string,
+      title: r.title as string,
+      kind: r.kind as string,
+      status: r.status as string,
+      reliability: r.reliability as string,
+      updated_at: r.updated_at as string,
+      owner: r.owner as string,
+      summary: r.summary as string,
+      body: r.body as string,
+      tags: r.tags as string,
+    };
+  }
+
+  function loadDynamicConfig(): void {
+    const database = assertDb();
+    try {
+      const metaRows = database.query("SELECT key, value FROM metadata").all() as Array<{ key: string; value: string }>;
+      const metaMap = new Map(metaRows.map((r) => [r.key, r.value]));
+      metadata = {
+        site_title: metaMap.get("site_title") ?? metadata.site_title,
+        home_title: metaMap.get("home_title") ?? metadata.home_title,
+        home_description: metaMap.get("home_description") ?? metadata.home_description,
+        search_placeholder: metaMap.get("search_placeholder") ?? metadata.search_placeholder,
+      };
+
+      const exampleRows = database.query("SELECT query FROM query_examples ORDER BY position ASC").all() as Array<{ query: string }>;
+      queryExamples = exampleRows.map((r) => r.query);
+    } catch (err) {
+      console.error("mock-doc-search: FATAL: failed to load dynamic config from database", err);
+      process.exit(1);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // JSONL access log
+  // ---------------------------------------------------------------------------
+
+  /** Set to true after the first disk write failure; skips subsequent write attempts. */
+  let logDiskDegraded = false;
+
+  function writeEvent(event: AccessEvent): boolean {
+    if (logDiskDegraded) return false;
+    const line = JSON.stringify(event) + "\n";
+    try {
+      appendFileSync(LOG_PATH, line);
+      return true;
+    } catch (err) {
+      console.error("mock-doc-search: access log write failed, entering degraded mode", err);
+      logDiskDegraded = true;
+      return false;
+    }
+  }
+
+  function initAccessLog(): void {
+    const logDir = LOG_PATH.substring(0, LOG_PATH.lastIndexOf("/"));
+    try {
+      mkdirSync(logDir, { recursive: true });
+    } catch (err) {
+      console.error(`mock-doc-search: FATAL: cannot create access-log directory: ${logDir}`, err);
+      process.exit(1);
+    }
+    // Truncate/create the log file (matches Python `: > "$BROWSER_MOCK_LOG"`)
+    try {
+      writeFileSync(LOG_PATH, "");
+    } catch (err) {
+      console.error(`mock-doc-search: FATAL: cannot create access log file: ${LOG_PATH}`, err);
+      process.exit(1);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // App creation
+  // ---------------------------------------------------------------------------
+
+  const mockApp = createMockApp({
+    name: "doc-search",
+    port: 8123,
+    openApi: {
+      enabled: true,
+      title: "Doc Search Mock API",
+      version: "1.0.0",
+    },
+  });
+
+  const { app } = mockApp;
+
+  // Sentinel route for binary isolation verification
+  const sentinelRoute = createRoute({
+    method: "get",
+    path: "/__mock_sentinel__/doc-search",
+    summary: "Binary isolation probe",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({ ok: z.boolean() }),
+          },
+        },
+        description: "OK",
+      },
+    },
+  });
+
+  app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
   // GET / — Home page
-  app.get("/", (c) => {
+  app.page("/", (c) => {
     if (!writeEvent({ event: "home", path: c.req.path })) {
       return c.json({ error: "access log unavailable" }, 500);
     }
-    return c.html(renderHome());
+    return c.html(renderHome(metadata, queryExamples));
   });
 
-  // GET /health — provided by mock-lib default
-
   // GET /search — Search results page
-  app.get("/search", (c) => {
+  app.page("/search", (c) => {
     if (!db) return c.json({ error: "Service not ready" }, 503);
     const query = c.req.query("q") ?? "";
     const path = c.req.path + (c.req.url.includes("?") ? "?" + c.req.url.split("?")[1] : "");
@@ -484,11 +512,11 @@ function registerRoutes(app: Hono<AppEnv>): void {
       return c.json({ error: "access log unavailable" }, 500);
     }
 
-    return c.html(renderSearch(query, results, sid));
+    return c.html(renderSearch(metadata, query, results, sid));
   });
 
   // GET /docs/:slug — Document page
-  app.get("/docs/:slug", (c) => {
+  app.page("/docs/:slug", (c) => {
     if (!db) return c.json({ error: "Service not ready" }, 503);
     const slug = c.req.param("slug");
     const sid = c.req.query("sid") ?? "";
@@ -497,11 +525,11 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
     // Look up document by slug
     const stmt = db.query("SELECT * FROM documents WHERE slug = ?");
-    const rawDoc = stmt.get(slug);
+    const rawDoc = stmt.get(slug!);
     const doc = rawDoc ? validateDocumentRow(rawDoc) : undefined;
 
     if (!doc) {
-      return c.html(renderNotFound(), 404);
+      return c.html(renderNotFound(metadata), 404);
     }
 
     // Write click event (only if sid is non-empty)
@@ -530,24 +558,26 @@ function registerRoutes(app: Hono<AppEnv>): void {
       return c.json({ error: "access log unavailable" }, 500);
     }
 
-    return c.html(renderDoc(doc, sid, rank));
+    return c.html(renderDoc(metadata, doc, sid, rank));
   });
+
+  return {
+    ...mockApp,
+    seed: () => {
+      initAccessLog();
+      initDatabase();
+      console.log(`mock-doc-search: DB=${DB_PATH}, LOG=${LOG_PATH}`);
+    },
+  } as MockAppV2 & { seed(): void };
 }
 
 // ---------------------------------------------------------------------------
-// App bootstrap
+// Entry point
 // ---------------------------------------------------------------------------
 
-const app = createMockApp({
-  name: "doc-search",
-  port: 8123,
-  routes: registerRoutes,
-});
-
-startServer(app, {
-  seed() {
-    initAccessLog();
-    initDatabase();
-    console.log(`mock-doc-search: DB=${DB_PATH}, LOG=${LOG_PATH}`);
-  },
-});
+if (import.meta.main) {
+  const app = createDocSearchApp();
+  startServer(app, {
+    seed: (app as unknown as { seed(): void }).seed,
+  });
+}

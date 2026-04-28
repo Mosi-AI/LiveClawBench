@@ -183,8 +183,10 @@ bun run build:images   # Build per-task Docker images (requires base image first
 
 | File | Purpose |
 |---|---|
+| `mock-platform/README.md` | Architecture overview, build flow, and development commands |
 | `mocks/shop/src/index.tsx` | Shop UI and API (Hono TSX rendering) |
 | `mocks/shop/src/search-algorithm.ts` | Extracted search logic (single source of truth) |
+| `mocks/shop/src/search-algorithm.test.ts` | Layer 1 unit tests (bun:test snapshot tests) |
 | `mocks/doc-search/src/index.ts` | Doc-search with FTS5 + JSONL browser trace logging |
 
 ## Task List
@@ -370,7 +372,6 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 | `tasks/*/tests/` | ✓ | future (TODO) |
 | `tasks/*/common/` | ✓ | — |
 | `tasks/*/environment/` | ✓ | — |
-| `mock-platform/docs/evidence/` | ✓ | — |
 | `tasks/skill-dependency-fix/environment/skills/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/.skill_snapshot/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/skills/` | excluded (intentional fixture) | — |

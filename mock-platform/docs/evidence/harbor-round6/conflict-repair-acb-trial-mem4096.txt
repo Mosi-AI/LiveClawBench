@@ -1,2 +1,0 @@
-Overriding memory to 4096 MB alters the task from its intended configuration. This could disqualify you from leaderboard submissions for some benchmarks.
-Trial conflict-repair-acb__bVVRuYH failed: No reward file found at jobs/conflict-repair-acb-mem/2026-04-18__13-00-34/conflict-repair-acb__bVVRuYH/verifier/reward.txt or jobs/conflict-repair-acb-mem/2026-04-18__13-00-34/conflict-repair-acb__bVVRuYH/verifier/reward.json

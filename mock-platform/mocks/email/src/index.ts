@@ -1,12 +1,39 @@
-import { createMockApp, startServer } from "mock-lib";
+import { z } from "zod";
+import { createMockApp, createRoute, startServer } from "mock-lib";
 
-const app = createMockApp({ name: "email" });
+export function createEmailApp() {
+  const mockApp = createMockApp({
+    name: "email",
+    port: 5001,
+    openApi: {
+      enabled: true,
+      title: "Email Mock API",
+      version: "1.0.0",
+    },
+  });
 
-// Sentinel route for binary isolation verification.
-app.app.get("/__mock_sentinel__/email", (c) =>
-  c.json({ mock: "email", sentinel: true }),
-);
+  const sentinelRoute = createRoute({
+    method: "get",
+    path: "/__mock_sentinel__/email",
+    summary: "Binary isolation probe",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({ ok: z.boolean() }),
+          },
+        },
+        description: "OK",
+      },
+    },
+  });
 
-// Email-specific routes will be added in Plan 2 migration tasks.
+  mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
-startServer(app);
+  return mockApp;
+}
+
+if (import.meta.main) {
+  const mockApp = createEmailApp();
+  startServer(mockApp);
+}

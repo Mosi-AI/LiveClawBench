@@ -1,0 +1,54 @@
+name: Mock Platform
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "mock-platform/**"
+  push:
+    branches: [main]
+    paths:
+      - "mock-platform/**"
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mock-platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun test
+
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mock-platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun run typecheck
+
+  check-openapi:
+    name: check-openapi
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mock-platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun run check-openapi

@@ -3,9 +3,20 @@
  * search_products(), and filter_and_sort_products() from
  * tasks/watch-shop/environment/shop-app/backend/app.py.
  *
- * Extracted into a standalone module for:
- * 1. Direct import by the evidence parity test (no HTTP server needed)
- * 2. Shared usage by the Hono shop mock (index.tsx imports from here)
+ * Extracted into a standalone module for shared usage by the Hono shop mock
+ * (index.tsx imports from here) and Layer 1 unit tests.
+ *
+ * Scoring factor reference (calculateRelevanceScore):
+ * | Factor | Range | Description |
+ * |--------|-------|-------------|
+ * | Exact title match | +100 | Query lowercased == title lowercased |
+ * | Exact word match | +20 + positionBonus | Per query word found in title; positionBonus = max(0, 10 - firstIndex) |
+ * | Partial word match | +10 | Query substring (3+ chars) inside a title word |
+ * | Coverage | +0–30 | (matchedQueryWords / totalQueryWords) * 30 |
+ * | Word frequency | +0–20 | min(freq * 5, 20) per matched query word |
+ * | Rating | +0–10 | rating * 2 |
+ * | Best seller | +15 | If product.best_seller is true |
+ * | Overall pick | +15 | If product.overall_pick is true |
  */
 
 export interface SearchableProduct {

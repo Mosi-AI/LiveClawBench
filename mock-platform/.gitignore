@@ -1,10 +1,8 @@
-dist/
+dist/*
+!dist/openapi/
+dist/openapi/*.yaml
+dist/openapi/*.yml
 .tmp-images/
 jobs/
+mocks/*/dist/
 
-# Evidence runtime logs
-docs/evidence/**/docsearch-server.log
-docs/evidence/**/shop-server.log
-docs/evidence/**/email-server.log
-docs/evidence/**/email-inject.log
-docs/evidence/**/*-stderr.log

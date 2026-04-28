@@ -43,7 +43,14 @@ export async function startServer(
   },
 ): Promise<ReturnType<typeof Bun.serve>> {
   const dev = options?.dev ?? mockApp.config.dev ?? false;
-  const port = parseCliPort() ?? mockApp.config.port ?? 3000;
+  // Propagate the resolved dev value back into mockApp.config so request-time
+  // closures (e.g. the /openapi.json runtime gate in createOpenAPIMockApp) see
+  // the same value as the logger middleware below. Without this write, the
+  // construction-time view of `config.dev` and the startServer override would
+  // disagree.
+  mockApp.config.dev = dev;
+  const cliPort = parseCliPort();
+  const port = cliPort ?? mockApp.config.port ?? 3000;
 
   // Apply dev mode middleware
   if (dev) {
