@@ -1,10 +1,20 @@
 {
   "extends": "./tsconfig.json",
   "include": [
-    "packages/mock-lib/src/openapi/**/*.ts",
+    "packages/mock-lib/src/**/*.ts",
     "mocks/shop/src/**/*.ts",
     "mocks/shop/src/**/*.tsx",
-    "mocks/doc-search/src/**/*.ts"
+    "mocks/shop/tests/**/*.ts",
+    "mocks/doc-search/src/**/*.ts",
+    "mocks/doc-search/tests/**/*.ts",
+    "mocks/airline/src/**/*.ts",
+    "mocks/airline/tests/**/*.ts",
+    "mocks/email/src/**/*.ts",
+    "mocks/email/tests/**/*.ts",
+    "mocks/todolist/src/**/*.ts",
+    "mocks/todolist/tests/**/*.ts",
+    "scripts/**/*.ts",
+    "tools/**/*.ts"
   ],
   "exclude": []
 }
