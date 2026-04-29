@@ -39,7 +39,7 @@ export function registerProductRoutes(app: OpenAPIApp, getProducts: () => Produc
       minPrice: min_price,
       maxPrice: max_price,
       minRating: min_rating,
-      sortBy: sort as FilterOptions["sortBy"],
+      sortBy: sort,
       useSearch: true,
     });
     const totalProducts = filtered.length;
@@ -84,10 +84,10 @@ export function registerProductRoutes(app: OpenAPIApp, getProducts: () => Produc
     },
   });
 
-  app.openApiRoute(getProductRoute, (c): any => {
+  app.openApiRoute(getProductRoute, (c) => {
     const { product_id } = c.req.valid("param");
     const product = getProducts().find((p) => p.id === product_id);
     if (!product) return c.json({ error: "Product not found" }, 404);
-    return c.json(product);
+    return c.json(product, 200);
   });
 }

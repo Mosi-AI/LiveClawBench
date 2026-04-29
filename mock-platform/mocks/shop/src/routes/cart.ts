@@ -42,10 +42,18 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
         },
         description: "Product not found",
       },
+      500: {
+        content: {
+          "application/json": {
+            schema: z.object({ error: z.string() }),
+          },
+        },
+        description: "Internal server error",
+      },
     },
   });
 
-  app.openApiRoute(addToCartRoute, (c): any => {
+  app.openApiRoute(addToCartRoute, (c) => {
     const { product_id } = c.req.valid("json");
 
     const product = getProducts().find((p) => p.id === product_id);
@@ -76,7 +84,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
       success: true,
       message: `Added ${product.title.slice(0, 50)}... to cart`,
       cart_count: cart.reduce((s, i) => s + i.quantity, 0),
-    });
+    }, 200);
   });
 
   // GET /api/cart
@@ -131,10 +139,18 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
         },
         description: "Item not found",
       },
+      500: {
+        content: {
+          "application/json": {
+            schema: z.object({ error: z.string() }),
+          },
+        },
+        description: "Internal server error",
+      },
     },
   });
 
-  app.openApiRoute(removeFromCartRoute, (c): any => {
+  app.openApiRoute(removeFromCartRoute, (c) => {
     const { product_id } = c.req.valid("param");
     const cart = loadCart();
     const itemExists = cart.some((item) => item.id === product_id);
@@ -150,7 +166,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
       success: true,
       message: "Item removed from cart",
       cart_count: updatedCart.reduce((s, i) => s + i.quantity, 0),
-    });
+    }, 200);
   });
 
   // PUT /api/cart/update
@@ -184,10 +200,18 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
         },
         description: "Item not found",
       },
+      500: {
+        content: {
+          "application/json": {
+            schema: z.object({ error: z.string() }),
+          },
+        },
+        description: "Internal server error",
+      },
     },
   });
 
-  app.openApiRoute(updateCartRoute, (c): any => {
+  app.openApiRoute(updateCartRoute, (c) => {
     const { product_id, quantity } = c.req.valid("json");
 
     const cart = loadCart();
@@ -210,7 +234,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
       success: true,
       message: "Cart updated",
       cart_count: cart.reduce((s, i) => s + i.quantity, 0),
-    });
+    }, 200);
   });
 
   // POST /api/cart/clear
@@ -227,16 +251,24 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
         },
         description: "OK",
       },
+      500: {
+        content: {
+          "application/json": {
+            schema: z.object({ error: z.string() }),
+          },
+        },
+        description: "Internal server error",
+      },
     },
   });
 
-  app.openApiRoute(clearCartRoute, (c): any => {
+  app.openApiRoute(clearCartRoute, (c) => {
     try {
       clearCart();
     } catch (err) {
       console.error("mock-shop: failed to clear cart", err);
       return c.json({ error: "Failed to clear cart" }, 500);
     }
-    return c.json({ success: true, message: "Cart cleared" });
+    return c.json({ success: true, message: "Cart cleared" }, 200);
   });
 }

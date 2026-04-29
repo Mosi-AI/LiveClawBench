@@ -53,10 +53,18 @@ export function registerUserRoutes(app: OpenAPIApp) {
         },
         description: "OK",
       },
+      500: {
+        content: {
+          "application/json": {
+            schema: z.object({ error: z.string() }),
+          },
+        },
+        description: "Internal server error",
+      },
     },
   });
 
-  app.openApiRoute(updateUserRoute, (c): any => {
+  app.openApiRoute(updateUserRoute, (c) => {
     const { field, value } = c.req.valid("json");
 
     const user = loadUser();
@@ -68,6 +76,6 @@ export function registerUserRoutes(app: OpenAPIApp) {
       return c.json({ error: "Failed to save user profile" }, 500);
     }
 
-    return c.json({ success: true, message: `${field} updated successfully` });
+    return c.json({ success: true, message: `${field} updated successfully` }, 200);
   });
 }

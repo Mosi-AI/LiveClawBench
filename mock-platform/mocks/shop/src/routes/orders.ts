@@ -63,10 +63,18 @@ export function registerOrderRoutes(app: OpenAPIApp) {
         },
         description: "Cannot return this order",
       },
+      500: {
+        content: {
+          "application/json": {
+            schema: z.object({ error: z.string() }),
+          },
+        },
+        description: "Internal server error",
+      },
     },
   });
 
-  app.openApiRoute(returnOrderRoute, (c): any => {
+  app.openApiRoute(returnOrderRoute, (c) => {
     const { order_id } = c.req.valid("param");
     const orders = loadOrders();
     const order = orders.find((o) => o.order_id === order_id);
@@ -87,7 +95,7 @@ export function registerOrderRoutes(app: OpenAPIApp) {
     return c.json({
       success: true,
       message: "Return request received. Customer service will contact you regarding the return.",
-    });
+    }, 200);
   });
 
   // POST /api/orders/:order_id/confirm
@@ -123,10 +131,18 @@ export function registerOrderRoutes(app: OpenAPIApp) {
         },
         description: "Only delivered orders can be confirmed",
       },
+      500: {
+        content: {
+          "application/json": {
+            schema: z.object({ error: z.string() }),
+          },
+        },
+        description: "Internal server error",
+      },
     },
   });
 
-  app.openApiRoute(confirmOrderRoute, (c): any => {
+  app.openApiRoute(confirmOrderRoute, (c) => {
     const { order_id } = c.req.valid("param");
     const orders = loadOrders();
     const order = orders.find((o) => o.order_id === order_id);
@@ -142,6 +158,6 @@ export function registerOrderRoutes(app: OpenAPIApp) {
       console.error("mock-shop: failed to save orders", err);
       return c.json({ error: "Failed to update order" }, 500);
     }
-    return c.json({ success: true, message: "Order confirmed as completed." });
+    return c.json({ success: true, message: "Order confirmed as completed." }, 200);
   });
 }

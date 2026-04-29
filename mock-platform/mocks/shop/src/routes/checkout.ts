@@ -29,10 +29,18 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
         },
         description: "Cart is empty",
       },
+      500: {
+        content: {
+          "application/json": {
+            schema: z.object({ error: z.string() }),
+          },
+        },
+        description: "Internal server error",
+      },
     },
   });
 
-  app.openApiRoute(checkoutRoute, (c): any => {
+  app.openApiRoute(checkoutRoute, (c) => {
     const cart = loadCart();
     if (!cart.length) return c.json({ error: "Cart is empty" }, 400);
 
@@ -85,6 +93,6 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
       success: true,
       message: "Order placed successfully!",
       order_id: orderId,
-    });
+    }, 200);
   });
 }
