@@ -6,7 +6,10 @@ import {
   type SearchableProduct,
 } from "../src/search-algorithm";
 
-// Real product data from the watch-shop task (91 products)
+// Real product data from the watch-shop task (91 products).
+// NOTE: These tests depend on sample_products.json fixture data.
+// If the fixture changes (product IDs, titles, or count), update the
+// golden-query expectations below.
 import rawProducts from "../../../static/shop/sample_products.json";
 
 const PRODUCTS: SearchableProduct[] = (rawProducts as any[]).map((p) => ({

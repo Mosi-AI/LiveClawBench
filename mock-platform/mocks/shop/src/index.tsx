@@ -108,7 +108,7 @@ export function createShopApp(): MockAppV2 {
         minPrice: min_price,
         maxPrice: max_price,
         minRating: min_rating,
-        sortBy: sort as FilterOptions["sortBy"],
+        sortBy: sort,
         useSearch: true,
       });
       totalPages = Math.ceil(allResults.length / PRODUCTS_PER_PAGE) || 0;

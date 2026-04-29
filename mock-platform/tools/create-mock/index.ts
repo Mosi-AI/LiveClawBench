@@ -111,8 +111,7 @@ export function ${factoryName}(): MockAppV2 {
         content: {
           "application/json": {
             schema: z.object({
-              mock: z.literal("${kebab}"),
-              sentinel: z.literal(true),
+              ok: z.boolean(),
             }),
           },
         },
@@ -121,9 +120,7 @@ export function ${factoryName}(): MockAppV2 {
     },
   });
 
-  mockApp.app.openApiRoute(sentinelRoute, (c) =>
-    c.json({ mock: "${kebab}" as const, sentinel: true as const }),
-  );
+  mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
   return {
     ...mockApp,
@@ -161,8 +158,7 @@ describe("${kebab} mock", () => {
     const res = await app.request("/__mock_sentinel__/${kebab}");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.mock).toBe("${kebab}");
-    expect(body.sentinel).toBe(true);
+    expect(body.ok).toBe(true);
   });
 });
 `;

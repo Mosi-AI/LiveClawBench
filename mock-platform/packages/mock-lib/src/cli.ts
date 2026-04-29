@@ -29,7 +29,7 @@ export function parseCliPort(): number | undefined {
   const args = parseCliArgs();
   const portStr = args.port;
   if (!portStr) return undefined;
-  const port = parseInt(portStr, 10);
-  if (!isNaN(port) && port > 0 && port < 65536) return port;
+  const port = Number(portStr);
+  if (Number.isInteger(port) && port > 0 && port < 65536) return port;
   return undefined;
 }
