@@ -12,7 +12,7 @@ import {
 // golden-query expectations below.
 import rawProducts from "../../../static/shop/sample_products.json";
 
-const PRODUCTS: SearchableProduct[] = (rawProducts as any[]).map((p) => ({
+const PRODUCTS: SearchableProduct[] = (rawProducts as SearchableProduct[]).map((p) => ({
   id: p.id,
   title: p.title,
   price: p.price,
@@ -54,8 +54,8 @@ describe("calculateRelevanceScore — golden queries", () => {
 describe("searchProducts — golden queries", () => {
   test("watch: returns ranked matches in descending score order", () => {
     const results = searchProducts(PRODUCTS, "watch");
-    expect(results.length).toBeGreaterThan(0);
-    expect(results[0][1]).toBeGreaterThan(results[1]?.[1] ?? 0);
+    expect(results.length).toBeGreaterThan(1);
+    expect(results[0][1]).toBeGreaterThan(results[1][1]);
     expect(results.some(([p]) => p.id === "prod_0068")).toBe(true);
   });
 
@@ -139,19 +139,19 @@ describe("filterAndSortProducts — price and rating filters on real data", () =
 
   test("price_asc sort without query", () => {
     const results = filterAndSortProducts(PRODUCTS, { sortBy: "price_asc" });
-    expect(results.length).toBeGreaterThan(0);
-    expect(results[0].price).toBeLessThanOrEqual(results[1]?.price ?? Infinity);
+    expect(results.length).toBeGreaterThan(1);
+    expect(results[0].price).toBeLessThanOrEqual(results[1].price);
   });
 
   test("price_desc sort without query", () => {
     const results = filterAndSortProducts(PRODUCTS, { sortBy: "price_desc" });
-    expect(results.length).toBeGreaterThan(0);
-    expect(results[0].price).toBeGreaterThanOrEqual(results[1]?.price ?? 0);
+    expect(results.length).toBeGreaterThan(1);
+    expect(results[0].price).toBeGreaterThanOrEqual(results[1].price);
   });
 
   test("rating sort without query", () => {
     const results = filterAndSortProducts(PRODUCTS, { sortBy: "rating" });
-    expect(results.length).toBeGreaterThan(0);
-    expect(results[0].rating).toBeGreaterThanOrEqual(results[1]?.rating ?? 0);
+    expect(results.length).toBeGreaterThan(1);
+    expect(results[0].rating).toBeGreaterThanOrEqual(results[1].rating);
   });
 });
