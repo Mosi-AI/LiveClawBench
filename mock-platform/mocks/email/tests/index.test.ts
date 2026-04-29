@@ -1,8 +1,13 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, beforeEach } from "bun:test";
 import { createEmailApp } from "../src/index";
+import type { OpenAPIApp } from "mock-lib";
 
 describe("email mock", () => {
-  const app = createEmailApp().app;
+  let app: OpenAPIApp;
+
+  beforeEach(() => {
+    app = createEmailApp().app;
+  });
 
   test("GET /health returns 200", async () => {
     const res = await app.request("/health");
