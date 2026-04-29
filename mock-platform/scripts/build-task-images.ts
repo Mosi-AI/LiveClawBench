@@ -510,13 +510,6 @@ async function buildTaskImage(
     "",
   ];
 
-  // Create mock user for shop data directory ownership
-  // Tolerate only user-exists error (exit code 9); fail on other errors.
-  if (binaries.includes("shop")) {
-    dockerfileLines.push("RUN useradd -r -s /bin/false mock 2>/dev/null || [ $? -eq 9 ] || (echo 'mock user creation failed' >&2 && exit 1)");
-    dockerfileLines.push("");
-  }
-
   // COPY mock binaries (if any)
   for (const bin of binaries) {
     dockerfileLines.push(`COPY mock-${bin} /opt/mock/bin/mock-${bin}`);
