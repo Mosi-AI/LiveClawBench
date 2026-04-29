@@ -23,6 +23,7 @@ function getStore(): JsonStore {
 /** Reset the internal store instance (used by tests to pick up new env vars) */
 export function resetStore(): void {
   _store = null;
+  _storeDir = null;
 }
 
 export function loadCart(): CartItem[] {

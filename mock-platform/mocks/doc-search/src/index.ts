@@ -87,7 +87,7 @@ export function createDocSearchApp(): MockAppV2 {
   app.page("/search", (c) => {
     if (!dbState.db) return c.json({ error: "Service not ready" }, 503);
     const query = c.req.query("q") ?? "";
-    const path = c.req.path + (c.req.url.includes("?") ? "?" + c.req.url.split("?")[1] : "");
+    const path = c.req.path;
 
     // Tokenize and search
     let results = [];
@@ -149,7 +149,7 @@ export function createDocSearchApp(): MockAppV2 {
     const slug = c.req.param("slug");
     const sid = c.req.query("sid") ?? "";
     const rank = c.req.query("rank") ?? "";
-    const path = c.req.path + (c.req.url.includes("?") ? "?" + c.req.url.split("?")[1] : "");
+    const path = c.req.path;
 
     // Look up document by slug
     const stmt = dbState.db.query("SELECT * FROM documents WHERE slug = ?");
