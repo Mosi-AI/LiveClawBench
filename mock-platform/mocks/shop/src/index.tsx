@@ -23,7 +23,7 @@ import {
   ListProductsQuerySchema,
 } from "./schemas.js";
 import type { Product } from "./types.js";
-import { allProducts, loadProducts, seedUser, seedOrders } from "./data/seed.js";
+import { loadProducts, seedUser, seedOrders } from "./data/seed.js";
 import { loadCart, loadUser, loadOrders, resetStore } from "./data/store.js";
 import { HomePage } from "./components/home-page.js";
 import { ResultsPage } from "./components/results-page.js";
@@ -42,6 +42,9 @@ export function createShopApp(): MockAppV2 {
   // Reset the shared store so each factory call picks up the current env vars
   // (needed for tests that set MOCK_DATA_DIR before creating the app)
   resetStore();
+
+  // Per-instance product array — isolated from other factory calls
+  let allProducts: Product[] = [];
 
   const mockApp = createMockApp({
     name: "shop-mosi-backend",
@@ -145,8 +148,8 @@ export function createShopApp(): MockAppV2 {
   });
 
   // API routes
-  registerProductRoutes(app);
-  registerCartRoutes(app);
+  registerProductRoutes(app, () => allProducts);
+  registerCartRoutes(app, () => allProducts);
   registerCheckoutRoutes(app);
   registerOrderRoutes(app);
   registerUserRoutes(app);
@@ -154,9 +157,9 @@ export function createShopApp(): MockAppV2 {
   return {
     ...mockApp,
     seed: async () => {
-      await loadProducts();
+      allProducts = await loadProducts();
       seedUser();
-      seedOrders();
+      seedOrders(allProducts);
     },
   };
 }

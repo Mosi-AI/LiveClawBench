@@ -9,9 +9,8 @@ import {
   GenericSuccessResponseSchema,
 } from "../schemas.js";
 import { loadCart, saveCart, clearCart } from "../data/store.js";
-import { allProducts } from "../data/seed.js";
-
-export function registerCartRoutes(app: OpenAPIApp) {
+import type { Product } from "../types.js";
+export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]) {
   // POST /api/cart/add
   const addToCartRoute = createRoute({
     method: "post",
@@ -49,7 +48,7 @@ export function registerCartRoutes(app: OpenAPIApp) {
   app.openApiRoute(addToCartRoute, (c): any => {
     const { product_id } = c.req.valid("json");
 
-    const product = allProducts.find((p) => p.id === product_id);
+    const product = getProducts().find((p) => p.id === product_id);
     if (!product) return c.json({ error: "Product not found" }, 404);
 
     const cart = loadCart();

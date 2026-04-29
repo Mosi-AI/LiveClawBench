@@ -2,18 +2,16 @@ import type { Product, Order } from "../types.js";
 import { userExists, loadOrders, saveOrders, saveUser } from "./store.js";
 import { DEFAULT_USER } from "./defaults.js";
 
-/** Products loaded into memory at startup (read-only) */
-export let allProducts: Product[] = [];
-
-export async function loadProducts(): Promise<void> {
+export async function loadProducts(): Promise<Product[]> {
   const productsPath = process.env.MOCK_PRODUCTS_PATH ?? "/opt/mock/static/shop/products.json";
   try {
     const content = Bun.file(productsPath);
-    allProducts = await content.json();
-    console.log(`mock-shop: loaded ${allProducts.length} products from ${productsPath}`);
+    const products = (await content.json()) as Product[];
+    console.log(`mock-shop: loaded ${products.length} products from ${productsPath}`);
+    return products;
   } catch (err) {
     console.error(`mock-shop: FATAL: failed to load products.json`, err);
-    process.exit(1);
+    throw new Error(`Failed to load products.json from ${productsPath}: ${err}`);
   }
 }
 
@@ -28,11 +26,10 @@ export function seedUser(): void {
 // Order seeding — port of Python initialize_orders()
 // ---------------------------------------------------------------------------
 
-export function seedOrders(): void {
+export function seedOrders(products: Product[]): void {
   // Only seed if no orders exist
   if (loadOrders().length > 0) return;
 
-  const products = allProducts;
   if (!products.length) return;
 
   const productMap = new Map(products.map((p) => [p.id, p]));

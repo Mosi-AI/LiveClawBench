@@ -7,11 +7,10 @@ import {
   ProductSchema,
 } from "../schemas.js";
 import { filterAndSortProducts, type FilterOptions } from "../search-algorithm.js";
-import { allProducts } from "../data/seed.js";
-
+import type { Product } from "../types.js";
 const PRODUCTS_PER_PAGE = 30;
 
-export function registerProductRoutes(app: OpenAPIApp) {
+export function registerProductRoutes(app: OpenAPIApp, getProducts: () => Product[]) {
   // GET /api/products
   const listProductsRoute = createRoute({
     method: "get",
@@ -35,7 +34,7 @@ export function registerProductRoutes(app: OpenAPIApp) {
   app.openApiRoute(listProductsRoute, (c) => {
     const { q, sort, page, min_price, max_price, min_rating } = c.req.valid("query");
 
-    const filtered = filterAndSortProducts(allProducts, {
+    const filtered = filterAndSortProducts(getProducts(), {
       query: q,
       minPrice: min_price,
       maxPrice: max_price,
@@ -87,7 +86,7 @@ export function registerProductRoutes(app: OpenAPIApp) {
 
   app.openApiRoute(getProductRoute, (c): any => {
     const { product_id } = c.req.valid("param");
-    const product = allProducts.find((p) => p.id === product_id);
+    const product = getProducts().find((p) => p.id === product_id);
     if (!product) return c.json({ error: "Product not found" }, 404);
     return c.json(product);
   });
