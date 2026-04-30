@@ -60,11 +60,22 @@ interface AssetMapping {
   dest: string;
 }
 
+interface FrontendConfig {
+  /** Path to the frontend source directory (relative to repo root), e.g. "tasks/flight-booking/environment/airline-app/frontend" */
+  src: string;
+  /** Build output subdirectory within src, e.g. "dist" */
+  buildDir: string;
+  /** Destination path inside the Docker image, e.g. "/opt/mock/frontend/airline" */
+  dest: string;
+}
+
 interface TaskMapping {
   binaries: string[];
   startup_extra?: string;
   /** Optional per-task assets to COPY into the image */
   assets?: AssetMapping[];
+  /** Optional frontend SPA build configuration */
+  frontend?: FrontendConfig;
 }
 
 interface MappingConfig {
@@ -189,6 +200,28 @@ function validateMapping(raw: unknown): MappingConfig {
           }
           if (typeof assetObj.dest !== "string" || !assetObj.dest) {
             errors.push(`Task "${taskName}" assets[${ai}] missing 'dest' string`);
+          }
+        }
+      }
+    }
+
+    // Validate optional frontend field
+    if ("frontend" in taskObj) {
+      const fe = taskObj.frontend;
+      if (typeof fe !== "object" || fe === null) {
+        errors.push(`Task "${taskName}" 'frontend' must be an object`);
+      } else {
+        const feObj = fe as Record<string, unknown>;
+        for (const key of ["src", "buildDir", "dest"]) {
+          if (typeof feObj[key] !== "string" || !(feObj[key] as string)) {
+            errors.push(`Task "${taskName}" 'frontend.${key}' must be a non-empty string`);
+          }
+        }
+        // Check for unknown keys in frontend object
+        const allowedFrontendKeys = new Set(["src", "buildDir", "dest"]);
+        for (const key of Object.keys(feObj)) {
+          if (!allowedFrontendKeys.has(key)) {
+            errors.push(`Task "${taskName}" 'frontend' has unknown key: "${key}"`);
           }
         }
       }
@@ -407,6 +440,7 @@ async function buildTaskImage(
   dryRun: boolean,
   startupExtraPath?: string,
   assets?: AssetMapping[],
+  frontend?: FrontendConfig,
 ): Promise<BuildTaskImageResult> {
   const imageTag = `liveclawbench-${task}-base:latest`;
 
@@ -502,6 +536,110 @@ async function buildTaskImage(
 
   const startupContent = generateStartupScript(task, binaries, startupExtraContent);
 
+  // Build frontend SPA on host if configured
+  let frontendBuildDir: string | undefined;
+  if (frontend) {
+    const repoRoot = join(import.meta.dir, "..", "..");
+    const frontendSrc = resolve(repoRoot, frontend.src);
+
+    if (!existsSync(frontendSrc)) {
+      return {
+        task,
+        success: false,
+        imageTag,
+        binariesIncluded: binaries,
+        error: `Frontend source directory not found: ${frontendSrc}`,
+      };
+    }
+
+    // Check node/npm availability
+    const nodeCheck = Bun.spawnSync(["node", "--version"], { stdout: "pipe" });
+    if (nodeCheck.exitCode !== 0) {
+      return {
+        task,
+        success: false,
+        imageTag,
+        binariesIncluded: binaries,
+        error: "node is required for frontend builds but not found on host (need Node.js >= 18)",
+      };
+    }
+    const nodeVersion = new TextDecoder().decode(nodeCheck.stdout).trim();
+    const majorVersion = parseInt(nodeVersion.replace(/^v/, "").split(".")[0], 10);
+    if (majorVersion < 18) {
+      return {
+        task,
+        success: false,
+        imageTag,
+        binariesIncluded: binaries,
+        error: `Node.js >= 18 required for frontend builds (found ${nodeVersion})`,
+      };
+    }
+
+    const npmCheck = Bun.spawnSync(["npm", "--version"], { stdout: "pipe" });
+    if (npmCheck.exitCode !== 0) {
+      return {
+        task,
+        success: false,
+        imageTag,
+        binariesIncluded: binaries,
+        error: "npm is required for frontend builds but not found on host",
+      };
+    }
+
+    if (!dryRun) {
+      const buildOutputDir = join(frontendSrc, frontend.buildDir);
+
+      // npm install
+      const installProc = Bun.spawn(["npm", "install", "--prefix", frontendSrc], {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+      const installExit = await installProc.exited;
+      if (installExit !== 0) {
+        const stderr = await new Response(installProc.stderr).text();
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Frontend npm install failed for ${task}: ${stderr.trim()}`,
+        };
+      }
+
+      // npm run build
+      const buildProc = Bun.spawn(["npm", "run", "build", "--prefix", frontendSrc], {
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+      const buildExit = await buildProc.exited;
+      if (buildExit !== 0) {
+        const stderr = await new Response(buildProc.stderr).text();
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Frontend npm run build failed for ${task}: ${stderr.trim()}`,
+        };
+      }
+
+      if (!existsSync(buildOutputDir)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Frontend build output directory not found: ${buildOutputDir}`,
+        };
+      }
+
+      frontendBuildDir = buildOutputDir;
+    } else {
+      console.log(`  [DRY RUN] npm install && npm run build in ${frontendSrc}`);
+      frontendBuildDir = join(frontendSrc, frontend.buildDir);
+    }
+  }
+
   const dockerfileLines = [
     `FROM ${BASE_IMAGE}`,
     "",
@@ -586,6 +724,26 @@ async function buildTaskImage(
       dockerfileLines.push(`RUN mkdir -p ${[...destDirs].join(" ")}`);
     }
     dockerfileLines.push(...assetCopyLines);
+  }
+
+  // COPY pre-built frontend SPA files (if configured)
+  if (frontend && frontendBuildDir) {
+    const contextDir = `frontend-${task}`;
+    const contextPath = join(DIST_DIR, contextDir);
+    // Copy the build output into the Docker build context
+    mkdirSync(contextPath, { recursive: true });
+    const cpProc = Bun.spawnSync(["cp", "-r", `${frontendBuildDir}/.`, contextPath]);
+    if (cpProc.exitCode !== 0) {
+      return {
+        task,
+        success: false,
+        imageTag,
+        binariesIncluded: binaries,
+        error: `Failed to copy frontend build output to context: ${cpProc.stderr}`,
+      };
+    }
+    dockerfileLines.push(`RUN mkdir -p ${frontend.dest}`);
+    dockerfileLines.push(`COPY ${contextDir}/ ${frontend.dest}/`);
   }
 
   // COPY startup script to deterministic /opt/mock/startup.d/{task}.sh
@@ -682,7 +840,7 @@ async function main() {
   const results: BuildTaskImageResult[] = [];
   for (const [task, config] of Object.entries(mapping.tasks)) {
     process.stdout.write(`Building ${task} (${config.binaries.length} binaries)... `);
-    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets);
+    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontend);
     results.push(result);
 
     if (result.success) {
