@@ -115,6 +115,44 @@ describe("createMockApp — frontendDir SPA serving", () => {
     expect(json.status).toBe("healthy");
   });
 
+  test("SPA fallback returns 404 for unregistered /api/* paths", async () => {
+    const frontendDir = setupFrontendDir({
+      "index.html": "<html><body>SPA</body></html>",
+    });
+
+    const mockApp = createMockApp({
+      name: "spa-test",
+      frontendDir,
+      routes: (app) => {
+        app.get("/api/data", (c) => c.json({ success: true }));
+      },
+    });
+
+    // Registered API route still works
+    const okRes = await mockApp.app.request("/api/data");
+    expect(okRes.status).toBe(200);
+
+    // Unregistered /api/missing must NOT return index.html
+    const missingRes = await mockApp.app.request("/api/missing");
+    expect(missingRes.status).toBe(404);
+    const body = await missingRes.json();
+    expect(body.error).toBe("Not Found");
+  });
+
+  test("SPA fallback returns 404 for /openapi.json when not configured", async () => {
+    const frontendDir = setupFrontendDir({
+      "index.html": "<html><body>SPA</body></html>",
+    });
+
+    const mockApp = createMockApp({
+      name: "spa-test",
+      frontendDir,
+    });
+
+    const res = await mockApp.app.request("/openapi.json");
+    expect(res.status).toBe(404);
+  });
+
   test("works without frontendDir (no SPA serving)", async () => {
     const mockApp = createMockApp({
       name: "no-frontend-test",

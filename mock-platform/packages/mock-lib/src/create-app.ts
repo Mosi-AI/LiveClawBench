@@ -44,9 +44,18 @@ export function createMockApp(options: CreateMockAppOptions): MockAppV2 {
     // serveStatic calls next() when no matching file exists.
     mockApp.app.use("/*", serveStatic({ root: options.frontendDir }));
 
-    // SPA fallback: return index.html for any request that didn't match
-    // an API route or static file. This enables React Router client-side routing.
+    // SPA fallback: return index.html for non-API requests that didn't match
+    // a registered route or static file. API namespace paths (/api/*, /health,
+    // /openapi.json) are rejected with 404 to prevent silent API regressions.
     mockApp.app.get("*", async (c) => {
+      const path = new URL(c.req.url).pathname;
+      if (
+        path.startsWith("/api/") ||
+        path === "/health" ||
+        path === "/openapi.json"
+      ) {
+        return c.json({ error: "Not Found" }, 404);
+      }
       const file = Bun.file(`${options.frontendDir}/index.html`);
       const html = await file.text();
       return c.html(html);
