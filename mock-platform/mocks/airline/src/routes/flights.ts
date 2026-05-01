@@ -42,7 +42,13 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
       .query(`SELECT * FROM flights WHERE ${where} ORDER BY departure_time LIMIT ? OFFSET ?`)
       .all(...params, perPage, offset) as Record<string, unknown>[];
 
-    return c.json(ok(paginate(flights, countRow.total, page, perPage)));
+    return c.json(ok({
+      flights,
+      total: countRow.total,
+      page,
+      per_page: perPage,
+      pages: Math.ceil(countRow.total / perPage),
+    }));
   });
 
   // POST /api/flights/search
@@ -79,6 +85,8 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
     const cabinClass = c.req.query("cabin_class");
     const availableOnly = c.req.query("available_only") === "true";
 
+    const flight = db.query("SELECT flight_number FROM flights WHERE id = ?").get(flightId) as { flight_number: string } | null;
+
     let sql = "SELECT * FROM seats WHERE flight_id = ?";
     const params: (number | string)[] = [flightId];
 
@@ -92,8 +100,14 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
     sql += " ORDER BY row_number, seat_letter";
 
     const seats = db.query(sql).all(...params) as Record<string, unknown>[];
-    const totalSeats = db.query("SELECT COUNT(*) as count FROM seats WHERE flight_id = ?").get(flightId) as { count: number };
-    const availableSeats = db.query("SELECT COUNT(*) as count FROM seats WHERE flight_id = ? AND is_available = 1").get(flightId) as { count: number };
+
+    // Compute available_seats per cabin
+    const availableSeatsByCabin: Record<string, number> = {};
+    const allSeats = db.query("SELECT cabin_class, is_available FROM seats WHERE flight_id = ?").all(flightId) as { cabin_class: string; is_available: number }[];
+    for (const s of allSeats) {
+      if (!availableSeatsByCabin[s.cabin_class]) availableSeatsByCabin[s.cabin_class] = 0;
+      if (s.is_available) availableSeatsByCabin[s.cabin_class]++;
+    }
 
     const grouped: Record<string, Record<string, unknown>[]> = { economy: [], business: [], first: [] };
     for (const seat of seats) {
@@ -102,7 +116,13 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
       grouped[cabin].push(seat);
     }
 
-    return c.json(ok({ flight_id: flightId, flight_number: "", seats: grouped, total_seats: totalSeats.count, available_seats: availableSeats.count }));
+    return c.json(ok({
+      flight_id: flightId,
+      flight_number: flight?.flight_number ?? "",
+      seats: grouped,
+      total_seats: allSeats.length,
+      available_seats: availableSeatsByCabin,
+    }));
   });
 
   // GET /api/flights/:flight_id/seats/:seat_id

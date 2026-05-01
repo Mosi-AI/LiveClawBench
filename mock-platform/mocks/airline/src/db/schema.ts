@@ -1,8 +1,7 @@
 import { getDb, resetDb, type SqliteOptions } from "mock-lib";
 
 const AIRLINE_DB_PATH =
-  process.env.AIRLINE_DB_PATH ??
-  `${process.env.HOME ?? "/home/node"}/.openclaw/output/airline.db`;
+  process.env.AIRLINE_DB_PATH ?? "/var/lib/mock-data/airline/airline.db";
 
 export interface AirlineDbOptions {
   dbPath?: string;

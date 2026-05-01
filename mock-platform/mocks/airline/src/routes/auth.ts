@@ -2,6 +2,16 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ok, err, getUserById, DEFAULT_USER_ID } from "../helpers";
 
+function generateJwtToken(userId: number): string {
+  const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({
+    sub: userId,
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  })).toString("base64url");
+  return `${header}.${payload}.mock-signature`;
+}
+
 export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   // POST /api/auth/register
   app.post("/api/auth/register", async (c) => {
@@ -28,7 +38,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
     const row = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
     const user = getUserById(db, row.id);
-    return c.json(ok({ user, access_token: "mock_token", refresh_token: "mock_refresh" }, "Registration successful"));
+    return c.json(ok({ user, access_token: generateJwtToken(row.id), refresh_token: generateJwtToken(row.id) + "-refresh" }, "Registration successful"), 201);
   });
 
   // POST /api/auth/login
@@ -43,7 +53,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const user = getUserById(db, row.id);
-    return c.json(ok({ user, access_token: "mock_token", refresh_token: "mock_refresh" }, "Login successful"));
+    return c.json(ok({ user, access_token: generateJwtToken(row.id), refresh_token: generateJwtToken(row.id) + "-refresh" }, "Login successful"));
   });
 
   // POST /api/auth/refresh

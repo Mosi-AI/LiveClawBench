@@ -88,7 +88,26 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const booking = db.query("SELECT * FROM bookings WHERE id = ?").get(bookingId) as Record<string, unknown>;
-    return c.json(ok(booking, "Booking created successfully"));
+
+    // Create payment side effect
+    const txnId = `TXN-${Date.now()}`;
+    db.query(
+      "INSERT INTO payments (booking_id, amount, currency, payment_status, payment_method, card_last_four, card_type, card_holder_name, transaction_id, paid_at) VALUES (?, ?, 'USD', 'completed', 'credit_card', '4242', 'visa', 'Auto Payment', ?, datetime('now'))"
+    ).run(bookingId, totalPrice, txnId);
+
+    // Create email notification side effect
+    const user = db.query("SELECT email, first_name, last_name FROM users WHERE id = ?").get(DEFAULT_USER_ID) as { email: string; first_name: string; last_name: string } | null;
+    if (user) {
+      db.query(
+        "INSERT INTO email_notifications (user_id, booking_id, email_type, recipient_email, subject, body) VALUES (?, ?, 'booking_confirmation', ?, ?, ?)"
+      ).run(DEFAULT_USER_ID, bookingId, user.email, `Booking Confirmation - ${reference}`, `Dear ${user.first_name}, your booking ${reference} has been confirmed.`);
+    }
+
+    // Update booking status to confirmed
+    db.query("UPDATE bookings SET booking_status = 'confirmed', updated_at = datetime('now') WHERE id = ?").run(bookingId);
+
+    const confirmedBooking = db.query("SELECT * FROM bookings WHERE id = ?").get(bookingId) as Record<string, unknown>;
+    return c.json(ok(confirmedBooking, "Booking created successfully"), 201);
   });
 
   // POST /api/bookings/:booking_reference/seats
@@ -114,6 +133,21 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
       }
 
       if (!seat.is_available) {
+        // AC-13: Check if this is a window seat unavailability in economy on a
+        // flight with no available economy window seats — return upgrade fee info.
+        const isEconomyWindow = seat.cabin_class === "economy" && seat.is_window;
+        if (isEconomyWindow) {
+          const availableEconWindow = db.query(
+            "SELECT COUNT(*) as count FROM seats WHERE flight_id = ? AND cabin_class = 'economy' AND is_window = 1 AND is_available = 1"
+          ).get(booking.flight_id) as { count: number };
+          if (availableEconWindow.count === 0) {
+            return c.json(err(
+              `Seat ${seat.seat_number} is not available. No economy window seats are available on this flight. ` +
+              `You can upgrade to business class for an additional $350 to get a window seat. ` +
+              `Upgrade fee: $350`
+            ), 400);
+          }
+        }
         return c.json(err(`Seat ${seat.seat_number} is not available`), 400);
       }
 

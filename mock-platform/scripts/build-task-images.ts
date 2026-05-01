@@ -311,7 +311,19 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         // Airline Bun binary must share the SQLite DB with the Python verifier
         // so that verifier scripts (which import SQLAlchemy models) see the
         // same data the agent created through the Bun API.
-        lines.push(`export AIRLINE_DB_PATH=/workspace/environment/airline-app/backend/instance/airline.db`);
+        // The DB lives at a stable path; python_compat is symlinked so that
+        // verifier imports resolve to /workspace/environment/airline-app.
+        lines.push(`export AIRLINE_DB_PATH=/var/lib/mock-data/airline/airline.db`);
+        lines.push(`export DATABASE_URL=sqlite:////var/lib/mock-data/airline/airline.db`);
+        lines.push(`mkdir -p /var/lib/mock-data/airline`);
+        // Symlink python_compat so verifier imports resolve to the expected path.
+        // This must happen before the verifier runs, and must not clobber any
+        // existing app files mounted by the task Dockerfile.
+        lines.push(`if [ ! -e /workspace/environment/airline-app ]; then`);
+        lines.push(`  ln -sf /opt/mock/python_compat/airline-app /workspace/environment/airline-app`);
+        lines.push(`fi`);
+        lines.push(`mkdir -p /workspace/environment/airline-app/backend/instance`);
+        lines.push(`ln -sf /var/lib/mock-data/airline/airline.db /workspace/environment/airline-app/backend/instance/airline.db`);
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
@@ -381,6 +393,33 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
           return true;
         }
         if (inShopBlock) return false;
+        return true;
+      });
+    }
+
+    // Airline-app block filter (port-conflict avoidance):
+    //   - Trigger: a line matching /^#\s*Start\s+airline-app/i
+    //   - Terminator: the next line matching /^#\s*Start\s+/i (any service)
+    //     or end of filtered lines
+    //   - Behavior: drops every line between trigger (exclusive) and
+    //     terminator (exclusive). The terminator line is KEPT because it
+    //     begins a different service block.
+    // When Bun mock-airline is implemented, legacy Python airline-app startup
+    // (both backend python3 run.py and frontend npm run dev) must be stripped
+    // to avoid port-5000 conflicts.
+    if (implementedBinaries.includes("airline")) {
+      let inAirlineBlock = false;
+      filtered = filtered.filter((line) => {
+        const l = line.trim();
+        if (l.match(/^#\s*Start\s+airline-app/i)) {
+          inAirlineBlock = true;
+          return false;
+        }
+        if (inAirlineBlock && l.match(/^#\s*Start\s+/i)) {
+          inAirlineBlock = false;
+          return true;
+        }
+        if (inAirlineBlock) return false;
         return true;
       });
     }
@@ -657,6 +696,32 @@ async function buildTaskImage(
   // COPY mock binaries (if any)
   for (const bin of binaries) {
     dockerfileLines.push(`COPY mock-${bin} /opt/mock/bin/mock-${bin}`);
+  }
+
+  // Copy python_compat bridge for airline tasks so verifier scripts can
+  // import SQLAlchemy models and query the shared DB.
+  if (binaries.includes("airline")) {
+    const pythonCompatDir = join(import.meta.dir, "..", "python_compat", "airline-app");
+    if (existsSync(pythonCompatDir)) {
+      const contextDir = "python-compat-airline";
+      const contextPath = join(DIST_DIR, contextDir);
+      mkdirSync(contextPath, { recursive: true });
+      const cpProc = Bun.spawnSync(["cp", "-r", `${pythonCompatDir}/.`, contextPath]);
+      if (cpProc.exitCode !== 0) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Failed to copy python_compat to context: ${cpProc.stderr}`,
+        };
+      }
+      dockerfileLines.push(`COPY ${contextDir}/ /opt/mock/python_compat/airline-app/`);
+      dockerfileLines.push(`RUN pip install --no-cache-dir -r /opt/mock/python_compat/airline-app/requirements.txt`);
+      // Ensure the /workspace/environment/airline-app symlink exists at runtime
+      // (the startup script creates it; here we just ensure the target dir exists)
+      dockerfileLines.push(`RUN mkdir -p /workspace/environment`);
+    }
   }
 
   // Stage and COPY per-task assets (CSS, JSON, SQL sidecars)

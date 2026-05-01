@@ -54,14 +54,15 @@ describe("airline schema", () => {
         count: number;
       }
     ).count;
-    expect(flightCount).toBe(300);
+    // 15 route configs * total times slots across all configs (36) * 30 days = 1080 flights
+    expect(flightCount).toBe(1080);
 
     const seatCount = (
       db.query("SELECT COUNT(*) as count FROM seats").get() as {
         count: number;
       }
     ).count;
-    expect(seatCount).toBe(300 * 208);
+    expect(seatCount).toBe(1080 * 208);
 
     const userCount = (
       db.query("SELECT COUNT(*) as count FROM users").get() as {

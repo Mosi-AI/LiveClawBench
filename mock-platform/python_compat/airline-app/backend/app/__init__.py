@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
+from sqlalchemy import event
 
 from app.models import db
 from app.utils import init_utils
@@ -20,6 +21,15 @@ def create_app(config_name="default"):
     db.init_app(app)
     CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"])
     init_utils(app)
+
+    @event.listens_for(db.engine, "connect")
+    def _set_sqlite_pragmas(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA busy_timeout=5000")
+        cursor.execute("PRAGMA synchronous=NORMAL")
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
     import os
 

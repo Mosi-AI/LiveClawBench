@@ -19,7 +19,7 @@ describe("airline routes", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password: "password123", first_name: "Test", last_name: "User" }),
       });
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       const body = await res.json();
       expect(body.success).toBe(true);
       expect(body.data.user.email).toBe(email);
@@ -52,7 +52,7 @@ describe("airline routes", () => {
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
-      expect(body.data.items).toBeArray();
+      expect(body.data.flights).toBeArray();
       expect(body.data.total).toBeGreaterThan(0);
     });
 
@@ -71,7 +71,7 @@ describe("airline routes", () => {
     test("GET /api/flights/:id/seats returns grouped seats", async () => {
       const flightRes = await app.request("/api/flights");
       const flightBody = await flightRes.json();
-      const flightId = flightBody.data.items[0].id;
+      const flightId = flightBody.data.flights[0].id;
 
       const res = await app.request(`/api/flights/${flightId}/seats`);
       expect(res.status).toBe(200);
@@ -79,14 +79,16 @@ describe("airline routes", () => {
       expect(body.success).toBe(true);
       expect(body.data.seats.economy).toBeArray();
       expect(body.data.total_seats).toBe(208);
+      expect(body.data.flight_number).toBeString();
+      expect(body.data.available_seats).toBeObject();
     });
   });
 
   describe("bookings", () => {
-    test("POST /api/bookings/ creates pending booking", async () => {
+    test("POST /api/bookings/ creates confirmed booking with payment side effect", async () => {
       const flightRes = await app.request("/api/flights");
       const flightBody = await flightRes.json();
-      const flightId = flightBody.data.items[0].id;
+      const flightId = flightBody.data.flights[0].id;
 
       const res = await app.request("/api/bookings/", {
         method: "POST",
@@ -97,17 +99,23 @@ describe("airline routes", () => {
           passengers: [{ first_name: "Test", last_name: "User", date_of_birth: "1990-01-01" }],
         }),
       });
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       const body = await res.json();
       expect(body.success).toBe(true);
-      expect(body.data.booking_status).toBe("pending");
+      expect(body.data.booking_status).toBe("confirmed");
       expect(body.data.booking_reference).toHaveLength(6);
+
+      // Verify payment side effect was created
+      const payments = await app.request(`/api/bookings/${body.data.booking_reference}`);
+      const paymentBody = await payments.json();
+      expect(paymentBody.data.payment).toBeDefined();
+      expect(paymentBody.data.payment.payment_status).toBe("completed");
     });
 
-    test("POST /api/mock/payment/process confirms booking", async () => {
+    test("POST /api/mock/payment/process processes payment", async () => {
       const flightRes = await app.request("/api/flights");
       const flightBody = await flightRes.json();
-      const flightId = flightBody.data.items[0].id;
+      const flightId = flightBody.data.flights[0].id;
 
       const bookingRes = await app.request("/api/bookings/", {
         method: "POST",
@@ -135,7 +143,8 @@ describe("airline routes", () => {
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
-      expect(body.data.booking_status).toBe("confirmed");
+      expect(body.data.payment).toBeDefined();
+      expect(body.data.payment.payment_status).toBe("completed");
     });
   });
 

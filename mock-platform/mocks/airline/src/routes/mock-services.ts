@@ -35,9 +35,17 @@ function registerPaymentRoutes(app: OpenAPIApp, db: Database, prefix: string): v
 
     const transactionId = `TXN-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
-    db.query(
-      "INSERT INTO payments (booking_id, amount, currency, payment_status, card_last_four, card_type, card_holder_name, transaction_id, paid_at) VALUES (?, ?, 'USD', 'completed', ?, 'visa', ?, ?, datetime('now'))"
-    ).run(bookingId, booking.total_price, cardNumber.slice(-4), cardHolder, transactionId);
+    // Check for existing payment (booking creation may have already created one)
+    const existingPayment = db.query("SELECT id FROM payments WHERE booking_id = ?").get(bookingId) as { id: number } | null;
+    if (existingPayment) {
+      db.query(
+        "UPDATE payments SET payment_status = 'completed', card_last_four = ?, card_type = 'visa', card_holder_name = ?, transaction_id = ?, paid_at = datetime('now') WHERE id = ?"
+      ).run(cardNumber.slice(-4), cardHolder, transactionId, existingPayment.id);
+    } else {
+      db.query(
+        "INSERT INTO payments (booking_id, amount, currency, payment_status, card_last_four, card_type, card_holder_name, transaction_id, paid_at) VALUES (?, ?, 'USD', 'completed', ?, 'visa', ?, ?, datetime('now'))"
+      ).run(bookingId, booking.total_price, cardNumber.slice(-4), cardHolder, transactionId);
+    }
 
     // Update booking to confirmed
     db.query("UPDATE bookings SET booking_status = 'confirmed', updated_at = datetime('now') WHERE id = ?").run(bookingId);

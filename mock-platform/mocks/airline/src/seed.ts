@@ -1,6 +1,7 @@
 import { initSchema } from "./db/schema";
 import { generateSeats, formatDateTime } from "./db/seat-generation";
 import type { Database } from "bun:sqlite";
+import { mkdirSync } from "node:fs";
 import { generateBookingReference } from "./helpers";
 
 const SEAT_LETTERS = ["A", "B", "C", "D", "E", "F"];
@@ -28,16 +29,21 @@ const AIRPORTS: Record<string, AirportInfo> = {
 };
 
 const FLIGHT_CONFIGS = [
-  { origin: "JFK", dest: "LAX", hours: 5, price: 299.99, time: 8 },
-  { origin: "LAX", dest: "SFO", hours: 1.5, price: 149.99, time: 10 },
-  { origin: "SFO", dest: "SEA", hours: 2, price: 199.99, time: 14 },
-  { origin: "JFK", dest: "MIA", hours: 3, price: 179.99, time: 9 },
-  { origin: "ORD", dest: "DFW", hours: 2.5, price: 159.99, time: 11 },
-  { origin: "BOS", dest: "ATL", hours: 2.5, price: 189.99, time: 13 },
-  { origin: "SEA", dest: "DEN", hours: 2.5, price: 209.99, time: 15 },
-  { origin: "LAX", dest: "JFK", hours: 5, price: 279.99, time: 7 },
-  { origin: "MIA", dest: "JFK", hours: 3, price: 169.99, time: 16 },
-  { origin: "ATL", dest: "BOS", hours: 2.5, price: 179.99, time: 12 },
+  { origin: "JFK", dest: "LAX", hours: 5, price: 299.99, times: [6, 10, 14, 18] },
+  { origin: "LAX", dest: "JFK", hours: 5, price: 279.99, times: [7, 11, 15, 19] },
+  { origin: "JFK", dest: "SFO", hours: 5.5, price: 319.99, times: [8, 16] },
+  { origin: "SFO", dest: "JFK", hours: 5.5, price: 309.99, times: [9, 17] },
+  { origin: "JFK", dest: "MIA", hours: 3, price: 179.99, times: [7, 12, 17] },
+  { origin: "MIA", dest: "JFK", hours: 3, price: 169.99, times: [8, 13, 18] },
+  { origin: "LAX", dest: "SFO", hours: 1.5, price: 149.99, times: [9, 15] },
+  { origin: "SFO", dest: "SEA", hours: 2, price: 199.99, times: [10, 16] },
+  { origin: "SEA", dest: "DEN", hours: 2.5, price: 209.99, times: [8, 14] },
+  { origin: "ORD", dest: "DFW", hours: 2.5, price: 159.99, times: [7, 13] },
+  { origin: "DFW", dest: "ORD", hours: 2.5, price: 159.99, times: [8, 14] },
+  { origin: "BOS", dest: "ATL", hours: 2.5, price: 189.99, times: [9, 15] },
+  { origin: "ATL", dest: "BOS", hours: 2.5, price: 179.99, times: [10, 16] },
+  { origin: "ORD", dest: "LAX", hours: 4.5, price: 259.99, times: [7, 15] },
+  { origin: "LAX", dest: "ORD", hours: 4.5, price: 249.99, times: [8, 16] },
 ];
 
 function fmt(d: Date): string {
@@ -126,11 +132,10 @@ export function seedDatabase(db: Database, taskName?: string) {
   const anchorTime = fmt(now);
 
   // Write seed-meta.json for verifier-side anchor consistency
-  const seedMetaDir = `${process.env.HOME ?? "/home/node"}/.openclaw/output`;
+  const seedMetaDir = "/var/lib/mock-data";
   const seedMeta = { anchor_time: anchorTime, task_name: effectiveTaskName, seeded_at: anchorTime };
-  Bun.write(`${seedMetaDir}/seed-meta.json`, JSON.stringify(seedMeta, null, 2)).catch(() => {
-    // Ignore write errors (e.g., directory doesn't exist in test environment)
-  });
+  try { mkdirSync(seedMetaDir, { recursive: true }); } catch {}
+  Bun.write(`${seedMetaDir}/seed-meta.json`, JSON.stringify(seedMeta, null, 2)).catch(() => {});
 
   const taskMode = !!effectiveTaskName;
   const userIds = createUsers(db, taskMode);
@@ -160,59 +165,61 @@ export function seedDatabase(db: Database, taskName?: string) {
   const seedFlights = db.transaction(() => {
     for (let dayOffset = 0; dayOffset < dayCount; dayOffset++) {
       for (const config of FLIGHT_CONFIGS) {
-        if (Math.random() < skipRate) {
-          flightNumber++;
-          continue;
-        }
+        for (const timeSlot of config.times) {
+          if (Math.random() < skipRate) {
+            flightNumber++;
+            continue;
+          }
 
-        // Skip flight numbers 2000-2099 (reserved for specific flights)
-        if (flightNumber >= 2000 && flightNumber <= 2099) {
-          flightNumber = 2100;
-        }
+          // Skip flight numbers 2000-2099 (reserved for task-specific flights)
+          if (flightNumber === 2000) {
+            flightNumber = 2100;
+          }
 
-        const departureTime = new Date(
-          now.getTime() + dayOffset * 86400000 + config.time * 3600000
-        );
-        const arrivalTime = new Date(departureTime.getTime() + config.hours * 3600000);
-
-        insertFlight.run(
-          `AA${flightNumber}`,
-          "GKD Airlines",
-          config.origin,
-          AIRPORTS[config.origin].city,
-          AIRPORTS[config.origin].airport,
-          config.dest,
-          AIRPORTS[config.dest].city,
-          AIRPORTS[config.dest].airport,
-          fmt(departureTime),
-          fmt(arrivalTime),
-          Math.round(config.hours * 60),
-          config.price,
-          config.price * 2,
-          config.price * 3,
-          "Boeing 737",
-          "scheduled",
-        );
-
-        const flightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
-
-        const seats = generateSeats(config.price, config.price * 2, config.price * 3);
-        for (const seat of seats) {
-          insertSeat.run(
-            flightId,
-            seat.seatNumber,
-            seat.cabinClass,
-            seat.price,
-            seat.isAvailable ? 1 : 0,
-            seat.isWindow ? 1 : 0,
-            seat.isAisle ? 1 : 0,
-            seat.hasExtraLegroom ? 1 : 0,
-            seat.rowNumber,
-            seat.seatLetter,
+          const departureTime = new Date(
+            now.getTime() + dayOffset * 86400000 + timeSlot * 3600000
           );
-        }
+          const arrivalTime = new Date(departureTime.getTime() + config.hours * 3600000);
 
-        flightNumber++;
+          insertFlight.run(
+            `GKD${flightNumber}`,
+            "GKD Airlines",
+            config.origin,
+            AIRPORTS[config.origin].city,
+            AIRPORTS[config.origin].airport,
+            config.dest,
+            AIRPORTS[config.dest].city,
+            AIRPORTS[config.dest].airport,
+            fmt(departureTime),
+            fmt(arrivalTime),
+            Math.round(config.hours * 60),
+            config.price,
+            config.price * 2,
+            config.price * 3,
+            "Boeing 737",
+            "scheduled",
+          );
+
+          const flightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+
+          const seats = generateSeats(config.price, config.price * 2, config.price * 3);
+          for (const seat of seats) {
+            insertSeat.run(
+              flightId,
+              seat.seatNumber,
+              seat.cabinClass,
+              seat.price,
+              seat.isAvailable ? 1 : 0,
+              seat.isWindow ? 1 : 0,
+              seat.isAisle ? 1 : 0,
+              seat.hasExtraLegroom ? 1 : 0,
+              seat.rowNumber,
+              seat.seatLetter,
+            );
+          }
+
+          flightNumber++;
+        }
       }
     }
   });

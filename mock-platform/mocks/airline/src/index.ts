@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { existsSync } from "node:fs";
 import { createMockApp, createRoute, startServer } from "mock-lib";
 import { getAirlineDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
@@ -14,14 +15,18 @@ import { registerFaqRoutes } from "./routes/faq";
 import { registerInfoRoutes } from "./routes/info";
 import { registerMockServiceRoutes } from "./routes/mock-services";
 
-export function createAirlineApp(options?: { dbPath?: string }) {
+export function createAirlineApp(options?: { dbPath?: string; frontendDir?: string }) {
   const db = getAirlineDb({ dbPath: options?.dbPath });
   initSchema(db);
   seedDatabase(db);
 
+  const candidateFrontendDir = options?.frontendDir ?? process.env.FRONTEND_DIR ?? "/opt/mock/frontend/airline";
+  const frontendDir = existsSync(candidateFrontendDir) ? candidateFrontendDir : undefined;
+
   const mockApp = createMockApp({
     name: "airline",
     port: 5000,
+    frontendDir,
     openApi: {
       enabled: true,
       title: "Airline Mock API",

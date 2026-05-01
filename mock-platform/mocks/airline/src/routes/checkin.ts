@@ -18,6 +18,22 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     // Check all passengers have seats
     const unseated = db.query("SELECT COUNT(*) as count FROM passengers WHERE booking_id = ? AND seat_id IS NULL").get(booking.id) as { count: number };
     if (unseated.count > 0) {
+      // AC-13: Check if there are no economy window seats available — mention upgrade fee
+      const flightId = Number(booking.flight_id);
+      const cabinClass = String(booking.cabin_class ?? "economy");
+      if (cabinClass === "economy") {
+        const availableEconWindow = db.query(
+          "SELECT COUNT(*) as count FROM seats WHERE flight_id = ? AND cabin_class = 'economy' AND is_window = 1 AND is_available = 1"
+        ).get(flightId) as { count: number };
+        if (availableEconWindow.count === 0) {
+          return c.json(err(
+            "All passengers must have seat assignments before check-in. " +
+            "No economy window seats are available. " +
+            "You can upgrade to business class for an additional $350 to get a window seat. " +
+            "Upgrade fee: $350"
+          ), 400);
+        }
+      }
       return c.json(err("All passengers must have seat assignments before check-in"), 400);
     }
 
@@ -95,7 +111,10 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     if (!booking) return c.json(err("Booking not found"), 404);
 
     const flightId = Number(booking.flight_id);
-    const seats = db.query("SELECT * FROM seats WHERE flight_id = ? ORDER BY row_number, seat_letter").all(flightId) as Record<string, unknown>[];
+    const cabinClass = String(booking.cabin_class ?? "economy");
+
+    // Filter seats to the booking's cabin class
+    const seats = db.query("SELECT * FROM seats WHERE flight_id = ? AND cabin_class = ? ORDER BY row_number, seat_letter").all(flightId, cabinClass) as Record<string, unknown>[];
 
     const chart: Record<number, Record<string, unknown>[]> = {};
     for (const seat of seats) {
