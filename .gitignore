@@ -42,3 +42,4 @@ docs/superpowers/
 .venv
 .venv/
 
+tasks/**/airline-app/frontend/dist/
