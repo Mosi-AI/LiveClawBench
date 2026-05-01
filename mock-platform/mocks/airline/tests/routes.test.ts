@@ -1,0 +1,185 @@
+import { describe, expect, test, beforeEach } from "bun:test";
+import { createAirlineApp } from "../src/index";
+import { resetAirlineDb } from "../src/db";
+import type { OpenAPIApp } from "mock-lib";
+
+describe("airline routes", () => {
+  let app: OpenAPIApp;
+
+  beforeEach(() => {
+    resetAirlineDb();
+    app = createAirlineApp({ dbPath: ":memory:" }).app;
+  });
+
+  describe("auth", () => {
+    test("POST /api/auth/register creates user", async () => {
+      const email = `test-${Date.now()}@example.com`;
+      const res = await app.request("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: "password123", first_name: "Test", last_name: "User" }),
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.user.email).toBe(email);
+    });
+
+    test("POST /api/auth/login returns token", async () => {
+      const res = await app.request("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "peter.griffin@work.mosi.inc", password: "$2b$12$placeholder_hash_for_peter" }),
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.access_token).toBeDefined();
+    });
+
+    test("GET /api/auth/profile returns default user", async () => {
+      const res = await app.request("/api/auth/profile");
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.email).toBe("peter.griffin@work.mosi.inc");
+    });
+  });
+
+  describe("flights", () => {
+    test("GET /api/flights returns paginated list", async () => {
+      const res = await app.request("/api/flights");
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.items).toBeArray();
+      expect(body.data.total).toBeGreaterThan(0);
+    });
+
+    test("POST /api/flights/search filters by origin/destination", async () => {
+      const res = await app.request("/api/flights/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ origin: "JFK", destination: "LAX", departure_date: "2026-05-05" }),
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.flights).toBeArray();
+    });
+
+    test("GET /api/flights/:id/seats returns grouped seats", async () => {
+      const flightRes = await app.request("/api/flights");
+      const flightBody = await flightRes.json();
+      const flightId = flightBody.data.items[0].id;
+
+      const res = await app.request(`/api/flights/${flightId}/seats`);
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.seats.economy).toBeArray();
+      expect(body.data.total_seats).toBe(208);
+    });
+  });
+
+  describe("bookings", () => {
+    test("POST /api/bookings/ creates pending booking", async () => {
+      const flightRes = await app.request("/api/flights");
+      const flightBody = await flightRes.json();
+      const flightId = flightBody.data.items[0].id;
+
+      const res = await app.request("/api/bookings/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          flight_id: flightId,
+          cabin_class: "economy",
+          passengers: [{ first_name: "Test", last_name: "User", date_of_birth: "1990-01-01" }],
+        }),
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.booking_status).toBe("pending");
+      expect(body.data.booking_reference).toHaveLength(6);
+    });
+
+    test("POST /api/mock/payment/process confirms booking", async () => {
+      const flightRes = await app.request("/api/flights");
+      const flightBody = await flightRes.json();
+      const flightId = flightBody.data.items[0].id;
+
+      const bookingRes = await app.request("/api/bookings/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          flight_id: flightId,
+          cabin_class: "economy",
+          passengers: [{ first_name: "Test", last_name: "User", date_of_birth: "1990-01-01" }],
+        }),
+      });
+      const bookingBody = await bookingRes.json();
+      const bookingId = bookingBody.data.id;
+
+      const res = await app.request("/api/mock/payment/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          booking_id: bookingId,
+          card_number: "4111111111111111",
+          card_holder: "Auto Payment",
+          expiry: "12/25",
+          cvv: "123",
+        }),
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.booking_status).toBe("confirmed");
+    });
+  });
+
+  describe("claims", () => {
+    test("POST /api/claims/ creates claim", async () => {
+      const res = await app.request("/api/claims/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          booking_reference: "FAKE01",
+          claim_type: "cancellation",
+          claim_amount: 500,
+          claim_reason: "Flight was cancelled",
+        }),
+      });
+      expect(res.status).toBe(404);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+    });
+  });
+
+  describe("mock services", () => {
+    test("GET /api/mock/emails returns emails", async () => {
+      const res = await app.request("/api/mock/emails");
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.items).toBeArray();
+    });
+
+    test("GET /api/mock/calendar/events returns events", async () => {
+      const res = await app.request("/api/mock/calendar/events");
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.events).toBeArray();
+    });
+
+    test("GET /api/mock/chat/sessions returns sessions", async () => {
+      const res = await app.request("/api/mock/chat/sessions");
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.sessions).toBeArray();
+    });
+  });
+});

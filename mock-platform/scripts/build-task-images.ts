@@ -291,7 +291,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
   // TODO: Remove this filter block when airline, email, and todolist
   // are fully migrated from Python stubs to Bun implementations.
   // Condition: all entries in STUB_BINARIES are removed.
-  const STUB_BINARIES = new Set(["email", "airline", "todolist"]);
+  const STUB_BINARIES = new Set(["email", "todolist"]);
   const implementedBinaries = binaries.filter((b) => !STUB_BINARIES.has(b));
   const hasStubBinaries = binaries.some((b) => STUB_BINARIES.has(b));
 
@@ -307,6 +307,12 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         // Signal to solution/solve.sh that Bun mock is already running,
         // preventing it from starting the legacy Python sidecar on the same port
         lines.push(`export BROWSER_MOCK_BASE_URL="http://127.0.0.1:${port}"`);
+      } else if (bin === "airline") {
+        // Airline Bun binary must share the SQLite DB with the Python verifier
+        // so that verifier scripts (which import SQLAlchemy models) see the
+        // same data the agent created through the Bun API.
+        lines.push(`export AIRLINE_DB_PATH=/workspace/environment/airline-app/backend/instance/airline.db`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }
