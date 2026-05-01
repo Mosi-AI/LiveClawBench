@@ -54,20 +54,20 @@ export const claimsAPI = {
 // Mock Services API
 export const mockAPI = {
   // Email
-  getEmails: (params) => api.get('/mock/emails', { params }),
-  getEmailById: (id) => api.get(`/mock/emails/${id}`),
+  getEmails: (params) => api.get('/emails', { params }),
+  getEmailById: (id) => api.get(`/emails/${id}`),
 
   // Calendar
-  getCalendarEvents: (params) => api.get('/mock/calendar/events', { params }),
+  getCalendarEvents: (params) => api.get('/calendar/events', { params }),
 
   // Payment
-  processPayment: (data) => api.post('/mock/payment/process', data),
+  processPayment: (data) => api.post('/payment/process', data),
 
   // Chat
-  getChatSessions: () => api.get('/mock/chat/sessions'),
-  createChatSession: () => api.post('/mock/chat/sessions'),
-  sendMessage: (sessionId, message) => api.post(`/mock/chat/sessions/${sessionId}/messages`, { message }),
-  closeChatSession: (sessionId) => api.post(`/mock/chat/sessions/${sessionId}/close`),
+  getChatSessions: () => api.get('/chat/sessions'),
+  createChatSession: () => api.post('/chat/sessions'),
+  sendMessage: (sessionId, message) => api.post(`/chat/sessions/${sessionId}/messages`, { message }),
+  closeChatSession: (sessionId) => api.post(`/chat/sessions/${sessionId}/close`),
 };
 
 // Announcements API

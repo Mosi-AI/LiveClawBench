@@ -18,7 +18,7 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     // Check all passengers have seats
     const unseated = db.query("SELECT COUNT(*) as count FROM passengers WHERE booking_id = ? AND seat_id IS NULL").get(booking.id) as { count: number };
     if (unseated.count > 0) {
-      // AC-13: Check if there are no economy window seats available — mention upgrade fee
+      // Check if there are no economy window seats available — mention upgrade fee
       const flightId = Number(booking.flight_id);
       const cabinClass = String(booking.cabin_class ?? "economy");
       if (cabinClass === "economy") {

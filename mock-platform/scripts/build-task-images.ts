@@ -325,9 +325,29 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`ln -sfn /opt/mock/python_compat/airline-app /workspace/environment/airline-app`);
         lines.push(`mkdir -p /workspace/environment/airline-app/backend/instance`);
         lines.push(`ln -sf /var/lib/mock-data/airline/airline.db /workspace/environment/airline-app/backend/instance/airline.db`);
-        // Smoke check: verify python_compat bridge is importable
-        lines.push(`python3 -c "import sys; sys.path.insert(0, '/workspace/environment/airline-app/backend'); from app import create_app" || echo "WARNING: python_compat import failed"`);
-        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
+        // Fail-fast smoke check: verify python_compat bridge creates a working app
+        lines.push(`python3 -c "import sys; sys.path.insert(0, '/workspace/environment/airline-app/backend'); from app import create_app; create_app('development')"`);
+        // Redirect Bun airline logs to expected paths and proxy 5173→5000
+        // so task instructions referencing localhost:5173 continue to work.
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/airline-backend.log 2>&1 &`);
+        lines.push(`echo "Airline frontend served by Bun on port ${port}" > /tmp/airline-frontend.log`);
+        lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/airline-npm-install.log`);
+        // Proxy port 5173 to Bun airline port for legacy URL compatibility
+        // Uses Python's socketserver (always available) as a simple TCP forwarder.
+        lines.push(`python3 -c "`);
+        lines.push(`import socketserver, socket, threading`);
+        lines.push(`class P(socketserver.ThreadingTCPServer): allow_reuse_address = True`);
+        lines.push(`class H(socketserver.BaseRequestHandler):`);
+        lines.push(`  def handle(self):`);
+        lines.push(`    b=socket.socket(); b.connect(('127.0.0.1',${port}))`);
+        lines.push(`    def fwd(src,dst):`);
+        lines.push(`      try:`);
+        lines.push(`        while 1: d=src.recv(8192); dst.send(d) if d else None`);
+        lines.push(`      except: pass`);
+        lines.push(`    threading.Thread(target=fwd,args=(self.request,b)).start()`);
+        lines.push(`    fwd(b,self.request)`);
+        lines.push(`P(('0.0.0.0',5173),H).serve_forever()`);
+        lines.push(`" > /dev/null 2>&1 &`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }

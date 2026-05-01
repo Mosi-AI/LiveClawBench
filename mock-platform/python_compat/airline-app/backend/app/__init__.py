@@ -22,15 +22,6 @@ def create_app(config_name="default"):
     CORS(app, origins="*", allow_headers=["Content-Type", "Authorization"])
     init_utils(app)
 
-    @event.listens_for(db.engine, "connect")
-    def _set_sqlite_pragmas(dbapi_connection, connection_record):
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA journal_mode=WAL")
-        cursor.execute("PRAGMA busy_timeout=5000")
-        cursor.execute("PRAGMA synchronous=NORMAL")
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
-
     import os
 
     instance_path = os.path.join(app.root_path, "..", "instance")
@@ -38,6 +29,17 @@ def create_app(config_name="default"):
         os.makedirs(instance_path)
 
     with app.app_context():
+        # Register PRAGMA listener on the engine inside app context
+        # so db.engine can resolve SQLALCHEMY_DATABASE_URI.
+        @event.listens_for(db.engine, "connect")
+        def _set_sqlite_pragmas(dbapi_connection, connection_record):
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA busy_timeout=5000")
+            cursor.execute("PRAGMA synchronous=NORMAL")
+            cursor.execute("PRAGMA foreign_keys=ON")
+            cursor.close()
+
         db.create_all()
 
     @app.errorhandler(404)
