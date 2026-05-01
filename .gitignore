@@ -20,6 +20,9 @@ run_*.sh
 # Node.js dependencies
 **/node_modules/
 
+# Flask instance folders (SQLite runtime databases)
+**/instance/
+
 # Local Git worktrees used by code agents
 .worktrees/
 
