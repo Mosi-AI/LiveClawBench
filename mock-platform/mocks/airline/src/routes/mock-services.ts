@@ -74,9 +74,15 @@ function registerEmailRoutes(app: OpenAPIApp, db: Database, prefix: string): voi
     }
 
     const countRow = db.query(`SELECT COUNT(*) as total FROM (${sql})`).get(...params) as { total: number };
-    const items = db.query(`${sql} ORDER BY sent_at DESC LIMIT ? OFFSET ?`).all(...params, perPage, offset) as Record<string, unknown>[];
+    const emails = db.query(`${sql} ORDER BY sent_at DESC LIMIT ? OFFSET ?`).all(...params, perPage, offset) as Record<string, unknown>[];
 
-    return c.json(ok(paginate(items, countRow.total, page, perPage)));
+    return c.json(ok({
+      emails,
+      total: countRow.total,
+      page,
+      per_page: perPage,
+      pages: Math.ceil(countRow.total / perPage),
+    }));
   });
 
   app.get(`${prefix}/emails/:email_id`, (c) => {

@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeEach } from "bun:test";
 import { createAirlineApp } from "../src/index";
-import { resetAirlineDb } from "../src/db";
+import { resetAirlineDb, getAirlineDb } from "../src/db";
 import type { OpenAPIApp } from "mock-lib";
 
 describe("airline routes", () => {
@@ -112,7 +112,7 @@ describe("airline routes", () => {
       expect(paymentBody.data.payment.payment_status).toBe("completed");
     });
 
-    test("POST /api/mock/payment/process processes payment", async () => {
+    test("POST /api/payment/process processes payment", async () => {
       const flightRes = await app.request("/api/flights");
       const flightBody = await flightRes.json();
       const flightId = flightBody.data.flights[0].id;
@@ -129,7 +129,7 @@ describe("airline routes", () => {
       const bookingBody = await bookingRes.json();
       const bookingId = bookingBody.data.id;
 
-      const res = await app.request("/api/mock/payment/process", {
+      const res = await app.request("/api/payment/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -166,25 +166,79 @@ describe("airline routes", () => {
     });
   });
 
+  describe("seat selection upgrade fee (flight-seat-selection-failed flow)", () => {
+    test("returns upgrade fee with 350 when all economy window seats are occupied", async () => {
+      // Get a flight with seats
+      const flightRes = await app.request("/api/flights");
+      const flightBody = await flightRes.json();
+      const flightId = flightBody.data.flights[0].id;
+
+      // Create a booking for this flight
+      const bookingRes = await app.request("/api/bookings/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          flight_id: flightId,
+          cabin_class: "economy",
+          passengers: [{ first_name: "Test", last_name: "User", date_of_birth: "1990-01-01" }],
+        }),
+      });
+      const bookingBody = await bookingRes.json();
+      const bookingRef = bookingBody.data.booking_reference;
+      const bookingId = bookingBody.data.id;
+
+      // Query passenger from DB directly
+      const db = getAirlineDb();
+      const passenger = db.query("SELECT id FROM passengers WHERE booking_id = ? LIMIT 1").get(bookingId) as { id: number } | null;
+      expect(passenger).toBeDefined();
+
+      // Get all economy window seats and mark them all as unavailable
+      // (simulating flight-seat-selection-failed scenario)
+      db.query(
+        "UPDATE seats SET is_available = 0 WHERE flight_id = ? AND cabin_class = 'economy' AND is_window = 1"
+      ).run(flightId);
+
+      // Find one of those occupied window seats
+      const occupiedWindowSeat = db.query(
+        "SELECT id, seat_number FROM seats WHERE flight_id = ? AND cabin_class = 'economy' AND is_window = 1 LIMIT 1"
+      ).get(flightId) as { id: number; seat_number: string } | null;
+      expect(occupiedWindowSeat).toBeDefined();
+
+      // Attempt to select that occupied window seat
+      const seatRes = await app.request(`/api/bookings/${bookingRef}/seats`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          seat_assignments: [{ passenger_id: passenger!.id, seat_id: occupiedWindowSeat!.id }],
+        }),
+      });
+      expect(seatRes.status).toBe(400);
+      const seatBody = await seatRes.json();
+      expect(seatBody.success).toBe(false);
+      expect(seatBody.message).toContain("350");
+      expect(seatBody.message).toContain("upgrade");
+    });
+  });
+
   describe("mock services", () => {
-    test("GET /api/mock/emails returns emails", async () => {
-      const res = await app.request("/api/mock/emails");
+    test("GET /api/emails returns emails with legacy key", async () => {
+      const res = await app.request("/api/emails");
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
-      expect(body.data.items).toBeArray();
+      expect(body.data.emails).toBeArray();
     });
 
-    test("GET /api/mock/calendar/events returns events", async () => {
-      const res = await app.request("/api/mock/calendar/events");
+    test("GET /api/calendar/events returns events", async () => {
+      const res = await app.request("/api/calendar/events");
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
       expect(body.data.events).toBeArray();
     });
 
-    test("GET /api/mock/chat/sessions returns sessions", async () => {
-      const res = await app.request("/api/mock/chat/sessions");
+    test("GET /api/chat/sessions returns sessions", async () => {
+      const res = await app.request("/api/chat/sessions");
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);

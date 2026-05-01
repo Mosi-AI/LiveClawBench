@@ -133,8 +133,7 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
       }
 
       if (!seat.is_available) {
-        // AC-13: Check if this is a window seat unavailability in economy on a
-        // flight with no available economy window seats — return upgrade fee info.
+        // Window seat unavailability in economy — check if upgrade fee applies
         const isEconomyWindow = seat.cabin_class === "economy" && seat.is_window;
         if (isEconomyWindow) {
           const availableEconWindow = db.query(

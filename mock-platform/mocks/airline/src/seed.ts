@@ -171,8 +171,10 @@ export function seedDatabase(db: Database, taskName?: string) {
             continue;
           }
 
-          // Skip flight numbers 2000-2099 (reserved for task-specific flights)
-          if (flightNumber === 2000) {
+          // Skip flight number 2000 range only for tasks that need GKD2001
+          // (flight-seat-selection, flight-seat-selection-failed, flight-cancel-claim)
+          const needsGKD2001 = ["flight-seat-selection", "flight-seat-selection-failed", "flight-cancel-claim"].includes(effectiveTaskName);
+          if (needsGKD2001 && flightNumber === 2000) {
             flightNumber = 2100;
           }
 

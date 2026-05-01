@@ -316,14 +316,17 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`export AIRLINE_DB_PATH=/var/lib/mock-data/airline/airline.db`);
         lines.push(`export DATABASE_URL=sqlite:////var/lib/mock-data/airline/airline.db`);
         lines.push(`mkdir -p /var/lib/mock-data/airline`);
-        // Symlink python_compat so verifier imports resolve to the expected path.
-        // This must happen before the verifier runs, and must not clobber any
-        // existing app files mounted by the task Dockerfile.
-        lines.push(`if [ ! -e /workspace/environment/airline-app ]; then`);
-        lines.push(`  ln -sf /opt/mock/python_compat/airline-app /workspace/environment/airline-app`);
+        // Replace the legacy airline-app with python_compat bridge so verifier
+        // imports resolve to /opt/mock/python_compat/airline-app. The -T flag
+        // treats the target as a normal file (avoids linking inside an existing dir).
+        lines.push(`if [ -e /workspace/environment/airline-app ] && [ ! -L /workspace/environment/airline-app ]; then`);
+        lines.push(`  mv /workspace/environment/airline-app /workspace/environment/airline-app.legacy`);
         lines.push(`fi`);
+        lines.push(`ln -sfn /opt/mock/python_compat/airline-app /workspace/environment/airline-app`);
         lines.push(`mkdir -p /workspace/environment/airline-app/backend/instance`);
         lines.push(`ln -sf /var/lib/mock-data/airline/airline.db /workspace/environment/airline-app/backend/instance/airline.db`);
+        // Smoke check: verify python_compat bridge is importable
+        lines.push(`python3 -c "import sys; sys.path.insert(0, '/workspace/environment/airline-app/backend'); from app import create_app" || echo "WARNING: python_compat import failed"`);
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
@@ -458,8 +461,8 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       lines.push(stripped);
       lines.push("");
     }
-  } else if (hasStubBinaries) {
-    // Tasks with stub binaries (email, airline, todolist) and no startup_extra:
+  } else if (hasStubBinaries && implementedBinaries.length === 0) {
+    // Tasks with ONLY stub binaries (no implemented ones) and no startup_extra:
     // start the real Python/Node services from the task's startup.sh instead.
     // Run via bash since startup.sh files use Bash-specific features.
     lines.push("# Legacy app fallback — stub binaries, run real services via bash");
@@ -467,6 +470,63 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("  bash /workspace/environment/startup.sh");
     lines.push("fi");
     lines.push("");
+  } else if (hasStubBinaries && implementedBinaries.length > 0 && !startupExtra) {
+    // Mixed tasks: some binaries are implemented (Bun), others are stubs (legacy Python).
+    // No startup_extra provided, so load the task's default startup.sh and filter
+    // out blocks for implemented services to avoid port conflicts.
+    const taskStartupPath = join(
+      import.meta.dir, "..", "..", "tasks", task, "environment", "startup.sh"
+    );
+    let taskStartup: string | undefined;
+    if (existsSync(taskStartupPath)) {
+      taskStartup = readFileSync(taskStartupPath, "utf-8");
+    }
+    if (taskStartup) {
+      let filtered = taskStartup
+        .split("\n")
+        .filter((line) => !line.startsWith("#!") && line.trim() !== "set -euo pipefail");
+
+      // Apply the same block filters as startup_extra path
+      if (implementedBinaries.includes("airline")) {
+        let inAirlineBlock = false;
+        filtered = filtered.filter((line) => {
+          const l = line.trim();
+          if (l.match(/^#\s*Start\s+airline-app/i)) {
+            inAirlineBlock = true;
+            return false;
+          }
+          if (inAirlineBlock && l.match(/^#\s*Start\s+/i)) {
+            inAirlineBlock = false;
+            return true;
+          }
+          if (inAirlineBlock) return false;
+          return true;
+        });
+      }
+      if (implementedBinaries.includes("shop")) {
+        let inShopBlock = false;
+        filtered = filtered.filter((line) => {
+          const l = line.trim();
+          if (l.match(/^#\s*Start\s+shop-app/i)) {
+            inShopBlock = true;
+            return false;
+          }
+          if (inShopBlock && l.match(/^#\s*Start\s+/i)) {
+            inShopBlock = false;
+            return true;
+          }
+          if (inShopBlock) return false;
+          return true;
+        });
+      }
+
+      const stripped = filtered.join("\n").trimEnd();
+      if (stripped) {
+        lines.push("# Filtered legacy startup (stub services only, implemented services stripped)");
+        lines.push(stripped);
+        lines.push("");
+      }
+    }
   }
 
   // Step 3: Final wait for all services to be ready
@@ -799,22 +859,26 @@ async function buildTaskImage(
 
   // COPY pre-built frontend SPA files (if configured)
   if (frontend && frontendBuildDir) {
-    const contextDir = `frontend-${task}`;
-    const contextPath = join(DIST_DIR, contextDir);
-    // Copy the build output into the Docker build context
-    mkdirSync(contextPath, { recursive: true });
-    const cpProc = Bun.spawnSync(["cp", "-r", `${frontendBuildDir}/.`, contextPath]);
-    if (cpProc.exitCode !== 0) {
-      return {
-        task,
-        success: false,
-        imageTag,
-        binariesIncluded: binaries,
-        error: `Failed to copy frontend build output to context: ${cpProc.stderr}`,
-      };
+    if (dryRun) {
+      console.log(`  [DRY RUN] frontend build output → ${frontend.dest}`);
+      console.log(`  [DRY RUN] COPY frontend-${task}/ ${frontend.dest}/`);
+    } else {
+      const contextDir = `frontend-${task}`;
+      const contextPath = join(DIST_DIR, contextDir);
+      mkdirSync(contextPath, { recursive: true });
+      const cpProc = Bun.spawnSync(["cp", "-r", `${frontendBuildDir}/.`, contextPath]);
+      if (cpProc.exitCode !== 0) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Failed to copy frontend build output to context: ${cpProc.stderr}`,
+        };
+      }
+      dockerfileLines.push(`RUN mkdir -p ${frontend.dest}`);
+      dockerfileLines.push(`COPY ${contextDir}/ ${frontend.dest}/`);
     }
-    dockerfileLines.push(`RUN mkdir -p ${frontend.dest}`);
-    dockerfileLines.push(`COPY ${contextDir}/ ${frontend.dest}/`);
   }
 
   // COPY startup script to deterministic /opt/mock/startup.d/{task}.sh
