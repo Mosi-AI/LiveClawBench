@@ -22,7 +22,7 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const countRow = db.query(`SELECT COUNT(*) as total FROM bookings WHERE user_id = ? ${status ? "AND booking_status = ?" : "AND booking_status != 'pending'"}`).get(...params) as { total: number };
     const items = db.query(`${sql} ORDER BY booked_at DESC LIMIT ? OFFSET ?`).all(...params, perPage, offset) as Record<string, unknown>[];
 
-    return c.json(ok(paginate(items, countRow.total, page, perPage)));
+    return c.json(ok(paginate(items, countRow.total, page, perPage, "bookings")));
   });
 
   // GET /api/bookings/:booking_reference

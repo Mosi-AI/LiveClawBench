@@ -97,7 +97,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
     const row = db.query("SELECT id FROM users WHERE id = ? AND password_hash = ?").get(DEFAULT_USER_ID, oldPassword) as { id: number } | null;
     if (!row) {
-      return c.json(err("Current password is incorrect"), 400);
+      return c.json(err("Current password is incorrect"), 401);
     }
 
     db.query("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(newPassword, DEFAULT_USER_ID);

@@ -20,7 +20,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     const countRow = db.query(`SELECT COUNT(*) as total FROM (${sql})`).get(...params) as { total: number };
     const items = db.query(`${sql} ORDER BY created_at DESC LIMIT ? OFFSET ?`).all(...params, perPage, offset) as Record<string, unknown>[];
 
-    return c.json(ok(paginate(items, countRow.total, page, perPage)));
+    return c.json(ok(paginate(items, countRow.total, page, perPage, "claims")));
   });
 
   // GET /api/claims/:claim_id
@@ -39,8 +39,8 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     const claimAmount = parseFloat(String(body.claim_amount ?? "0"));
     const claimReason = String(body.claim_reason ?? "");
 
-    if (!bookingReference || !claimType || !claimReason) {
-      return c.json(err("booking_reference, claim_type and claim_reason are required"), 400);
+    if (!bookingReference || !claimType || !claimReason || !body.claim_amount) {
+      return c.json(err("booking_reference, claim_type, claim_amount and claim_reason are required"), 400);
     }
 
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(bookingReference) as Record<string, unknown> | null;
@@ -62,7 +62,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     if (!claim) return c.json(err("Claim not found"), 404);
 
     if (claim.claim_status !== "pending") {
-      return c.json(err("Only pending claims can be updated"), 400);
+      return c.json(err("Claim not found or cannot be updated"), 404);
     }
 
     const body = (await c.req.json()) as Record<string, unknown>;

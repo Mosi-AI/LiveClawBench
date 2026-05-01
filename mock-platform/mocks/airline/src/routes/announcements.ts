@@ -20,7 +20,7 @@ export function registerAnnouncementRoutes(app: OpenAPIApp, db: Database): void 
     const countRow = db.query(`SELECT COUNT(*) as total FROM (${sql})`).get(...params) as { total: number };
     const items = db.query(`${sql} ORDER BY published_at DESC LIMIT ? OFFSET ?`).all(...params, perPage, offset) as Record<string, unknown>[];
 
-    return c.json(ok(paginate(items, countRow.total, page, perPage)));
+    return c.json(ok(paginate(items, countRow.total, page, perPage, "announcements")));
   });
 
   // GET /api/announcements/:announcement_id

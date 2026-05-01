@@ -16,9 +16,10 @@ export function paginate<T>(
   total: number,
   page: number,
   perPage: number,
-): PaginatedResult<T> {
+  key: string = "items",
+): Record<string, unknown> {
   return {
-    items,
+    [key]: items,
     total,
     page,
     per_page: perPage,
