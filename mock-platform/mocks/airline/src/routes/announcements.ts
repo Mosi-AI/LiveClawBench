@@ -3,8 +3,8 @@ import type { Database } from "bun:sqlite";
 import { ok, err, paginate, parsePageParams } from "../helpers";
 
 export function registerAnnouncementRoutes(app: OpenAPIApp, db: Database): void {
-  // GET /api/announcements/
-  app.get("/api/announcements/", (c) => {
+  // GET /api/announcements
+  app.get("/api/announcements", (c) => {
     const query = c.req.query();
     const { page, perPage, offset } = parsePageParams(query.page, query.per_page);
     const category = query.category;

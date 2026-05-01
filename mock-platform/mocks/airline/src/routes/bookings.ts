@@ -3,8 +3,8 @@ import type { Database } from "bun:sqlite";
 import { ok, err, paginate, parsePageParams, DEFAULT_USER_ID, generateBookingReference } from "../helpers";
 
 export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
-  // GET /api/bookings/
-  app.get("/api/bookings/", (c) => {
+  // GET /api/bookings
+  app.get("/api/bookings", (c) => {
     const query = c.req.query();
     const { page, perPage, offset } = parsePageParams(query.page, query.per_page);
     const status = query.status;
@@ -37,8 +37,8 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     return c.json(ok({ ...booking, passengers, payment }));
   });
 
-  // POST /api/bookings/
-  app.post("/api/bookings/", async (c) => {
+  // POST /api/bookings
+  app.post("/api/bookings", async (c) => {
     const body = (await c.req.json()) as Record<string, unknown>;
     const flightId = parseInt(String(body.flight_id ?? "0"), 10);
     const cabinClass = String(body.cabin_class ?? "economy");

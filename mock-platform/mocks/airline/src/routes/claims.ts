@@ -3,8 +3,8 @@ import type { Database } from "bun:sqlite";
 import { ok, err, paginate, parsePageParams, DEFAULT_USER_ID } from "../helpers";
 
 export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
-  // GET /api/claims/
-  app.get("/api/claims/", (c) => {
+  // GET /api/claims
+  app.get("/api/claims", (c) => {
     const query = c.req.query();
     const { page, perPage, offset } = parsePageParams(query.page, query.per_page);
     const status = query.status;
@@ -31,8 +31,8 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     return c.json(ok(item));
   });
 
-  // POST /api/claims/
-  app.post("/api/claims/", async (c) => {
+  // POST /api/claims
+  app.post("/api/claims", async (c) => {
     const body = (await c.req.json()) as Record<string, unknown>;
     const bookingReference = String(body.booking_reference ?? "");
     const claimType = String(body.claim_type ?? "");

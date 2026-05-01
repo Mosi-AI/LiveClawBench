@@ -3,15 +3,15 @@ import type { Database } from "bun:sqlite";
 import { ok, err, getUserById, DEFAULT_USER_ID } from "../helpers";
 
 export function registerProfileRoutes(app: OpenAPIApp, db: Database): void {
-  // GET /api/profile/
-  app.get("/api/profile/", (c) => {
+  // GET /api/profile
+  app.get("/api/profile", (c) => {
     const user = getUserById(db, DEFAULT_USER_ID);
     if (!user) return c.json(err("User not found"), 404);
     return c.json(ok(user));
   });
 
-  // PUT /api/profile/
-  app.put("/api/profile/", async (c) => {
+  // PUT /api/profile
+  app.put("/api/profile", async (c) => {
     const body = (await c.req.json()) as Record<string, unknown>;
     const fields: string[] = [];
     const values: (string | null)[] = [];

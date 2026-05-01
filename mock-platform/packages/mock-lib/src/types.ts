@@ -56,11 +56,4 @@ export interface CreateMockAppOptions extends MockConfig {
   healthResponse?: Record<string, unknown>;
   /** OpenAPI document generation configuration */
   openApi?: OpenApiConfig;
-  /**
-   * Absolute path to a directory containing pre-built SPA static files.
-   * When set, the app serves static files from this directory and adds a
-   * catch-all SPA fallback (returning index.html for non-API routes).
-   * API routes (/api/*, /health, /openapi.json) always take precedence.
-   */
-  frontendDir?: string;
 }

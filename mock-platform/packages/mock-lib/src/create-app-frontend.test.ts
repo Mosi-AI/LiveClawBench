@@ -1,8 +1,7 @@
-import { describe, expect, test, beforeEach, afterAll } from "bun:test";
+import { describe, expect, test, afterAll } from "bun:test";
 import { mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { createMockApp } from "./index";
-import type { MockAppV2 } from "./index";
+import { createMockApp, registerFrontendFallback } from "./index";
 
 const TMP_DIR = join(import.meta.dir, ".tmp-frontend-test");
 
@@ -21,16 +20,14 @@ afterAll(() => {
   if (existsSync(TMP_DIR)) rmSync(TMP_DIR, { recursive: true });
 });
 
-describe("createMockApp — frontendDir SPA serving", () => {
+describe("registerFrontendFallback — SPA serving", () => {
   test("serves index.html at root path", async () => {
     const frontendDir = setupFrontendDir({
       "index.html": "<html><body>SPA Root</body></html>",
     });
 
-    const mockApp = createMockApp({
-      name: "spa-test",
-      frontendDir,
-    });
+    const mockApp = createMockApp({ name: "spa-test" });
+    registerFrontendFallback(mockApp.app, frontendDir);
 
     const res = await mockApp.app.request("/");
     expect(res.status).toBe(200);
@@ -44,10 +41,8 @@ describe("createMockApp — frontendDir SPA serving", () => {
       "assets/main.js": "console.log('app')",
     });
 
-    const mockApp = createMockApp({
-      name: "spa-test",
-      frontendDir,
-    });
+    const mockApp = createMockApp({ name: "spa-test" });
+    registerFrontendFallback(mockApp.app, frontendDir);
 
     const res = await mockApp.app.request("/assets/main.js");
     expect(res.status).toBe(200);
@@ -60,10 +55,8 @@ describe("createMockApp — frontendDir SPA serving", () => {
       "index.html": "<html><body>SPA Fallback</body></html>",
     });
 
-    const mockApp = createMockApp({
-      name: "spa-test",
-      frontendDir,
-    });
+    const mockApp = createMockApp({ name: "spa-test" });
+    registerFrontendFallback(mockApp.app, frontendDir);
 
     const res = await mockApp.app.request("/search?query=test");
     expect(res.status).toBe(200);
@@ -78,11 +71,11 @@ describe("createMockApp — frontendDir SPA serving", () => {
 
     const mockApp = createMockApp({
       name: "spa-test",
-      frontendDir,
       routes: (app) => {
         app.get("/api/data", (c) => c.json({ success: true, data: { value: 42 } }));
       },
     });
+    registerFrontendFallback(mockApp.app, frontendDir);
 
     // API route should return JSON, not index.html
     const apiRes = await mockApp.app.request("/api/data");
@@ -105,9 +98,9 @@ describe("createMockApp — frontendDir SPA serving", () => {
 
     const mockApp = createMockApp({
       name: "spa-test",
-      frontendDir,
       healthResponse: { status: "healthy", service: "spa-test" },
     });
+    registerFrontendFallback(mockApp.app, frontendDir);
 
     const res = await mockApp.app.request("/health");
     expect(res.status).toBe(200);
@@ -122,11 +115,11 @@ describe("createMockApp — frontendDir SPA serving", () => {
 
     const mockApp = createMockApp({
       name: "spa-test",
-      frontendDir,
       routes: (app) => {
         app.get("/api/data", (c) => c.json({ success: true }));
       },
     });
+    registerFrontendFallback(mockApp.app, frontendDir);
 
     // Registered API route still works
     const okRes = await mockApp.app.request("/api/data");
@@ -144,16 +137,14 @@ describe("createMockApp — frontendDir SPA serving", () => {
       "index.html": "<html><body>SPA</body></html>",
     });
 
-    const mockApp = createMockApp({
-      name: "spa-test",
-      frontendDir,
-    });
+    const mockApp = createMockApp({ name: "spa-test" });
+    registerFrontendFallback(mockApp.app, frontendDir);
 
     const res = await mockApp.app.request("/openapi.json");
     expect(res.status).toBe(404);
   });
 
-  test("works without frontendDir (no SPA serving)", async () => {
+  test("works without frontend fallback (no SPA serving)", async () => {
     const mockApp = createMockApp({
       name: "no-frontend-test",
       routes: (app) => {

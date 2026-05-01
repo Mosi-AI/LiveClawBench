@@ -3,8 +3,8 @@ import type { Database } from "bun:sqlite";
 import { ok, err } from "../helpers";
 
 export function registerFaqRoutes(app: OpenAPIApp, db: Database): void {
-  // GET /api/faq/
-  app.get("/api/faq/", (c) => {
+  // GET /api/faq
+  app.get("/api/faq", (c) => {
     const category = c.req.query("category");
     let sql = "SELECT * FROM faqs WHERE is_active = 1";
     const params: string[] = [];

@@ -797,7 +797,7 @@ async function buildTaskImage(
         };
       }
       dockerfileLines.push(`COPY ${contextDir}/ /opt/mock/python_compat/airline-app/`);
-      dockerfileLines.push(`RUN pip install --no-cache-dir -r /opt/mock/python_compat/airline-app/requirements.txt`);
+      dockerfileLines.push(`RUN pip install --no-cache-dir --break-system-packages -r /opt/mock/python_compat/airline-app/requirements.txt`);
       // Ensure the /workspace/environment/airline-app symlink exists at runtime
       // (the startup script creates it; here we just ensure the target dir exists)
       dockerfileLines.push(`RUN mkdir -p /workspace/environment`);

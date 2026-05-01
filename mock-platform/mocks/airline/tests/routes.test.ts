@@ -90,7 +90,7 @@ describe("airline routes", () => {
       const flightBody = await flightRes.json();
       const flightId = flightBody.data.flights[0].id;
 
-      const res = await app.request("/api/bookings/", {
+      const res = await app.request("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -117,7 +117,7 @@ describe("airline routes", () => {
       const flightBody = await flightRes.json();
       const flightId = flightBody.data.flights[0].id;
 
-      const bookingRes = await app.request("/api/bookings/", {
+      const bookingRes = await app.request("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -149,8 +149,8 @@ describe("airline routes", () => {
   });
 
   describe("claims", () => {
-    test("POST /api/claims/ creates claim", async () => {
-      const res = await app.request("/api/claims/", {
+    test("POST /api/claims creates claim", async () => {
+      const res = await app.request("/api/claims", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -174,7 +174,7 @@ describe("airline routes", () => {
       const flightId = flightBody.data.flights[0].id;
 
       // Create a booking for this flight
-      const bookingRes = await app.request("/api/bookings/", {
+      const bookingRes = await app.request("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

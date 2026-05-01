@@ -4,7 +4,7 @@
 export type { MockConfig, MockApp, AppEnv, CreateMockAppOptions, OpenApiConfig } from "./types";
 
 // Factory
-export { createMockApp } from "./create-app";
+export { createMockApp, registerFrontendFallback } from "./create-app";
 
 // Server
 export { startServer } from "./server";

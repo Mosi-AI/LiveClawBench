@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { existsSync } from "node:fs";
-import { createMockApp, createRoute, startServer } from "mock-lib";
+import { createMockApp, createRoute, startServer, registerFrontendFallback } from "mock-lib";
 import { getAirlineDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
 import { registerAuthRoutes } from "./routes/auth";
@@ -26,7 +26,6 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
   const mockApp = createMockApp({
     name: "airline",
     port: 5000,
-    frontendDir,
     openApi: {
       enabled: true,
       title: "Airline Mock API",
@@ -67,6 +66,12 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
   registerFaqRoutes(app, db);
   registerInfoRoutes(app);
   registerMockServiceRoutes(app, db);
+
+  // Register SPA frontend AFTER all API routes.
+  // The catch-all app.get("*", ...) must come last to avoid intercepting API routes.
+  if (frontendDir) {
+    registerFrontendFallback(app, frontendDir);
+  }
 
   return mockApp;
 }
