@@ -91,21 +91,21 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     if (!booking) return c.json(err("Booking not found"), 404);
 
     const flight = db.query("SELECT * FROM flights WHERE id = ?").get(booking.flight_id) as Record<string, unknown> | null;
+    const totalPrice = Number(booking.total_price);
+    const delayMinutes = Number(flight?.delay_minutes ?? 0);
+
     let refundAmount = 0;
     let reason = "";
 
-    if (flight?.status === "cancelled") {
-      refundAmount = Number(booking.total_price);
-      reason = "Flight cancelled - full refund";
-    } else if (Number(flight?.delay_minutes ?? 0) > 180) {
-      refundAmount = Number(booking.total_price) * 0.5;
-      reason = "Flight delayed over 3 hours - 50% refund";
-    } else if (claimType === "cancellation") {
-      refundAmount = Number(booking.total_price) * 0.8;
-      reason = "Voluntary cancellation - 80% refund";
+    if (claimType === "cancellation" && flight?.status === "cancelled") {
+      refundAmount = totalPrice;
+      reason = "Full refund for cancelled flight";
+    } else if (claimType === "delay" && delayMinutes > 0) {
+      const delayHours = delayMinutes / 60;
+      refundAmount = Math.min(delayHours * 25, totalPrice);
+      reason = `Compensation for ${delayMinutes} minute delay`;
     } else {
-      refundAmount = Number(booking.total_price) * 0.5;
-      reason = "Standard claim - 50% refund";
+      reason = "No compensation applicable";
     }
 
     return c.json(ok({
@@ -114,7 +114,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
       refund_amount: parseFloat(refundAmount.toFixed(2)),
       reason,
       flight_status: flight?.status ?? "unknown",
-      delay_minutes: flight?.delay_minutes ?? 0,
+      delay_minutes: delayMinutes,
     }));
   });
 }

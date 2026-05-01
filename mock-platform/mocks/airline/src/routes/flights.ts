@@ -42,13 +42,7 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
       .query(`SELECT * FROM flights WHERE ${where} ORDER BY departure_time LIMIT ? OFFSET ?`)
       .all(...params, perPage, offset) as Record<string, unknown>[];
 
-    return c.json(ok({
-      flights,
-      total: countRow.total,
-      page,
-      per_page: perPage,
-      pages: Math.ceil(countRow.total / perPage),
-    }));
+    return c.json(ok(paginate(flights, countRow.total, page, perPage, "flights")));
   });
 
   // POST /api/flights/search
@@ -62,7 +56,7 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
 
     const flights = db
       .query(
-        "SELECT * FROM flights WHERE origin_code = ? AND destination_code = ? AND departure_time LIKE ? AND status = 'scheduled' ORDER BY departure_time"
+        "SELECT * FROM flights WHERE origin_code = ? AND destination_code = ? AND departure_time LIKE ? AND status != 'cancelled' ORDER BY departure_time"
       )
       .all(origin, destination, `${departureDate}%`) as Record<string, unknown>[];
 

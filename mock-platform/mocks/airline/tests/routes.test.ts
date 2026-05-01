@@ -166,6 +166,109 @@ describe("airline routes", () => {
     });
   });
 
+  describe("claims calculate-refund (Flask parity)", () => {
+    async function setupBookingOnExistingFlight(overrides: Record<string, unknown> = {}) {
+      const db = getAirlineDb();
+      // Get first seeded flight
+      const flight = db.query("SELECT id, base_price_economy FROM flights LIMIT 1").get() as { id: number; base_price_economy: number } | null;
+      expect(flight).toBeDefined();
+
+      // Apply overrides to flight
+      if (overrides.status) {
+        db.query("UPDATE flights SET status = ? WHERE id = ?").run(String(overrides.status), flight!.id);
+      }
+      if (overrides.delay_minutes !== undefined) {
+        db.query("UPDATE flights SET delay_minutes = ? WHERE id = ?").run(Number(overrides.delay_minutes), flight!.id);
+      }
+
+      // Create a booking for this flight
+      const totalPrice = overrides.total_price ?? 300;
+      const ref = `REFUND-${Date.now()}`;
+      db.query(
+        "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, 1, ?, 'economy', ?, 'confirmed', 0)"
+      ).run(ref, flight!.id, totalPrice);
+      return { ref, totalPrice: Number(totalPrice) };
+    }
+
+    test("cancellation + cancelled flight = full refund", async () => {
+      const { ref, totalPrice } = await setupBookingOnExistingFlight({ status: "cancelled", total_price: 300 });
+      const res = await app.request(`/api/claims/calculate-refund/${ref}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claim_type: "cancellation" }),
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.refund_amount).toBe(totalPrice);
+      expect(body.data.reason).toContain("cancelled flight");
+    });
+
+    test("delay + positive delay_minutes = $25/hr capped at total", async () => {
+      const { ref } = await setupBookingOnExistingFlight({ delay_minutes: 120, total_price: 300 });
+      const res = await app.request(`/api/claims/calculate-refund/${ref}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claim_type: "delay" }),
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      // 120 min / 60 = 2 hours * $25 = $50
+      expect(body.data.refund_amount).toBe(50);
+      expect(body.data.reason).toContain("120 minute delay");
+    });
+
+    test("no matching conditions = zero refund with 'No compensation applicable'", async () => {
+      const { ref } = await setupBookingOnExistingFlight({ delay_minutes: 0 });
+      const res = await app.request(`/api/claims/calculate-refund/${ref}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claim_type: "cancellation" }),
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.refund_amount).toBe(0);
+      expect(body.data.reason).toBe("No compensation applicable");
+    });
+
+    test("delay compensation capped by total price", async () => {
+      const { ref } = await setupBookingOnExistingFlight({ delay_minutes: 600, total_price: 100 });
+      const res = await app.request(`/api/claims/calculate-refund/${ref}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claim_type: "delay" }),
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      // 600/60 = 10hr * $25 = $250 but capped at 100
+      expect(body.data.refund_amount).toBe(100);
+    });
+  });
+
+  describe("baggage POST returns 201", () => {
+    test("POST /api/baggage creates report with 201 status", async () => {
+      const res = await app.request("/api/baggage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          flight_number: "GKD1001",
+          flight_time: "2026-06-01 10:00:00",
+          passenger_name: "Peter Griffin",
+          passenger_phone: "555-1234",
+          passenger_email: "peter@example.com",
+          baggage_description: "Black suitcase",
+        }),
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.message).toContain("successfully");
+    });
+  });
+
   describe("seat selection upgrade fee (flight-seat-selection-failed flow)", () => {
     test("returns upgrade fee with 350 when all economy window seats are occupied", async () => {
       // Get a flight with seats

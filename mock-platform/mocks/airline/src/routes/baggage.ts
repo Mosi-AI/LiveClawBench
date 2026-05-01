@@ -57,7 +57,7 @@ export function registerBaggageRoutes(app: OpenAPIApp, db: Database): void {
 
     const reportId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
     const report = db.query("SELECT * FROM baggage_tracking WHERE id = ?").get(reportId) as Record<string, unknown>;
-    return c.json(ok(report, "Baggage report submitted"));
+    return c.json(ok(report, "Baggage report submitted successfully"), 201);
   });
 
   // GET /api/baggage/:report_id
