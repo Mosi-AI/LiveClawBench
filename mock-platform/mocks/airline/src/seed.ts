@@ -516,26 +516,45 @@ function createFlightSeatSelectionFailedData(db: Database, peterId: number, now:
 }
 
 function createFlightCancelClaimData(db: Database, peterId: number, now: Date): void {
-  // Disable FK checks during task-specific data reconfiguration (deletes cascade across
-  // multiple dependent tables that aren't all explicitly cleaned up here)
-  db.run("PRAGMA foreign_keys = OFF");
-
   // GKD2001: day after tomorrow at 10:00 AM, cancelled
   const departureDate = new Date(now.getTime() + 2 * 86400000);
   departureDate.setHours(10, 0, 0, 0);
   const arrivalTime = new Date(departureDate.getTime() + 5.5 * 3600000);
 
-  // Remove conflicting flights (same number, same time, same route) — seats first for FK constraint
-  db.query(
-    "DELETE FROM seats WHERE flight_id IN (SELECT id FROM flights WHERE flight_number = 'GKD2001')"
-  ).run();
-  db.query("DELETE FROM flights WHERE flight_number = 'GKD2001'").run();
-  db.query(
-    "DELETE FROM seats WHERE flight_id IN (SELECT id FROM flights WHERE origin_code = 'JFK' AND destination_code = 'LAX' AND departure_time LIKE ?)"
-  ).run(`${departureDate.toISOString().split("T")[0]}%`);
-  db.query(
-    "DELETE FROM flights WHERE origin_code = 'JFK' AND destination_code = 'LAX' AND departure_time LIKE ?"
-  ).run(`${departureDate.toISOString().split("T")[0]}%`);
+  // Remove all data for conflicting flights in correct FK order:
+  // passengers/payments/booking_seats → bookings → seats → price_history/flight_status_history → flights
+  const conflictingFilters = [
+    "flight_number = 'GKD2001'",
+    `origin_code = 'JFK' AND destination_code = 'LAX' AND departure_time LIKE '${departureDate.toISOString().split("T")[0]}%'`,
+  ];
+  for (const filter of conflictingFilters) {
+    const conflictingFlightIds = db.query(`SELECT id FROM flights WHERE ${filter}`).all().map((r: Record<string, number>) => r.id);
+    if (conflictingFlightIds.length === 0) continue;
+
+    const conflictingBookingIds = db.query(
+      `SELECT id FROM bookings WHERE flight_id IN (${conflictingFlightIds.join(",")})`
+    ).all().map((r: Record<string, number>) => r.id);
+
+    if (conflictingBookingIds.length > 0) {
+      const bookingList = conflictingBookingIds.join(",");
+      db.query(`DELETE FROM booking_seats WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM passengers WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM payments WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM baggage_tracking WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM claims WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM refunds WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM chat_messages WHERE session_id IN (SELECT id FROM chat_sessions WHERE booking_id IN (${bookingList}))`).run();
+      db.query(`DELETE FROM chat_sessions WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM reviews WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM bookings WHERE id IN (${bookingList})`).run();
+    }
+
+    const flightList = conflictingFlightIds.join(",");
+    db.query(`DELETE FROM seats WHERE flight_id IN (${flightList})`).run();
+    db.query(`DELETE FROM price_history WHERE flight_id IN (${flightList})`).run();
+    db.query(`DELETE FROM flight_status_history WHERE flight_id IN (${flightList})`).run();
+    db.query(`DELETE FROM flights WHERE id IN (${flightList})`).run();
+  }
 
   db.query(
     `INSERT INTO flights (flight_number, airline, origin_code, origin_city, origin_airport,
@@ -603,8 +622,6 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
   ).run(bookingId, 349.99, `TXN-${Date.now()}`);
 
   console.log("airline: created cancelled GKD2001 for flight-cancel-claim");
-
-  db.run("PRAGMA foreign_keys = ON");
 }
 
 function createBaggageTrackingData(db: Database, peterId: number, now: Date): void {
