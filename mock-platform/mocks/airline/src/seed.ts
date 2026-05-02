@@ -516,6 +516,10 @@ function createFlightSeatSelectionFailedData(db: Database, peterId: number, now:
 }
 
 function createFlightCancelClaimData(db: Database, peterId: number, now: Date): void {
+  // Disable FK checks during task-specific data reconfiguration (deletes cascade across
+  // multiple dependent tables that aren't all explicitly cleaned up here)
+  db.run("PRAGMA foreign_keys = OFF");
+
   // GKD2001: day after tomorrow at 10:00 AM, cancelled
   const departureDate = new Date(now.getTime() + 2 * 86400000);
   departureDate.setHours(10, 0, 0, 0);
@@ -599,6 +603,8 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
   ).run(bookingId, 349.99, `TXN-${Date.now()}`);
 
   console.log("airline: created cancelled GKD2001 for flight-cancel-claim");
+
+  db.run("PRAGMA foreign_keys = ON");
 }
 
 function createBaggageTrackingData(db: Database, peterId: number, now: Date): void {
