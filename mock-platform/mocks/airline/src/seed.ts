@@ -265,7 +265,10 @@ function createFlightBookingData(db: Database, peterId: number, now: Date): void
   const nextMonday = calculateNextMonday(now);
   const nextMondayStr = nextMonday.toISOString().split("T")[0];
 
-  // Remove existing JFK-LAX flights on next Monday
+  // Remove existing seats and flights for JFK-LAX on next Monday (seats first for FK constraint)
+  db.query(
+    "DELETE FROM seats WHERE flight_id IN (SELECT id FROM flights WHERE origin_code = 'JFK' AND destination_code = 'LAX' AND departure_time LIKE ?)"
+  ).run(`${nextMondayStr}%`);
   db.query(
     "DELETE FROM flights WHERE origin_code = 'JFK' AND destination_code = 'LAX' AND departure_time LIKE ?"
   ).run(`${nextMondayStr}%`);
@@ -518,8 +521,14 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
   departureDate.setHours(10, 0, 0, 0);
   const arrivalTime = new Date(departureDate.getTime() + 5.5 * 3600000);
 
-  // Remove conflicting flights (same number, same time, same route)
+  // Remove conflicting flights (same number, same time, same route) — seats first for FK constraint
+  db.query(
+    "DELETE FROM seats WHERE flight_id IN (SELECT id FROM flights WHERE flight_number = 'GKD2001')"
+  ).run();
   db.query("DELETE FROM flights WHERE flight_number = 'GKD2001'").run();
+  db.query(
+    "DELETE FROM seats WHERE flight_id IN (SELECT id FROM flights WHERE origin_code = 'JFK' AND destination_code = 'LAX' AND departure_time LIKE ?)"
+  ).run(`${departureDate.toISOString().split("T")[0]}%`);
   db.query(
     "DELETE FROM flights WHERE origin_code = 'JFK' AND destination_code = 'LAX' AND departure_time LIKE ?"
   ).run(`${departureDate.toISOString().split("T")[0]}%`);
