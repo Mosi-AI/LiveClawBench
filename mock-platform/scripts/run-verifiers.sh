@@ -3,6 +3,9 @@
 # Usage: ./run-verifiers.sh <task-name> <image-tag> [output-dir]
 # Mounts the task's tests/ directory into /tests/ in the container.
 # output-dir defaults to /tmp/verifier-output; results go to <output-dir>/<task-name>/
+#
+# Runs /tests/test.sh (the real task harness) instead of direct verify.py.
+# Copies /logs/verifier/reward.txt out of the container after completion.
 
 set -euo pipefail
 
@@ -56,13 +59,28 @@ echo "Checking DB seeding..."
 docker exec "$CONTAINER" sh -c 'sqlite3 /var/lib/mock-data/airline/airline.db "SELECT COUNT(*) FROM flights"' > "${OUTPUT_DIR}/db-flights-count.txt" 2>&1 || echo "DB query failed" >> "${OUTPUT_DIR}/db-flights-count.txt"
 docker exec "$CONTAINER" sh -c 'sqlite3 /var/lib/mock-data/airline/airline.db "SELECT COUNT(*) FROM bookings"' > "${OUTPUT_DIR}/db-bookings-count.txt" 2>&1 || echo "DB query failed" >> "${OUTPUT_DIR}/db-bookings-count.txt"
 
-# Run the verifier
-echo "Running verifier..."
-docker exec "$CONTAINER" sh -c 'mkdir -p /logs/verifier /logs/artifacts && cd /workspace && python3 /tests/verify.py' > "${OUTPUT_DIR}/verifier-output.txt" 2>&1 || true
+# Run the verifier via test.sh (the real task harness)
+# test.sh calls verify.py and writes /logs/verifier/reward.txt
+echo "Running verifier via /tests/test.sh..."
+docker exec "$CONTAINER" sh -c 'mkdir -p /logs/verifier /logs/artifacts && cd /workspace && /tests/test.sh' > "${OUTPUT_DIR}/test-sh-output.txt" 2>&1
+TEST_EXIT=$?
+echo "test.sh exit code: ${TEST_EXIT}" > "${OUTPUT_DIR}/test-sh-exit-code.txt"
 
-# Extract score (macOS grep doesn't support -P)
-SCORE=$(grep -o 'Score:[[:space:]]*[0-9.]*' "${OUTPUT_DIR}/verifier-output.txt" | tail -1 | grep -o '[0-9.]*$' || echo "0")
-echo "$SCORE" > "${OUTPUT_DIR}/reward.txt"
+# Copy reward.txt from container (the authoritative score)
+echo "Copying reward.txt from container..."
+if docker cp "${CONTAINER}:/logs/verifier/reward.txt" "${OUTPUT_DIR}/reward.txt" 2>/dev/null; then
+  SCORE=$(cat "${OUTPUT_DIR}/reward.txt" | tr -d '[:space:]')
+  echo "Reward from container: ${SCORE}"
+else
+  echo "No reward.txt in container" > "${OUTPUT_DIR}/reward-container.txt"
+  # Fallback: try to extract score from test.sh output
+  SCORE=$(grep -o 'Score:[[:space:]]*[0-9.]*' "${OUTPUT_DIR}/test-sh-output.txt" | tail -1 | grep -o '[0-9.]*$' || echo "0")
+  echo "$SCORE" > "${OUTPUT_DIR}/reward.txt"
+fi
+
+# Copy verifier artifacts if they exist
+docker cp "${CONTAINER}:/logs/verifier/." "${OUTPUT_DIR}/verifier-logs/" 2>/dev/null || true
+docker cp "${CONTAINER}:/logs/artifacts/." "${OUTPUT_DIR}/artifacts/" 2>/dev/null || true
 
 echo "=== ${TASK}: Score=${SCORE} ==="
 echo ""
