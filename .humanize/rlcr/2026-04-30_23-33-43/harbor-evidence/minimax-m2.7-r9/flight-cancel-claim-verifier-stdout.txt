@@ -1,0 +1,6 @@
+Found cancelled flight: GKD2001
+  Route: New York -> Los Angeles
+  Departure: 2026-05-05 10:00:00
+  Booking ref: W23983
+FAIL: No email sent to claims@gkdairlines.com
+Score: 0.0/1.0

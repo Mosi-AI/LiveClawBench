@@ -1,0 +1,2 @@
+FAIL: No booking found for Peter Griffin on next Monday from JFK to LAX
+Score: 0.0/1.0
