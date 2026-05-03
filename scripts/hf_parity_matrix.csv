@@ -1,0 +1,8 @@
+model,baggage-tracking-application,flight-booking,flight-seat-selection,flight-seat-selection-failed,flight-cancel-claim
+qwen3.5-397b-a17b,1.00,1.00,1.00,0.00,1.00
+MiniMax-M2.7,1.00,0.67,1.00,0.00,1.00
+glm_5_reasoning_true_moonshot,1.00,1.00,1.00,0.00,1.00
+glm-5-turbo,1.00,0.67,1.00,0.00,1.00
+qwen3.5-122b-a10b,1.00,1.00,1.00,0.00,1.00
+qwen3.5-27b,1.00,0.33,1.00,0.00,1.00
+qwen3.5-35b-a3b,1.00,0.33,1.00,0.00,1.00
