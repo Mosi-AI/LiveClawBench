@@ -1,12 +1,14 @@
 import { describe, expect, test, beforeEach } from "bun:test";
 import { createAirlineApp } from "../src/index";
+import { resetAirlineDb } from "../src/db";
 import type { OpenAPIApp } from "mock-lib";
 
 describe("airline mock", () => {
   let app: OpenAPIApp;
 
   beforeEach(() => {
-    app = createAirlineApp().app;
+    resetAirlineDb();
+    app = createAirlineApp({ dbPath: ":memory:" }).app;
   });
 
   test("GET /health returns 200", async () => {

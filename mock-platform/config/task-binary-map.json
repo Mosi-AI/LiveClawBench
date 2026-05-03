@@ -52,12 +52,47 @@
     "email-writing": { "binaries": ["email"] },
     "email-reply": { "binaries": ["email"] },
     "schedule-change-request": { "binaries": ["airline", "email", "todolist"] },
-    "flight-booking": { "binaries": ["airline"] },
+    "flight-booking": {
+      "binaries": ["airline"],
+      "frontend": {
+        "src": "tasks/flight-booking/environment/airline-app/frontend",
+        "buildDir": "dist",
+        "dest": "/opt/mock/frontend/airline"
+      }
+    },
     "flight-info-change-notice": { "binaries": ["airline", "email", "todolist"] },
-    "flight-seat-selection": { "binaries": ["airline", "email"] },
-    "flight-seat-selection-failed": { "binaries": ["airline", "email"] },
-    "flight-cancel-claim": { "binaries": ["airline", "email"] },
-    "baggage-tracking-application": { "binaries": ["airline"] },
+    "flight-seat-selection": {
+      "binaries": ["airline", "email"],
+      "frontend": {
+        "src": "tasks/flight-seat-selection/environment/airline-app/frontend",
+        "buildDir": "dist",
+        "dest": "/opt/mock/frontend/airline"
+      }
+    },
+    "flight-seat-selection-failed": {
+      "binaries": ["airline", "email"],
+      "frontend": {
+        "src": "tasks/flight-seat-selection-failed/environment/airline-app/frontend",
+        "buildDir": "dist",
+        "dest": "/opt/mock/frontend/airline"
+      }
+    },
+    "flight-cancel-claim": {
+      "binaries": ["airline", "email"],
+      "frontend": {
+        "src": "tasks/flight-cancel-claim/environment/airline-app/frontend",
+        "buildDir": "dist",
+        "dest": "/opt/mock/frontend/airline"
+      }
+    },
+    "baggage-tracking-application": {
+      "binaries": ["airline"],
+      "frontend": {
+        "src": "tasks/baggage-tracking-application/environment/airline-app/frontend",
+        "buildDir": "dist",
+        "dest": "/opt/mock/frontend/airline"
+      }
+    },
     "blog-site-from-scratch": { "binaries": [] },
     "blog-site-completion-from-starter": { "binaries": [] },
     "vue-build-fix-single": { "binaries": [] },
