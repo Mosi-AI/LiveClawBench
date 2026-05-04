@@ -39,3 +39,17 @@ export const RevisionResponseSchema = z.object({
   edited_by_user_id: z.number(),
   edited_at: z.string(),
 });
+
+export const NoteDetailResponseSchema = z.object({
+  id: z.number(),
+  owner_user_id: z.number(),
+  title: z.string(),
+  content: z.string(),
+  content_type: z.string(),
+  preview_text: z.string(),
+  is_seeded: z.number(),
+  save_count: z.number(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  latest_revision: RevisionResponseSchema.nullable(),
+});

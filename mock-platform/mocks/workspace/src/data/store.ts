@@ -91,6 +91,13 @@ export function getRevisionCount(db: Database, noteId: number): number {
   return row.count;
 }
 
+export function getLatestRevision(db: Database, noteId: number): NoteRevision | null {
+  const sql = `SELECT * FROM note_revision WHERE note_id = ? ORDER BY revision_no DESC LIMIT 1`;
+  const row = db.query(sql).get(noteId) as Record<string, unknown> | null;
+  if (!row) return null;
+  return rowToRevision(row);
+}
+
 export function getUserById(db: Database, id: number): { id: number; username: string; display_name: string } | null {
   const row = db.query("SELECT id, username, display_name FROM user WHERE id = ? AND is_active = 1").get(id) as
     Record<string, unknown> | null;

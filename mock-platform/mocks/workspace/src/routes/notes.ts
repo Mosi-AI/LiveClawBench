@@ -2,8 +2,8 @@ import type { OpenAPIApp } from "mock-lib";
 import { createRoute } from "mock-lib";
 import { z } from "zod";
 import type { Database } from "bun:sqlite";
-import { createNote, getNoteById, updateNote, deleteNote, listNotes } from "../data/store.js";
-import { NoteResponseSchema, NoteCreateSchema, NoteUpdateSchema } from "../schemas.js";
+import { createNote, getNoteById, updateNote, deleteNote, listNotes, getLatestRevision } from "../data/store.js";
+import { NoteResponseSchema, NoteDetailResponseSchema, NoteCreateSchema, NoteUpdateSchema } from "../schemas.js";
 
 export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
   const listRoute = createRoute({
@@ -94,7 +94,7 @@ export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
       200: {
         content: {
           "application/json": {
-            schema: NoteResponseSchema,
+            schema: NoteDetailResponseSchema,
           },
         },
         description: "Note detail",
@@ -114,7 +114,8 @@ export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
     const { id } = c.req.valid("param");
     const note = getNoteById(db, id);
     if (!note) return c.json({ error: "Note not found" }, 404);
-    return c.json(note, 200);
+    const latestRevision = getLatestRevision(db, id);
+    return c.json({ ...note, latest_revision: latestRevision }, 200);
   });
 
   const updateRouteDef = createRoute({

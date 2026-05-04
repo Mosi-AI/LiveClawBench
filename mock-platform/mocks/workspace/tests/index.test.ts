@@ -274,6 +274,47 @@ describe("createWorkspaceApp", () => {
     expect(body.title).toBe("Project Kickoff Meeting Notes");
   });
 
+  test("GET /api/notes/:id includes latest_revision metadata after seed", async () => {
+    const res = await app.request("/api/notes/1", { headers: await authHeaders() });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.latest_revision).not.toBeNull();
+    expect(body.latest_revision.note_id).toBe(1);
+    expect(body.latest_revision.revision_no).toBe(1);
+    expect(body.latest_revision.edited_by_user_id).toBe(1);
+    expect(typeof body.latest_revision.content_snapshot).toBe("string");
+    expect(typeof body.latest_revision.edited_at).toBe("string");
+  });
+
+  test("GET /api/notes/:id reflects newest revision after PUT", async () => {
+    await app.request("/api/notes/1", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ title: "After Update", content: "Revised body", content_type: "plain_text" }),
+    });
+    const res = await app.request("/api/notes/1", { headers: await authHeaders() });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.latest_revision).not.toBeNull();
+    expect(body.latest_revision.note_id).toBe(1);
+    expect(body.latest_revision.revision_no).toBe(2);
+    expect(body.latest_revision.content_snapshot).toBe("Revised body");
+    expect(body.latest_revision.edited_by_user_id).toBe(1);
+  });
+
+  test("GET /api/notes/:id returns null latest_revision for note without history", async () => {
+    const createRes = await app.request("/api/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ title: "Fresh", content: "Content", content_type: "plain_text" }),
+    });
+    const note = await createRes.json();
+    const res = await app.request(`/api/notes/${note.id}`, { headers: await authHeaders() });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.latest_revision).toBeNull();
+  });
+
   test("PUT /api/notes/:id updates note and increments save_count", async () => {
     const res = await app.request("/api/notes/1", {
       method: "PUT",
