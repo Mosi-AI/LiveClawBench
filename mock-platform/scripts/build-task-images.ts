@@ -37,6 +37,7 @@ const BINARY_PORTS: Record<string, number> = {
   shop: 1234,
   todolist: 5002,
   "doc-search": 8123,
+  workspace: 5003,
   finance: 1235,
   insurance: 6000,
   calendar: 5006,
