@@ -1,7 +1,17 @@
 import { z } from "zod";
 import { createMockApp, createRoute, startServer } from "mock-lib";
+import { getEmailDb, initSchema } from "./db";
+import { seedDatabase } from "./seed";
+import { registerAuthRoutes } from "./routes/auth";
+import { registerEmailRoutes } from "./routes/emails";
+import { registerAttachmentRoutes } from "./routes/attachments";
+import { registerUserRoutes } from "./routes/users";
 
-export function createEmailApp() {
+export function createEmailApp(options?: { dbPath?: string }) {
+  const db = getEmailDb({ path: options?.dbPath });
+  initSchema(db);
+  seedDatabase(db);
+
   const mockApp = createMockApp({
     name: "email",
     port: 5001,
@@ -12,6 +22,12 @@ export function createEmailApp() {
     },
   });
 
+  const { app } = mockApp;
+
+  // Health check
+  app.get("/api/health", (c) => c.json({ status: "healthy", message: "Email API is running" }));
+
+  // Sentinel route for binary isolation verification
   const sentinelRoute = createRoute({
     method: "get",
     path: "/__mock_sentinel__/email",
@@ -28,7 +44,13 @@ export function createEmailApp() {
     },
   });
 
-  mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
+  app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
+
+  // Register all route modules
+  registerAuthRoutes(app, db);
+  registerEmailRoutes(app, db);
+  registerAttachmentRoutes(app, db);
+  registerUserRoutes(app, db);
 
   return mockApp;
 }

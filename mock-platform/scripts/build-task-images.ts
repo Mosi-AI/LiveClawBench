@@ -286,12 +286,9 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
   }
 
   // Binaries that are stubs (health/sentinel only) — the real services are
-  // started by the task's startup.sh.  Implemented binaries (shop, doc-search)
-  // are full Bun replacements and should be launched directly.
-  // TODO: Remove this filter block when airline, email, and todolist
-  // are fully migrated from Python stubs to Bun implementations.
-  // Condition: all entries in STUB_BINARIES are removed.
-  const STUB_BINARIES = new Set(["email", "todolist"]);
+  // started by the task's startup.sh. Implemented binaries are full Bun
+  // replacements and should be launched directly.
+  const STUB_BINARIES = new Set<string>([]);
   const implementedBinaries = binaries.filter((b) => !STUB_BINARIES.has(b));
   const hasStubBinaries = binaries.some((b) => STUB_BINARIES.has(b));
 

@@ -1,4 +1,0 @@
-Found flight: GKD2001
-  ✓ Seat selection and check-in did not proceed (as expected)
-FAIL: No response found informing user about upgrade fee '350'
-Score: 0.0/1.0

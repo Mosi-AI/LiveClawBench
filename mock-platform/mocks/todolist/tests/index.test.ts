@@ -1,12 +1,14 @@
 import { describe, expect, test, beforeEach } from "bun:test";
 import { createTodolistApp } from "../src/index";
+import { resetTodolistDb } from "../src/db";
 import type { OpenAPIApp } from "mock-lib";
 
 describe("todolist mock", () => {
   let app: OpenAPIApp;
 
   beforeEach(() => {
-    app = createTodolistApp().app;
+    resetTodolistDb();
+    app = createTodolistApp({ dbPath: ":memory:" }).app;
   });
 
   test("GET /health returns 200", async () => {
@@ -20,5 +22,184 @@ describe("todolist mock", () => {
     const res = await app.request("/__mock_sentinel__/todolist");
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
+  });
+
+  test("GET /api/health returns healthy", async () => {
+    const res = await app.request("/api/health");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.status).toBe("healthy");
+  });
+
+  // --- Todos CRUD ---
+
+  test("GET /api/todos returns seeded todos", async () => {
+    const res = await app.request("/api/todos");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBeGreaterThan(0);
+  });
+
+  test("GET /api/todos?month= returns todos for month", async () => {
+    const res = await app.request("/api/todos?month=2026-03");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBeGreaterThan(0);
+  });
+
+  test("GET /api/todos?month= with invalid format returns 400", async () => {
+    const res = await app.request("/api/todos?month=invalid");
+    expect(res.status).toBe(400);
+  });
+
+  test("GET /api/todos?start_date=&end_date= returns range", async () => {
+    const res = await app.request("/api/todos?start_date=2026-03-01&end_date=2026-03-31");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBeGreaterThan(0);
+  });
+
+  test("GET /api/todos/:date returns todos for date", async () => {
+    const res = await app.request("/api/todos/2026-03-10");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+  });
+
+  test("GET /api/todos/:date with invalid format returns 400", async () => {
+    const res = await app.request("/api/todos/bad-date");
+    expect(res.status).toBe(400);
+  });
+
+  test("GET /api/todos/item/:id returns single todo", async () => {
+    const listRes = await app.request("/api/todos");
+    const todos = await listRes.json();
+    const firstId = todos[0].id;
+
+    const res = await app.request(`/api/todos/item/${firstId}`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.id).toBe(firstId);
+  });
+
+  test("GET /api/todos/item/:id with non-existent id returns 404", async () => {
+    const res = await app.request("/api/todos/item/99999");
+    expect(res.status).toBe(404);
+  });
+
+  test("POST /api/todos creates a todo", async () => {
+    const res = await app.request("/api/todos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: "New Todo",
+        date: "2026-05-01",
+        time: "14:00",
+        location: "Office",
+        person: "Team",
+        description: "Test description",
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.title).toBe("New Todo");
+    expect(body.date).toBe("2026-05-01");
+    expect(body.time).toBe("14:00");
+  });
+
+  test("POST /api/todos with missing title returns 400", async () => {
+    const res = await app.request("/api/todos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: "2026-05-01" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("POST /api/todos with invalid date returns 400", async () => {
+    const res = await app.request("/api/todos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "X", date: "bad" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("POST /api/todos with malformed time returns 400", async () => {
+    const res = await app.request("/api/todos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "X", date: "2026-05-01", time: "not-a-time" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("PUT /api/todos/:id updates a todo", async () => {
+    const listRes = await app.request("/api/todos");
+    const todos = await listRes.json();
+    const firstId = todos[0].id;
+
+    const res = await app.request(`/api/todos/${firstId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "Updated Title" }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.title).toBe("Updated Title");
+  });
+
+  test("PUT /api/todos/:id with empty title returns 400", async () => {
+    const listRes = await app.request("/api/todos");
+    const todos = await listRes.json();
+    const firstId = todos[0].id;
+
+    const res = await app.request(`/api/todos/${firstId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "" }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("PUT /api/todos/:id with non-existent id returns 404", async () => {
+    const res = await app.request("/api/todos/99999", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "X" }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  test("DELETE /api/todos/:id deletes a todo", async () => {
+    const listRes = await app.request("/api/todos");
+    const todos = await listRes.json();
+    const firstId = todos[0].id;
+
+    const delRes = await app.request(`/api/todos/${firstId}`, { method: "DELETE" });
+    expect(delRes.status).toBe(200);
+
+    const getRes = await app.request(`/api/todos/item/${firstId}`);
+    expect(getRes.status).toBe(404);
+  });
+
+  test("DELETE /api/todos/:id with non-existent id returns 404", async () => {
+    const res = await app.request("/api/todos/99999", { method: "DELETE" });
+    expect(res.status).toBe(404);
+  });
+
+  // --- Summary ---
+
+  test("GET /api/summary/:month returns summary", async () => {
+    const res = await app.request("/api/summary/2026-03");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(typeof body).toBe("object");
+    expect(Object.keys(body).length).toBeGreaterThan(0);
+  });
+
+  test("GET /api/summary/:month with invalid format returns 400", async () => {
+    const res = await app.request("/api/summary/bad");
+    expect(res.status).toBe(400);
   });
 });

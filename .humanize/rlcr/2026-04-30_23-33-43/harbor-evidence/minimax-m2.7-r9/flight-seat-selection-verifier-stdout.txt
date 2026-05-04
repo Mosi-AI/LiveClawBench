@@ -1,8 +1,0 @@
-Found flight: GKD2001
-  Departure: 2026-05-04 14:42:24
-Found booking: AXPLDW
-  ✗ No seat selected
-  ✗ Not checked in
-
-Final score: 0.00
-Score: 0.0/1.0
