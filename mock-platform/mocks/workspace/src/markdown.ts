@@ -37,6 +37,7 @@ export function renderMarkdown(input: string): string {
   const lines = text.split("\n");
   const blocks: string[] = [];
   let currentParagraph: string[] = [];
+  let currentList: string[] = [];
 
   function flushParagraph() {
     if (currentParagraph.length > 0) {
@@ -45,27 +46,39 @@ export function renderMarkdown(input: string): string {
     }
   }
 
+  function flushList() {
+    if (currentList.length > 0) {
+      const items = currentList.map((item) => `<li>${item}</li>`).join("");
+      blocks.push(`<ul>${items}</ul>`);
+      currentList = [];
+    }
+  }
+
   for (const rawLine of lines) {
     const line = rawLine.trim();
 
     if (line.length === 0) {
       flushParagraph();
+      flushList();
       continue;
     }
 
     // Headings
     if (line.startsWith("### ")) {
       flushParagraph();
+      flushList();
       blocks.push(`<h3>${line.slice(4)}</h3>`);
       continue;
     }
     if (line.startsWith("## ")) {
       flushParagraph();
+      flushList();
       blocks.push(`<h2>${line.slice(3)}</h2>`);
       continue;
     }
     if (line.startsWith("# ")) {
       flushParagraph();
+      flushList();
       blocks.push(`<h1>${line.slice(2)}</h1>`);
       continue;
     }
@@ -73,13 +86,15 @@ export function renderMarkdown(input: string): string {
     // Unordered lists
     if (line.startsWith("- ")) {
       flushParagraph();
-      blocks.push(`<ul><li>${line.slice(2)}</li></ul>`);
+      currentList.push(line.slice(2));
       continue;
     }
 
+    flushList();
     currentParagraph.push(line);
   }
   flushParagraph();
+  flushList();
 
   return blocks.join("\n");
 }

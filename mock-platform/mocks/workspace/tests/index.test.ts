@@ -401,6 +401,31 @@ describe("createWorkspaceApp", () => {
     expect(text).toContain("Project Kickoff Meeting Notes");
   });
 
+  test("GET /note/:id editor pre-selects brief option for brief notes", async () => {
+    const token = await sign({ userId: 1 });
+    // Create a note with content_type=brief
+    const createRes = await app.request("/api/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ title: "Brief Editor Test", content: "B body", content_type: "brief" }),
+    });
+    expect(createRes.status).toBe(200);
+    const note = await createRes.json();
+
+    const res = await app.request(`/note/${note.id}`, {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    // Brief option must exist in the select
+    expect(text).toContain('value="brief"');
+    // Brief option must be marked selected (Hono JSX renders boolean true as just `selected`)
+    expect(text).toMatch(/<option value="brief"[^>]*\bselected\b[^>]*>Brief<\/option>/);
+    // Plain text option must NOT be selected when content_type is brief
+    expect(text).not.toMatch(/<option value="plain_text"[^>]*\bselected\b/);
+    expect(text).not.toMatch(/<option value="markdown"[^>]*\bselected\b/);
+  });
+
   test("GET /note/:id/preview returns HTML preview", async () => {
     const token = await sign({ userId: 1 });
     const res = await app.request("/note/1/preview", {
@@ -532,6 +557,36 @@ describe("createWorkspaceApp", () => {
     expect(html).toContain("<em>italic</em>");
     expect(html).toContain("<li>item 1</li>");
     expect(html).toContain('<a href="https://example.com">link</a>');
+  });
+
+  test("renderMarkdown groups consecutive bullets into a single ul", () => {
+    const html = renderMarkdown("- a\n- b\n- c");
+    expect(html).toContain("<ul><li>a</li><li>b</li><li>c</li></ul>");
+    // No per-line wrapping into one-item uls
+    expect(html).not.toContain("<ul><li>a</li></ul><ul><li>b</li></ul>");
+    expect(html).not.toContain("</ul><ul>");
+  });
+
+  test("renderMarkdown splits bullet groups separated by blank lines", () => {
+    const html = renderMarkdown("- a\n\n- b");
+    expect(html).toContain("<ul><li>a</li></ul>");
+    expect(html).toContain("<ul><li>b</li></ul>");
+    // Two separate uls, not one combined
+    expect(html).not.toContain("<ul><li>a</li><li>b</li></ul>");
+  });
+
+  test("renderMarkdown closes open list before headings and paragraphs", () => {
+    const html = renderMarkdown("# H\n- a\n- b\n\nP");
+    expect(html).toContain("<h1>H</h1>");
+    expect(html).toContain("<ul><li>a</li><li>b</li></ul>");
+    expect(html).toContain("<p>P</p>");
+    // Heading must come before the ul, ul before the paragraph
+    const hIdx = html.indexOf("<h1>H</h1>");
+    const ulIdx = html.indexOf("<ul><li>a</li><li>b</li></ul>");
+    const pIdx = html.indexOf("<p>P</p>");
+    expect(hIdx).toBeGreaterThanOrEqual(0);
+    expect(ulIdx).toBeGreaterThan(hIdx);
+    expect(pIdx).toBeGreaterThan(ulIdx);
   });
 
   test("renderMarkdown rejects javascript: links", () => {

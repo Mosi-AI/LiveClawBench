@@ -26,6 +26,7 @@ export function NotePage({ note }: NotePageProps) {
           <select id="content_type" name="content_type" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:4px;">
             <option value="plain_text" selected={contentType === "plain_text"}>Plain Text</option>
             <option value="markdown" selected={contentType === "markdown"}>Markdown</option>
+            <option value="brief" selected={contentType === "brief"}>Brief</option>
           </select>
         </div>
         <div style="margin-bottom:16px;">
