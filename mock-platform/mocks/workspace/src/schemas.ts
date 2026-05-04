@@ -11,11 +11,8 @@ export const NoteCreateSchema = z.object({
   content_type: z.enum(["plain_text", "markdown", "brief"]).default("plain_text"),
 });
 
-export const NoteUpdateSchema = z.object({
-  title: z.string().min(1).max(200),
-  content: z.string().max(100_000).default(""),
-  content_type: z.enum(["plain_text", "markdown", "brief"]).default("plain_text"),
-});
+// Update accepts the same shape as Create; alias to keep a single source of truth.
+export const NoteUpdateSchema = NoteCreateSchema;
 
 export const NoteResponseSchema = z.object({
   id: z.number(),
@@ -40,16 +37,6 @@ export const RevisionResponseSchema = z.object({
   edited_at: z.string(),
 });
 
-export const NoteDetailResponseSchema = z.object({
-  id: z.number(),
-  owner_user_id: z.number(),
-  title: z.string(),
-  content: z.string(),
-  content_type: z.string(),
-  preview_text: z.string(),
-  is_seeded: z.number(),
-  save_count: z.number(),
-  created_at: z.string(),
-  updated_at: z.string(),
+export const NoteDetailResponseSchema = NoteResponseSchema.extend({
   latest_revision: RevisionResponseSchema.nullable(),
 });
