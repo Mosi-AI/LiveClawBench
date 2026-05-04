@@ -10,6 +10,7 @@ function escapeHtml(text: string): string {
 const ALLOWED_SCHEMES = ["http:", "https:", "mailto:"];
 
 function isAllowedUrl(url: string): boolean {
+  if (url.startsWith("//")) return false;
   if (url.startsWith("/") || url.startsWith("#")) return true;
   for (const scheme of ALLOWED_SCHEMES) {
     if (url.toLowerCase().startsWith(scheme)) return true;
@@ -21,19 +22,38 @@ export function renderMarkdown(input: string): string {
   // Step 1: Escape all raw HTML
   let text = escapeHtml(input);
 
-  // Step 2: Apply formatting replacements (bold before italic)
-  text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  text = text.replace(/\*(.+?)\*/g, "<em>$1</em>");
+  // Helper: apply bold/italic emphasis. Used inside link text and on the body
+  // after links have been replaced with sentinel placeholders.
+  function applyEmphasis(s: string): string {
+    return s
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>");
+  }
 
-  // Step 3: Links — after bold/italic so inline formatting in link text works
+  // Step 2: Extract links FIRST so that emphasis chars inside URLs (e.g.
+  // `https://example.com/*star*`) are not corrupted by the emphasis pass.
+  // Valid links become sentinel placeholders; emphasis is applied to the
+  // link text inline so the bold-in-link feature is preserved.
+  const linkPlaceholders: string[] = [];
   text = text.replace(/\[([^\]]+)\]\(((?:[^()]|\([^()]*\))*)\)/g, (_match, linkText, url) => {
-    if (isAllowedUrl(url)) {
-      return `<a href="${url}">${linkText}</a>`;
+    if (!isAllowedUrl(url)) {
+      return applyEmphasis(linkText);
     }
-    return linkText;
+    const html = `<a href="${url}">${applyEmphasis(linkText)}</a>`;
+    const idx = linkPlaceholders.length;
+    linkPlaceholders.push(html);
+    return `\u0000LINK${idx}\u0000`;
   });
 
-  // Step 4: Split into lines and process block-level elements
+  // Step 3: Apply emphasis to the body (links are protected as placeholders).
+  text = applyEmphasis(text);
+
+  // Step 4: Substitute link placeholders back in.
+  for (let i = 0; i < linkPlaceholders.length; i++) {
+    text = text.replace(`\u0000LINK${i}\u0000`, linkPlaceholders[i]);
+  }
+
+  // Step 5: Split into lines and process block-level elements
   const lines = text.split("\n");
   const blocks: string[] = [];
   let currentParagraph: string[] = [];

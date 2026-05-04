@@ -610,6 +610,42 @@ describe("createWorkspaceApp", () => {
     expect(html).toContain(">x</a>");
   });
 
+  test("renderMarkdown does not apply emphasis inside link URLs", () => {
+    const input = "[x](https://example.com/*star*)";
+    const html = renderMarkdown(input);
+    expect(html).toContain('href="https://example.com/*star*"');
+    expect(html).not.toContain("<em>star</em>");
+    expect(html).toContain(">x</a>");
+  });
+
+  test("renderMarkdown still applies emphasis inside link text", () => {
+    const input = "[**bold link**](https://example.com)";
+    const html = renderMarkdown(input);
+    expect(html).toContain('<a href="https://example.com">');
+    expect(html).toContain("<strong>bold link</strong></a>");
+  });
+
+  test("renderMarkdown applies emphasis outside links normally", () => {
+    const input = "**outside** [x](https://example.com) **also outside**";
+    const html = renderMarkdown(input);
+    expect(html).toContain("<strong>outside</strong>");
+    expect(html).toContain("<strong>also outside</strong>");
+    expect(html).toContain('<a href="https://example.com">x</a>');
+  });
+
+  test("renderMarkdown rejects protocol-relative // URLs", () => {
+    const input = "[x](//evil.com)";
+    const html = renderMarkdown(input);
+    expect(html).not.toContain("href=");
+    expect(html).toContain("x");
+  });
+
+  test("renderMarkdown still accepts site-relative paths", () => {
+    const input = "[x](/relative/path)";
+    const html = renderMarkdown(input);
+    expect(html).toContain('<a href="/relative/path">x</a>');
+  });
+
   test("renderPlainText preserves line breaks", () => {
     const input = "Line 1\n\nLine 2";
     const html = renderPlainText(input);
