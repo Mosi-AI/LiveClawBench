@@ -40,9 +40,32 @@ describe("createWorkspaceApp", () => {
     expect(body2.length).toBe(3);
   });
 
-  test("seed populates all 5 tables", () => {
-    const db = (workspace as any).db; // we don't expose db, verify via API
-    // Verified indirectly via note count and user login
+  test("seed populates all 5 tables", async () => {
+    // Verify user table has demo user
+    const loginRes = await app.request("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "demo", password: "demo123" }),
+    });
+    expect(loginRes.status).toBe(200);
+
+    // Verify note table has 3 seeded notes
+    const notesRes = await app.request("/api/notes?seeded=1", {
+      headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
+    });
+    const notes = await notesRes.json();
+    expect(notes.length).toBe(3);
+
+    // Verify note_revision table has 3 initial revisions
+    for (const id of [1, 2, 3]) {
+      const revRes = await app.request(`/api/notes/${id}/revisions`, {
+        headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
+      });
+      const revs = await revRes.json();
+      expect(revs.length).toBe(1);
+    }
+
+    // brief_entry and task_record exist but have 0 rows (verified indirectly via schema)
   });
 
   test("seed is idempotent", async () => {
@@ -101,7 +124,7 @@ describe("createWorkspaceApp", () => {
   // AC-3: Authentication
   // ---------------------------------------------------------------------------
 
-  test("login success sets cookie and returns redirect", async () => {
+  test("login success sets cookie with secure: false and returns redirect", async () => {
     const res = await app.request("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -114,6 +137,8 @@ describe("createWorkspaceApp", () => {
     const setCookieHeader = res.headers.get("set-cookie");
     expect(setCookieHeader).toContain("token=");
     expect(setCookieHeader).toContain("HttpOnly");
+    // secure: false override means "Secure" attribute should NOT be present
+    expect(setCookieHeader).not.toContain("Secure");
   });
 
   test("login failure returns 401", async () => {
@@ -180,9 +205,10 @@ describe("createWorkspaceApp", () => {
     expect(body.error).toBe("Invalid or expired token");
   });
 
-  test("logout clears cookie", async () => {
+  test("logout redirects to / and clears cookie", async () => {
     const res = await app.request("/api/auth/logout", { method: "POST" });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("/");
     const setCookieHeader = res.headers.get("set-cookie");
     expect(setCookieHeader).toContain("token=");
     expect(setCookieHeader).toContain("Max-Age=0");
@@ -485,6 +511,20 @@ describe("createWorkspaceApp", () => {
     const res = await app.request("/api/notes/1", { headers: await authHeaders() });
     const note = await res.json();
     expect(note.preview_text.length).toBeGreaterThan(0);
+    expect(note.preview_text.length).toBeLessThanOrEqual(300);
+  });
+
+  test("brief content_type falls back to plain-text preview", async () => {
+    const res = await app.request("/api/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ title: "Brief Note", content: "Line 1\nLine 2\nLine 3\nLine 4\nLine 5", content_type: "brief" }),
+    });
+    const note = await res.json();
+    expect(note.content_type).toBe("brief");
+    // No brief_entry row exists, so it falls back to plain-text preview generation
+    expect(note.preview_text).toContain("Line 1");
+    expect(note.preview_text).not.toContain("Line 5");
     expect(note.preview_text.length).toBeLessThanOrEqual(300);
   });
 

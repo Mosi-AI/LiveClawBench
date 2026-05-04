@@ -37,8 +37,7 @@ export function createWorkspaceApp(): MockAppV2 {
 
   const { app } = mockApp;
 
-  const dbPath = process.env.WORKSPACE_DB_PATH ?? ":memory:";
-  const db = new Database(dbPath, { create: true });
+  const db = new Database(":memory:", { create: true });
   db.run("PRAGMA foreign_keys = ON");
 
   // Schema is created in the factory body so route handlers always see well-formed tables

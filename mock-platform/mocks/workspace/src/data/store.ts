@@ -38,7 +38,7 @@ export function updateNote(
   if (!note) return null;
 
   const now = new Date().toISOString();
-  const previewText = generatePreviewText(content, contentType, db);
+  const previewText = generatePreviewText(content, contentType, db, id);
 
   const transaction = db.transaction(() => {
     // Update note
@@ -114,10 +114,10 @@ export function getUserByUsername(db: Database, username: string): { id: number;
   };
 }
 
-function generatePreviewText(content: string, contentType?: string, db?: Database): string {
+function generatePreviewText(content: string, contentType?: string, db?: Database, noteId?: number): string {
   // Phase 1: if content_type is brief and brief_entry exists, use key_updates
-  if (contentType === "brief" && db) {
-    const row = db.query("SELECT key_updates FROM brief_entry WHERE note_id = ?").get(0) as { key_updates: string } | null;
+  if (contentType === "brief" && db && noteId !== undefined) {
+    const row = db.query("SELECT key_updates FROM brief_entry WHERE note_id = ?").get(noteId) as { key_updates: string } | null;
     if (row && row.key_updates) {
       return row.key_updates.slice(0, 300);
     }

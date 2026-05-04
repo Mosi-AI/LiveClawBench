@@ -59,24 +59,10 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     return c.json({ success: true, redirect: "/workspace" }, 200);
   });
 
-  const logoutRoute = createRoute({
-    method: "post",
-    path: "/api/auth/logout",
-    summary: "Logout",
-    responses: {
-      200: {
-        content: {
-          "application/json": {
-            schema: z.object({ redirect: z.string() }),
-          },
-        },
-        description: "Logout successful",
-      },
-    },
-  });
-
-  app.openApiRoute(logoutRoute, (c) => {
+  // Logout is a public route — registered directly on hono to avoid
+  // @hono/zod-openapi type mismatch with redirect responses.
+  (app as any).post("/api/auth/logout", (c: any) => {
     deleteCookie(c, "token", { path: "/" });
-    return c.json({ redirect: "/" }, 200);
+    return c.redirect("/", 302);
   });
 }
