@@ -408,6 +408,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`P(('0.0.0.0',5174),H).serve_forever()`);
         lines.push(`" > /dev/null 2>&1 &`);
       } else if (bin === "todolist") {
+        lines.push(`mkdir -p /var/lib/mock-data/todolist`);
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/todolist-backend.log 2>&1 &`);
         lines.push(`echo "Todolist frontend served by Bun on port ${port}" > /tmp/todolist-frontend.log`);
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/todolist-npm-install.log`);

@@ -11,9 +11,17 @@ from models import db, User, Email, Attachment
 # And: email_module = importlib.util.module_from_spec(...); email_module.app; email_module.Email
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
-    "DATABASE_URL"
-) or "sqlite:////var/lib/mock-data/email/email.db"
+
+
+def _get_email_db_uri():
+    if os.environ.get("EMAIL_DATABASE_URL"):
+        return os.environ["EMAIL_DATABASE_URL"]
+    if os.environ.get("EMAIL_DB_PATH"):
+        return f"sqlite:///{os.environ['EMAIL_DB_PATH']}"
+    return "sqlite:////var/lib/mock-data/email/email.db"
+
+
+app.config["SQLALCHEMY_DATABASE_URI"] = _get_email_db_uri()
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
