@@ -596,6 +596,20 @@ describe("createWorkspaceApp", () => {
     expect(html).toContain("click");
   });
 
+  test("renderMarkdown does not double-escape ampersands in URLs", () => {
+    const input = "[docs](https://example.com/?a=1&b=2)";
+    const html = renderMarkdown(input);
+    expect(html).toContain('href="https://example.com/?a=1&amp;b=2"');
+    expect(html).not.toContain("&amp;amp;");
+  });
+
+  test("renderMarkdown captures URLs with parentheses", () => {
+    const input = "[x](https://en.wikipedia.org/wiki/Function_(computer_science))";
+    const html = renderMarkdown(input);
+    expect(html).toContain('href="https://en.wikipedia.org/wiki/Function_(computer_science)"');
+    expect(html).toContain(">x</a>");
+  });
+
   test("renderPlainText preserves line breaks", () => {
     const input = "Line 1\n\nLine 2";
     const html = renderPlainText(input);

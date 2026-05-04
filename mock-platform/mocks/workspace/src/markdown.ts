@@ -26,9 +26,9 @@ export function renderMarkdown(input: string): string {
   text = text.replace(/\*(.+?)\*/g, "<em>$1</em>");
 
   // Step 3: Links — after bold/italic so inline formatting in link text works
-  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, linkText, url) => {
+  text = text.replace(/\[([^\]]+)\]\(((?:[^()]|\([^()]*\))*)\)/g, (_match, linkText, url) => {
     if (isAllowedUrl(url)) {
-      return `<a href="${escapeHtml(url)}">${linkText}</a>`;
+      return `<a href="${url}">${linkText}</a>`;
     }
     return linkText;
   });
