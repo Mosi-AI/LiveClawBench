@@ -138,9 +138,9 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
         title,
         date,
         time,
-        data.location ?? null,
-        data.person ?? null,
-        data.description ?? null,
+        data.location != null ? String(data.location) : null,
+        data.person != null ? String(data.person) : null,
+        data.description != null ? String(data.description) : null,
       );
 
       const todoId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);

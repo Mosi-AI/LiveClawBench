@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, DEFAULT_USER_ID } from "../helpers";
+import { err, DEFAULT_USER_ID } from "../helpers";
 import { mkdirSync } from "node:fs";
 import { join, extname } from "node:path";
 
@@ -12,7 +12,6 @@ const ALLOWED_EXTENSIONS = new Set([
 ]);
 
 function secureFilename(name: string): string {
-  // Strip path components and unsafe chars, similar to Werkzeug
   const base = name.replace(/\\/g, "/").split("/").pop() ?? "";
   return base.replace(/[^\w.\-]/g, "_");
 }
@@ -32,7 +31,6 @@ function attachmentToDict(row: Record<string, unknown>) {
 }
 
 export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
-  // POST /api/attachments/upload
   app.post("/api/attachments/upload", async (c) => {
     const userId = DEFAULT_USER_ID;
 
@@ -43,7 +41,6 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("No files provided"), 400);
     }
 
-    // Filter out empty entries and calculate total size
     const fileEntries: File[] = [];
     let totalSize = 0;
     for (const f of files) {
@@ -74,11 +71,9 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
       const filePath = join(dateFolder, uniqueFilename);
       const fullPath = join(UPLOAD_BASE, filePath);
 
-      // Save file
       const arrayBuffer = await file.arrayBuffer();
       await Bun.write(fullPath, arrayBuffer);
 
-      // Create attachment record
       db.query(
         `INSERT INTO attachments (filename, original_filename, file_path, file_size, mime_type, created_at)
          VALUES (?, ?, ?, ?, ?, datetime('now'))`
@@ -98,10 +93,9 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
       uploadedAttachments.push(attachmentToDict(att));
     }
 
-    return c.json(ok({ attachments: uploadedAttachments }, "Attachments uploaded successfully"), 201);
+    return c.json({ message: "Attachments uploaded successfully", attachments: uploadedAttachments }, 201);
   });
 
-  // GET /api/attachments/:id/download
   app.get("/api/attachments/:id/download", async (c) => {
     const userId = DEFAULT_USER_ID;
     const attachmentId = parseInt(c.req.param("id"), 10);
@@ -110,9 +104,8 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
     const att = db.query("SELECT * FROM attachments WHERE id = ?").get(attachmentId) as Record<string, unknown> | null;
     if (!att) return c.json(err("Attachment not found"), 404);
 
-    // Check access: must be sender or recipient of the linked email
     if (att.email_id) {
-      const email = db.query("SELECT sender_id, recipient_id FROM emails WHERE id = ?").get(att.email_id) as
+      const email = db.query("SELECT sender_id, recipient_id FROM emails WHERE id = ?").get(Number(att.email_id)) as
         | { sender_id: number; recipient_id: number | null }
         | null;
       if (!email || (email.sender_id !== userId && email.recipient_id !== userId)) {
@@ -130,10 +123,9 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
 
     c.header("Content-Disposition", `attachment; filename="${String(att.original_filename)}"`);
     c.header("Content-Type", String(att.mime_type));
-    return c.body(file);
+    return c.body(await file.arrayBuffer());
   });
 
-  // DELETE /api/attachments/:id
   app.delete("/api/attachments/:id", async (c) => {
     const userId = DEFAULT_USER_ID;
     const attachmentId = parseInt(c.req.param("id"), 10);
@@ -142,9 +134,8 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
     const att = db.query("SELECT * FROM attachments WHERE id = ?").get(attachmentId) as Record<string, unknown> | null;
     if (!att) return c.json(err("Attachment not found"), 404);
 
-    // Check if linked to a draft email owned by user
     if (att.email_id) {
-      const email = db.query("SELECT sender_id, folder FROM emails WHERE id = ?").get(att.email_id) as
+      const email = db.query("SELECT sender_id, folder FROM emails WHERE id = ?").get(Number(att.email_id)) as
         | { sender_id: number; folder: string }
         | null;
       if (!email || email.folder !== "drafts" || email.sender_id !== userId) {
@@ -152,7 +143,6 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
       }
     }
 
-    // Delete file from disk
     try {
       const fullPath = join(UPLOAD_BASE, String(att.file_path));
       await Bun.file(fullPath).delete();
@@ -161,6 +151,6 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     db.query("DELETE FROM attachments WHERE id = ?").run(attachmentId);
-    return c.json(ok(null, "Attachment deleted"));
+    return c.json({ message: "Attachment deleted" });
   });
 }

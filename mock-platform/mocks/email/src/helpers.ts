@@ -12,8 +12,8 @@ export function ok<T>(data: T, message?: string): ApiResponse<T> {
   return { success: true, ...(message ? { message } : {}), data };
 }
 
-export function err(message: string): ApiResponse<never> {
-  return { success: false, message };
+export function err(message: string): { error: string } {
+  return { error: message };
 }
 
 export function formatDateTime(d: Date): string {

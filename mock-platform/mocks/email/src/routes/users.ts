@@ -1,14 +1,12 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok } from "../helpers";
 
 export function registerUserRoutes(app: OpenAPIApp, db: Database): void {
-  // GET /api/users/search?q=
   app.get("/api/users/search", async (c) => {
     const query = (c.req.query("q") ?? "").trim();
 
     if (!query) {
-      return c.json(ok({ users: [] }));
+      return c.json({ users: [] });
     }
 
     const pattern = `%${query}%`;
@@ -25,6 +23,6 @@ export function registerUserRoutes(app: OpenAPIApp, db: Database): void {
       created_at: u.created_at,
     }));
 
-    return c.json(ok({ users }));
+    return c.json({ users });
   });
 }

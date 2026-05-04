@@ -45,9 +45,8 @@ describe("email mock", () => {
     });
     expect(res.status).toBe(201);
     const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.data.user.username).toBe("testuser");
-    expect(body.data.access_token).toBeDefined();
+    expect(body.user.username).toBe("testuser");
+    expect(body.access_token).toBeDefined();
   });
 
   test("POST /api/auth/login with valid credentials", async () => {
@@ -58,9 +57,8 @@ describe("email mock", () => {
     });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.data.user.username).toBe("peter");
-    expect(body.data.access_token).toBeDefined();
+    expect(body.user.username).toBe("peter");
+    expect(body.access_token).toBeDefined();
   });
 
   test("POST /api/auth/login with invalid credentials", async () => {
@@ -71,7 +69,7 @@ describe("email mock", () => {
     });
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body.success).toBe(false);
+    expect(body.error).toBeDefined();
   });
 
   test("GET /api/auth/me with valid token", async () => {
@@ -80,14 +78,14 @@ describe("email mock", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "peter", password: "password123" }),
     });
-    const { access_token } = (await loginRes.json()).data;
+    const { access_token } = await loginRes.json();
 
     const res = await app.request("/api/auth/me", {
       headers: { Authorization: `Bearer ${access_token}` },
     });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.user.username).toBe("peter");
+    expect(body.user.username).toBe("peter");
   });
 
   // --- Emails ---
@@ -96,23 +94,22 @@ describe("email mock", () => {
     const res = await app.request("/api/emails?folder=inbox");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.data.emails.length).toBeGreaterThan(0);
-    expect(body.data.count).toBe(body.data.emails.length);
+    expect(body.emails.length).toBeGreaterThan(0);
+    expect(body.count).toBe(body.emails.length);
   });
 
   test("GET /api/emails?folder=sent returns sent emails", async () => {
     const res = await app.request("/api/emails?folder=sent");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.emails.length).toBeGreaterThan(0);
+    expect(body.emails.length).toBeGreaterThan(0);
   });
 
   test("GET /api/emails?folder=drafts returns empty initially", async () => {
     const res = await app.request("/api/emails?folder=drafts");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.emails.length).toBe(0);
+    expect(body.emails.length).toBe(0);
   });
 
   test("GET /api/emails with invalid folder returns 400", async () => {
@@ -133,8 +130,7 @@ describe("email mock", () => {
     });
     expect(res.status).toBe(201);
     const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.data.email.folder).toBe("drafts");
+    expect(body.email.folder).toBe("drafts");
   });
 
   test("POST /api/emails sends an email to internal user", async () => {
@@ -150,22 +146,21 @@ describe("email mock", () => {
     });
     expect(res.status).toBe(201);
     const body = await res.json();
-    expect(body.data.email.folder).toBe("sent");
+    expect(body.email.folder).toBe("sent");
   });
 
   test("GET /api/emails/:id returns single email", async () => {
     const listRes = await app.request("/api/emails?folder=inbox");
-    const { emails } = (await listRes.json()).data;
+    const { emails } = await listRes.json();
     const firstId = emails[0].id;
 
     const res = await app.request(`/api/emails/${firstId}`);
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.email.id).toBe(firstId);
+    expect(body.email.id).toBe(firstId);
   });
 
   test("PUT /api/emails/:id/send sends a draft", async () => {
-    // Create draft
     const draftRes = await app.request("/api/emails", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -176,31 +171,31 @@ describe("email mock", () => {
         send_now: false,
       }),
     });
-    const draftId = (await draftRes.json()).data.email.id;
+    const { email } = await draftRes.json();
 
-    const res = await app.request(`/api/emails/${draftId}/send`, {
+    const res = await app.request(`/api/emails/${email.id}/send`, {
       method: "PUT",
     });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.email.folder).toBe("sent");
+    expect(body.email.folder).toBe("sent");
   });
 
   test("DELETE /api/emails/:id moves to trash then permanently deletes", async () => {
     const listRes = await app.request("/api/emails?folder=inbox");
-    const { emails } = (await listRes.json()).data;
+    const { emails } = await listRes.json();
     const emailId = emails[0].id;
 
     // Move to trash
     const trashRes = await app.request(`/api/emails/${emailId}`, { method: "DELETE" });
     expect(trashRes.status).toBe(200);
     const trashBody = await trashRes.json();
-    expect(trashBody.data.email.folder).toBe("trash");
+    expect(trashBody.email.folder).toBe("trash");
 
     // Permanent delete
     const delRes = await app.request(`/api/emails/${emailId}`, { method: "DELETE" });
     expect(delRes.status).toBe(200);
-    expect((await delRes.json()).success).toBe(true);
+    expect((await delRes.json()).message).toBe("Email deleted permanently");
 
     // Verify gone
     const getRes = await app.request(`/api/emails/${emailId}`);
@@ -209,7 +204,7 @@ describe("email mock", () => {
 
   test("PUT /api/emails/:id/read toggles read status", async () => {
     const listRes = await app.request("/api/emails?folder=inbox");
-    const { emails } = (await listRes.json()).data;
+    const { emails } = await listRes.json();
     const emailId = emails[0].id;
 
     const res = await app.request(`/api/emails/${emailId}/read`, {
@@ -219,7 +214,7 @@ describe("email mock", () => {
     });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.email.is_read).toBe(1);
+    expect(body.email.is_read).toBe(1);
   });
 
   // --- Attachments ---
@@ -244,14 +239,14 @@ describe("email mock", () => {
     const res = await app.request("/api/users/search?q=peter");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.users.length).toBeGreaterThan(0);
-    expect(body.data.users[0].username).toBe("peter");
+    expect(body.users.length).toBeGreaterThan(0);
+    expect(body.users[0].username).toBe("peter");
   });
 
   test("GET /api/users/search with empty query returns empty list", async () => {
     const res = await app.request("/api/users/search?q=");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.users.length).toBe(0);
+    expect(body.users.length).toBe(0);
   });
 });

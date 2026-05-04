@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, DEFAULT_USER_ID } from "../helpers";
+import { err, DEFAULT_USER_ID } from "../helpers";
 
 function emailToDict(row: Record<string, unknown>, attachments: Record<string, unknown>[]) {
   return {
@@ -83,7 +83,7 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const emails = rows.map((r) => emailToDict(r, getEmailAttachments(db, r.id as number)));
-    return c.json(ok({ emails, count: emails.length }));
+    return c.json({ emails, count: emails.length });
   });
 
   // GET /api/emails/:id
@@ -98,7 +98,7 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Access denied"), 403);
     }
 
-    return c.json(ok({ email }));
+    return c.json({ email });
   });
 
   // POST /api/emails
@@ -163,19 +163,20 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
              VALUES (?, ?, ?, ?, ?, ?, ?)`
           ).run(
             recipientEmailId,
-            att.filename,
-            att.original_filename,
-            att.file_path,
-            att.file_size,
-            att.mime_type,
-            att.created_at,
+            String(att.filename),
+            String(att.original_filename),
+            String(att.file_path),
+            Number(att.file_size),
+            String(att.mime_type),
+            String(att.created_at),
           );
         }
       }
     }
 
     const email = getEmailById(db, emailId);
-    return c.json(ok({ email }, sendNow ? "Email sent successfully" : "Email saved successfully"), 201);
+    const message = sendNow ? "Email sent successfully" : "Email saved successfully";
+    return c.json({ message, email }, 201);
   });
 
   // PUT /api/emails/:id
@@ -226,7 +227,7 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const updated = getEmailById(db, emailId);
-    return c.json(ok({ email: updated }, "Email updated successfully"));
+    return c.json({ message: "Email updated successfully", email: updated });
   });
 
   // DELETE /api/emails/:id
@@ -244,13 +245,13 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
     if (email.folder !== "trash") {
       db.query("UPDATE emails SET folder = 'trash', updated_at = datetime('now') WHERE id = ?").run(emailId);
       const updated = getEmailById(db, emailId);
-      return c.json(ok({ email: updated }, "Email moved to trash"));
+      return c.json({ message: "Email moved to trash", email: updated });
     }
 
     // Permanently delete
     db.query("DELETE FROM attachments WHERE email_id = ?").run(emailId);
     db.query("DELETE FROM emails WHERE id = ?").run(emailId);
-    return c.json(ok(null, "Email deleted permanently"));
+    return c.json({ message: "Email deleted permanently" });
   });
 
   // PUT /api/emails/:id/read
@@ -269,7 +270,7 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
     db.query("UPDATE emails SET is_read = ?, updated_at = datetime('now') WHERE id = ?").run(isRead, emailId);
 
     const updated = getEmailById(db, emailId);
-    return c.json(ok({ email: updated }, "Email status updated"));
+    return c.json({ message: "Email status updated", email: updated });
   });
 
   // PUT /api/emails/:id/send
@@ -295,11 +296,11 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
         `INSERT INTO emails (sender_id, recipient_id, recipient_email, subject, body, folder, is_read, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, 'inbox', 0, datetime('now'), datetime('now'))`
       ).run(
-        email.sender_id,
-        email.recipient_id,
-        email.recipient_email,
-        email.subject,
-        email.body,
+        Number(email.sender_id),
+        Number(email.recipient_id),
+        String(email.recipient_email),
+        String(email.subject),
+        String(email.body),
       );
 
       const recipientEmailId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
@@ -311,17 +312,17 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
            VALUES (?, ?, ?, ?, ?, ?, ?)`
         ).run(
           recipientEmailId,
-          att.filename,
-          att.original_filename,
-          att.file_path,
-          att.file_size,
-          att.mime_type,
-          att.created_at,
+          String(att.filename),
+          String(att.original_filename),
+          String(att.file_path),
+          Number(att.file_size),
+          String(att.mime_type),
+          String(att.created_at),
         );
       }
     }
 
     const updated = getEmailById(db, emailId);
-    return c.json(ok({ email: updated }, "Email sent successfully"));
+    return c.json({ message: "Email sent successfully", email: updated });
   });
 }

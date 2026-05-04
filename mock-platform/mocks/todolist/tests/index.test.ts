@@ -202,4 +202,34 @@ describe("todolist mock", () => {
     const res = await app.request("/api/summary/bad");
     expect(res.status).toBe(400);
   });
+
+  // --- Task-specific seed parity ---
+
+  test("schedule-change-request seeds 3 next-Sunday todos", async () => {
+    resetTodolistDb();
+    const taskApp = createTodolistApp({ dbPath: ":memory:", taskName: "schedule-change-request" }).app;
+    const res = await taskApp.request("/api/todos");
+    expect(res.status).toBe(200);
+    const todos = await res.json();
+    const sundayTodos = todos.filter((t: Record<string, unknown>) =>
+      String(t.title).includes("Game party") ||
+      String(t.title).includes("Morning run") ||
+      String(t.title).includes("Book club meeting")
+    );
+    expect(sundayTodos.length).toBe(3);
+    expect(String(sundayTodos[0].description)).toContain("@");
+  });
+
+  test("flight-info-change-notice seeds 1 today+2 todo", async () => {
+    resetTodolistDb();
+    const taskApp = createTodolistApp({ dbPath: ":memory:", taskName: "flight-info-change-notice" }).app;
+    const res = await taskApp.request("/api/todos");
+    expect(res.status).toBe(200);
+    const todos = await res.json();
+    const partyTodos = todos.filter((t: Record<string, unknown>) =>
+      String(t.title).includes("Game party")
+    );
+    expect(partyTodos.length).toBe(1);
+    expect(String(partyTodos[0].description)).toContain("marytheshot@gmail.com");
+  });
 });

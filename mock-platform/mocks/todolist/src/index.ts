@@ -1,13 +1,13 @@
 import { z } from "zod";
-import { createMockApp, createRoute, startServer } from "mock-lib";
+import { createMockApp, createRoute, registerFrontendFallback, startServer } from "mock-lib";
 import { getTodolistDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
 import { registerTodoRoutes } from "./routes/todos";
 
-export function createTodolistApp(options?: { dbPath?: string }) {
+export function createTodolistApp(options?: { dbPath?: string; taskName?: string }) {
   const db = getTodolistDb({ path: options?.dbPath });
   initSchema(db);
-  seedDatabase(db);
+  seedDatabase(db, options?.taskName);
 
   const mockApp = createMockApp({
     name: "todolist",
@@ -21,7 +21,8 @@ export function createTodolistApp(options?: { dbPath?: string }) {
 
   const { app } = mockApp;
 
-  // Health check
+  // Health checks
+  app.get("/health", (c) => c.json({ ok: true }));
   app.get("/api/health", (c) => c.json({ status: "healthy", message: "Todolist API is running" }));
 
   // Sentinel route for binary isolation verification
@@ -45,6 +46,9 @@ export function createTodolistApp(options?: { dbPath?: string }) {
 
   // Register all route modules
   registerTodoRoutes(app, db);
+
+  // SPA fallback for frontend assets (must be last)
+  registerFrontendFallback(app, "/opt/mock/frontend/todolist");
 
   return mockApp;
 }

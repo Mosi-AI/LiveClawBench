@@ -1,7 +1,7 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { sign } from "mock-lib";
-import { ok, err, getUserById, verifyWerkzeugHash } from "../helpers";
+import { err, getUserById, verifyWerkzeugHash, generateWerkzeugHashSync } from "../helpers";
 
 export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   // POST /api/auth/register
@@ -27,16 +27,16 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Email already registered"), 400);
     }
 
-    // Store plaintext password for simplicity (Bun mock, not production)
+    const passwordHash = generateWerkzeugHashSync(password);
     db.query(
       "INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, datetime('now'))"
-    ).run(username, email, password);
+    ).run(username, email, passwordHash);
 
     const row = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
     const user = getUserById(db, row.id);
     const accessToken = await sign({ userId: row.id });
 
-    return c.json(ok({ user, access_token: accessToken }, "User registered successfully"), 201);
+    return c.json({ message: "User registered successfully", user, access_token: accessToken }, 201);
   });
 
   // POST /api/auth/login
@@ -71,7 +71,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const user = getUserById(db, row.id);
     const accessToken = await sign({ userId: row.id });
 
-    return c.json(ok({ user, access_token: accessToken }, "Login successful"));
+    return c.json({ message: "Login successful", user, access_token: accessToken });
   });
 
   // GET /api/auth/me
@@ -93,6 +93,6 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("User not found"), 404);
     }
 
-    return c.json(ok({ user }));
+    return c.json({ user });
   });
 }

@@ -33,13 +33,94 @@ const SEED_TODOS = [
   { title: "Backup data", date: "2026-04-01", time: "22:00", location: "Home", person: null, description: "Recurring task" },
 ];
 
-export function seedDatabase(db: Database): void {
+function getNextSunday(): string {
+  const today = new Date();
+  // Python weekday(): 0=Mon, 6=Sun
+  const pyWeekday = (today.getDay() + 6) % 7;
+  const daysUntilSunday = 6 - pyWeekday;
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() + daysUntilSunday);
+  return sunday.toISOString().slice(0, 10);
+}
+
+function getTodayPlus(days: number): string {
+  const today = new Date();
+  const date = new Date(today);
+  date.setDate(today.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function getTaskSpecificTodos(taskName: string): Array<{
+  title: string;
+  date: string;
+  time: string | null;
+  location: string | null;
+  person: string | null;
+  description: string | null;
+}> {
+  switch (taskName) {
+    case "schedule-change-request": {
+      const sunday = getNextSunday();
+      return [
+        {
+          title: "Game party w/ my old friends",
+          date: sunday,
+          time: "10:00",
+          location: "Mary's house",
+          person: "Mary Grande, Gary Alexander",
+          description: "Play Super Mario Party. Contact Mary via email: marytheshot@gmail.com",
+        },
+        {
+          title: "Morning run",
+          date: sunday,
+          time: "7:00",
+          location: "Lakeside Forest Park",
+          person: "Dr. Jason Wang",
+          description: "First, run 7km in the park, then discuss our paper ideas. Contact him via email: jason.wang97@mail.ucsd.edu.",
+        },
+        {
+          title: "Book club meeting",
+          date: sunday,
+          time: "19:00",
+          location: "Conference Room A, 9th Floor, School Library",
+          person: "Prakash Nath, founder of the book club",
+          description: "For registration inquiries, contact the assistant administrator: karre8523@outlook.com",
+        },
+      ];
+    }
+    case "flight-info-change-notice": {
+      const date = getTodayPlus(2);
+      return [
+        {
+          title: "Game party w/ my old friends",
+          date,
+          time: "17:40",
+          location: "Los Angeles Union Station",
+          person: "Mary Grande",
+          description: "Meeting mary. Contact her via email: marytheshot@gmail.com",
+        },
+      ];
+    }
+    default:
+      return [];
+  }
+}
+
+export function seedDatabase(db: Database, taskName?: string): void {
+  const effectiveTaskName = taskName ?? process.env.TASK_NAME ?? "";
+
   const stmt = db.query(
     `INSERT INTO todos (title, date, time, location, person, description)
      VALUES (?, ?, ?, ?, ?, ?)`
   );
 
   for (const todo of SEED_TODOS) {
+    stmt.run(todo.title, todo.date, todo.time, todo.location, todo.person, todo.description);
+  }
+
+  // Inject task-specific manual todos
+  const taskTodos = getTaskSpecificTodos(effectiveTaskName);
+  for (const todo of taskTodos) {
     stmt.run(todo.title, todo.date, todo.time, todo.location, todo.person, todo.description);
   }
 }

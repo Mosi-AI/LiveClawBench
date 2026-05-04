@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createMockApp, createRoute, startServer } from "mock-lib";
+import { createMockApp, createRoute, registerFrontendFallback, startServer } from "mock-lib";
 import { getEmailDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
 import { registerAuthRoutes } from "./routes/auth";
@@ -24,7 +24,8 @@ export function createEmailApp(options?: { dbPath?: string }) {
 
   const { app } = mockApp;
 
-  // Health check
+  // Health checks
+  app.get("/health", (c) => c.json({ ok: true }));
   app.get("/api/health", (c) => c.json({ status: "healthy", message: "Email API is running" }));
 
   // Sentinel route for binary isolation verification
@@ -51,6 +52,9 @@ export function createEmailApp(options?: { dbPath?: string }) {
   registerEmailRoutes(app, db);
   registerAttachmentRoutes(app, db);
   registerUserRoutes(app, db);
+
+  // SPA fallback for frontend assets (must be last)
+  registerFrontendFallback(app, "/opt/mock/frontend/email");
 
   return mockApp;
 }
