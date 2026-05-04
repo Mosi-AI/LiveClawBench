@@ -43,3 +43,5 @@ docs/superpowers/
 .venv/
 
 tasks/**/airline-app/frontend/dist/
+tasks/**/email-app/frontend/dist/
+tasks/**/todolist-app/frontend/dist/

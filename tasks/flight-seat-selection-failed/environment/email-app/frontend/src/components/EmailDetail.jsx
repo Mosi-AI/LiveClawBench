@@ -65,7 +65,7 @@ function EmailDetail() {
   const handleDownload = async (attachmentId, filename) => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5001/api/attachments/${attachmentId}/download`, {
+      const response = await fetch(`/api/attachments/${attachmentId}/download`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

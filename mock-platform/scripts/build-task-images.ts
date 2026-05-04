@@ -387,10 +387,11 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`ln -sfn /opt/mock/python_compat/email-app /workspace/environment/email-app`);
         lines.push(`mkdir -p /workspace/environment/email-app/backend/instance`);
         lines.push(`ln -sf /var/lib/mock-data/email/email.db /workspace/environment/email-app/backend/instance/email.db`);
-        // Smoke check: verify python_compat bridge creates a working app (non-fatal)
-        lines.push(`python3 -c "import sys; sys.path.insert(0, '/workspace/environment/email-app/backend'); from app import create_app; create_app('development')" || echo "WARN: email python_compat smoke check failed, continuing..."`);
+        // Smoke check: verify python_compat bridge exports the verifier import contract (fatal)
+        lines.push(`python3 -c "import sys; sys.path.insert(0, '/workspace/environment/email-app/backend'); from app import app; from models import Email"`);
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/email-backend.log 2>&1 &`);
         lines.push(`echo "Email frontend served by Bun on port ${port}" > /tmp/email-frontend.log`);
+        lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/email-npm-install.log`);
         // Proxy port 5174 to Bun email port for legacy URL compatibility
         lines.push(`python3 -c "`);
         lines.push(`import socketserver, socket, threading`);
@@ -409,6 +410,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       } else if (bin === "todolist") {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/todolist-backend.log 2>&1 &`);
         lines.push(`echo "Todolist frontend served by Bun on port ${port}" > /tmp/todolist-frontend.log`);
+        lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/todolist-npm-install.log`);
         // Proxy port 3000 to Bun todolist port for legacy URL compatibility
         lines.push(`python3 -c "`);
         lines.push(`import socketserver, socket, threading`);
