@@ -260,20 +260,26 @@ describe("email mock", () => {
     const form = new FormData();
     const res = await app.request("/api/attachments/upload", {
       method: "POST",
+      headers: { Authorization: `Bearer ${authToken}` },
       body: form,
     });
     expect(res.status).toBe(400);
   });
 
   test("DELETE /api/attachments/:id with non-existent id returns 404", async () => {
-    const res = await app.request("/api/attachments/99999", { method: "DELETE" });
+    const res = await app.request("/api/attachments/99999", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     expect(res.status).toBe(404);
   });
 
   // --- Users ---
 
   test("GET /api/users/search?q=peter returns peter", async () => {
-    const res = await app.request("/api/users/search?q=peter");
+    const res = await app.request("/api/users/search?q=peter", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.users.length).toBeGreaterThan(0);
@@ -281,7 +287,9 @@ describe("email mock", () => {
   });
 
   test("GET /api/users/search with empty query returns empty list", async () => {
-    const res = await app.request("/api/users/search?q=");
+    const res = await app.request("/api/users/search?q=", {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.users.length).toBe(0);

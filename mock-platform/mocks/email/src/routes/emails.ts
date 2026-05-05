@@ -1,21 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { err } from "../helpers";
-
-async function getAuthUserId(c: any): Promise<number | null> {
-  const authHeader = c.req.header("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-
-  const token = authHeader.slice(7);
-  try {
-    const { verify } = await import("mock-lib");
-    const payload = await verify(token);
-    if (payload?.userId) return payload.userId as number;
-  } catch {
-    // Invalid or expired token
-  }
-  return null;
-}
+import { err, getAuthUserId } from "../helpers";
 
 function emailToDict(row: Record<string, unknown>, attachments: Record<string, unknown>[]) {
   return {

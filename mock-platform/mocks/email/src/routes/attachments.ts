@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { err, DEFAULT_USER_ID } from "../helpers";
+import { err, getAuthUserId } from "../helpers";
 import { mkdirSync } from "node:fs";
 import { join, extname } from "node:path";
 
@@ -32,7 +32,8 @@ function attachmentToDict(row: Record<string, unknown>) {
 
 export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
   app.post("/api/attachments/upload", async (c) => {
-    const userId = DEFAULT_USER_ID;
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
 
     const formData = await c.req.formData();
     const files = formData.getAll("files");
@@ -97,7 +98,8 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.get("/api/attachments/:id/download", async (c) => {
-    const userId = DEFAULT_USER_ID;
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
     const attachmentId = parseInt(c.req.param("id"), 10);
     if (isNaN(attachmentId)) return c.json(err("Invalid attachment ID"), 400);
 
@@ -127,7 +129,8 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.delete("/api/attachments/:id", async (c) => {
-    const userId = DEFAULT_USER_ID;
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
     const attachmentId = parseInt(c.req.param("id"), 10);
     if (isNaN(attachmentId)) return c.json(err("Invalid attachment ID"), 400);
 

@@ -1,8 +1,12 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
+import { err, getAuthUserId } from "../helpers";
 
 export function registerUserRoutes(app: OpenAPIApp, db: Database): void {
   app.get("/api/users/search", async (c) => {
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
+
     const query = (c.req.query("q") ?? "").trim();
 
     if (!query) {

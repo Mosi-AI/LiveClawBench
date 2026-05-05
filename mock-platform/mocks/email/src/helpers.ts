@@ -26,6 +26,21 @@ export function getUserById(db: Database, userId: number) {
     .get(userId) as { id: number; username: string; email: string; created_at: string } | null;
 }
 
+export async function getAuthUserId(c: any): Promise<number | null> {
+  const authHeader = c.req.header("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+
+  const token = authHeader.slice(7);
+  try {
+    const { verify } = await import("mock-lib");
+    const payload = await verify(token);
+    if (payload?.userId) return payload.userId as number;
+  } catch {
+    // Invalid or expired token
+  }
+  return null;
+}
+
 /**
  * Verify a Werkzeug-generated password hash.
  *
