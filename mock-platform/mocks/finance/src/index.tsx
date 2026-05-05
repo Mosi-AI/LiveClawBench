@@ -130,6 +130,9 @@ export function createFinanceApp() {
   app.page("/assets/:id/edit", (c) => {
     const id = Number(c.req.param("id"));
     const row = db.query("SELECT * FROM asset_record WHERE id = ?").get(id);
+    if (!row) {
+      return c.json({ error: "Not found" }, 404);
+    }
     return c.html(<AssetEditPage asset={row} />);
   });
 
