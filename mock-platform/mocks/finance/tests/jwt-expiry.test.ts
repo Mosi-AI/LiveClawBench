@@ -40,7 +40,7 @@ describe("jwt expiry", () => {
     return JSON.parse(json);
   }
 
-  it("MOCK_TOKEN_EXPIRY_SECONDS=28800 affects JWT exp", async () => {
+  it("MOCK_TOKEN_EXPIRY_SECONDS=28800 affects JWT exp and cookie Max-Age", async () => {
     process.env.MOCK_TOKEN_EXPIRY_SECONDS = "28800";
     finance = createFinanceApp();
     app = finance.app;
@@ -52,9 +52,16 @@ describe("jwt expiry", () => {
     const iat = payload.iat as number;
     const exp = payload.exp as number;
     expect(exp - iat).toBe(28800);
+
+    const res = await app.request("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "admin", password: "admin123" }),
+    });
+    expect(res.headers.get("set-cookie")).toContain("Max-Age=28800");
   });
 
-  it("invalid/unset MOCK_TOKEN_EXPIRY_SECONDS falls back to 3600", async () => {
+  it("invalid MOCK_TOKEN_EXPIRY_SECONDS falls back to 3600 in JWT and cookie", async () => {
     process.env.MOCK_TOKEN_EXPIRY_SECONDS = "invalid";
     finance = createFinanceApp();
     app = finance.app;
@@ -66,5 +73,37 @@ describe("jwt expiry", () => {
     const iat = payload.iat as number;
     const exp = payload.exp as number;
     expect(exp - iat).toBe(3600);
+
+    const res = await app.request("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "admin", password: "admin123" }),
+    });
+    expect(res.headers.get("set-cookie")).toContain("Max-Age=3600");
+  });
+
+  it("unset MOCK_TOKEN_EXPIRY_SECONDS falls back to 3600 in JWT and cookie", async () => {
+    delete process.env.MOCK_TOKEN_EXPIRY_SECONDS;
+    // createFinanceApp() sets MOCK_TOKEN_EXPIRY_SECONDS ??= "28800".
+    // Override it back to empty so the fallback path is exercised.
+    const original = process.env.MOCK_TOKEN_EXPIRY_SECONDS;
+    process.env.MOCK_TOKEN_EXPIRY_SECONDS = "";
+    finance = createFinanceApp();
+    app = finance.app;
+    await finance.seed!();
+
+    const token = await getToken();
+    const payload = decodePayload(token);
+    expect(payload.exp).toBeDefined();
+    const iat = payload.iat as number;
+    const exp = payload.exp as number;
+    expect(exp - iat).toBe(3600);
+
+    const res = await app.request("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "admin", password: "admin123" }),
+    });
+    expect(res.headers.get("set-cookie")).toContain("Max-Age=3600");
   });
 });
