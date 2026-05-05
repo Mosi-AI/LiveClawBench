@@ -83,6 +83,15 @@
         "mock-lib": "workspace:*",
       },
     },
+    "mocks/finance": {
+      "name": "@mock/finance",
+      "version": "0.1.0",
+      "dependencies": {
+        "hono": "^4.8.0",
+        "mock-lib": "workspace:*",
+        "zod": "^3.22.0",
+      },
+    },
     "mocks/shop": {
       "name": "@mock/shop",
       "version": "0.1.0",
@@ -141,6 +150,8 @@
     "@mock/doc-search": ["@mock/doc-search@workspace:mocks/doc-search"],
 
     "@mock/email": ["@mock/email@workspace:mocks/email"],
+
+    "@mock/finance": ["@mock/finance@workspace:mocks/finance"],
 
     "@mock/expense": ["@mock/expense@workspace:mocks/expense"],
 
