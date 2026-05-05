@@ -392,8 +392,14 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`      try:`);
         lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
         lines.push(`      except: pass`);
-        lines.push(`    threading.Thread(target=fwd,args=(self.request,b)).start()`);
-        lines.push(`    fwd(b,self.request)`);
+        lines.push(`    threading.Thread(target=fwd,args=(self.request,b),daemon=True).start()`);
+        lines.push(`    try:`);
+        lines.push(`      fwd(b,self.request)`);
+        lines.push(`    finally:`);
+        lines.push(`      try: self.request.shutdown(socket.SHUT_RDWR)`);
+        lines.push(`      except: pass`);
+        lines.push(`      try: b.shutdown(socket.SHUT_RDWR)`);
+        lines.push(`      except: pass`);
         lines.push(`P(('0.0.0.0',5173),H).serve_forever()`);
         lines.push(`" > /dev/null 2>&1 &`);
       } else if (bin === "email") {
@@ -429,8 +435,14 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`      try:`);
         lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
         lines.push(`      except: pass`);
-        lines.push(`    threading.Thread(target=fwd,args=(self.request,b)).start()`);
-        lines.push(`    fwd(b,self.request)`);
+        lines.push(`    threading.Thread(target=fwd,args=(self.request,b),daemon=True).start()`);
+        lines.push(`    try:`);
+        lines.push(`      fwd(b,self.request)`);
+        lines.push(`    finally:`);
+        lines.push(`      try: self.request.shutdown(socket.SHUT_RDWR)`);
+        lines.push(`      except: pass`);
+        lines.push(`      try: b.shutdown(socket.SHUT_RDWR)`);
+        lines.push(`      except: pass`);
         lines.push(`P(('0.0.0.0',5174),H).serve_forever()`);
         lines.push(`" > /dev/null 2>&1 &`);
       } else if (bin === "todolist") {
@@ -454,8 +466,14 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`      try:`);
         lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
         lines.push(`      except: pass`);
-        lines.push(`    threading.Thread(target=fwd,args=(self.request,b)).start()`);
-        lines.push(`    fwd(b,self.request)`);
+        lines.push(`    threading.Thread(target=fwd,args=(self.request,b),daemon=True).start()`);
+        lines.push(`    try:`);
+        lines.push(`      fwd(b,self.request)`);
+        lines.push(`    finally:`);
+        lines.push(`      try: self.request.shutdown(socket.SHUT_RDWR)`);
+        lines.push(`      except: pass`);
+        lines.push(`      try: b.shutdown(socket.SHUT_RDWR)`);
+        lines.push(`      except: pass`);
         lines.push(`P(('0.0.0.0',3000),H).serve_forever()`);
         lines.push(`" > /dev/null 2>&1 &`);
       } else {

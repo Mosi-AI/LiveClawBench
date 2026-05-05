@@ -546,6 +546,14 @@ export function seedDatabase(db: Database): void {
   const taskName = process.env.TASK_NAME ?? "email-writing";
   const config = makeSeedConfig(taskName);
 
+  // When running against an in-memory DB (test mode), clear tables first to
+  // prevent cross-contamination between test cases with different TASK_NAME values.
+  if (db.filename === ":memory:") {
+    db.query("DELETE FROM attachments").run();
+    db.query("DELETE FROM emails").run();
+    db.query("DELETE FROM users").run();
+  }
+
   // Ensure attachments directory exists (skip if no permissions, e.g. local tests)
   try {
     mkdirSync("/var/lib/mock-data/email/attachments", { recursive: true });
