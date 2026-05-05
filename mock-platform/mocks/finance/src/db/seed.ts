@@ -111,12 +111,18 @@ export function seed(db: Database): void {
     [3, 6, 15000.0, "flagged"],
     [3, null, 8000.0, "pending"],
   ];
-  for (const [accBalId, txnId, amount, status] of accTxns) {
-    db.run(
-      `INSERT OR IGNORE INTO account_transaction (account_balance_id, transaction_id, amount, status)
-       VALUES (?, ?, ?, ?)`,
-      [accBalId, txnId, round2(amount), status]
-    );
+  if (
+    db
+      .query<{ count: number }, []>("SELECT COUNT(*) AS count FROM account_transaction")
+      .get()!.count === 0
+  ) {
+    for (const [accBalId, txnId, amount, status] of accTxns) {
+      db.run(
+        `INSERT INTO account_transaction (account_balance_id, transaction_id, amount, status)
+         VALUES (?, ?, ?, ?)`,
+        [accBalId, txnId, round2(amount), status]
+      );
+    }
   }
 
   // Vendors
@@ -145,15 +151,21 @@ export function seed(db: Database): void {
   );
 
   // Expense items
-  db.run(
-    `INSERT OR IGNORE INTO expense_item (expense_report_id, expense_category, amount) VALUES
-      (1, 'flight', 1200.0),
-      (1, 'hotel', 800.0),
-      (1, 'meals', 500.0),
-      (2, 'flight', 1000.0),
-      (2, 'hotel', 600.0),
-      (2, 'transport', 200.0)`
-  );
+  if (
+    db
+      .query<{ count: number }, []>("SELECT COUNT(*) AS count FROM expense_item")
+      .get()!.count === 0
+  ) {
+    db.run(
+      `INSERT INTO expense_item (expense_report_id, expense_category, amount) VALUES
+        (1, 'flight', 1200.0),
+        (1, 'hotel', 800.0),
+        (1, 'meals', 500.0),
+        (2, 'flight', 1000.0),
+        (2, 'hotel', 600.0),
+        (2, 'transport', 200.0)`
+    );
+  }
 
   // Invoices
   db.run(
@@ -170,14 +182,20 @@ export function seed(db: Database): void {
   );
 
   // Invoice line items
-  db.run(
-    `INSERT OR IGNORE INTO invoice_line_item (invoice_id, description, category_code, amount) VALUES
-      (1, 'Software License Renewal', '5300', 12500.5),
-      (1, 'Support Package', '5400', 3000.0),
-      (2, 'Travel Expenses', '5100', 52000.0),
-      (3, 'Office Supplies', '5000', 3400.0),
-      (3, 'Utilities', '5500', 2100.0)`
-  );
+  if (
+    db
+      .query<{ count: number }, []>("SELECT COUNT(*) AS count FROM invoice_line_item")
+      .get()!.count === 0
+  ) {
+    db.run(
+      `INSERT INTO invoice_line_item (invoice_id, description, category_code, amount) VALUES
+        (1, 'Software License Renewal', '5300', 12500.5),
+        (1, 'Support Package', '5400', 3000.0),
+        (2, 'Travel Expenses', '5100', 52000.0),
+        (3, 'Office Supplies', '5000', 3400.0),
+        (3, 'Utilities', '5500', 2100.0)`
+    );
+  }
 
   // Asset records
   const assets: [string, number, number, number, string, number][] = [
