@@ -287,28 +287,41 @@ Parrot AI`,
 };
 
 const INBOX_BIRTHDAY = {
-  subject: "Birthday Gift Ideas",
-  body: `Hi Peter,
+  subject: "Birthday Gift for Stewie Griffin",
+  body: `Dear Peter Griffin,
 
-I was thinking about what to get Brian for his birthday next month. Do you have any ideas? I was considering a new video game console or maybe a personalized gift.
+Please find the details below regarding Stewie's upcoming birthday gift. As we discussed (or rather, as I am now instructing you), you need to get him something that doesn't scream "I forgot until the last minute."
 
-Let me know what you think!
+I recommend buying a smart watch from Mosi Shop as a birthday gift and you can choose the cheapest one from those with a rating of 4.6 or higher.
 
-Lois`,
+If you have any questions, I'll be in the kitchen waiting for my martini.
+
+Best regards,
+Brian Griffin,
+Griffin Household`,
   days_ago: 1,
-  is_read: 0,
+  is_read: 1,
 };
 
 const INBOX_PORTABLE_WASHER = {
-  subject: "Portable Washer Recommendations",
-  body: `Hey Peter,
+  subject: "Portable Washer, Not the Big One",
+  body: `Dear Peter Griffin,
 
-I've been looking at portable washers for the apartment. Do you have any recommendations? I saw some good reviews for the MiniWash brand.
+Honestly, Peter, a 4.5 cubic foot industrial-sized machine? We are a family of five, not a commercial laundromat. It's taking up half the kitchen. You need to return the current unit and replace it with a compact, portable model.
 
-Thanks,
-Brian`,
-  days_ago: 0,
-  is_read: 0,
+Returned product:
+Kenmore 4.5 cu. ft. Top Load Washer with Triple Action Impeller for Tough Dirt & Stains-Reduce Laundry Time with Accela and Express Wash-LED, White
+
+New product characteristic:
+rating of 4.6 or higher; Portable
+
+Thank you for finally listening to me.
+
+Best regards,
+Lois Griffin
+Griffin Household`,
+  days_ago: 1,
+  is_read: 1,
 };
 
 const INBOX_FLIGHT_BOOKING = {
