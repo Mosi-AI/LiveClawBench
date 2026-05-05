@@ -109,9 +109,10 @@ export function createWorkspaceApp(): MockAppV2 {
     const note = getNoteById(db, id);
     const user = getUserById(db, userId);
     if (!note) return c.notFound();
+    const briefEntry = note.content_type === "brief" ? (getBriefEntry(db, id) ?? undefined) : undefined;
     return c.html(
       <Layout displayName={user?.display_name ?? "User"} currentNoteId={id}>
-        <NotePage note={note} />
+        <NotePage note={note} briefEntry={briefEntry} />
       </Layout>,
     );
   });
