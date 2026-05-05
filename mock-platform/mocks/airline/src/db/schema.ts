@@ -1,15 +1,22 @@
+import { Database } from "bun:sqlite";
 import { getDb, resetDb, type SqliteOptions } from "mock-lib";
 
-const AIRLINE_DB_PATH =
-  process.env.AIRLINE_DB_PATH ?? "/var/lib/mock-data/airline/airline.db";
+const AIRLINE_DB_PATH = process.env.AIRLINE_DB_PATH ?? ":memory:";
 
 export interface AirlineDbOptions {
   dbPath?: string;
 }
 
 export function getAirlineDb(options?: AirlineDbOptions) {
+  const path = options?.dbPath ?? AIRLINE_DB_PATH;
+  // Bypass the process-level singleton for in-memory DBs so that
+  // spec-generation (which instantiates multiple mocks in one process)
+  // and tests each get a fresh database.
+  if (path === ":memory:") {
+    return new Database(":memory:", { create: true });
+  }
   return getDb({
-    path: options?.dbPath ?? AIRLINE_DB_PATH,
+    path,
     autoMigrate: true,
   });
 }

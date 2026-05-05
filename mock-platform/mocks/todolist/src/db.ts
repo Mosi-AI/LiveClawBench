@@ -1,10 +1,16 @@
+import { Database } from "bun:sqlite";
 import { getDb, resetDb } from "mock-lib";
-import type { Database } from "bun:sqlite";
 
-const DEFAULT_DB_PATH = "/var/lib/mock-data/todolist/todolist.db";
+const DEFAULT_DB_PATH = ":memory:";
 
 export function getTodolistDb(options?: { path?: string }): Database {
   const path = options?.path ?? process.env.TODOLIST_DB_PATH ?? DEFAULT_DB_PATH;
+  // Bypass the process-level singleton for in-memory DBs so that
+  // spec-generation (which instantiates multiple mocks in one process)
+  // and tests each get a fresh database.
+  if (path === ":memory:") {
+    return new Database(":memory:", { create: true });
+  }
   return getDb({ path });
 }
 

@@ -358,6 +358,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         // verifier imports resolve to /workspace/environment/airline-app.
         lines.push(`export AIRLINE_DB_PATH=/var/lib/mock-data/airline/airline.db`);
         lines.push(`export DATABASE_URL=sqlite:////var/lib/mock-data/airline/airline.db`);
+        lines.push(`export AIRLINE_DB_PATH=/var/lib/mock-data/airline/airline.db`);
         lines.push(`mkdir -p /var/lib/mock-data/airline`);
         // Replace the legacy airline-app with python_compat bridge so verifier
         // imports resolve to /opt/mock/python_compat/airline-app. The -T flag
@@ -446,6 +447,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`P(('0.0.0.0',5174),H).serve_forever()`);
         lines.push(`" > /dev/null 2>&1 &`);
       } else if (bin === "todolist") {
+        lines.push(`export TODOLIST_DB_PATH=/var/lib/mock-data/todolist/todolist.db`);
         lines.push(`mkdir -p /var/lib/mock-data/todolist`);
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/todolist-backend.log 2>&1 &`);
         lines.push(`echo "Todolist frontend served by Bun on port ${port}" > /tmp/todolist-frontend.log`);
