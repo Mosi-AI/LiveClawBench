@@ -299,6 +299,22 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     `# Binaries: ${binaries.length > 0 ? binaries.join(", ") : "(none)"}`,
     "set -e",
     "",
+    "# Helper: wait for an HTTP endpoint to become ready, exit non-zero on timeout",
+    "wait_http() {",
+    "  url=\"$1\"",
+    "  max=\"${2:-30}\"",
+    "  i=0",
+    "  while [ $i -lt $max ]; do",
+    "    if curl -sf \"$url\" >/dev/null 2>&1; then",
+    "      return 0",
+    "    fi",
+    "    i=$((i + 1))",
+    "    sleep 0.5",
+    "  done",
+    "  echo \"ERROR: $url did not become ready after ${max} attempts\" >&2",
+    "  exit 1",
+    "}",
+    "",
   ];
 
   // Step 0: Data directory initialization for shop tasks
@@ -434,29 +450,17 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("");
     lines.push("# Wait for mock binaries to bind their ports");
     lines.push("for port in " + implementedBinaries.map((b) => BINARY_PORTS[b]).join(" ") + "; do");
-    lines.push("  for i in $(seq 1 30); do");
-    lines.push("    curl -sf http://localhost:${port}/health >/dev/null 2>&1 && break");
-    lines.push("    sleep 0.5");
-    lines.push("  done");
+    lines.push("  wait_http \"http://localhost:${port}/health\"");
     lines.push("done");
     // Also wait for proxy ports to be ready
     if (implementedBinaries.includes("airline")) {
-      lines.push("for i in $(seq 1 30); do");
-      lines.push("  curl -sf http://localhost:5173/health >/dev/null 2>&1 && break");
-      lines.push("  sleep 0.5");
-      lines.push("done");
+      lines.push("wait_http \"http://localhost:5173/health\"");
     }
     if (implementedBinaries.includes("email")) {
-      lines.push("for i in $(seq 1 30); do");
-      lines.push("  curl -sf http://localhost:5174/health >/dev/null 2>&1 && break");
-      lines.push("  sleep 0.5");
-      lines.push("done");
+      lines.push("wait_http \"http://localhost:5174/health\"");
     }
     if (implementedBinaries.includes("todolist")) {
-      lines.push("for i in $(seq 1 30); do");
-      lines.push("  curl -sf http://localhost:3000/health >/dev/null 2>&1 && break");
-      lines.push("  sleep 0.5");
-      lines.push("done");
+      lines.push("wait_http \"http://localhost:3000/health\"");
     }
     lines.push("");
   }
@@ -698,14 +702,8 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     // Probe stub service ports (email: 5001/5174, todolist: 5002/3000)
     if (hasStubBinaries) {
       lines.push("# Probe legacy service ports until they accept connections");
-      lines.push("for i in $(seq 1 20); do");
-      lines.push("  curl -sf http://localhost:5001/api/health >/dev/null 2>&1 && break");
-      lines.push("  sleep 0.5");
-      lines.push("done");
-      lines.push("for i in $(seq 1 20); do");
-      lines.push("  curl -sf http://localhost:5174/ >/dev/null 2>&1 && break");
-      lines.push("  sleep 0.5");
-      lines.push("done");
+      lines.push("wait_http \"http://localhost:5001/api/health\" 20");
+      lines.push("wait_http \"http://localhost:5174/\" 20");
     } else {
       lines.push("sleep 2");
     }
