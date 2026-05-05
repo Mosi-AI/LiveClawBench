@@ -553,29 +553,40 @@ export function seedDatabase(db: Database): void {
     // Directory may not be creatable in local dev / tests
   }
 
-  // Check if database is already seeded (idempotent restart)
-  const existingPeter = db.query("SELECT id FROM users WHERE username = ?").get("peter") as { id: number } | null;
-  if (existingPeter) {
-    return;
-  }
-
-  // Create peter user with Werkzeug-compatible hash
-  const peterHash = generateWerkzeugHashSync("password123");
-  db.query(
-    `INSERT INTO users (username, email, password_hash, created_at)
-     VALUES (?, ?, ?, datetime('now'))`
-  ).run("peter", "peter.griffin@email.app", peterHash);
-  const peterId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
-
-  // Create simulated senders
-  const senderIds: number[] = [];
-  for (const sender of config.senders) {
-    const hash = generateWerkzeugHashSync("password123");
+  // Get or create peter user (idempotent — matches Flask get_or_create_peter)
+  let peterRow = db.query("SELECT id FROM users WHERE username = ?").get("peter") as { id: number } | null;
+  if (!peterRow) {
+    const peterHash = generateWerkzeugHashSync("password123");
     db.query(
       `INSERT INTO users (username, email, password_hash, created_at)
        VALUES (?, ?, ?, datetime('now'))`
-    ).run(sender.username, sender.email, hash);
-    senderIds.push(Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id));
+    ).run("peter", "peter.griffin@email.app", peterHash);
+    peterRow = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
+  }
+  const peterId = peterRow.id;
+
+  // Get or create simulated senders
+  const senderIds: number[] = [];
+  for (const sender of config.senders) {
+    let senderRow = db.query("SELECT id FROM users WHERE username = ?").get(sender.username) as { id: number } | null;
+    if (!senderRow) {
+      const hash = generateWerkzeugHashSync("password123");
+      db.query(
+        `INSERT INTO users (username, email, password_hash, created_at)
+         VALUES (?, ?, ?, datetime('now'))`
+      ).run(sender.username, sender.email, hash);
+      senderRow = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
+    }
+    senderIds.push(senderRow.id);
+  }
+
+  // Skip email seeding if any emails already exist for peter (handles restart and
+  // cross-app containers where python_compat may have created peter first)
+  const existingEmailCount = Number(
+    (db.query("SELECT COUNT(*) as count FROM emails WHERE recipient_id = ?").get(peterId) as { count: number }).count
+  );
+  if (existingEmailCount > 0) {
+    return;
   }
 
   // Create inbox emails

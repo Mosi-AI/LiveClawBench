@@ -382,7 +382,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`class P(socketserver.ThreadingTCPServer): allow_reuse_address = True`);
         lines.push(`class H(socketserver.BaseRequestHandler):`);
         lines.push(`  def handle(self):`);
-        lines.push(`    b=socket.socket(); b.connect(('127.0.0.1',${port}))`);
+        lines.push(`    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${port}))`);
         lines.push(`    def fwd(src,dst):`);
         lines.push(`      try:`);
         lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
@@ -414,7 +414,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`class P(socketserver.ThreadingTCPServer): allow_reuse_address = True`);
         lines.push(`class H(socketserver.BaseRequestHandler):`);
         lines.push(`  def handle(self):`);
-        lines.push(`    b=socket.socket(); b.connect(('127.0.0.1',${port}))`);
+        lines.push(`    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${port}))`);
         lines.push(`    def fwd(src,dst):`);
         lines.push(`      try:`);
         lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
@@ -434,7 +434,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`class P(socketserver.ThreadingTCPServer): allow_reuse_address = True`);
         lines.push(`class H(socketserver.BaseRequestHandler):`);
         lines.push(`  def handle(self):`);
-        lines.push(`    b=socket.socket(); b.connect(('127.0.0.1',${port}))`);
+        lines.push(`    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${port}))`);
         lines.push(`    def fwd(src,dst):`);
         lines.push(`      try:`);
         lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
