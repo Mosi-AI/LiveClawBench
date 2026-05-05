@@ -38,7 +38,7 @@ export async function verifyWerkzeugHash(hash: string, password: string): Promis
   const parts = hash.split("$");
   if (parts.length !== 3) return false;
 
-  const [methodPart, saltHex, hashB64] = parts;
+  const [methodPart, saltHex, storedHash] = parts;
   const methodMatch = methodPart.match(/^pbkdf2:sha256:(\d+)$/);
   if (!methodMatch) return false;
 
@@ -65,8 +65,10 @@ export async function verifyWerkzeugHash(hash: string, password: string): Promis
     256,
   );
 
-  const derivedHash = btoa(String.fromCharCode(...new Uint8Array(derivedBits)));
-  return derivedHash === hashB64;
+  const derivedHash = Array.from(new Uint8Array(derivedBits))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return derivedHash === storedHash;
 }
 
 /**
@@ -99,8 +101,10 @@ export async function generateWerkzeugHash(password: string, iterations = 600000
     256,
   );
 
-  const hashB64 = btoa(String.fromCharCode(...new Uint8Array(derivedBits)));
-  return `pbkdf2:sha256:${iterations}$${saltHex}$${hashB64}`;
+  const hashHex = Array.from(new Uint8Array(derivedBits))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `pbkdf2:sha256:${iterations}$${saltHex}$${hashHex}`;
 }
 
 import { pbkdf2Sync } from "node:crypto";
@@ -115,6 +119,8 @@ export function generateWerkzeugHashSync(password: string, iterations = 600000):
     .join("");
 
   const derived = pbkdf2Sync(password, saltHex, iterations, 32, "sha256");
-  const hashB64 = btoa(String.fromCharCode(...derived));
-  return `pbkdf2:sha256:${iterations}$${saltHex}$${hashB64}`;
+  const hashHex = Array.from(derived)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `pbkdf2:sha256:${iterations}$${saltHex}$${hashHex}`;
 }

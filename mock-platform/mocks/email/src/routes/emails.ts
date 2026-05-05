@@ -1,6 +1,21 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { err, DEFAULT_USER_ID } from "../helpers";
+import { err } from "../helpers";
+
+async function getAuthUserId(c: any): Promise<number | null> {
+  const authHeader = c.req.header("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+
+  const token = authHeader.slice(7);
+  try {
+    const { verify } = await import("mock-lib");
+    const payload = await verify(token);
+    if (payload?.userId) return payload.userId as number;
+  } catch {
+    // Invalid or expired token
+  }
+  return null;
+}
 
 function emailToDict(row: Record<string, unknown>, attachments: Record<string, unknown>[]) {
   return {
@@ -41,7 +56,8 @@ function getEmailById(db: Database, emailId: number): Record<string, unknown> | 
 export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
   // GET /api/emails?folder=
   app.get("/api/emails", async (c) => {
-    const userId = DEFAULT_USER_ID;
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
     const folder = c.req.query("folder") ?? "inbox";
 
     let rows: Record<string, unknown>[] = [];
@@ -88,7 +104,8 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
 
   // GET /api/emails/:id
   app.get("/api/emails/:id", async (c) => {
-    const userId = DEFAULT_USER_ID;
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
     const emailId = parseInt(c.req.param("id"), 10);
     if (isNaN(emailId)) return c.json(err("Invalid email ID"), 400);
 
@@ -103,7 +120,8 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
 
   // POST /api/emails
   app.post("/api/emails", async (c) => {
-    const userId = DEFAULT_USER_ID;
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
     const body = (await c.req.json()) as Record<string, unknown>;
 
     const recipientEmail = String(body.recipient ?? "");
@@ -181,7 +199,8 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
 
   // PUT /api/emails/:id
   app.put("/api/emails/:id", async (c) => {
-    const userId = DEFAULT_USER_ID;
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
     const emailId = parseInt(c.req.param("id"), 10);
     if (isNaN(emailId)) return c.json(err("Invalid email ID"), 400);
 
@@ -232,7 +251,8 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
 
   // DELETE /api/emails/:id
   app.delete("/api/emails/:id", async (c) => {
-    const userId = DEFAULT_USER_ID;
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
     const emailId = parseInt(c.req.param("id"), 10);
     if (isNaN(emailId)) return c.json(err("Invalid email ID"), 400);
 
@@ -256,7 +276,8 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
 
   // PUT /api/emails/:id/read
   app.put("/api/emails/:id/read", async (c) => {
-    const userId = DEFAULT_USER_ID;
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
     const emailId = parseInt(c.req.param("id"), 10);
     if (isNaN(emailId)) return c.json(err("Invalid email ID"), 400);
 
@@ -275,7 +296,8 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
 
   // PUT /api/emails/:id/send
   app.put("/api/emails/:id/send", async (c) => {
-    const userId = DEFAULT_USER_ID;
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json(err("Authentication required"), 401);
     const emailId = parseInt(c.req.param("id"), 10);
     if (isNaN(emailId)) return c.json(err("Invalid email ID"), 400);
 
