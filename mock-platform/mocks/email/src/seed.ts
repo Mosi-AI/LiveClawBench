@@ -565,8 +565,8 @@ export function seedDatabase(db: Database): void {
   }
   const peterId = peterRow.id;
 
-  // Get or create simulated senders
-  const senderIds: number[] = [];
+  // Get or create simulated senders (keyed by username for explicit lookup)
+  const senderIdByUsername = new Map<string, number>();
   for (const sender of config.senders) {
     let senderRow = db.query("SELECT id FROM users WHERE username = ?").get(sender.username) as { id: number } | null;
     if (!senderRow) {
@@ -577,7 +577,7 @@ export function seedDatabase(db: Database): void {
       ).run(sender.username, sender.email, hash);
       senderRow = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
     }
-    senderIds.push(senderRow.id);
+    senderIdByUsername.set(sender.username, senderRow.id);
   }
 
   // Skip email seeding if any emails already exist for peter (handles restart and
@@ -591,7 +591,8 @@ export function seedDatabase(db: Database): void {
 
   // Create inbox emails
   for (const inboxEmail of config.inbox) {
-    const senderId = senderIds[inboxEmail.senderIndex];
+    const senderName = config.senders[inboxEmail.senderIndex]?.username;
+    const senderId = senderName ? senderIdByUsername.get(senderName) : undefined;
     const createdAt = new Date();
     createdAt.setDate(createdAt.getDate() - inboxEmail.days_ago);
 
