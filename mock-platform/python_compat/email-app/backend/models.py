@@ -52,7 +52,7 @@ class Email(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     attachments = db.relationship(
-        "Attachment", backref="email", lazy="dynamic", cascade="all, delete-orphan"
+        "Attachment", backref="email", lazy="select", cascade="all, delete-orphan"
     )
 
     def to_dict(self):
