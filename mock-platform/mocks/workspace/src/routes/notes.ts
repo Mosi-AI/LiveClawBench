@@ -111,9 +111,10 @@ export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.openApiRoute(getRoute, (c) => {
+    const userId = c.get("userId") as number;
     const { id } = c.req.valid("param");
     const note = getNoteById(db, id);
-    if (!note) return c.json({ error: "Note not found" }, 404);
+    if (!note || note.owner_user_id !== userId) return c.json({ error: "Note not found" }, 404);
     const latestRevision = getLatestRevision(db, id);
     return c.json({ ...note, latest_revision: latestRevision }, 200);
   });
@@ -155,9 +156,11 @@ export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
   app.openApiRoute(updateRouteDef, (c) => {
     const userId = c.get("userId") as number;
     const { id } = c.req.valid("param");
+    const note = getNoteById(db, id);
+    if (!note || note.owner_user_id !== userId) return c.json({ error: "Note not found" }, 404);
     const body = c.req.valid("json");
-    const note = updateNote(db, id, body.title, body.content, body.content_type, userId);
-    if (!note) return c.json({ error: "Note not found" }, 404);
+    const updated = updateNote(db, id, body.title, body.content, body.content_type, userId);
+    if (!updated) return c.json({ error: "Note not found" }, 404);
     return c.json({ success: true }, 200);
   });
 
@@ -189,7 +192,10 @@ export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.openApiRoute(deleteRoute, (c) => {
+    const userId = c.get("userId") as number;
     const { id } = c.req.valid("param");
+    const note = getNoteById(db, id);
+    if (!note || note.owner_user_id !== userId) return c.json({ error: "Note not found" }, 404);
     const deleted = deleteNote(db, id);
     if (!deleted) return c.json({ error: "Note not found" }, 404);
     return c.json({ success: true }, 200);

@@ -108,7 +108,7 @@ export function createWorkspaceApp(): MockAppV2 {
     const id = Number(c.req.param("id"));
     const note = getNoteById(db, id);
     const user = getUserById(db, userId);
-    if (!note) return c.notFound();
+    if (!note || note.owner_user_id !== userId) return c.notFound();
     const briefEntry = note.content_type === "brief" ? (getBriefEntry(db, id) ?? undefined) : undefined;
     return c.html(
       <Layout displayName={user?.display_name ?? "User"} currentNoteId={id}>
@@ -122,7 +122,7 @@ export function createWorkspaceApp(): MockAppV2 {
     const id = Number(c.req.param("id"));
     const note = getNoteById(db, id);
     const user = getUserById(db, userId);
-    if (!note) return c.notFound();
+    if (!note || note.owner_user_id !== userId) return c.notFound();
 
     let rendered = "";
     let briefEntry = undefined;
@@ -146,7 +146,7 @@ export function createWorkspaceApp(): MockAppV2 {
     const id = Number(c.req.param("id"));
     const note = getNoteById(db, id);
     const user = getUserById(db, userId);
-    if (!note) return c.notFound();
+    if (!note || note.owner_user_id !== userId) return c.notFound();
     const revisions = listRevisions(db, id);
     return c.html(
       <Layout displayName={user?.display_name ?? "User"} currentNoteId={id}>
@@ -160,7 +160,7 @@ export function createWorkspaceApp(): MockAppV2 {
     const id = Number(c.req.param("id"));
     const note = getNoteById(db, id);
     const user = getUserById(db, userId);
-    if (!note) return c.notFound();
+    if (!note || note.owner_user_id !== userId) return c.notFound();
     const record = getTaskRecord(db, id);
     return c.html(
       <Layout displayName={user?.display_name ?? "User"} currentNoteId={id}>

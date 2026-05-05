@@ -34,9 +34,10 @@ export function registerRevisionRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.openApiRoute(listRevisionsRoute, (c) => {
+    const userId = c.get("userId") as number;
     const { id } = c.req.valid("param");
     const note = getNoteById(db, id);
-    if (!note) return c.json({ error: "Note not found" }, 404);
+    if (!note || note.owner_user_id !== userId) return c.json({ error: "Note not found" }, 404);
     const revisions = listRevisions(db, id);
     return c.json(revisions, 200);
   });

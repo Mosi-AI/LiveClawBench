@@ -34,9 +34,10 @@ export function registerBriefRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.openApiRoute(getRoute, (c) => {
+    const userId = c.get("userId") as number;
     const { id } = c.req.valid("param");
     const note = getNoteById(db, id);
-    if (!note) return c.json({ error: "Note not found" }, 404);
+    if (!note || note.owner_user_id !== userId) return c.json({ error: "Note not found" }, 404);
     const brief = getBriefEntry(db, id);
     if (!brief) return c.json({ error: "Brief not found" }, 404);
     return c.json(brief, 200);
@@ -77,9 +78,10 @@ export function registerBriefRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.openApiRoute(putRoute, (c) => {
+    const userId = c.get("userId") as number;
     const { id } = c.req.valid("param");
     const note = getNoteById(db, id);
-    if (!note) return c.json({ error: "Note not found" }, 404);
+    if (!note || note.owner_user_id !== userId) return c.json({ error: "Note not found" }, 404);
     const body = c.req.valid("json");
     const brief = upsertBriefEntry(
       db,

@@ -34,9 +34,10 @@ export function registerTaskRecordRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.openApiRoute(getRoute, (c) => {
+    const userId = c.get("userId") as number;
     const { id } = c.req.valid("param");
     const note = getNoteById(db, id);
-    if (!note) return c.json({ error: "Note not found" }, 404);
+    if (!note || note.owner_user_id !== userId) return c.json({ error: "Note not found" }, 404);
     const record = getTaskRecord(db, id);
     return c.json(record, 200);
   });
@@ -76,9 +77,10 @@ export function registerTaskRecordRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.openApiRoute(putRoute, (c) => {
+    const userId = c.get("userId") as number;
     const { id } = c.req.valid("param");
     const note = getNoteById(db, id);
-    if (!note) return c.json({ error: "Note not found" }, 404);
+    if (!note || note.owner_user_id !== userId) return c.json({ error: "Note not found" }, 404);
 
     const body = c.req.valid("json");
     const record = upsertTaskRecord(
