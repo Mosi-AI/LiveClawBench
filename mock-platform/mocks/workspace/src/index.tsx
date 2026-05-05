@@ -11,10 +11,12 @@ import type { MockAppV2 } from "mock-lib";
 import { z } from "zod";
 import { Database } from "bun:sqlite";
 import { createSchema, seed } from "./data/seed.js";
-import { getNoteById, listNotes, listRevisions, getRevisionCount, getUserById } from "./data/store.js";
+import { getNoteById, listNotes, listRevisions, getRevisionCount, getUserById, getBriefEntry, getTaskRecord } from "./data/store.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { registerNoteRoutes } from "./routes/notes.js";
 import { registerRevisionRoutes } from "./routes/revisions.js";
+import { registerBriefRoutes } from "./routes/brief.js";
+import { registerTaskRecordRoutes } from "./routes/task-record.js";
 import { authRequiredPage } from "./middleware/auth-page.js";
 import { renderMarkdown, renderPlainText } from "./markdown.js";
 import { Layout } from "./components/layout.js";
@@ -23,6 +25,7 @@ import { WorkspacePage } from "./components/workspace-page.js";
 import { NotePage } from "./components/note-page.js";
 import { PreviewPage } from "./components/preview-page.js";
 import { HistoryPage } from "./components/history-page.js";
+import { TaskRecordPage } from "./components/task-record-page.js";
 
 export function createWorkspaceApp(): MockAppV2 {
   const mockApp = createMockApp({
@@ -65,6 +68,8 @@ export function createWorkspaceApp(): MockAppV2 {
   app.use("/api/notes/*", authRequired);
   registerNoteRoutes(app, db);
   registerRevisionRoutes(app, db);
+  registerBriefRoutes(app, db);
+  registerTaskRecordRoutes(app, db);
 
   // HTML page routes — public
   app.page("/", (c) => c.html(<LoginPage />));
@@ -105,7 +110,7 @@ export function createWorkspaceApp(): MockAppV2 {
     const user = getUserById(db, userId);
     if (!note) return c.notFound();
     return c.html(
-      <Layout displayName={user?.display_name ?? "User"}>
+      <Layout displayName={user?.display_name ?? "User"} currentNoteId={id}>
         <NotePage note={note} />
       </Layout>,
     );
@@ -119,17 +124,18 @@ export function createWorkspaceApp(): MockAppV2 {
     if (!note) return c.notFound();
 
     let rendered = "";
+    let briefEntry = undefined;
     if (note.content_type === "markdown") {
       rendered = renderMarkdown(note.content);
     } else if (note.content_type === "plain_text") {
       rendered = renderPlainText(note.content);
-    } else {
-      rendered = "<p>Brief mode preview is not available in Phase 1.</p>";
+    } else if (note.content_type === "brief") {
+      briefEntry = getBriefEntry(db, id) ?? undefined;
     }
 
     return c.html(
-      <Layout displayName={user?.display_name ?? "User"}>
-        <PreviewPage note={note} renderedHtml={rendered} />
+      <Layout displayName={user?.display_name ?? "User"} currentNoteId={id}>
+        <PreviewPage note={note} renderedHtml={rendered} briefEntry={briefEntry} />
       </Layout>,
     );
   });
@@ -142,8 +148,22 @@ export function createWorkspaceApp(): MockAppV2 {
     if (!note) return c.notFound();
     const revisions = listRevisions(db, id);
     return c.html(
-      <Layout displayName={user?.display_name ?? "User"}>
+      <Layout displayName={user?.display_name ?? "User"} currentNoteId={id}>
         <HistoryPage note={note} revisions={revisions} />
+      </Layout>,
+    );
+  });
+
+  app.page("/note/:id/task-record", (c) => {
+    const userId = c.get("userId") as number;
+    const id = Number(c.req.param("id"));
+    const note = getNoteById(db, id);
+    const user = getUserById(db, userId);
+    if (!note) return c.notFound();
+    const record = getTaskRecord(db, id);
+    return c.html(
+      <Layout displayName={user?.display_name ?? "User"} currentNoteId={id}>
+        <TaskRecordPage note={note} record={record ?? undefined} />
       </Layout>,
     );
   });

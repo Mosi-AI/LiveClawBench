@@ -36,8 +36,8 @@ describe("createWorkspaceApp", () => {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
     const body2 = await res2.json();
-    expect(body1.length).toBe(3);
-    expect(body2.length).toBe(3);
+    expect(body1.length).toBe(5);
+    expect(body2.length).toBe(5);
   });
 
   test("seed populates all 5 tables", async () => {
@@ -54,10 +54,10 @@ describe("createWorkspaceApp", () => {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
     const notes = await notesRes.json();
-    expect(notes.length).toBe(3);
+    expect(notes.length).toBe(5);
 
-    // Verify note_revision table has 3 initial revisions
-    for (const id of [1, 2, 3]) {
+    // Verify note_revision table has 5 initial revisions
+    for (const id of [1, 2, 3, 4, 5]) {
       const revRes = await app.request(`/api/notes/${id}/revisions`, {
         headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
       });
@@ -65,7 +65,7 @@ describe("createWorkspaceApp", () => {
       expect(revs.length).toBe(1);
     }
 
-    // brief_entry and task_record exist but have 0 rows (verified indirectly via schema)
+    // brief_entry has 1 row and task_record has 1 row after Phase 2 seed
   });
 
   test("seed is idempotent", async () => {
@@ -75,7 +75,7 @@ describe("createWorkspaceApp", () => {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
     const body = await res.json();
-    expect(body.length).toBe(3);
+    expect(body.length).toBe(5);
   });
 
   test("unseeded factory yields empty tables", async () => {
@@ -100,16 +100,16 @@ describe("createWorkspaceApp", () => {
     expect(res.status).toBe(200);
   });
 
-  test("seeded notes have hard-coded ids 1, 2, 3", async () => {
+  test("seeded notes have hard-coded ids 1, 2, 3, 4, 5", async () => {
     const res = await app.request("/api/notes?seeded=1", {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
     const body = await res.json();
-    expect(body.map((n: any) => n.id)).toEqual([1, 2, 3]);
+    expect(body.map((n: any) => n.id)).toEqual([1, 2, 3, 4, 5]);
   });
 
   test("each seeded note has exactly one revision", async () => {
-    for (const id of [1, 2, 3]) {
+    for (const id of [1, 2, 3, 4, 5]) {
       const res = await app.request(`/api/notes/${id}/revisions`, {
         headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
       });
@@ -244,14 +244,14 @@ describe("createWorkspaceApp", () => {
     expect(body.title).toBe("Test Note");
     expect(body.content).toBe("Hello world");
     expect(body.save_count).toBe(0);
-    expect(body.id).toBeGreaterThan(3);
+    expect(body.id).toBeGreaterThan(5);
   });
 
   test("GET /api/notes returns all notes", async () => {
     const res = await app.request("/api/notes", { headers: await authHeaders() });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.length).toBe(3);
+    expect(body.length).toBe(5);
   });
 
   test("GET /api/notes?seeded=1 returns only seeded notes", async () => {
@@ -262,7 +262,7 @@ describe("createWorkspaceApp", () => {
     });
     const res = await app.request("/api/notes?seeded=1", { headers: await authHeaders() });
     const body = await res.json();
-    expect(body.length).toBe(3);
+    expect(body.length).toBe(5);
     expect(body.every((n: any) => n.is_seeded === 1)).toBe(true);
   });
 
@@ -705,6 +705,7 @@ describe("createWorkspaceApp", () => {
     const notes1 = await res1.json();
     const notes2 = await res2.json();
 
+    expect(notes1.length).toBe(5);
     expect(notes1.length).toBe(notes2.length);
     for (let i = 0; i < notes1.length; i++) {
       expect(notes1[i].id).toBe(notes2[i].id);
@@ -712,5 +713,442 @@ describe("createWorkspaceApp", () => {
       expect(notes1[i].content_type).toBe(notes2[i].content_type);
       expect(notes1[i].content).toBe(notes2[i].content);
     }
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phase 2: Brief CRUD
+  // ---------------------------------------------------------------------------
+
+  test("GET /api/notes/4/brief returns seeded brief with parsed arrays", async () => {
+    const res = await app.request("/api/notes/4/brief", { headers: await authHeaders() });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.id).toBe(1);
+    expect(body.note_id).toBe(4);
+    expect(body.key_updates).toBe("1. Launch mobile app v2. 2. Expand to EU market.");
+    expect(Array.isArray(body.evidence_bullets)).toBe(true);
+    expect(body.evidence_bullets[0].text).toBe("User surveys show 68% demand mobile");
+    expect(body.evidence_bullets[0].source).toBe("document");
+    expect(Array.isArray(body.action_items)).toBe(true);
+    expect(body.action_items[0].text).toBe("Finalize EU compliance docs");
+    expect(body.action_items[0].status).toBe("todo");
+    expect(body.action_items[0].priority).toBe("high");
+    expect(Array.isArray(body.citations)).toBe(true);
+    expect(body.citations[0].title).toBe("Q3 Market Research Report");
+    expect(body.citations[0].note).toBe("Internal slide deck");
+    expect(body.status).toBe("draft");
+  });
+
+  test("GET /api/notes/2/brief returns 404 (no brief)", async () => {
+    const res = await app.request("/api/notes/2/brief", { headers: await authHeaders() });
+    expect(res.status).toBe(404);
+  });
+
+  test("GET /api/notes/9999/brief returns 404 (no note)", async () => {
+    const res = await app.request("/api/notes/9999/brief", { headers: await authHeaders() });
+    expect(res.status).toBe(404);
+  });
+
+  test("PUT /api/notes/4/brief upserts and keeps same id", async () => {
+    const res1 = await app.request("/api/notes/4/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "Updated key",
+        evidence_bullets: [],
+        action_items: [],
+        citations: [],
+        status: "final",
+      }),
+    });
+    expect(res1.status).toBe(200);
+    const body1 = await res1.json();
+    expect(body1.id).toBe(1);
+    expect(body1.key_updates).toBe("Updated key");
+
+    const res2 = await app.request("/api/notes/4/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "Updated again",
+        evidence_bullets: [],
+        action_items: [],
+        citations: [],
+        status: "final",
+      }),
+    });
+    const body2 = await res2.json();
+    expect(body2.id).toBe(1);
+    expect(body2.key_updates).toBe("Updated again");
+    expect(new Date(body2.updated_at).getTime()).toBeGreaterThanOrEqual(new Date(body1.updated_at).getTime());
+  });
+
+  test("PUT /api/notes/9999/brief returns 404", async () => {
+    const res = await app.request("/api/notes/9999/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "X",
+        evidence_bullets: [],
+        action_items: [],
+        citations: [],
+      }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  test("PUT /api/notes/4/brief with invalid body returns 400", async () => {
+    const res = await app.request("/api/notes/4/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "X",
+        evidence_bullets: [{ text: "" }],
+        action_items: [],
+        citations: [],
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("PUT /api/notes/4/brief with non-JSON Content-Type returns 415", async () => {
+    const res = await app.request("/api/notes/4/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", ...(await authHeaders()) },
+      body: "key_updates=X",
+    });
+    expect(res.status).toBe(415);
+  });
+
+  test("brief save recomputes preview_text via rule-1 when content_type is brief", async () => {
+    const createRes = await app.request("/api/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ title: "Brief Recompute", content: "Some plain content", content_type: "brief" }),
+    });
+    const note = await createRes.json();
+    expect(note.preview_text).toContain("Some plain");
+
+    await app.request(`/api/notes/${note.id}/brief`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "Switched to brief preview",
+        evidence_bullets: [],
+        action_items: [],
+        citations: [],
+      }),
+    });
+
+    const getRes = await app.request(`/api/notes/${note.id}`, { headers: await authHeaders() });
+    const updated = await getRes.json();
+    expect(updated.preview_text).toBe("Switched to brief preview");
+  });
+
+  test("PUT /brief does not create note_revision", async () => {
+    const revResBefore = await app.request("/api/notes/4/revisions", { headers: await authHeaders() });
+    const revsBefore = await revResBefore.json();
+    const countBefore = revsBefore.length;
+
+    await app.request("/api/notes/4/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "No revision should be created",
+        evidence_bullets: [],
+        action_items: [],
+        citations: [],
+      }),
+    });
+
+    const revResAfter = await app.request("/api/notes/4/revisions", { headers: await authHeaders() });
+    const revsAfter = await revResAfter.json();
+    expect(revsAfter.length).toBe(countBefore);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phase 2: Task Record CRUD
+  // ---------------------------------------------------------------------------
+
+  test("GET /api/notes/5/task-record returns seeded record", async () => {
+    const res = await app.request("/api/notes/5/task-record", { headers: await authHeaders() });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).not.toBeNull();
+    expect(body.id).toBe(1);
+    expect(body.note_id).toBe(5);
+    expect(body.record_type).toBe("tracker_update");
+    expect(body.source_channel).toBe("incident");
+    expect(body.summary_text).toBe("Service degradation on 2024-07-15 due to DB connection pool exhaustion.");
+    expect(body.status).toBe("done");
+  });
+
+  test("GET /api/notes/2/task-record returns null for valid note without record", async () => {
+    const res = await app.request("/api/notes/2/task-record", { headers: await authHeaders() });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toBeNull();
+  });
+
+  test("GET /api/notes/9999/task-record returns 404", async () => {
+    const res = await app.request("/api/notes/9999/task-record", { headers: await authHeaders() });
+    expect(res.status).toBe(404);
+  });
+
+  test("PUT /api/notes/5/task-record upserts and keeps same id", async () => {
+    const res1 = await app.request("/api/notes/5/task-record", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        record_type: "summary",
+        source_channel: "manual",
+        summary_text: "Updated summary",
+        status: "open",
+      }),
+    });
+    expect(res1.status).toBe(200);
+    const body1 = await res1.json();
+    expect(body1.id).toBe(1);
+    expect(body1.summary_text).toBe("Updated summary");
+
+    const res2 = await app.request("/api/notes/5/task-record", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        record_type: "communication",
+        source_channel: "email",
+        summary_text: "Updated again",
+        status: "in_progress",
+      }),
+    });
+    const body2 = await res2.json();
+    expect(body2.id).toBe(1);
+    expect(body2.summary_text).toBe("Updated again");
+    expect(new Date(body2.updated_at).getTime()).toBeGreaterThanOrEqual(new Date(body1.updated_at).getTime());
+  });
+
+  test("PUT /api/notes/5/task-record with invalid enum returns 400", async () => {
+    const res = await app.request("/api/notes/5/task-record", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        record_type: "incident",
+        source_channel: "manual",
+        summary_text: "X",
+        status: "open",
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("PUT /api/notes/5/task-record with invalid status returns 400", async () => {
+    const res = await app.request("/api/notes/5/task-record", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        record_type: "summary",
+        source_channel: "manual",
+        summary_text: "X",
+        status: "invalid_status",
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phase 2: HTML Pages
+  // ---------------------------------------------------------------------------
+
+  test("GET /note/5/task-record returns HTML with seeded data", async () => {
+    const token = await sign({ userId: 1 });
+    const res = await app.request("/note/5/task-record", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+    const text = await res.text();
+    expect(text).toContain("Service degradation on 2024-07-15 due to DB connection pool exhaustion.");
+    expect(text).toContain('value="tracker_update"');
+    expect(text).toContain('value="incident"');
+    expect(text).toContain('value="done"');
+  });
+
+  test("GET /note/2/task-record returns HTML with defaults when no record exists", async () => {
+    const token = await sign({ userId: 1 });
+    const res = await app.request("/note/2/task-record", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain('value="summary"');
+    expect(text).toContain('value="manual"');
+    expect(text).toContain('value="open"');
+  });
+
+  test("GET /note/9999/task-record returns 404", async () => {
+    const token = await sign({ userId: 1 });
+    const res = await app.request("/note/9999/task-record", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(404);
+  });
+
+  test("Layout sidebar renders Task Record link on note-context pages", async () => {
+    const token = await sign({ userId: 1 });
+    const res = await app.request("/note/1", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain('href="/note/1/task-record"');
+  });
+
+  test("Layout sidebar does not render Task Record link on /workspace", async () => {
+    const token = await sign({ userId: 1 });
+    const res = await app.request("/workspace", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).not.toContain("/task-record");
+  });
+
+  test("Layout sidebar does not render Task Record link on /note/new", async () => {
+    const token = await sign({ userId: 1 });
+    const res = await app.request("/note/new", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).not.toContain("/task-record");
+  });
+
+  test("GET /note/4/preview renders structured brief without Phase 1 fallback", async () => {
+    const token = await sign({ userId: 1 });
+    const res = await app.request("/note/4/preview", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain('class="brief-key-updates"');
+    expect(text).toContain('class="brief-evidence"');
+    expect(text).toContain('class="brief-action-items"');
+    expect(text).toContain('class="brief-citations"');
+    expect(text).toContain("User surveys show 68% demand mobile");
+    expect(text).toContain("Finalize EU compliance docs");
+    expect(text).toContain("Q3 Market Research Report");
+    expect(text).not.toContain("Brief mode preview is not available in Phase 1.");
+  });
+
+  test("GET /note/:id/preview shows fallback for brief note without brief_entry", async () => {
+    const token = await sign({ userId: 1 });
+    const createRes = await app.request("/api/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ title: "Orphan Brief", content: "X", content_type: "brief" }),
+    });
+    const note = await createRes.json();
+
+    const res = await app.request(`/note/${note.id}/preview`, {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain("Brief mode preview is not available in Phase 1.");
+  });
+
+  test("GET /note/1/preview renders plain_text unchanged", async () => {
+    const token = await sign({ userId: 1 });
+    const res = await app.request("/note/1/preview", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain("Project Kickoff Meeting Notes");
+  });
+
+  test("GET /note/4/history returns 200 for brief note", async () => {
+    const token = await sign({ userId: 1 });
+    const res = await app.request("/note/4/history", {
+      headers: { Authorization: "Bearer " + token },
+    });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain("History:");
+  });
+
+  test("PUT /brief on plain_text note leaves preview_text untouched", async () => {
+    const getRes = await app.request("/api/notes/1", { headers: await authHeaders() });
+    const before = await getRes.json();
+    const originalPreview = before.preview_text;
+
+    await app.request("/api/notes/1/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "Should not affect preview",
+        evidence_bullets: [],
+        action_items: [],
+        citations: [],
+      }),
+    });
+
+    const afterRes = await app.request("/api/notes/1", { headers: await authHeaders() });
+    const after = await afterRes.json();
+    expect(after.preview_text).toBe(originalPreview);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phase 2: Seed data presence
+  // ---------------------------------------------------------------------------
+
+  test("seeded note 4 has content_type brief and is_seeded=1", async () => {
+    const res = await app.request("/api/notes/4", { headers: await authHeaders() });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.content_type).toBe("brief");
+    expect(body.is_seeded).toBe(1);
+  });
+
+  test("seeded note 4 preview_text uses rule-1 from brief_entry", async () => {
+    const res = await app.request("/api/notes/4", { headers: await authHeaders() });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.preview_text).toBe("1. Launch mobile app v2. 2. Expand to EU market.");
+  });
+
+  test("seeded note 5 has task record with tracker_update", async () => {
+    const res = await app.request("/api/notes/5/task-record", { headers: await authHeaders() });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.record_type).toBe("tracker_update");
+    expect(body.source_channel).toBe("incident");
+  });
+
+  test("seeded note 4 revision snapshot matches flattened brief content", async () => {
+    const res = await app.request("/api/notes/4/revisions", { headers: await authHeaders() });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBe(1);
+    expect(body[0].revision_no).toBe(1);
+    expect(body[0].content_snapshot).toContain("Key Updates:");
+    expect(body[0].content_snapshot).toContain("1. Launch mobile app v2. 2. Expand to EU market.");
+  });
+
+  test("PUT /api/notes/4 with content creates revision while PUT /brief does not", async () => {
+    const revResBefore = await app.request("/api/notes/4/revisions", { headers: await authHeaders() });
+    const revsBefore = await revResBefore.json();
+    const countBefore = revsBefore.length;
+
+    await app.request("/api/notes/4", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ title: "Updated", content: "something", content_type: "brief" }),
+    });
+
+    const revResAfter = await app.request("/api/notes/4/revisions", { headers: await authHeaders() });
+    const revsAfter = await revResAfter.json();
+    expect(revsAfter.length).toBe(countBefore + 1);
+    expect(revsAfter[revsAfter.length - 1].content_snapshot).toBe("something");
   });
 });

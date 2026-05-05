@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import type { Note, NoteRevision } from "../types.js";
+import type { Note, NoteRevision, BriefEntry, TaskRecord } from "../types.js";
 
 export function createNote(
   db: Database,
@@ -121,6 +121,86 @@ export function getUserByUsername(db: Database, username: string): { id: number;
   };
 }
 
+export function getBriefEntry(db: Database, noteId: number): BriefEntry | null {
+  const row = db.query("SELECT * FROM brief_entry WHERE note_id = ?").get(noteId) as Record<string, unknown> | null;
+  if (!row) return null;
+  return rowToBriefEntry(row);
+}
+
+export function upsertBriefEntry(
+  db: Database,
+  noteId: number,
+  keyUpdates: string,
+  evidenceBullets: { text: string; source?: string }[],
+  actionItems: { text: string; status: string; owner?: string; due_date?: string; priority?: string }[],
+  citations: { title: string; url?: string; note?: string }[],
+  status: "draft" | "final",
+): BriefEntry {
+  const now = new Date().toISOString();
+  const existing = db.query("SELECT id FROM brief_entry WHERE note_id = ?").get(noteId) as { id: number } | null;
+
+  if (existing) {
+    db.run(
+      `UPDATE brief_entry SET key_updates = ?, evidence_bullets = ?, action_items = ?, citations = ?, status = ?, updated_at = ?
+       WHERE note_id = ?`,
+      [keyUpdates, JSON.stringify(evidenceBullets), JSON.stringify(actionItems), JSON.stringify(citations), status, now, noteId],
+    );
+  } else {
+    db.run(
+      `INSERT INTO brief_entry (note_id, key_updates, evidence_bullets, action_items, citations, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [noteId, keyUpdates, JSON.stringify(evidenceBullets), JSON.stringify(actionItems), JSON.stringify(citations), status, now, now],
+    );
+  }
+
+  const row = db.query("SELECT * FROM brief_entry WHERE note_id = ?").get(noteId) as Record<string, unknown>;
+  return rowToBriefEntry(row);
+}
+
+export function recomputeNotePreviewFromBrief(db: Database, noteId: number): void {
+  const note = getNoteById(db, noteId);
+  if (!note || note.content_type !== "brief") return;
+  const brief = getBriefEntry(db, noteId);
+  if (!brief) return;
+  const previewText = brief.key_updates.slice(0, 300);
+  db.run("UPDATE note SET preview_text = ? WHERE id = ?", [previewText, noteId]);
+}
+
+export function getTaskRecord(db: Database, noteId: number): TaskRecord | null {
+  const row = db.query("SELECT * FROM task_record WHERE note_id = ?").get(noteId) as Record<string, unknown> | null;
+  if (!row) return null;
+  return rowToTaskRecord(row);
+}
+
+export function upsertTaskRecord(
+  db: Database,
+  noteId: number,
+  recordType: "communication" | "summary" | "tracker_update",
+  sourceChannel: "manual" | "email" | "meeting" | "incident",
+  summaryText: string,
+  status: "open" | "in_progress" | "done" | "cancelled",
+): TaskRecord {
+  const now = new Date().toISOString();
+  const existing = db.query("SELECT id FROM task_record WHERE note_id = ?").get(noteId) as { id: number } | null;
+
+  if (existing) {
+    db.run(
+      `UPDATE task_record SET record_type = ?, source_channel = ?, summary_text = ?, status = ?, updated_at = ?
+       WHERE note_id = ?`,
+      [recordType, sourceChannel, summaryText, status, now, noteId],
+    );
+  } else {
+    db.run(
+      `INSERT INTO task_record (note_id, record_type, source_channel, summary_text, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [noteId, recordType, sourceChannel, summaryText, status, now, now],
+    );
+  }
+
+  const row = db.query("SELECT * FROM task_record WHERE note_id = ?").get(noteId) as Record<string, unknown>;
+  return rowToTaskRecord(row);
+}
+
 function generatePreviewText(content: string, contentType?: string, db?: Database, noteId?: number): string {
   // Phase 1: if content_type is brief and brief_entry exists, use key_updates
   if (contentType === "brief" && db && noteId !== undefined) {
@@ -159,5 +239,32 @@ function rowToRevision(row: Record<string, unknown>): NoteRevision {
     change_summary: row.change_summary as string,
     edited_by_user_id: row.edited_by_user_id as number,
     edited_at: row.edited_at as string,
+  };
+}
+
+function rowToBriefEntry(row: Record<string, unknown>): BriefEntry {
+  return {
+    id: row.id as number,
+    note_id: row.note_id as number,
+    key_updates: row.key_updates as string,
+    evidence_bullets: JSON.parse(row.evidence_bullets as string) as BriefEntry["evidence_bullets"],
+    action_items: JSON.parse(row.action_items as string) as BriefEntry["action_items"],
+    citations: JSON.parse(row.citations as string) as BriefEntry["citations"],
+    status: row.status as "draft" | "final",
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
+  };
+}
+
+function rowToTaskRecord(row: Record<string, unknown>): TaskRecord {
+  return {
+    id: row.id as number,
+    note_id: row.note_id as number,
+    record_type: row.record_type as "communication" | "summary" | "tracker_update",
+    source_channel: row.source_channel as "manual" | "email" | "meeting" | "incident",
+    summary_text: row.summary_text as string,
+    status: row.status as "open" | "in_progress" | "done" | "cancelled",
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
   };
 }

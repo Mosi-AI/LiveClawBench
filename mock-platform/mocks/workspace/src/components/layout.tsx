@@ -3,10 +3,11 @@ import type { Child } from "hono/jsx";
 
 interface LayoutProps {
   displayName: string;
+  currentNoteId?: number;
   children: Child;
 }
 
-export function Layout({ displayName, children }: LayoutProps) {
+export function Layout({ displayName, currentNoteId, children }: LayoutProps) {
   return (
     <html lang="en">
       <head>
@@ -42,6 +43,9 @@ export function Layout({ displayName, children }: LayoutProps) {
           <nav class="sidebar">
             <a href="/workspace">Workspace</a>
             <a href="/note/new">New Note</a>
+            {currentNoteId !== undefined && (
+              <a href={`/note/${currentNoteId}/task-record`}>Task Record</a>
+            )}
           </nav>
           <main class="main">{children}</main>
         </div>

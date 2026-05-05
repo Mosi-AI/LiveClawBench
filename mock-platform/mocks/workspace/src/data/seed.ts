@@ -63,7 +63,7 @@ export function createSchema(db: Database): void {
   db.run(`
     CREATE TABLE IF NOT EXISTS task_record (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      note_id INTEGER NOT NULL,
+      note_id INTEGER NOT NULL UNIQUE,
       record_type TEXT NOT NULL DEFAULT 'summary' CHECK(record_type IN ('communication', 'summary', 'tracker_update')),
       source_channel TEXT NOT NULL DEFAULT 'manual' CHECK(source_channel IN ('manual', 'email', 'meeting', 'incident')),
       summary_text TEXT NOT NULL DEFAULT '',
@@ -118,6 +118,64 @@ export function seed(db: Database): void {
       [n.id, n.id, n.content],
     );
   }
+
+  // Phase 2 seed data
+
+  // 1. Insert seeded note id=4 (brief)
+  const note4Content = `Key Updates:\n1. Launch mobile app v2. 2. Expand to EU market.\n\nEvidence:\n- User surveys show 68% demand mobile\n\nAction Items:\n- [todo] Finalize EU compliance docs\n\nCitations:\n- Q3 Market Research Report`;
+  db.run(
+    `INSERT OR IGNORE INTO note (id, owner_user_id, title, content, content_type, preview_text, is_seeded)
+     VALUES (?, 1, ?, ?, ?, ?, 1)`,
+    [4, "Q3 Product Strategy Brief", note4Content, "brief", generatePreviewText(note4Content)],
+  );
+
+  // 2. Insert brief_entry row id=1 for note_id=4
+  db.run(
+    `INSERT OR IGNORE INTO brief_entry (id, note_id, key_updates, evidence_bullets, action_items, citations, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      1,
+      4,
+      "1. Launch mobile app v2. 2. Expand to EU market.",
+      JSON.stringify([{ text: "User surveys show 68% demand mobile", source: "document" }]),
+      JSON.stringify([{ text: "Finalize EU compliance docs", status: "todo", priority: "high" }]),
+      JSON.stringify([{ title: "Q3 Market Research Report", note: "Internal slide deck" }]),
+      "draft",
+    ],
+  );
+
+  // 3. Recompute note 4's preview_text via rule-1
+  db.run(
+    `UPDATE note SET preview_text = ? WHERE id = 4`,
+    ["1. Launch mobile app v2. 2. Expand to EU market.".slice(0, 300)],
+  );
+
+  // 4. Insert seeded note id=5 (plain_text with task record)
+  const note5Content = "Service degradation on 2024-07-15 due to DB connection pool exhaustion. Root cause: max_connections set too low. Mitigation: raised pool size; added monitoring alert.";
+  db.run(
+    `INSERT OR IGNORE INTO note (id, owner_user_id, title, content, content_type, preview_text, is_seeded)
+     VALUES (?, 1, ?, ?, ?, ?, 1)`,
+    [5, "Incident Report #42", note5Content, "plain_text", generatePreviewText(note5Content)],
+  );
+
+  // 5. Insert task_record row id=1 for note_id=5
+  db.run(
+    `INSERT OR IGNORE INTO task_record (id, note_id, record_type, source_channel, summary_text, status)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [1, 5, "tracker_update", "incident", "Service degradation on 2024-07-15 due to DB connection pool exhaustion.", "done"],
+  );
+
+  // 6. Insert initial revisions for notes 4 and 5
+  db.run(
+    `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
+     VALUES (?, ?, 1, ?, 1)`,
+    [4, 4, note4Content],
+  );
+  db.run(
+    `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
+     VALUES (?, ?, 1, ?, 1)`,
+    [5, 5, note5Content],
+  );
 }
 
 function generatePreviewText(content: string): string {
