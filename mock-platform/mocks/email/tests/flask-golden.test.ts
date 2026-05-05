@@ -151,7 +151,7 @@ describe("Flask golden response contract", () => {
   });
 
   test("user search response shape matches Flask golden", async () => {
-    const res = await app.request("/api/users/search?q=peter", {
+    const res = await app.request("/api/users/search?q=mary", {
       headers: { Authorization: `Bearer ${token}` },
     });
     expect(res.status).toBe(200);

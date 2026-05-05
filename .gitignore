@@ -11,6 +11,7 @@ jobs-migrated/
 jobs-baseline/
 jobs-migrated-round6/
 jobs-baseline-round6/
+jobs-migrated-round7/
 logs/
 
 # Harbor parity comparison tables (generated verification artifacts)
