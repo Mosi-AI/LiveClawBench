@@ -11,6 +11,9 @@ jobs-migrated/
 jobs-baseline/
 logs/
 
+# Harbor parity comparison tables (generated verification artifacts)
+harbor-parity-comparison.md
+
 # Local run scripts (not tracked)
 run_*.sh
 
