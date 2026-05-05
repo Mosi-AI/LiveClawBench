@@ -40,6 +40,9 @@ run_*.sh
 # Playwright MCP session logs
 .playwright-mcp/
 
+# Shell redirect artifacts (accidental `>&amp;` typos create files named `amp`)
+amp
+
 # Humanize plugin state (drafts, plans, plan QA, bitlesson, config)
 .humanize/
 
