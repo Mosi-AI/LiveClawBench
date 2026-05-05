@@ -385,7 +385,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`    b=socket.socket(); b.connect(('127.0.0.1',${port}))`);
         lines.push(`    def fwd(src,dst):`);
         lines.push(`      try:`);
-        lines.push(`        while 1: d=src.recv(8192); dst.send(d) if d else None`);
+        lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
         lines.push(`      except: pass`);
         lines.push(`    threading.Thread(target=fwd,args=(self.request,b)).start()`);
         lines.push(`    fwd(b,self.request)`);
@@ -417,7 +417,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`    b=socket.socket(); b.connect(('127.0.0.1',${port}))`);
         lines.push(`    def fwd(src,dst):`);
         lines.push(`      try:`);
-        lines.push(`        while 1: d=src.recv(8192); dst.send(d) if d else None`);
+        lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
         lines.push(`      except: pass`);
         lines.push(`    threading.Thread(target=fwd,args=(self.request,b)).start()`);
         lines.push(`    fwd(b,self.request)`);
@@ -437,7 +437,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`    b=socket.socket(); b.connect(('127.0.0.1',${port}))`);
         lines.push(`    def fwd(src,dst):`);
         lines.push(`      try:`);
-        lines.push(`        while 1: d=src.recv(8192); dst.send(d) if d else None`);
+        lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
         lines.push(`      except: pass`);
         lines.push(`    threading.Thread(target=fwd,args=(self.request,b)).start()`);
         lines.push(`    fwd(b,self.request)`);

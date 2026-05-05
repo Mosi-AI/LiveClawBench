@@ -553,6 +553,12 @@ export function seedDatabase(db: Database): void {
     // Directory may not be creatable in local dev / tests
   }
 
+  // Check if database is already seeded (idempotent restart)
+  const existingPeter = db.query("SELECT id FROM users WHERE username = ?").get("peter") as { id: number } | null;
+  if (existingPeter) {
+    return;
+  }
+
   // Create peter user with Werkzeug-compatible hash
   const peterHash = generateWerkzeugHashSync("password123");
   db.query(
