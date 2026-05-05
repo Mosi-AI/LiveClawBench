@@ -24,7 +24,7 @@ export function seed(db: Database): void {
 
   // Users
   db.run(
-    `INSERT INTO user (username, password, role, is_active) VALUES
+    `INSERT OR IGNORE INTO user (username, password, role, is_active) VALUES
       ('admin', 'admin123', 'admin', 1),
       ('john', 'user123', 'user', 1),
       ('jane', 'user123', 'user', 0)`
@@ -43,7 +43,7 @@ export function seed(db: Database): void {
   for (const month of months) {
     for (const dept of departments) {
       db.run(
-        `INSERT INTO department_financial_record
+        `INSERT OR IGNORE INTO department_financial_record
           (month, department_name, manager_email, budget_amount, actual_expense_amount, revenue_amount)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
@@ -60,7 +60,7 @@ export function seed(db: Database): void {
 
   // System config
   db.run(
-    `INSERT INTO system_config (config_key, config_value) VALUES ('approval_limit', '50000')`
+    `INSERT OR IGNORE INTO system_config (config_key, config_value) VALUES ('approval_limit', '50000')`
   );
 
   // Transaction records
@@ -78,7 +78,7 @@ export function seed(db: Database): void {
   ];
   for (const [date, vendor, amount, category, status, approvalStatus] of txnData) {
     db.run(
-      `INSERT INTO transaction_record
+      `INSERT OR IGNORE INTO transaction_record
         (trade_date, vendor_name, amount, category, status, approval_status, approval_note)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [date, vendor, round2(amount), category, status, approvalStatus, ""]
@@ -93,7 +93,7 @@ export function seed(db: Database): void {
   ];
   for (const [accId, sysBal, stmtBal, status] of accountData) {
     db.run(
-      `INSERT INTO account_balance (account_id, system_balance, statement_balance, diff_amount, status)
+      `INSERT OR IGNORE INTO account_balance (account_id, system_balance, statement_balance, diff_amount, status)
        VALUES (?, ?, ?, ?, ?)`,
       [accId, round2(sysBal), round2(stmtBal), round2(sysBal - stmtBal), status]
     );
@@ -113,7 +113,7 @@ export function seed(db: Database): void {
   ];
   for (const [accBalId, txnId, amount, status] of accTxns) {
     db.run(
-      `INSERT INTO account_transaction (account_balance_id, transaction_id, amount, status)
+      `INSERT OR IGNORE INTO account_transaction (account_balance_id, transaction_id, amount, status)
        VALUES (?, ?, ?, ?)`,
       [accBalId, txnId, round2(amount), status]
     );
@@ -129,24 +129,24 @@ export function seed(db: Database): void {
   ];
   for (const [code, name] of vendors) {
     db.run(
-      `INSERT INTO vendor (vendor_code, vendor_name) VALUES (?, ?)`,
+      `INSERT OR IGNORE INTO vendor (vendor_code, vendor_name) VALUES (?, ?)`,
       [code, name]
     );
   }
 
   // Expense reports
   db.run(
-    `INSERT INTO expense_report (trip_name, total_amount, status, created_by_user_id)
-     VALUES ('Q1 Sales Trip', 2500.0, 'submitted', 2)`
+    `INSERT OR IGNORE INTO expense_report (id, trip_name, total_amount, status, created_by_user_id)
+     VALUES (1, 'Q1 Sales Trip', 2500.0, 'submitted', 2)`
   );
   db.run(
-    `INSERT INTO expense_report (trip_name, total_amount, status, created_by_user_id)
-     VALUES ('Dev Conference', 1800.0, 'draft', 2)`
+    `INSERT OR IGNORE INTO expense_report (id, trip_name, total_amount, status, created_by_user_id)
+     VALUES (2, 'Dev Conference', 1800.0, 'draft', 2)`
   );
 
   // Expense items
   db.run(
-    `INSERT INTO expense_item (expense_report_id, expense_category, amount) VALUES
+    `INSERT OR IGNORE INTO expense_item (expense_report_id, expense_category, amount) VALUES
       (1, 'flight', 1200.0),
       (1, 'hotel', 800.0),
       (1, 'meals', 500.0),
@@ -157,21 +157,21 @@ export function seed(db: Database): void {
 
   // Invoices
   db.run(
-    `INSERT INTO invoice (vendor_id, vendor_name, invoice_number, invoice_date, status)
-     VALUES (1, 'Acme Corp', 'INV-2026-001', '2026-01-15', 'submitted')`
+    `INSERT OR IGNORE INTO invoice (id, vendor_id, vendor_name, invoice_number, invoice_date, status)
+     VALUES (1, 1, 'Acme Corp', 'INV-2026-001', '2026-01-15', 'submitted')`
   );
   db.run(
-    `INSERT INTO invoice (vendor_id, vendor_name, invoice_number, invoice_date, status)
-     VALUES (2, 'Globex Systems', 'INV-2026-002', '2026-02-01', 'posted')`
+    `INSERT OR IGNORE INTO invoice (id, vendor_id, vendor_name, invoice_number, invoice_date, status)
+     VALUES (2, 2, 'Globex Systems', 'INV-2026-002', '2026-02-01', 'posted')`
   );
   db.run(
-    `INSERT INTO invoice (vendor_id, vendor_name, invoice_number, invoice_date, status)
-     VALUES (3, 'Initech Solutions', 'INV-2026-003', '2026-02-10', 'cancelled')`
+    `INSERT OR IGNORE INTO invoice (id, vendor_id, vendor_name, invoice_number, invoice_date, status)
+     VALUES (3, 3, 'Initech Solutions', 'INV-2026-003', '2026-02-10', 'cancelled')`
   );
 
   // Invoice line items
   db.run(
-    `INSERT INTO invoice_line_item (invoice_id, description, category_code, amount) VALUES
+    `INSERT OR IGNORE INTO invoice_line_item (invoice_id, description, category_code, amount) VALUES
       (1, 'Software License Renewal', '5300', 12500.5),
       (1, 'Support Package', '5400', 3000.0),
       (2, 'Travel Expenses', '5100', 52000.0),
@@ -189,7 +189,7 @@ export function seed(db: Database): void {
   ];
   for (const [name, cost, residual, life, method, annual] of assets) {
     db.run(
-      `INSERT INTO asset_record
+      `INSERT OR IGNORE INTO asset_record
         (asset_name, cost_basis, residual_value, useful_life_years, depreciation_method, annual_depreciation)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [name, round2(cost), round2(residual), life, method, round2(annual)]

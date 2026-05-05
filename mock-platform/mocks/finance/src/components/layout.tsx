@@ -23,7 +23,7 @@ export function Layout({ title, children }: { title: string; children: JSX.Eleme
           <h1>Finance App</h1>
           <div>
             <a href="/">Home</a>
-            <a href="/login">Logout</a>
+            <a href="/api/auth/logout">Logout</a>
           </div>
         </div>
         <div class="container">

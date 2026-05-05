@@ -104,6 +104,9 @@ export function createFinanceApp() {
   app.page("/accounts/:id", (c) => {
     const id = Number(c.req.param("id"));
     const account = db.query("SELECT * FROM account_balance WHERE id = ?").get(id);
+    if (!account) {
+      return c.json({ error: "Not found" }, 404);
+    }
     const transactions = db.query("SELECT * FROM account_transaction WHERE account_balance_id = ?").all(id);
     return c.html(<AccountDetailPage account={account} transactions={transactions} />);
   });

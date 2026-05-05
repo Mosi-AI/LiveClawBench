@@ -31,7 +31,7 @@ function getTokenExpirySeconds(): number {
   const env = process.env.MOCK_TOKEN_EXPIRY_SECONDS;
   if (env) {
     const parsed = Number(env);
-    if (!Number.isNaN(parsed)) return parsed;
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
   }
   return DEFAULT_TOKEN_EXPIRY_SECONDS;
 }
