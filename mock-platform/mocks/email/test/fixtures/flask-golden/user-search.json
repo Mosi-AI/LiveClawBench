@@ -1,0 +1,10 @@
+{
+  "users": [
+    {
+      "created_at": "<TIMESTAMP>",
+      "email": "peter.griffin@email.app",
+      "id": "<ID>",
+      "username": "peter"
+    }
+  ]
+}

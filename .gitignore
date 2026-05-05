@@ -9,6 +9,8 @@ jobs/*
 !jobs/.gitkeep
 jobs-migrated/
 jobs-baseline/
+jobs-migrated-round6/
+jobs-baseline-round6/
 logs/
 
 # Harbor parity comparison tables (generated verification artifacts)
