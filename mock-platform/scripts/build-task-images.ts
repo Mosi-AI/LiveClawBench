@@ -379,7 +379,12 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         // Uses Python's socketserver (always available) as a simple TCP forwarder.
         lines.push(`python3 -c "`);
         lines.push(`import socketserver, socket, threading`);
-        lines.push(`class P(socketserver.ThreadingTCPServer): allow_reuse_address = True`);
+        lines.push(`class P(socketserver.ThreadingTCPServer):`);
+        lines.push(`  allow_reuse_address = True`);
+        lines.push(`  def server_bind(self):`);
+        lines.push(`    super().server_bind()`);
+        lines.push(`    import os`);
+        lines.push(`    os.set_inheritable(self.socket.fileno(), False)`);
         lines.push(`class H(socketserver.BaseRequestHandler):`);
         lines.push(`  def handle(self):`);
         lines.push(`    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${port}))`);
@@ -411,7 +416,12 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         // Proxy port 5174 to Bun email port for legacy URL compatibility
         lines.push(`python3 -c "`);
         lines.push(`import socketserver, socket, threading`);
-        lines.push(`class P(socketserver.ThreadingTCPServer): allow_reuse_address = True`);
+        lines.push(`class P(socketserver.ThreadingTCPServer):`);
+        lines.push(`  allow_reuse_address = True`);
+        lines.push(`  def server_bind(self):`);
+        lines.push(`    super().server_bind()`);
+        lines.push(`    import os`);
+        lines.push(`    os.set_inheritable(self.socket.fileno(), False)`);
         lines.push(`class H(socketserver.BaseRequestHandler):`);
         lines.push(`  def handle(self):`);
         lines.push(`    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${port}))`);
@@ -431,7 +441,12 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         // Proxy port 3000 to Bun todolist port for legacy URL compatibility
         lines.push(`python3 -c "`);
         lines.push(`import socketserver, socket, threading`);
-        lines.push(`class P(socketserver.ThreadingTCPServer): allow_reuse_address = True`);
+        lines.push(`class P(socketserver.ThreadingTCPServer):`);
+        lines.push(`  allow_reuse_address = True`);
+        lines.push(`  def server_bind(self):`);
+        lines.push(`    super().server_bind()`);
+        lines.push(`    import os`);
+        lines.push(`    os.set_inheritable(self.socket.fileno(), False)`);
         lines.push(`class H(socketserver.BaseRequestHandler):`);
         lines.push(`  def handle(self):`);
         lines.push(`    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${port}))`);
