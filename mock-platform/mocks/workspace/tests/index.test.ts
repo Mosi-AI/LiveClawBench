@@ -1037,7 +1037,7 @@ describe("createWorkspaceApp", () => {
     expect(text).toContain("User surveys show 68% demand mobile");
     expect(text).toContain("Finalize EU compliance docs");
     expect(text).toContain("Q3 Market Research Report");
-    expect(text).not.toContain("Brief mode preview is not available in Phase 1.");
+    expect(text).not.toContain("Structured brief preview is not available");
   });
 
   test("GET /note/:id/preview shows fallback for brief note without brief_entry", async () => {
@@ -1054,7 +1054,7 @@ describe("createWorkspaceApp", () => {
     });
     expect(res.status).toBe(200);
     const text = await res.text();
-    expect(text).toContain("Brief mode preview is not available in Phase 1.");
+    expect(text).toContain("Structured brief preview is not available because no brief entry exists for this note.");
   });
 
   test("GET /note/1/preview renders plain_text unchanged", async () => {

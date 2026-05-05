@@ -2,7 +2,7 @@ import type { OpenAPIApp } from "mock-lib";
 import { createRoute } from "mock-lib";
 import { z } from "zod";
 import type { Database } from "bun:sqlite";
-import { getNoteById, getBriefEntry, upsertBriefEntry, recomputeNotePreviewFromBrief } from "../data/store.js";
+import { getNoteByIdOwned, getBriefEntry, upsertBriefEntry, recomputeNotePreviewFromBrief } from "../data/store.js";
 import { BriefPayloadSchema, BriefResponseSchema } from "../schemas.js";
 
 export function registerBriefRoutes(app: OpenAPIApp, db: Database): void {
@@ -36,8 +36,8 @@ export function registerBriefRoutes(app: OpenAPIApp, db: Database): void {
   app.openApiRoute(getRoute, (c) => {
     const userId = c.get("userId") as number;
     const { id } = c.req.valid("param");
-    const note = getNoteById(db, id);
-    if (!note || note.owner_user_id !== userId) return c.json({ error: "Note not found" }, 404);
+    const note = getNoteByIdOwned(db, id, userId);
+    if (!note) return c.json({ error: "Note not found" }, 404);
     const brief = getBriefEntry(db, id);
     if (!brief) return c.json({ error: "Brief not found" }, 404);
     return c.json(brief, 200);
@@ -80,8 +80,8 @@ export function registerBriefRoutes(app: OpenAPIApp, db: Database): void {
   app.openApiRoute(putRoute, (c) => {
     const userId = c.get("userId") as number;
     const { id } = c.req.valid("param");
-    const note = getNoteById(db, id);
-    if (!note || note.owner_user_id !== userId) return c.json({ error: "Note not found" }, 404);
+    const note = getNoteByIdOwned(db, id, userId);
+    if (!note) return c.json({ error: "Note not found" }, 404);
     const body = c.req.valid("json");
     const brief = upsertBriefEntry(
       db,

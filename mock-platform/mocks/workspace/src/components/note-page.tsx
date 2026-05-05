@@ -29,40 +29,11 @@ const ACTION_PRIORITIES = [
   { value: "high", label: "High" },
 ];
 
-function flattenBrief(entry: BriefEntry): string {
-  const parts: string[] = [];
-
-  if (entry.key_updates && entry.key_updates.trim()) {
-    parts.push("Key Updates:\n" + entry.key_updates);
-  }
-
-  if (entry.evidence_bullets && entry.evidence_bullets.length > 0) {
-    const lines = entry.evidence_bullets.map((e) => "- " + e.text);
-    parts.push("Evidence:\n" + lines.join("\n"));
-  }
-
-  if (entry.action_items && entry.action_items.length > 0) {
-    const lines = entry.action_items.map((a) => "- [" + a.status + "] " + a.text);
-    parts.push("Action Items:\n" + lines.join("\n"));
-  }
-
-  if (entry.citations && entry.citations.length > 0) {
-    const lines = entry.citations.map((c) => "- " + c.title);
-    parts.push("Citations:\n" + lines.join("\n"));
-  }
-
-  return parts.join("\n\n");
-}
-
 export function NotePage({ note, briefEntry }: NotePageProps) {
   const isNew = !note;
   const title = note?.title ?? "";
   const content = note?.content ?? "";
   const contentType = note?.content_type ?? "plain_text";
-
-  const evidenceRows = briefEntry?.evidence_bullets ?? [];
-  const actionRows = briefEntry?.action_items ?? [];
-  const citationRows = briefEntry?.citations ?? [];
 
   return (
     <div>
@@ -88,52 +59,7 @@ export function NotePage({ note, briefEntry }: NotePageProps) {
         <button type="submit" style="background:#0f3460;color:#fff;padding:10px 20px;border:none;border-radius:4px;cursor:pointer;">Save</button>
       </form>
       <script>{`
-        function renderBriefBody(keyUpdates, evidenceRows, actionRows, citationRows) {
-          const evidenceHtml = evidenceRows.map((e, i) =>
-            '<div class="brief-evidence-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">' +
-            '<input type="text" name="brief_evidence_text" value="' + (e.text || '') + '" placeholder="Evidence text" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-            '<select name="brief_evidence_source" style="padding:8px;border:1px solid #ddd;border-radius:4px;">' +
-            '<option value=""' + (!e.source ? ' selected' : '') + '>— Select source —</option>' +
-            '<option value="user_input"' + (e.source === 'user_input' ? ' selected' : '') + '>User Input</option>' +
-            '<option value="email"' + (e.source === 'email' ? ' selected' : '') + '>Email</option>' +
-            '<option value="meeting"' + (e.source === 'meeting' ? ' selected' : '') + '>Meeting</option>' +
-            '<option value="document"' + (e.source === 'document' ? ' selected' : '') + '>Document</option>' +
-            '<option value="system"' + (e.source === 'system' ? ' selected' : '') + '>System</option>' +
-            '</select>' +
-            '<button type="button" class="btn-remove" style="padding:8px 12px;border:1px solid #ddd;border-radius:4px;background:#f5f5f5;cursor:pointer;">Remove</button>' +
-            '</div>'
-          ).join('');
-
-          const actionHtml = actionRows.map((a, i) =>
-            '<div class="brief-action-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">' +
-            '<input type="text" name="brief_action_text" value="' + (a.text || '') + '" placeholder="Action text" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-            '<select name="brief_action_status" style="padding:8px;border:1px solid #ddd;border-radius:4px;">' +
-            '<option value="todo"' + (a.status === 'todo' ? ' selected' : '') + '>To Do</option>' +
-            '<option value="in_progress"' + (a.status === 'in_progress' ? ' selected' : '') + '>In Progress</option>' +
-            '<option value="done"' + (a.status === 'done' ? ' selected' : '') + '>Done</option>' +
-            '<option value="cancelled"' + (a.status === 'cancelled' ? ' selected' : '') + '>Cancelled</option>' +
-            '</select>' +
-            '<input type="text" name="brief_action_owner" value="' + (a.owner || '') + '" placeholder="Owner" style="width:120px;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-            '<input type="text" name="brief_action_due" value="' + (a.due_date || '') + '" placeholder="YYYY-MM-DD" style="width:120px;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-            '<select name="brief_action_priority" style="padding:8px;border:1px solid #ddd;border-radius:4px;">' +
-            '<option value=""' + (!a.priority ? ' selected' : '') + '>—</option>' +
-            '<option value="low"' + (a.priority === 'low' ? ' selected' : '') + '>Low</option>' +
-            '<option value="medium"' + (a.priority === 'medium' ? ' selected' : '') + '>Medium</option>' +
-            '<option value="high"' + (a.priority === 'high' ? ' selected' : '') + '>High</option>' +
-            '</select>' +
-            '<button type="button" class="btn-remove" style="padding:8px 12px;border:1px solid #ddd;border-radius:4px;background:#f5f5f5;cursor:pointer;">Remove</button>' +
-            '</div>'
-          ).join('');
-
-          const citationHtml = citationRows.map((c, i) =>
-            '<div class="brief-citation-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">' +
-            '<input type="text" name="brief_cite_title" value="' + (c.title || '') + '" placeholder="Title" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-            '<input type="text" name="brief_cite_url" value="' + (c.url || '') + '" placeholder="URL" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-            '<input type="text" name="brief_cite_note" value="' + (c.note || '') + '" placeholder="Note" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-            '<button type="button" class="btn-remove" style="padding:8px 12px;border:1px solid #ddd;border-radius:4px;background:#f5f5f5;cursor:pointer;">Remove</button>' +
-            '</div>'
-          ).join('');
-
+        function renderBriefBody(keyUpdates) {
           return (
             '<div style="display:flex;justify-content:flex-end;margin-bottom:16px;">' +
             '<button type="button" id="btn-insert-heading" style="padding:8px 16px;border:1px solid #ddd;border-radius:4px;background:#f5f5f5;cursor:pointer;font-size:13px;">Insert Section Heading</button>' +
@@ -144,17 +70,17 @@ export function NotePage({ note, briefEntry }: NotePageProps) {
             '</div>' +
             '<div id="brief-evidence" style="margin-bottom:16px;">' +
             '<label style="display:block;font-size:14px;margin-bottom:6px;color:#333;">Evidence Bullets</label>' +
-            '<div id="evidence-rows">' + evidenceHtml + '</div>' +
+            '<div id="evidence-rows"></div>' +
             '<button type="button" id="btn-add-evidence" style="margin-top:8px;padding:8px 16px;border:1px solid #ddd;border-radius:4px;background:#f5f5f5;cursor:pointer;font-size:13px;">+ Add evidence</button>' +
             '</div>' +
             '<div id="brief-action" style="margin-bottom:16px;">' +
             '<label style="display:block;font-size:14px;margin-bottom:6px;color:#333;">Action Items</label>' +
-            '<div id="action-rows">' + actionHtml + '</div>' +
+            '<div id="action-rows"></div>' +
             '<button type="button" id="btn-add-action" style="margin-top:8px;padding:8px 16px;border:1px solid #ddd;border-radius:4px;background:#f5f5f5;cursor:pointer;font-size:13px;">+ Add action item</button>' +
             '</div>' +
             '<div id="brief-citations" style="margin-bottom:16px;">' +
             '<label style="display:block;font-size:14px;margin-bottom:6px;color:#333;">Citations</label>' +
-            '<div id="citation-rows">' + citationHtml + '</div>' +
+            '<div id="citation-rows"></div>' +
             '<button type="button" id="btn-add-citation" style="margin-top:8px;padding:8px 16px;border:1px solid #ddd;border-radius:4px;background:#f5f5f5;cursor:pointer;font-size:13px;">+ Add citation</button>' +
             '</div>'
           );
@@ -179,68 +105,40 @@ export function NotePage({ note, briefEntry }: NotePageProps) {
           var formBody = document.getElementById('form-body');
           if (!formBody) return;
 
-          var addEvidence = document.getElementById('btn-add-evidence');
-          if (addEvidence) {
-            addEvidence.onclick = function() {
+          function addRow(btnId, rowClass, containerId, html) {
+            var btn = document.getElementById(btnId);
+            if (!btn) return;
+            btn.onclick = function() {
               var row = document.createElement('div');
-              row.className = 'brief-evidence-row';
+              row.className = rowClass;
               row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
-              row.innerHTML = '<input type="text" name="brief_evidence_text" placeholder="Evidence text" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-                '<select name="brief_evidence_source" style="padding:8px;border:1px solid #ddd;border-radius:4px;">' +
-                '<option value="">— Select source —</option>' +
-                '<option value="user_input">User Input</option>' +
-                '<option value="email">Email</option>' +
-                '<option value="meeting">Meeting</option>' +
-                '<option value="document">Document</option>' +
-                '<option value="system">System</option>' +
-                '</select>' +
+              row.innerHTML = html +
                 '<button type="button" class="btn-remove" style="padding:8px 12px;border:1px solid #ddd;border-radius:4px;background:#f5f5f5;cursor:pointer;">Remove</button>';
-              document.getElementById('evidence-rows').appendChild(row);
+              document.getElementById(containerId).appendChild(row);
               attachRemoveHandlers(row);
             };
           }
 
-          var addAction = document.getElementById('btn-add-action');
-          if (addAction) {
-            addAction.onclick = function() {
-              var row = document.createElement('div');
-              row.className = 'brief-action-row';
-              row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
-              row.innerHTML = '<input type="text" name="brief_action_text" placeholder="Action text" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-                '<select name="brief_action_status" style="padding:8px;border:1px solid #ddd;border-radius:4px;">' +
-                '<option value="todo">To Do</option>' +
-                '<option value="in_progress">In Progress</option>' +
-                '<option value="done">Done</option>' +
-                '<option value="cancelled">Cancelled</option>' +
-                '</select>' +
-                '<input type="text" name="brief_action_owner" placeholder="Owner" style="width:120px;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-                '<input type="text" name="brief_action_due" placeholder="YYYY-MM-DD" style="width:120px;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-                '<select name="brief_action_priority" style="padding:8px;border:1px solid #ddd;border-radius:4px;">' +
-                '<option value="">—</option>' +
-                '<option value="low">Low</option>' +
-                '<option value="medium">Medium</option>' +
-                '<option value="high">High</option>' +
-                '</select>' +
-                '<button type="button" class="btn-remove" style="padding:8px 12px;border:1px solid #ddd;border-radius:4px;background:#f5f5f5;cursor:pointer;">Remove</button>';
-              document.getElementById('action-rows').appendChild(row);
-              attachRemoveHandlers(row);
-            };
-          }
+          addRow('btn-add-evidence', 'brief-evidence-row', 'evidence-rows',
+            '<input type="text" name="brief_evidence_text" placeholder="Evidence text" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
+            '<select name="brief_evidence_source" style="padding:8px;border:1px solid #ddd;border-radius:4px;">' +
+            '<option value="">— Select source —</option><option value="user_input">User Input</option><option value="email">Email</option>' +
+            '<option value="meeting">Meeting</option><option value="document">Document</option><option value="system">System</option></select>');
 
-          var addCitation = document.getElementById('btn-add-citation');
-          if (addCitation) {
-            addCitation.onclick = function() {
-              var row = document.createElement('div');
-              row.className = 'brief-citation-row';
-              row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
-              row.innerHTML = '<input type="text" name="brief_cite_title" placeholder="Title" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-                '<input type="text" name="brief_cite_url" placeholder="URL" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-                '<input type="text" name="brief_cite_note" placeholder="Note" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
-                '<button type="button" class="btn-remove" style="padding:8px 12px;border:1px solid #ddd;border-radius:4px;background:#f5f5f5;cursor:pointer;">Remove</button>';
-              document.getElementById('citation-rows').appendChild(row);
-              attachRemoveHandlers(row);
-            };
-          }
+          addRow('btn-add-action', 'brief-action-row', 'action-rows',
+            '<input type="text" name="brief_action_text" placeholder="Action text" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
+            '<select name="brief_action_status" style="padding:8px;border:1px solid #ddd;border-radius:4px;">' +
+            '<option value="todo">To Do</option><option value="in_progress">In Progress</option>' +
+            '<option value="done">Done</option><option value="cancelled">Cancelled</option></select>' +
+            '<input type="text" name="brief_action_owner" placeholder="Owner" style="width:120px;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
+            '<input type="text" name="brief_action_due" placeholder="YYYY-MM-DD" style="width:120px;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
+            '<select name="brief_action_priority" style="padding:8px;border:1px solid #ddd;border-radius:4px;">' +
+            '<option value="">—</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>');
+
+          addRow('btn-add-citation', 'brief-citation-row', 'citation-rows',
+            '<input type="text" name="brief_cite_title" placeholder="Title" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
+            '<input type="text" name="brief_cite_url" placeholder="URL" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />' +
+            '<input type="text" name="brief_cite_note" placeholder="Note" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;" />');
 
           attachRemoveHandlers(formBody);
 
@@ -253,14 +151,8 @@ export function NotePage({ note, briefEntry }: NotePageProps) {
               if (choice === 'key_updates' && ta) {
                 ta.value += (ta.value ? '\\n' : '') + '## Key Updates';
                 ta.focus();
-              } else if (choice === 'evidence') {
-                var btn = document.getElementById('btn-add-evidence');
-                if (btn) btn.click();
-              } else if (choice === 'action') {
-                var btn = document.getElementById('btn-add-action');
-                if (btn) btn.click();
-              } else if (choice === 'citations') {
-                var btn = document.getElementById('btn-add-citation');
+              } else {
+                var btn = document.getElementById('btn-add-' + choice.replace('citations', 'citation'));
                 if (btn) btn.click();
               }
             };
@@ -271,7 +163,7 @@ export function NotePage({ note, briefEntry }: NotePageProps) {
           var formBody = document.getElementById('form-body');
           var titleVal = document.getElementById('title').value;
           if (contentType === 'brief') {
-            formBody.innerHTML = renderBriefBody('', [], [], []);
+            formBody.innerHTML = renderBriefBody('');
           } else {
             formBody.innerHTML = renderPlainBody('');
           }
@@ -361,20 +253,15 @@ export function NotePage({ note, briefEntry }: NotePageProps) {
               });
               if (!briefRes.ok) throw new Error('PUT brief failed');
 
-              var parts = [];
-              if (keyUpdates.trim()) {
-                parts.push('Key Updates:\\n' + keyUpdates);
+              function flattenBrief(keyUpdates, evidence, actions, citations) {
+                var parts = [];
+                if (keyUpdates.trim()) parts.push('Key Updates:\\n' + keyUpdates);
+                if (evidence.length > 0) parts.push('Evidence:\\n' + evidence.map(function(e) { return '- ' + e.text; }).join('\\n'));
+                if (actions.length > 0) parts.push('Action Items:\\n' + actions.map(function(a) { return '- [' + a.status + '] ' + a.text; }).join('\\n'));
+                if (citations.length > 0) parts.push('Citations:\\n' + citations.map(function(c) { return '- ' + c.title; }).join('\\n'));
+                return parts.join('\\n\\n');
               }
-              if (evidence.length > 0) {
-                parts.push('Evidence:\\n' + evidence.map(function(e) { return '- ' + e.text; }).join('\\n'));
-              }
-              if (actions.length > 0) {
-                parts.push('Action Items:\\n' + actions.map(function(a) { return '- [' + a.status + '] ' + a.text; }).join('\\n'));
-              }
-              if (citations.length > 0) {
-                parts.push('Citations:\\n' + citations.map(function(c) { return '- ' + c.title; }).join('\\n'));
-              }
-              var flattened = parts.join('\\n\\n');
+              var flattened = flattenBrief(keyUpdates, evidence, actions, citations);
 
               var noteRes = await fetch('/api/notes/' + noteId, {
                 method: 'PUT',

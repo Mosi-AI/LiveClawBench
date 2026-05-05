@@ -90,7 +90,7 @@ export function PreviewPage({ note, renderedHtml, briefEntry }: PreviewPageProps
             )}
           </div>
         ) : note.content_type === "brief" && !briefEntry ? (
-          <p>Brief mode preview is not available in Phase 1.</p>
+          <p>Structured brief preview is not available because no brief entry exists for this note.</p>
         ) : (
           <div dangerouslySetInnerHTML={{ __html: renderedHtml }} />
         )}

@@ -1,4 +1,5 @@
 import { Database } from "bun:sqlite";
+import { generatePreviewText } from "./store.js";
 
 export function createSchema(db: Database): void {
   db.run(`
@@ -178,8 +179,3 @@ export function seed(db: Database): void {
   );
 }
 
-function generatePreviewText(content: string): string {
-  const lines = content.split("\n").filter((l) => l.trim().length > 0);
-  const preview = lines.slice(0, 4).join(" ").slice(0, 300);
-  return preview;
-}

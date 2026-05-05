@@ -26,6 +26,12 @@ export function getNoteById(db: Database, id: number): Note | null {
   return rowToNote(row);
 }
 
+export function getNoteByIdOwned(db: Database, id: number, userId: number): Note | null {
+  const note = getNoteById(db, id);
+  if (!note || note.owner_user_id !== userId) return null;
+  return note;
+}
+
 export function updateNote(
   db: Database,
   id: number,
@@ -38,7 +44,11 @@ export function updateNote(
   if (!note) return null;
 
   const now = new Date().toISOString();
-  const previewText = generatePreviewText(content, contentType, db, id);
+  let previewText = generatePreviewText(content);
+  if (contentType === "brief") {
+    const briefPreview = getBriefEntry(db, id)?.key_updates.slice(0, 300);
+    if (briefPreview) previewText = briefPreview;
+  }
 
   const transaction = db.transaction(() => {
     // Update note
@@ -201,15 +211,7 @@ export function upsertTaskRecord(
   return rowToTaskRecord(row);
 }
 
-function generatePreviewText(content: string, contentType?: string, db?: Database, noteId?: number): string {
-  // Phase 1: if content_type is brief and brief_entry exists, use key_updates
-  if (contentType === "brief" && db && noteId !== undefined) {
-    const row = db.query("SELECT key_updates FROM brief_entry WHERE note_id = ?").get(noteId) as { key_updates: string } | null;
-    if (row && row.key_updates) {
-      return row.key_updates.slice(0, 300);
-    }
-  }
-
+export function generatePreviewText(content: string): string {
   const lines = content.split("\n").filter((l) => l.trim().length > 0);
   const preview = lines.slice(0, 4).join(" ").slice(0, 300);
   return preview;
