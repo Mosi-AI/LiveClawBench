@@ -1,9 +1,6 @@
 import type { Database } from "bun:sqlite";
 import { readFileSync, existsSync } from "node:fs";
-
-function round2(v: number): number {
-  return Math.round(v * 100) / 100;
-}
+import { round2 } from "../utils";
 
 export function seed(db: Database): void {
   const seedPath = process.env.MOCK_FINANCE_SEED_SQL ?? "/opt/mock/data/finance_seed.sql";
@@ -169,16 +166,10 @@ export function seed(db: Database): void {
 
   // Invoices
   db.run(
-    `INSERT OR IGNORE INTO invoice (id, vendor_id, vendor_name, invoice_number, invoice_date, status)
-     VALUES (1, 1, 'Acme Corp', 'INV-2026-001', '2026-01-15', 'submitted')`
-  );
-  db.run(
-    `INSERT OR IGNORE INTO invoice (id, vendor_id, vendor_name, invoice_number, invoice_date, status)
-     VALUES (2, 2, 'Globex Systems', 'INV-2026-002', '2026-02-01', 'posted')`
-  );
-  db.run(
-    `INSERT OR IGNORE INTO invoice (id, vendor_id, vendor_name, invoice_number, invoice_date, status)
-     VALUES (3, 3, 'Initech Solutions', 'INV-2026-003', '2026-02-10', 'cancelled')`
+    `INSERT OR IGNORE INTO invoice (id, vendor_id, vendor_name, invoice_number, invoice_date, status) VALUES
+      (1, 1, 'Acme Corp', 'INV-2026-001', '2026-01-15', 'submitted'),
+      (2, 2, 'Globex Systems', 'INV-2026-002', '2026-02-01', 'posted'),
+      (3, 3, 'Initech Solutions', 'INV-2026-003', '2026-02-10', 'cancelled')`
   );
 
   // Invoice line items

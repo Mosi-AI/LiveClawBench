@@ -4,6 +4,7 @@ import type { Database } from "bun:sqlite";
 import { z } from "zod";
 import { AssetEditSchema, AssetResponseSchema } from "../schemas/asset";
 import { IdParamSchema } from "../schemas/common";
+import { round2 } from "../utils";
 
 export function registerAssetRoutes(app: OpenAPIApp, db: Database) {
   const listRoute = createRoute({
@@ -88,11 +89,11 @@ export function registerAssetRoutes(app: OpenAPIApp, db: Database) {
         updated_at = datetime('now')
       WHERE id = ?`,
       [
-        Math.round(cost_basis * 100) / 100,
-        Math.round(residual_value * 100) / 100,
+        round2(cost_basis),
+        round2(residual_value),
         useful_life_years,
         depreciation_method,
-        Math.round(annual_depreciation * 100) / 100,
+        round2(annual_depreciation),
         correction_reason,
         id,
       ]

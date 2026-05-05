@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { _resetSecret } from "mock-lib";
 import { createFinanceApp } from "../src/index";
+import { login } from "./helpers";
 
 describe("invoices", () => {
   let app: ReturnType<typeof createFinanceApp>["app"];
@@ -18,17 +19,8 @@ describe("invoices", () => {
     delete process.env.MOCK_FINANCE_DB_PATH;
   });
 
-  async function login() {
-    const res = await app.request("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "admin", password: "admin123" }),
-    });
-    return res.headers.get("set-cookie") ?? "";
-  }
-
   it("creates invoice with line items and auto-filled vendor_name", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const res = await app.request("/api/invoices", {
       method: "POST",
       headers: { "Content-Type": "application/json", Cookie: cookie },
@@ -47,7 +39,7 @@ describe("invoices", () => {
   });
 
   it("invalid category_code returns 400", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const res = await app.request("/api/invoices", {
       method: "POST",
       headers: { "Content-Type": "application/json", Cookie: cookie },

@@ -3,14 +3,6 @@ import { Layout } from "../components/layout";
 
 export function DepartmentPage({ departments }: { departments: any[] }) {
   const headers = ["Month", "Department", "Manager", "Budget", "Actual", "Revenue"];
-  const rows = departments.map((d) => [
-    d.month,
-    d.department_name,
-    d.manager_email,
-    String(d.budget_amount),
-    String(d.actual_expense_amount),
-    String(d.revenue_amount),
-  ]);
 
   return (
     <Layout title="Departments">
@@ -22,9 +14,14 @@ export function DepartmentPage({ departments }: { departments: any[] }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, i) => (
-            <tr key={i} style="border-bottom:1px solid #e9ecef;">
-              {row.map((cell, j) => <td style="padding:10px;" key={j}>{cell}</td>)}
+          {departments.map((d) => (
+            <tr key={d.id} style="border-bottom:1px solid #e9ecef;">
+              <td style="padding:10px;">{d.month}</td>
+              <td style="padding:10px;">{d.department_name}</td>
+              <td style="padding:10px;">{d.manager_email}</td>
+              <td style="padding:10px;">{d.budget_amount}</td>
+              <td style="padding:10px;">{d.actual_expense_amount}</td>
+              <td style="padding:10px;">{d.revenue_amount}</td>
             </tr>
           ))}
         </tbody>

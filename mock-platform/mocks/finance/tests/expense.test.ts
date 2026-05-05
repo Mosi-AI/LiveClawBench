@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { _resetSecret } from "mock-lib";
 import { createFinanceApp } from "../src/index";
+import { login } from "./helpers";
 
 describe("expenses", () => {
   let app: ReturnType<typeof createFinanceApp>["app"];
@@ -18,17 +19,8 @@ describe("expenses", () => {
     delete process.env.MOCK_FINANCE_DB_PATH;
   });
 
-  async function login() {
-    const res = await app.request("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "admin", password: "admin123" }),
-    });
-    return res.headers.get("set-cookie") ?? "";
-  }
-
   it("creates report with status=draft and auto-calculated total", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const res = await app.request("/api/expense-reports", {
       method: "POST",
       headers: { "Content-Type": "application/json", Cookie: cookie },
@@ -47,7 +39,7 @@ describe("expenses", () => {
   });
 
   it("submit transitions to submitted", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const createRes = await app.request("/api/expense-reports", {
       method: "POST",
       headers: { "Content-Type": "application/json", Cookie: cookie },
@@ -67,7 +59,7 @@ describe("expenses", () => {
   });
 
   it("empty items rejected with 400", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const res = await app.request("/api/expense-reports", {
       method: "POST",
       headers: { "Content-Type": "application/json", Cookie: cookie },
@@ -77,7 +69,7 @@ describe("expenses", () => {
   });
 
   it("POST /api/expense-reports/99999/submit returns 404", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const res = await app.request("/api/expense-reports/99999/submit", {
       method: "POST",
       headers: { Cookie: cookie },

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { _resetSecret } from "mock-lib";
 import { createFinanceApp } from "../src/index";
+import { login } from "./helpers";
 
 describe("pages", () => {
   let app: ReturnType<typeof createFinanceApp>["app"];
@@ -18,17 +19,8 @@ describe("pages", () => {
     delete process.env.MOCK_FINANCE_DB_PATH;
   });
 
-  async function login() {
-    const res = await app.request("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "admin", password: "admin123" }),
-    });
-    return res.headers.get("set-cookie") ?? "";
-  }
-
   it("authenticated GET / has nav buttons in order", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const res = await app.request("/", { headers: { Cookie: cookie } });
     expect(res.status).toBe(200);
     const html = await res.text();
@@ -50,7 +42,7 @@ describe("pages", () => {
   });
 
   it("rendered HTML does not contain [object Object]", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const res = await app.request("/", { headers: { Cookie: cookie } });
     const html = await res.text();
     expect(html).not.toContain("[object Object]");

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { _resetSecret } from "mock-lib";
 import { createFinanceApp } from "../src/index";
+import { login } from "./helpers";
 
 describe("transactions", () => {
   let app: ReturnType<typeof createFinanceApp>["app"];
@@ -18,17 +19,8 @@ describe("transactions", () => {
     delete process.env.MOCK_FINANCE_DB_PATH;
   });
 
-  async function login() {
-    const res = await app.request("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: "admin", password: "admin123" }),
-    });
-    return res.headers.get("set-cookie") ?? "";
-  }
-
   it("GET /api/transactions returns records", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const res = await app.request("/api/transactions", {
       headers: { Cookie: cookie },
     });
@@ -38,7 +30,7 @@ describe("transactions", () => {
   });
 
   it("flag updates status without touching approval_status", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const res = await app.request("/api/transactions/1/flag", {
       method: "POST",
       headers: { Cookie: cookie },
@@ -49,7 +41,7 @@ describe("transactions", () => {
   });
 
   it("detail includes approval_note", async () => {
-    const cookie = await login();
+    const cookie = await login(app);
     const res = await app.request("/api/transactions/1", {
       headers: { Cookie: cookie },
     });

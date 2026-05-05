@@ -3,6 +3,7 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { InvoiceCreateSchema, InvoiceResponseSchema } from "../schemas/invoice";
 import { INVOICE_CATEGORY_CODES } from "../constants";
+import { round2 } from "../utils";
 
 export function registerInvoiceRoutes(app: OpenAPIApp, db: Database) {
   const vendorsRoute = createRoute({
@@ -68,7 +69,7 @@ export function registerInvoiceRoutes(app: OpenAPIApp, db: Database) {
       for (const item of items) {
         db.run(
           "INSERT INTO invoice_line_item (invoice_id, description, category_code, amount) VALUES (?, ?, ?, ?)",
-          [invoiceId, item.description, item.category_code, Math.round(item.amount * 100) / 100]
+          [invoiceId, item.description, item.category_code, round2(item.amount)]
         );
       }
       return invoiceId;

@@ -4,6 +4,7 @@ import type { Database } from "bun:sqlite";
 import { z } from "zod";
 import { ExpenseCreateSchema, ExpenseSubmitResponseSchema } from "../schemas/expense";
 import { IdParamSchema } from "../schemas/common";
+import { round2 } from "../utils";
 
 export function registerExpenseRoutes(app: OpenAPIApp, db: Database) {
   const createRouteDef = createRoute({
@@ -37,14 +38,14 @@ export function registerExpenseRoutes(app: OpenAPIApp, db: Database) {
     const tx = db.transaction(() => {
       const result = db.run(
         "INSERT INTO expense_report (trip_name, total_amount, status, created_by_user_id) VALUES (?, ?, 'draft', ?)",
-        [trip_name, Math.round(total * 100) / 100, userId]
+        [trip_name, round2(total), userId]
       );
       const reportId = result.lastInsertRowid;
 
       for (const item of items) {
         db.run(
           "INSERT INTO expense_item (expense_report_id, expense_category, amount) VALUES (?, ?, ?)",
-          [reportId, item.expense_category, Math.round(item.amount * 100) / 100]
+          [reportId, item.expense_category, round2(item.amount)]
         );
       }
       return reportId;
