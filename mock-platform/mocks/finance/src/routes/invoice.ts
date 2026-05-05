@@ -53,7 +53,10 @@ export function registerInvoiceRoutes(app: OpenAPIApp, db: Database) {
     const vendorRow = db
       .query<{ vendor_name: string }, [number]>("SELECT vendor_name FROM vendor WHERE id = ?")
       .get(vendor_id);
-    const vendorName = vendorRow?.vendor_name ?? "";
+    if (!vendorRow) {
+      return c.json({ error: "Vendor not found" }, 400);
+    }
+    const vendorName = vendorRow.vendor_name;
 
     const tx = db.transaction(() => {
       const result = db.run(

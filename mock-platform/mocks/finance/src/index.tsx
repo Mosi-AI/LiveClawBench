@@ -43,7 +43,6 @@ function createDbState() {
 }
 
 export function createFinanceApp() {
-  process.env.NODE_ENV ??= "development";
   process.env.MOCK_TOKEN_EXPIRY_SECONDS ??= "28800";
 
   const db = createDbState();
