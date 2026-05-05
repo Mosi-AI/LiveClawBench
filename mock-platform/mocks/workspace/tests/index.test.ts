@@ -1151,4 +1151,92 @@ describe("createWorkspaceApp", () => {
     expect(revsAfter.length).toBe(countBefore + 1);
     expect(revsAfter[revsAfter.length - 1].content_snapshot).toBe("something");
   });
+
+  // ---------------------------------------------------------------------------
+  // AC-14: Blank-row pruning (server-side contract)
+  // ---------------------------------------------------------------------------
+  // The NotePage client-side submit handler trims and drops evidence/action/
+  // citation rows whose primary text field is empty/whitespace before sending.
+  // These tests verify the server schema that makes that pruning necessary.
+
+  test("AC-14: PUT /brief rejects empty evidence text with 400", async () => {
+    const res = await app.request("/api/notes/4/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "X",
+        evidence_bullets: [{ text: "" }],
+        action_items: [],
+        citations: [],
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("AC-14: PUT /brief rejects empty action text with 400", async () => {
+    const res = await app.request("/api/notes/4/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "X",
+        evidence_bullets: [],
+        action_items: [{ text: "", status: "todo", owner: "Alice", priority: "high" }],
+        citations: [],
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("AC-14: PUT /brief rejects empty citation title with 400", async () => {
+    const res = await app.request("/api/notes/4/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "X",
+        evidence_bullets: [],
+        action_items: [],
+        citations: [{ title: "", url: "https://example.com", note: "N" }],
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("AC-14: PUT /brief accepts empty arrays (all rows pruned) with 200", async () => {
+    const res = await app.request("/api/notes/4/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "All blank rows were pruned client-side",
+        evidence_bullets: [],
+        action_items: [],
+        citations: [],
+      }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.key_updates).toBe("All blank rows were pruned client-side");
+    expect(body.evidence_bullets).toEqual([]);
+    expect(body.action_items).toEqual([]);
+    expect(body.citations).toEqual([]);
+  });
+
+  test("AC-14: PUT /brief accepts whitespace-only text because server does not trim", async () => {
+    // This proves client-side trim() is load-bearing: without it, the server
+    // would store a row whose visible text is empty whitespace.
+    const res = await app.request("/api/notes/4/brief", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({
+        key_updates: "X",
+        evidence_bullets: [{ text: "   " }],
+        action_items: [{ text: "  ", status: "todo" }],
+        citations: [{ title: " \t", url: "https://example.com" }],
+      }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.evidence_bullets[0].text).toBe("   ");
+    expect(body.action_items[0].text).toBe("  ");
+    expect(body.citations[0].title).toBe(" \t");
+  });
 });
