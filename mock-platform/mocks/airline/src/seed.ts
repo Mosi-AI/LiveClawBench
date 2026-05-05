@@ -173,7 +173,7 @@ export function seedDatabase(db: Database, taskName?: string) {
 
           // Skip flight number 2000 range only for tasks that need GKD2001
           // (flight-seat-selection, flight-seat-selection-failed, flight-cancel-claim)
-          const needsGKD2001 = ["flight-seat-selection", "flight-seat-selection-failed", "flight-cancel-claim"].includes(effectiveTaskName);
+          const needsGKD2001 = ["flight-seat-selection", "flight-seat-selection-failed", "flight-cancel-claim", "flight-info-change-notice"].includes(effectiveTaskName);
           if (needsGKD2001 && flightNumber === 2000) {
             flightNumber = 2100;
           }
@@ -250,6 +250,9 @@ function createTaskSpecificData(db: Database, taskName: string, userIds: number[
       break;
     case "flight-cancel-claim":
       createFlightCancelClaimData(db, peterId, now);
+      break;
+    case "flight-info-change-notice":
+      createFlightInfoChangeNoticeData(db, peterId, now);
       break;
     case "baggage-tracking-application":
       createBaggageTrackingData(db, peterId, now);
@@ -622,6 +625,119 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
   ).run(bookingId, 349.99, `TXN-${Date.now()}`);
 
   console.log("airline: created cancelled GKD2001 for flight-cancel-claim");
+}
+
+function createFlightInfoChangeNoticeData(db: Database, peterId: number, now: Date): void {
+  // GKD2001: day after tomorrow at 10:00 AM, initially scheduled, then delayed 4 hours
+  const departureDate = new Date(now.getTime() + 2 * 86400000);
+  departureDate.setHours(10, 0, 0, 0);
+  const arrivalTime = new Date(departureDate.getTime() + 5.5 * 3600000);
+
+  // Remove conflicting flights in correct FK order
+  const conflictingFilters = [
+    "flight_number = 'GKD2001'",
+    `origin_code = 'JFK' AND destination_code = 'LAX' AND departure_time LIKE '${departureDate.toISOString().split("T")[0]}%'`,
+  ];
+  for (const filter of conflictingFilters) {
+    const conflictingFlightIds = db.query(`SELECT id FROM flights WHERE ${filter}`).all().map((r: Record<string, number>) => r.id);
+    if (conflictingFlightIds.length === 0) continue;
+
+    const conflictingBookingIds = db.query(
+      `SELECT id FROM bookings WHERE flight_id IN (${conflictingFlightIds.join(",")})`
+    ).all().map((r: Record<string, number>) => r.id);
+
+    if (conflictingBookingIds.length > 0) {
+      const bookingList = conflictingBookingIds.join(",");
+      db.query(`DELETE FROM passengers WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM payments WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM bookings WHERE id IN (${bookingList})`).run();
+    }
+
+    const flightList = conflictingFlightIds.join(",");
+    db.query(`DELETE FROM seats WHERE flight_id IN (${flightList})`).run();
+    db.query(`DELETE FROM flight_status_history WHERE flight_id IN (${flightList})`).run();
+    db.query(`DELETE FROM flights WHERE id IN (${flightList})`).run();
+  }
+
+  db.query(
+    `INSERT INTO flights (flight_number, airline, origin_code, origin_city, origin_airport,
+      destination_code, destination_city, destination_airport, departure_time, arrival_time,
+      duration_minutes, base_price_economy, base_price_business, base_price_first,
+      aircraft_type, status, gate, terminal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    "GKD2001",
+    "GKD Airlines",
+    "JFK",
+    AIRPORTS.JFK.city,
+    AIRPORTS.JFK.airport,
+    "LAX",
+    AIRPORTS.LAX.city,
+    AIRPORTS.LAX.airport,
+    fmt(departureDate),
+    fmt(arrivalTime),
+    330,
+    349.99,
+    699.99,
+    1049.99,
+    "Boeing 787",
+    "scheduled",
+    "B22",
+    "4",
+  );
+
+  const flightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+
+  // Create seats
+  const seats = generateSeats(349.99, 699.99, 1049.99);
+  for (const seat of seats) {
+    db.query(
+      `INSERT INTO seats (flight_id, seat_number, cabin_class, price, is_available,
+        is_window, is_aisle, has_extra_legroom, row_number, seat_letter) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      flightId,
+      seat.seatNumber,
+      seat.cabinClass,
+      seat.price,
+      seat.isAvailable ? 1 : 0,
+      seat.isWindow ? 1 : 0,
+      seat.isAisle ? 1 : 0,
+      seat.hasExtraLegroom ? 1 : 0,
+      seat.rowNumber,
+      seat.seatLetter,
+    );
+  }
+
+  // Create Peter's booking
+  const ref = generateBookingReference();
+  db.query(
+    "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'confirmed', 0)"
+  ).run(ref, peterId, flightId, "economy", 349.99);
+
+  const bookingId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+
+  db.query(
+    "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth, nationality) VALUES (?, 'Peter', 'Griffin', '1985-06-15', 'US')"
+  ).run(bookingId);
+
+  // Create payment
+  db.query(
+    "INSERT INTO payments (booking_id, amount, currency, payment_status, payment_method, card_last_four, card_type, card_holder_name, transaction_id, paid_at) VALUES (?, ?, 'USD', 'completed', 'credit_card', '4532', 'visa', 'Peter Griffin', ?, datetime('now'))"
+  ).run(bookingId, 349.99, `TXN-${Date.now()}`);
+
+  // Delay the flight by 4 hours
+  const delayedDeparture = new Date(departureDate.getTime() + 4 * 3600000);
+  const delayedArrival = new Date(arrivalTime.getTime() + 4 * 3600000);
+
+  db.query(
+    "UPDATE flights SET status = ?, departure_time = ?, arrival_time = ?, delay_minutes = ?, delay_reason = ?, updated_at = datetime('now') WHERE id = ?"
+  ).run("delayed", fmt(delayedDeparture), fmt(delayedArrival), 240, "Weather conditions", flightId);
+
+  // Add flight status history entry
+  db.query(
+    "INSERT INTO flight_status_history (flight_id, old_status, new_status, delay_minutes, reason, changed_at) VALUES (?, ?, ?, ?, ?, datetime('now'))"
+  ).run(flightId, "scheduled", "delayed", 240, "Weather conditions");
+
+  console.log("airline: created delayed GKD2001 for flight-info-change-notice");
 }
 
 function createBaggageTrackingData(db: Database, peterId: number, now: Date): void {
