@@ -75,4 +75,15 @@ describe("expenses", () => {
     });
     expect(res.status).toBe(400);
   });
+
+  it("POST /api/expense-reports/99999/submit returns 404", async () => {
+    const cookie = await login();
+    const res = await app.request("/api/expense-reports/99999/submit", {
+      method: "POST",
+      headers: { Cookie: cookie },
+    });
+    expect(res.status).toBe(404);
+    const json = await res.json();
+    expect(json.error).toBe("Not found");
+  });
 });

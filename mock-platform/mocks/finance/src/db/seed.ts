@@ -16,6 +16,8 @@ export function seed(db: Database): void {
     } catch {
       console.warn(`[finance] Seed file not readable at ${seedPath}, falling back to default seed.`);
     }
+  } else if (process.env.MOCK_FINANCE_SEED_SQL) {
+    console.warn(`[finance] Seed file not found at ${seedPath}, falling back to default seed.`);
   }
 
   // Default fixtures
@@ -48,9 +50,9 @@ export function seed(db: Database): void {
           month,
           dept.name,
           dept.manager,
-          round2(100000 + Math.random() * 50000),
-          round2(60000 + Math.random() * 40000),
-          round2(120000 + Math.random() * 80000),
+          150000.0,
+          85000.0,
+          180000.0,
         ]
       );
     }

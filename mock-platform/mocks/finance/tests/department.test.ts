@@ -47,4 +47,45 @@ describe("departments", () => {
     const json = await res.json();
     expect(json.data.length).toBe(6);
   });
+
+  it("schema has 12 target tables in sqlite_master", async () => {
+    const rows = finance.db
+      .query<{ name: string }, []>(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_migrations'"
+      )
+      .all();
+    const tableNames = rows.map((r) => r.name);
+    const expected = [
+      "user",
+      "department_financial_record",
+      "system_config",
+      "transaction_record",
+      "account_balance",
+      "account_transaction",
+      "vendor",
+      "expense_report",
+      "expense_item",
+      "invoice",
+      "invoice_line_item",
+      "asset_record",
+    ];
+    for (const t of expected) {
+      expect(tableNames).toContain(t);
+    }
+    expect(tableNames.length).toBe(12);
+  });
+
+  it("user count is 3", async () => {
+    const row = finance.db
+      .query<{ count: number }, []>("SELECT COUNT(*) AS count FROM user")
+      .get();
+    expect(row!.count).toBe(3);
+  });
+
+  it("department_financial_record count is 12", async () => {
+    const row = finance.db
+      .query<{ count: number }, []>("SELECT COUNT(*) AS count FROM department_financial_record")
+      .get();
+    expect(row!.count).toBe(12);
+  });
 });

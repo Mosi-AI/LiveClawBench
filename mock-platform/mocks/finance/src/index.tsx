@@ -142,6 +142,7 @@ export function createFinanceApp() {
   return {
     ...mockApp,
     app,
+    db,
     seed: async () => {
       runMigrations(db);
       seed(db);
