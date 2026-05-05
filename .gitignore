@@ -7,6 +7,8 @@ __pycache__/
 # Harbor evaluation run artifacts (logs, trajectories, scores)
 jobs/*
 !jobs/.gitkeep
+jobs-migrated/
+jobs-baseline/
 logs/
 
 # Local run scripts (not tracked)
