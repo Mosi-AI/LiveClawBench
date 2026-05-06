@@ -110,17 +110,20 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
 
     const { user_id, title, start_time, end_time, source, source_ref } = parse.data;
 
-    if (new Date(start_time) >= new Date(end_time)) {
+    const startUtc = new Date(start_time).toISOString();
+    const endUtc = new Date(end_time).toISOString();
+
+    if (new Date(startUtc) >= new Date(endUtc)) {
       return c.json({ error: "invalid_time_range" }, 400);
     }
 
-    // Overlap check: start_time < new_end AND end_time > new_start
+    // Overlap check: start_time < new_end AND end_time > new_start (normalized to UTC)
     const overlap = db
       .query<{ count: number }, [number, string, string]>(
         `SELECT COUNT(*) as count FROM calendar_event
          WHERE user_id = ? AND start_time < ? AND end_time > ?`,
       )
-      .get(user_id, end_time, start_time);
+      .get(user_id, endUtc, startUtc);
 
     if (overlap && overlap.count > 0) {
       return c.json({ error: "time_overlap" }, 409);
@@ -129,7 +132,7 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
     const result = db.run(
       `INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [user_id, title, start_time, end_time, source ?? null, source_ref ?? null],
+      [user_id, title, startUtc, endUtc, source ?? null, source_ref ?? null],
     );
 
     const event = db
