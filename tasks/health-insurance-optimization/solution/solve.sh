@@ -7,10 +7,9 @@ EMAIL="peter.griffin@work.mosi.inc"
 PASSWORD="password123"
 
 # ============================================================================
-# Part 1: Insurance — select Balanced Silver plan
+# Part 1: Insurance — login
 # ============================================================================
 
-# 1. Log in and extract JWT token
 echo "[Insurance] Logging in as ${EMAIL}..."
 LOGIN_RESPONSE=$(curl -s -X POST "${INSURANCE_API}/api/auth/login" \
   -H "Content-Type: application/json" \
@@ -24,49 +23,209 @@ if [ -z "${TOKEN}" ]; then
 fi
 echo "[Insurance] Login successful"
 
-# 2. List plans and find Balanced Silver (code B)
-echo "[Insurance] Fetching plan list..."
-PLANS_RESPONSE=$(curl -s "${INSURANCE_API}/api/plans" -H "Authorization: Bearer ${TOKEN}")
-PLAN_ID=$(echo "${PLANS_RESPONSE}" | python3 -c "
+# ============================================================================
+# Part 2: Insurance — submit reimbursement claim
+# ============================================================================
+
+echo "[Insurance] Submitting reimbursement claim..."
+CLAIM_RESPONSE=$(curl -s -X POST "${INSURANCE_API}/api/claims" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d '{
+    "claim_type": "reimbursement",
+    "total_amount": 25000,
+    "service_date": "2026-05-10",
+    "provider_name": "Metro Lab Services",
+    "check_item": "lab",
+    "notes": "Annual blood work follow-up"
+  }')
+
+CLAIM_ERROR=$(echo "${CLAIM_RESPONSE}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('error',''))" || true)
+if [ -n "${CLAIM_ERROR}" ]; then
+  echo "FAIL: Claim submission failed — ${CLAIM_ERROR}"
+  exit 1
+fi
+echo "[Insurance] Claim submitted successfully"
+
+# ============================================================================
+# Part 3: Insurance — find and book Blood Test at Metro Lab Services
+# ============================================================================
+
+echo "[Insurance] Searching for Blood Test provider..."
+PROVIDERS_RESPONSE=$(curl -s "${INSURANCE_API}/api/providers?check_item=lab" \
+  -H "Authorization: Bearer ${TOKEN}")
+
+# Find Metro Lab Services' Blood Test service
+BLOOD_SERVICE=$(echo "${PROVIDERS_RESPONSE}" | python3 -c "
 import sys, json
-plans = json.load(sys.stdin).get('plans', [])
-for p in plans:
-    if p.get('code') == 'B':
-        print(p.get('id', ''))
+data = json.load(sys.stdin)
+for p in data.get('providers', []):
+    if p.get('name') == 'Metro Lab Services':
+        for s in p.get('services', []):
+            if s.get('service_name') == 'Blood Test':
+                print(f\"{p['id']}:{s['id']}\")
+                break
+")
+
+if [ -z "${BLOOD_SERVICE}" ]; then
+  echo "FAIL: Could not find Blood Test at Metro Lab Services"
+  exit 1
+fi
+
+BLOOD_PROVIDER_ID=$(echo "${BLOOD_SERVICE}" | cut -d: -f1)
+BLOOD_SERVICE_ID=$(echo "${BLOOD_SERVICE}" | cut -d: -f2)
+echo "[Insurance] Found Blood Test: provider=${BLOOD_PROVIDER_ID}, service=${BLOOD_SERVICE_ID}"
+
+# Get available slots
+SLOTS_RESPONSE=$(curl -s "${INSURANCE_API}/api/providers/${BLOOD_PROVIDER_ID}/services/${BLOOD_SERVICE_ID}/slots" \
+  -H "Authorization: Bearer ${TOKEN}")
+
+BLOOD_SLOT_ID=$(echo "${SLOTS_RESPONSE}" | python3 -c "
+import sys, json
+slots = json.load(sys.stdin).get('slots', [])
+for s in slots:
+    if s.get('is_available'):
+        print(s.get('id', ''))
         break
 ")
 
-if [ -z "${PLAN_ID}" ]; then
-  echo "FAIL: Could not find Balanced Silver plan"
+if [ -z "${BLOOD_SLOT_ID}" ]; then
+  echo "FAIL: No available Blood Test slots"
   exit 1
 fi
-echo "[Insurance] Found Balanced Silver plan id=${PLAN_ID}"
+echo "[Insurance] Found Blood Test slot id=${BLOOD_SLOT_ID}"
 
-# 3. Select the plan
-echo "[Insurance] Selecting plan..."
-SELECT_RESPONSE=$(curl -s -X POST "${INSURANCE_API}/api/plans/${PLAN_ID}/select" \
+# Book Blood Test appointment
+echo "[Insurance] Booking Blood Test appointment..."
+BLOOD_APPT_RESPONSE=$(curl -s -X POST "${INSURANCE_API}/api/appointments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d "{\"slot_id\": ${BLOOD_SLOT_ID}}")
+
+BLOOD_APPT_ERROR=$(echo "${BLOOD_APPT_RESPONSE}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('error',''))" || true)
+if [ -n "${BLOOD_APPT_ERROR}" ]; then
+  echo "FAIL: Blood Test booking failed — ${BLOOD_APPT_ERROR}"
+  exit 1
+fi
+
+# Extract the booked appointment time for calendar event
+BLOOD_APPT_TIME=$(echo "${BLOOD_APPT_RESPONSE}" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+print(data.get('slot_start_time', ''))
+")
+echo "[Insurance] Blood Test booked at ${BLOOD_APPT_TIME}"
+
+# ============================================================================
+# Part 4: Insurance — find and book Diet Consultation at Nutrition & Wellness
+# ============================================================================
+
+echo "[Insurance] Searching for Diet Consultation provider..."
+DIET_PROVIDERS=$(curl -s "${INSURANCE_API}/api/providers?check_item=specialist" \
   -H "Authorization: Bearer ${TOKEN}")
 
-ERROR_MSG=$(echo "${SELECT_RESPONSE}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('error',''))" || true)
-if [ -n "${ERROR_MSG}" ]; then
-  echo "FAIL: Plan selection failed — ${ERROR_MSG}"
+DIET_SERVICE=$(echo "${DIET_PROVIDERS}" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+for p in data.get('providers', []):
+    if p.get('name') == 'Nutrition & Wellness Center':
+        for s in p.get('services', []):
+            if s.get('service_name') == 'Diet Consultation':
+                print(f\"{p['id']}:{s['id']}\")
+                break
+")
+
+if [ -z "${DIET_SERVICE}" ]; then
+  echo "FAIL: Could not find Diet Consultation at Nutrition & Wellness Center"
   exit 1
 fi
-echo "[Insurance] Plan selection successful"
 
-# ============================================================================
-# Part 2: Calendar — schedule Preventive Care appointment
-# ============================================================================
+DIET_PROVIDER_ID=$(echo "${DIET_SERVICE}" | cut -d: -f1)
+DIET_SERVICE_ID=$(echo "${DIET_SERVICE}" | cut -d: -f2)
+echo "[Insurance] Found Diet Consultation: provider=${DIET_PROVIDER_ID}, service=${DIET_SERVICE_ID}"
 
-echo "[Calendar] Scheduling Preventive Care appointment..."
-CREATE_RESPONSE=$(curl -s -X POST "${CALENDAR_API}/api/events" \
+# Get available slots
+DIET_SLOTS_RESPONSE=$(curl -s "${INSURANCE_API}/api/providers/${DIET_PROVIDER_ID}/services/${DIET_SERVICE_ID}/slots" \
+  -H "Authorization: Bearer ${TOKEN}")
+
+DIET_SLOT_ID=$(echo "${DIET_SLOTS_RESPONSE}" | python3 -c "
+import sys, json
+slots = json.load(sys.stdin).get('slots', [])
+for s in slots:
+    if s.get('is_available'):
+        print(s.get('id', ''))
+        break
+")
+
+if [ -z "${DIET_SLOT_ID}" ]; then
+  echo "FAIL: No available Diet Consultation slots"
+  exit 1
+fi
+echo "[Insurance] Found Diet Consultation slot id=${DIET_SLOT_ID}"
+
+# Book Diet Consultation appointment
+echo "[Insurance] Booking Diet Consultation appointment..."
+DIET_APPT_RESPONSE=$(curl -s -X POST "${INSURANCE_API}/api/appointments" \
   -H "Content-Type: application/json" \
-  -d '{
-    "user_id": 1,
-    "title": "Preventive Care",
-    "start_time": "2026-05-15T09:00:00Z",
-    "end_time": "2026-05-15T10:00:00Z"
-  }')
+  -H "Authorization: Bearer ${TOKEN}" \
+  -d "{\"slot_id\": ${DIET_SLOT_ID}}")
 
-# Check for error
-echo "[Calendar] Response: ${CREATE_RESPONSE}"
+DIET_APPT_ERROR=$(echo "${DIET_APPT_RESPONSE}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('error',''))" || true)
+if [ -n "${DIET_APPT_ERROR}" ]; then
+  echo "FAIL: Diet Consultation booking failed — ${DIET_APPT_ERROR}"
+  exit 1
+fi
+
+DIET_APPT_TIME=$(echo "${DIET_APPT_RESPONSE}" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+print(data.get('slot_start_time', ''))
+")
+echo "[Insurance] Diet Consultation booked at ${DIET_APPT_TIME}"
+
+# ============================================================================
+# Part 5: Calendar — create two non-overlapping events
+# ============================================================================
+
+echo "[Calendar] Creating Blood Test calendar event..."
+BLOOD_CAL_RESPONSE=$(curl -s -X POST "${CALENDAR_API}/api/events" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"user_id\": 1,
+    \"title\": \"Blood Test\",
+    \"start_time\": \"${BLOOD_APPT_TIME}\",
+    \"end_time\": \"$(python3 -c \"from datetime import datetime, timedelta; dt=datetime.fromisoformat('${BLOOD_APPT_TIME}'.replace('Z','+00:00')); print((dt+timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ'))\")\"
+  }")
+
+echo "[Calendar] Blood Test event: ${BLOOD_CAL_RESPONSE}"
+
+echo "[Calendar] Creating Diet Consultation calendar event..."
+# Schedule Diet Consultation 2 hours after Blood Test to avoid overlap
+DIET_CAL_START=$(python3 -c "
+from datetime import datetime, timedelta
+dt = datetime.fromisoformat('${BLOOD_APPT_TIME}'.replace('Z','+00:00'))
+print((dt + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M:%SZ'))
+")
+DIET_CAL_END=$(python3 -c "
+from datetime import datetime, timedelta
+dt = datetime.fromisoformat('${DIET_CAL_START}'.replace('Z','+00:00'))
+print((dt + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ'))
+")
+
+DIET_CAL_RESPONSE=$(curl -s -X POST "${CALENDAR_API}/api/events" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"user_id\": 1,
+    \"title\": \"Diet Consultation\",
+    \"start_time\": \"${DIET_CAL_START}\",
+    \"end_time\": \"${DIET_CAL_END}\"
+  }")
+
+echo "[Calendar] Diet Consultation event: ${DIET_CAL_RESPONSE}"
+
+echo ""
+echo "=== All tasks complete ==="
+echo "1. Submitted reimbursement claim for \$250.00"
+echo "2. Booked Blood Test appointment"
+echo "3. Booked Diet Consultation appointment"
+echo "4. Created two non-overlapping calendar events"
