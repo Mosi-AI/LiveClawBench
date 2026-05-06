@@ -142,9 +142,12 @@ interface BenchmarkClock {
 // Configuration
 // ---------------------------------------------------------------------------
 
-const DB_PATH = process.env.SMARTHOME_DB_PATH || "/var/lib/mock-data/smarthome/smarthome.db";
-const DATA_DIR = process.env.SMARTHOME_DATA_DIR || "/opt/mock/data";
-const SQL_PATH = `${DATA_DIR}/smarthome.sql`;
+// Data directory for persistent smarthome state. The per-task startup script creates this
+// directory (mkdir -p, chown mock:mock, chmod 700) and creates verifier-compatible
+// symlink: /tmp/mosi_smart_home.sqlite -> /var/lib/mock-data/smarthome/smarthome.db
+const DATA_DIR = process.env.MOCK_DATA_DIR || "/var/lib/mock-data/smarthome";
+const DB_PATH = `${DATA_DIR}/smarthome.db`;
+const SEED_PATH = process.env.MOCK_SEED_PATH || "/opt/mock/data/smarthome.sql";
 
 let db: Database | null = null;
 
@@ -324,14 +327,14 @@ function initDatabase(): void {
   `);
 
   // Load seed SQL only on first init (fresh DB), preserve existing state on restart
-  if (!dbExists && existsSync(SQL_PATH)) {
-    const sql = readFileSync(SQL_PATH, "utf-8");
+  if (!dbExists && existsSync(SEED_PATH)) {
+    const sql = readFileSync(SEED_PATH, "utf-8");
     db.exec(sql);
-    console.log(`mock-smarthome: initialized fresh DB from ${SQL_PATH}`);
+    console.log(`mock-smarthome: initialized fresh DB from ${SEED_PATH}`);
   } else if (dbExists) {
     console.log(`mock-smarthome: found existing DB at ${DB_PATH}, preserving state`);
   } else {
-    console.log(`mock-smarthome: no seed SQL found at ${SQL_PATH}, using empty tables`);
+    console.log(`mock-smarthome: no seed SQL found at ${SEED_PATH}, using empty tables`);
   }
 
   // Populate inventory_snapshot from inventory_item (only if snapshot is empty)
