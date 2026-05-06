@@ -119,6 +119,12 @@
         { "src": "tasks/conflict-repair-acb/environment/documents.sql", "dest": "/opt/mock/data/documents.sql" }
       ]
     },
-    "skill-combination": { "binaries": [] }
+    "skill-combination": { "binaries": [] },
+    "insurance-deductible-selection": {
+      "binaries": ["insurance"],
+      "assets": [
+        { "src": "mock-platform/static/insurance/css/style.css", "dest": "/opt/mock/static/insurance/css/style.css" }
+      ]
+    }
   }
 }

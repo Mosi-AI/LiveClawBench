@@ -240,7 +240,7 @@ describe("insurance seed", () => {
     db.close();
   });
 
-  test("AC-7 fixtures: Blood Test at 2500 cents and Diet Consultation at 5000 cents exist with slots", () => {
+  test("verifier fixtures: Blood Test at 2500 cents and Diet Consultation at 5000 cents exist with slots", () => {
     const db = freshSeededDb();
     const bloodTest = db
       .query<{ id: number; service_name: string; cost: number; provider_id: number }, []>(
