@@ -24,7 +24,7 @@ describe("pages", () => {
     const res = await app.request("/", { headers: { Cookie: cookie } });
     expect(res.status).toBe(200);
     const html = await res.text();
-    const labels = ["Departments", "Transactions", "Accounts", "Expenses", "Invoices", "Assets"];
+    const labels = ["Departments", "Dashboard", "Transactions", "Accounts", "Expenses", "Invoices", "Assets", "Portfolio"];
     let lastIndex = -1;
     for (const label of labels) {
       const idx = html.indexOf(label);

@@ -115,7 +115,7 @@ export function computeDashboardMetrics(
     .query<{ month: string; department_name: string; budget_amount: number; actual_expense_amount: number; revenue_amount: number }, [string, string]>(
       `SELECT month, department_name, budget_amount, actual_expense_amount, revenue_amount
        FROM department_financial_record
-       WHERE month >= ? AND month <= ?
+       WHERE month >= substr(?, 1, 7) AND month <= substr(?, 1, 7)
        ORDER BY month, department_name`
     )
     .all(config.date_range_start, config.date_range_end);

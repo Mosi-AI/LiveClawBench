@@ -118,4 +118,37 @@ describe("portfolio", () => {
       .get()!.count;
     expect(after).toBe(before);
   });
+
+  it("POST /api/portfolio/orders accepts form-encoded data", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/portfolio/orders", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ asset_class_code: "eq", direction: "buy", amount: "5000" }).toString(),
+    });
+    expect(res.status).toBe(201);
+
+    const holdingsRes = await app.request("/api/portfolio", { headers: { Cookie: cookie } });
+    const holdingsJson = await holdingsRes.json();
+    const eq = holdingsJson.holdings.find((h: any) => h.asset_class_code === "eq");
+    expect(eq.current_value).toBe(105000);
+  });
+
+  it("portfolio_holding enforces UNIQUE on asset_class_code", () => {
+    expect(() => {
+      finance.db.run(
+        "INSERT INTO portfolio_holding (asset_class_code, asset_name, current_value) VALUES (?, ?, ?)",
+        ["eq", "Duplicate", 999]
+      );
+    }).toThrow();
+  });
+
+  it("portfolio_order rejects invalid asset_class_code FK", () => {
+    expect(() => {
+      finance.db.run(
+        "INSERT INTO portfolio_order (asset_class_code, direction, amount, status) VALUES (?, ?, ?, ?)",
+        ["zz", "buy", 100, "executed"]
+      );
+    }).toThrow();
+  });
 });

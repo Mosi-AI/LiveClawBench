@@ -140,4 +140,175 @@ describe("dashboard", () => {
     expect(json.config.date_range_start).toBe("2026-01-01");
     expect(json.config.date_range_end).toBe("2026-12-31");
   });
+
+  it("malformed user config falls back to admin config", async () => {
+    const adminCookie = await login(app);
+    await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: adminCookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-06-30",
+        formula_json: "{}",
+        department_weight_json: "{}",
+      }),
+    });
+
+    const johnLogin = await app.request("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "john", password: "user123" }),
+    });
+    const johnId = (await johnLogin.json()).user.id;
+    const johnCookie = johnLogin.headers.get("set-cookie") ?? "";
+
+    finance.db.run(
+      `INSERT INTO dashboard_config (user_id, date_range_start, date_range_end, formula_json, department_weight_json)
+       VALUES (?, '2026-01-01', '2026-12-31', 'not-json', '{}')`,
+      [johnId]
+    );
+
+    const res = await app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
+    const json = await res.json();
+    expect(json.config.date_range_end).toBe("2026-06-30");
+  });
+
+  it("malformed admin config falls back to defaults", async () => {
+    const adminId = finance.db
+      .query<{ id: number }, []>("SELECT id FROM user WHERE role = 'admin' ORDER BY id LIMIT 1")
+      .get()!.id;
+    finance.db.run(
+      `UPDATE dashboard_config SET formula_json = 'invalid' WHERE user_id = ?`,
+      [adminId]
+    );
+
+    const johnLogin = await app.request("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "john", password: "user123" }),
+    });
+    const johnCookie = johnLogin.headers.get("set-cookie") ?? "";
+
+    const res = await app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
+    const json = await res.json();
+    expect(json.config.date_range_start).toBe("2026-01-01");
+    expect(json.config.date_range_end).toBe("2026-12-31");
+  });
+
+  it("POST /api/dashboard/config unsupported operator returns 400", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-12-31",
+        formula_json: JSON.stringify({ op: "pow", left: { op: "const", value: 2 }, right: { op: "const", value: 3 } }),
+        department_weight_json: "{}",
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("POST /api/dashboard/config unsupported field returns 400", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-12-31",
+        formula_json: JSON.stringify({ op: "field", name: "invalid_field" }),
+        department_weight_json: "{}",
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("POST /api/dashboard/config non-numeric const returns 400", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-12-31",
+        formula_json: JSON.stringify({ op: "const", value: "not-a-number" }),
+        department_weight_json: "{}",
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("POST /api/dashboard/config malformed JSON returns 400", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-12-31",
+        formula_json: "not-json-at-all",
+        department_weight_json: "{}",
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("department weights multiply correctly and unspecified default to 1.0", async () => {
+    const cookie = await login(app);
+    await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-12-31",
+        formula_json: JSON.stringify({ op: "field", name: "revenue_amount" }),
+        department_weight_json: JSON.stringify({ Engineering: 2.0 }),
+      }),
+    });
+
+    const res = await app.request("/api/dashboard", { headers: { Cookie: cookie } });
+    const json = await res.json();
+    expect(json.monthly[0].revenue).toBe(1260000);
+  });
+
+  it("date boundaries filter records and empty months show 0", async () => {
+    const cookie = await login(app);
+    await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-03-31",
+        formula_json: "{}",
+        department_weight_json: "{}",
+      }),
+    });
+
+    const res = await app.request("/api/dashboard", { headers: { Cookie: cookie } });
+    const json = await res.json();
+    expect(json.monthly.length).toBe(3);
+    expect(json.monthly[0].month).toBe("2026-01");
+    expect(json.monthly[1].month).toBe("2026-02");
+    expect(json.monthly[2].month).toBe("2026-03");
+    expect(json.monthly[0].revenue).toBeGreaterThan(0);
+    expect(json.monthly[1].revenue).toBeGreaterThan(0);
+    expect(json.monthly[2].revenue).toBe(0);
+  });
+
+  it("POST /api/dashboard/config accepts form-encoded data", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-06-30",
+        formula_json: "{}",
+        department_weight_json: "{}",
+      }).toString(),
+    });
+    expect(res.status).toBe(200);
+  });
 });

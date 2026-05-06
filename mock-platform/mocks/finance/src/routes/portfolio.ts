@@ -25,13 +25,6 @@ export function registerPortfolioRoutes(app: OpenAPIApp, db: Database) {
     method: "post",
     path: "/api/portfolio/orders",
     summary: "Create portfolio order",
-    request: {
-      body: {
-        content: {
-          "application/json": { schema: CreateOrderSchema },
-        },
-      },
-    },
     responses: {
       201: { description: "Order created and holding updated" },
       400: { description: "Invalid request" },
@@ -39,7 +32,18 @@ export function registerPortfolioRoutes(app: OpenAPIApp, db: Database) {
   });
 
   app.openApiRoute(postRoute, async (c) => {
-    const body = await c.req.json();
+    let body: Record<string, unknown>;
+    const contentType = c.req.header("content-type") ?? "";
+    if (contentType.includes("application/json")) {
+      body = await c.req.json();
+    } else {
+      const form = await c.req.parseBody();
+      body = Object.fromEntries(Object.entries(form));
+      if (typeof body.amount === "string") {
+        const num = Number(body.amount);
+        body.amount = isNaN(num) ? body.amount : num;
+      }
+    }
     const parse = CreateOrderSchema.safeParse(body);
     if (!parse.success) {
       return c.json({ error: "Invalid input", details: parse.error.format() }, 400);
