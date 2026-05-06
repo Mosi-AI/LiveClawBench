@@ -53,6 +53,7 @@ const ALL_TASK_NAMES = new Set([
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination",
   "smart-home-thermostat", "grocery-reorder", "smart-home-morning-recovery", "grocery-budget-plan",
+  "smarthome_test",
 ]);
 
 interface AssetMapping {
@@ -403,10 +404,18 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("  bash /workspace/environment/startup.sh");
     lines.push("fi");
     lines.push("");
+  } else if (binaries.length === 0) {
+    // Tasks with no binaries (e.g., smarthome_test, blog-site-from-scratch):
+    // may still need to run startup.sh for custom services.
+    lines.push("# No mock binaries — check for task-specific startup.sh");
+    lines.push("if [ -f /workspace/environment/startup.sh ]; then");
+    lines.push("  bash /workspace/environment/startup.sh");
+    lines.push("fi");
+    lines.push("");
   }
 
   // Step 3: Final wait for all services to be ready
-  if (implementedBinaries.length > 0 || startupExtra || hasStubBinaries) {
+  if (implementedBinaries.length > 0 || startupExtra || hasStubBinaries || binaries.length === 0) {
     lines.push("# Wait for all services to be ready");
     lines.push("sleep 3");
     lines.push("");
