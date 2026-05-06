@@ -161,9 +161,11 @@ function initDatabase(): void {
     process.exit(1);
   }
 
+  // Check if DB already exists (for persistence across restart)
+  const dbExists = existsSync(DB_PATH);
   db = new Database(DB_PATH, { create: true });
 
-  // Create tables with CHECK constraints
+  // Create tables with CHECK constraints (idempotent via IF NOT EXISTS)
   db.exec(`
     -- Thermostat settings (singleton)
     CREATE TABLE IF NOT EXISTS thermostat_settings (
@@ -321,22 +323,23 @@ function initDatabase(): void {
     );
   `);
 
-  // Load seed SQL if exists
-  if (existsSync(SQL_PATH)) {
+  // Load seed SQL only on first init (fresh DB), preserve existing state on restart
+  if (!dbExists && existsSync(SQL_PATH)) {
     const sql = readFileSync(SQL_PATH, "utf-8");
     db.exec(sql);
-    console.log(`mock-smarthome: initialized DB from ${SQL_PATH}`);
+    console.log(`mock-smarthome: initialized fresh DB from ${SQL_PATH}`);
+  } else if (dbExists) {
+    console.log(`mock-smarthome: found existing DB at ${DB_PATH}, preserving state`);
   } else {
     console.log(`mock-smarthome: no seed SQL found at ${SQL_PATH}, using empty tables`);
   }
 
-  // Populate inventory_snapshot from inventory_item
+  // Populate inventory_snapshot from inventory_item (only if snapshot is empty)
   populateInventorySnapshot();
 }
 
 function populateInventorySnapshot(): void {
   const database = assertDb();
-  const now = new Date().toISOString();
 
   // Check if snapshot already exists
   const existing = database.query("SELECT COUNT(*) as count FROM inventory_snapshot").get() as { count: number };
@@ -344,10 +347,14 @@ function populateInventorySnapshot(): void {
     return;
   }
 
+  // Use benchmark_clock for deterministic captured_at, fallback to seed time if not set
+  const clock = database.query("SELECT current_time FROM benchmark_clock WHERE id = 1").get() as { current_time: string } | null;
+  const capturedAt = clock?.current_time || "2026-05-06T08:00:00Z";
+
   // Copy inventory items to snapshot
   database.exec(`
     INSERT INTO inventory_snapshot (item_name, quantity, unit, location, captured_at)
-    SELECT item_name, quantity, unit, location, '${now}'
+    SELECT item_name, quantity, unit, location, '${capturedAt}'
     FROM inventory_item
   `);
   console.log("mock-smarthome: populated inventory_snapshot from inventory_item");
@@ -372,30 +379,29 @@ function isValidWorkoutType(type: string): type is WorkoutType {
   return ["hiit", "yoga", "walking", "cycling", "strength", "stretching", "swimming", "rest"].includes(type.toLowerCase());
 }
 
-function deriveCoffeeStatus(startTime: string, currentTime: string): string {
-  // Simple status derivation based on time comparison
-  const [startHour, startMin] = startTime.split(":").map(Number);
-  const current = new Date(currentTime);
-  const currentMinutes = current.getHours() * 60 + current.getMinutes();
-  const startMinutes = startHour * 60 + startMin;
-
-  if (currentMinutes < startMinutes - 30) {
-    return "scheduled";
-  } else if (currentMinutes < startMinutes) {
-    return "preparing";
-  } else if (currentMinutes < startMinutes + 30) {
-    return "brewing";
-  } else {
-    return "ready";
-  }
+// Get deterministic timestamp from benchmark_clock (required for benchmark-verifiable state)
+function getBenchmarkTime(): string {
+  const database = assertDb();
+  const clock = database.query("SELECT current_time FROM benchmark_clock WHERE id = 1").get() as { current_time: string } | null;
+  return clock?.current_time || "2026-05-06T08:00:00Z";
 }
 
+// Generate deterministic order ID based on benchmark clock and counter
+let orderCounter = 0;
 function generateOrderId(): string {
-  return `ORD${Date.now().toString(36).toUpperCase()}`;
+  const time = getBenchmarkTime();
+  const timestamp = time.replace(/[-:T]/g, "").substring(0, 14);
+  orderCounter++;
+  return `ORD${timestamp}-${orderCounter.toString(36).toUpperCase().padStart(3, "0")}`;
 }
 
+// Generate deterministic plan ID based on benchmark clock and counter
+let planCounter = 0;
 function generatePlanId(): string {
-  return `PLAN${Date.now().toString(36).toUpperCase()}`;
+  const time = getBenchmarkTime();
+  const timestamp = time.replace(/[-:T]/g, "").substring(0, 14);
+  planCounter++;
+  return `PLAN${timestamp}-${planCounter.toString(36).toUpperCase().padStart(3, "0")}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -460,6 +466,29 @@ const Layout: FC<{ title: string; children: Child; scripts?: string }> = ({ titl
 ${children}
 </div>
 ${scripts ? html`<script>${raw(scripts)}</script>` : ""}
+</body>
+</html>`;
+};
+
+// Error page for 500 errors
+const ErrorPage: FC<{ title: string; message: string }> = ({ title, message }) => {
+  return html`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>${title}</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; background: #f5f5f5; }
+  .error-container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  h1 { color: #dc3545; margin-bottom: 20px; }
+  p { color: #666; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="error-container">
+<h1>${title}</h1>
+<p>${message}</p>
+</div>
 </body>
 </html>`;
 };
@@ -743,7 +772,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const thermostat = database.query("SELECT * FROM thermostat_settings WHERE id = 1").get() as ThermostatSettings;
 
     if (!metrics || !thermostat) {
-      return c.json({ error: "Required data unavailable" }, 503);
+      return c.html(<ErrorPage title="Service Error" message="Required data unavailable. Please check system configuration." />, 500);
     }
 
     return c.html(<DashboardPage metrics={metrics} thermostat={thermostat} />);
@@ -755,7 +784,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const thermostat = database.query("SELECT * FROM thermostat_settings WHERE id = 1").get() as ThermostatSettings;
 
     if (!thermostat) {
-      return c.json({ error: "Thermostat data unavailable" }, 503);
+      return c.html(<ErrorPage title="Service Error" message="Thermostat data unavailable. Please check system configuration." />, 500);
     }
 
     return c.html(<ThermostatPage thermostat={thermostat} />);
@@ -765,6 +794,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   app.get("/inventory", (c) => {
     const database = assertDb();
     const items = database.query("SELECT * FROM inventory_item ORDER BY location, item_name").all() as InventoryItem[];
+    // Inventory can be empty, no error needed
     return c.html(<InventoryPage items={items} />);
   });
 
@@ -772,6 +802,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   app.get("/grocery", (c) => {
     const database = assertDb();
     const products = database.query("SELECT * FROM grocery_product ORDER BY name").all() as GroceryProduct[];
+    // Grocery catalog can be empty, no error needed
     return c.html(<GroceryPage products={products} />);
   });
 
@@ -779,6 +810,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   app.get("/calendar", (c) => {
     const database = assertDb();
     const events = database.query("SELECT * FROM calendar_event ORDER BY start_time").all() as CalendarEvent[];
+    // Calendar can be empty, no error needed
     return c.html(<CalendarPage events={events} />);
   });
 
@@ -789,7 +821,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const recipes = database.query("SELECT * FROM recipe ORDER BY meal_type, name").all() as Recipe[];
 
     if (!constraints) {
-      return c.json({ error: "Constraints data unavailable" }, 503);
+      return c.html(<ErrorPage title="Service Error" message="Constraints data unavailable. Please check system configuration." />, 500);
     }
 
     return c.html(<MealPlanPage constraints={constraints} recipes={recipes} />);
@@ -837,7 +869,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     }
 
     const database = assertDb();
-    const now = new Date().toISOString();
+    const now = getBenchmarkTime();
     database.query("UPDATE thermostat_settings SET mode = ?, temperature = ?, updated_at = ? WHERE id = 1").run(mode, temperature, now);
 
     return c.json({ mode, temperature, updated_at: now });
@@ -870,8 +902,14 @@ function registerRoutes(app: Hono<AppEnv>): void {
       return c.json({ error: "Invalid start_time format. Use HH:MM format" }, 400);
     }
 
+    // Validate HH:MM bounds (reject invalid times like 29:99)
+    const [hour, min] = startTime.split(":").map(Number);
+    if (hour < 0 || hour > 23 || min < 0 || min > 59) {
+      return c.json({ error: "Invalid time value. Hour must be 0-23, minute must be 0-59" }, 400);
+    }
+
     const database = assertDb();
-    const now = new Date().toISOString();
+    const now = getBenchmarkTime();
     database.query("UPDATE coffee_schedule SET start_time = ?, updated_at = ? WHERE id = 1").run(startTime, now);
 
     return c.json({ start_time: startTime, updated_at: now });
@@ -986,7 +1024,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
     // Create order with transaction
     const orderId = generateOrderId();
-    const now = new Date().toISOString();
+    const now = getBenchmarkTime();
 
     const createOrder = database.transaction(() => {
       database.query("INSERT INTO grocery_order (order_id, total, created_at) VALUES (?, ?, ?)").run(orderId, total, now);
@@ -1057,7 +1095,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
       return c.json({ error: "Invalid workout_type" }, 400);
     }
 
-    const now = new Date().toISOString();
+    const now = getBenchmarkTime();
     database.query(
       "UPDATE calendar_event SET title = COALESCE(?, title), start_time = COALESCE(?, start_time), event_type = COALESCE(?, event_type), workout_type = ?, updated_at = ? WHERE id = ?"
     ).run(body.title || null, body.start_time || null, body.event_type || null, body.workout_type ?? null, now, id);
@@ -1106,6 +1144,45 @@ function registerRoutes(app: Hono<AppEnv>): void {
       return c.json({ error: "Exactly 7 days required for weekly meal plan" }, 400);
     }
 
+    // Validate each day's structure
+    const validMealTypes = ["breakfast", "lunch", "dinner"];
+    const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+    for (let i = 0; i < days.length; i++) {
+      const day = days[i];
+
+      // Validate date is a valid ISO date string (YYYY-MM-DD)
+      if (!day.date || typeof day.date !== "string" || !isoDateRegex.test(day.date)) {
+        return c.json({ error: `Day ${i + 1}: date must be a valid ISO date string (YYYY-MM-DD)` }, 400);
+      }
+
+      // Validate date components (reject invalid dates like 2026-13-45)
+      const [year, month, date] = day.date.split("-").map(Number);
+      if (year < 2000 || year > 2100 || month < 1 || month > 12 || date < 1 || date > 31) {
+        return c.json({ error: `Day ${i + 1}: invalid date value` }, 400);
+      }
+
+      // Validate meals array exists
+      if (!day.meals || !Array.isArray(day.meals)) {
+        return c.json({ error: `Day ${i + 1}: meals must be an array` }, 400);
+      }
+
+      // Validate each meal
+      for (let j = 0; j < day.meals.length; j++) {
+        const meal = day.meals[j];
+
+        // Validate meal_type
+        if (!meal.meal_type || typeof meal.meal_type !== "string" || !validMealTypes.includes(meal.meal_type)) {
+          return c.json({ error: `Day ${i + 1}, meal ${j + 1}: meal_type must be one of breakfast, lunch, dinner` }, 400);
+        }
+
+        // Validate meal_id
+        if (typeof meal.meal_id !== "number" || !Number.isInteger(meal.meal_id)) {
+          return c.json({ error: `Day ${i + 1}, meal ${j + 1}: meal_id must be an integer` }, 400);
+        }
+      }
+    }
+
     const database = assertDb();
 
     // Validate meal_ids exist
@@ -1119,7 +1196,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     }
 
     const planId = generatePlanId();
-    const now = new Date().toISOString();
+    const now = getBenchmarkTime();
     const planData = JSON.stringify(days);
 
     database.query("INSERT INTO meal_plan (plan_id, created_at, plan_data) VALUES (?, ?, ?)").run(planId, now, planData);
