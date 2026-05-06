@@ -129,7 +129,8 @@
     "health-insurance-optimization": {
       "binaries": ["insurance", "calendar"],
       "assets": [
-        { "src": "mock-platform/static/insurance/css/style.css", "dest": "/opt/mock/static/insurance/css/style.css" }
+        { "src": "mock-platform/static/insurance/css/style.css", "dest": "/opt/mock/static/insurance/css/style.css" },
+        { "src": "mock-platform/static/calendar/css/style.css", "dest": "/opt/mock/static/calendar/css/style.css" }
       ]
     }
   }

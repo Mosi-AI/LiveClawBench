@@ -1,7 +1,7 @@
 /** @jsxImportSource hono/jsx */
 import { z } from "zod";
 import bcryptjs from "bcryptjs";
-import { createMockApp, createRoute, startServer } from "mock-lib";
+import { createMockApp, createRoute, registerStaticAssets, startServer } from "mock-lib";
 import type { MockAppV2 } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { getCalendarDb, initSchema } from "./db";
@@ -48,6 +48,7 @@ export function createCalendarApp(): MockAppV2 {
   mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true, mock: "calendar" }));
 
   registerEventsRoutes(mockApp.app, db);
+  registerStaticAssets(mockApp.app, { dir: "/opt/mock/static/calendar", prefix: "/static" });
   registerPageRoutes(mockApp.app, db);
 
   return {
