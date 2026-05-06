@@ -47,7 +47,7 @@ describe("calendar events API", () => {
   let app: ReturnType<typeof createCalendarApp>["app"];
 
   beforeEach(() => {
-    resetDb();
+    process.env.CALENDAR_DB_PATH = ":memory:";
     const mockApp = createCalendarApp();
     app = mockApp.app;
   });

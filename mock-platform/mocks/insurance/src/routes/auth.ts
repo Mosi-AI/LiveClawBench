@@ -221,6 +221,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     if (!user) {
       return c.json({ error: "User not found" }, 404);
     }
-    return c.json(user);
+    const { password_hash: _, ...safeUser } = user;
+    return c.json(safeUser);
   }, { auth: "required" });
 }
