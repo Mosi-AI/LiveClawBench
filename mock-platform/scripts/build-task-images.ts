@@ -404,18 +404,21 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("  bash /workspace/environment/startup.sh");
     lines.push("fi");
     lines.push("");
-  } else if (binaries.length === 0) {
-    // Tasks with no binaries (e.g., smarthome_test, blog-site-from-scratch):
-    // may still need to run startup.sh for custom services.
-    lines.push("# No mock binaries — check for task-specific startup.sh");
-    lines.push("if [ -f /workspace/environment/startup.sh ]; then");
-    lines.push("  bash /workspace/environment/startup.sh");
-    lines.push("fi");
-    lines.push("");
   }
+  // python-fastapi: The following block was added to support tasks with binaries: []
+  // that still need to run startup.sh for Python FastAPI services. Now that smarthome
+  // tasks use Bun mock (binaries: ["smarthome"]), this block is no longer necessary
+  // for smarthome_test but is kept for potential future use.
+  // else if (binaries.length === 0) {
+  //   lines.push("# No mock binaries — check for task-specific startup.sh");
+  //   lines.push("if [ -f /workspace/environment/startup.sh ]; then");
+  //   lines.push("  bash /workspace/environment/startup.sh");
+  //   lines.push("fi");
+  //   lines.push("");
+  // }
 
   // Step 3: Final wait for all services to be ready
-  if (implementedBinaries.length > 0 || startupExtra || hasStubBinaries || binaries.length === 0) {
+  if (implementedBinaries.length > 0 || startupExtra || hasStubBinaries) {
     lines.push("# Wait for all services to be ready");
     lines.push("sleep 3");
     lines.push("");

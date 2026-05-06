@@ -1279,8 +1279,8 @@ const app = createMockApp({
   routes: registerRoutes,
 });
 
-startServer(app, {
-  seed() {
-    initDatabase();
-  },
-});
+app.seed = () => {
+  initDatabase();
+};
+
+startServer(app);

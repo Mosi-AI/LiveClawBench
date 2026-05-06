@@ -3,9 +3,9 @@ set -e
 
 echo "Starting smarthome mock service..."
 
-# Start the smarthome backend
-cd /workspace/environment/smarthome-app/backend
-python3 app.py &
+# fastapi-required: Start the smarthome backend (disabled when using Bun mock)
+# cd /workspace/environment/smarthome-app/backend
+# python3 app.py &
 
 # Wait for service to be ready
 sleep 3
