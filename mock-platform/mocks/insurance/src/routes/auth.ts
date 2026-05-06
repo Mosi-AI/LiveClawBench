@@ -66,18 +66,19 @@ export function getUserByEmail(
 function getUserById(
   db: Database,
   id: number,
-): { id: number; email: string; first_name: string; last_name: string; phone: string | null } | null {
+): { id: number; email: string; password_hash: string; first_name: string; last_name: string; phone: string | null } | null {
   return db
     .query<
       {
         id: number;
         email: string;
+        password_hash: string;
         first_name: string;
         last_name: string;
         phone: string | null;
       },
       [number]
-    >("SELECT id, email, first_name, last_name, phone FROM users WHERE id = ?")
+    >("SELECT id, email, password_hash, first_name, last_name, phone FROM users WHERE id = ?")
     .get(id);
 }
 

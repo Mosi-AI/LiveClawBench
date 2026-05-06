@@ -4,7 +4,7 @@ import type { FC } from "hono/jsx";
 interface LayoutProps {
   title: string;
   user?: { first_name: string; last_name: string } | null;
-  children: JSX.Element;
+  children: any;
 }
 
 export const Layout: FC<LayoutProps> = ({ title, user, children }) => {

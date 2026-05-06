@@ -19,7 +19,7 @@ export const LoginPage: FC<LoginPageProps> = ({ error, next = "/claims" }) => {
             {error}
           </p>
         ) : null}
-        <form method="POST" action="/login">
+        <form method="post" action="/login">
           <input type="hidden" name="next" value={next} />
           <div>
             <label>

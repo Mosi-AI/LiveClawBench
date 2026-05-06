@@ -17,7 +17,7 @@ describe("auth routes", () => {
 
   function createApp() {
     const insuranceApp = createInsuranceApp();
-    insuranceApp.seed();
+    insuranceApp.seed!();
     return insuranceApp.app;
   }
 

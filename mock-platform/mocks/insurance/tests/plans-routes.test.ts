@@ -18,7 +18,7 @@ describe("plans routes", () => {
 
   async function createAppWithToken() {
     const insuranceApp = createInsuranceApp();
-    insuranceApp.seed();
+    insuranceApp.seed!();
     const app = insuranceApp.app;
 
     const loginRes = await app.request("/api/auth/login", {

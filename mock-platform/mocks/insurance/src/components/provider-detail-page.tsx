@@ -70,7 +70,7 @@ export const ProviderDetailPage: FC<ProviderDetailPageProps> = ({
           </h3>
           {slotsByService[svc.id]?.length ? (
             <form
-              method="POST"
+              method="post"
               action="/appointments/book"
               class="slot-form"
             >
