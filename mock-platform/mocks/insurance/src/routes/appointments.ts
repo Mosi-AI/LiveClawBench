@@ -79,7 +79,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(listProvidersRoute, (c) => {
+  app.openApiRoute(listProvidersRoute, (c): any => {
     const q = c.req.query();
     const checkItem = q.check_item;
     const district = q.district;
@@ -181,7 +181,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(getProviderRoute, (c) => {
+  app.openApiRoute(getProviderRoute, (c): any => {
     const id = Number(c.req.param("id"));
     const provider = db
       .query<
@@ -237,7 +237,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(listSlotsRoute, (c) => {
+  app.openApiRoute(listSlotsRoute, (c): any => {
     const providerId = Number(c.req.param("id"));
     const serviceId = Number(c.req.param("service_id"));
 
@@ -315,7 +315,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(bookAppointmentRoute, (c) => {
+  app.openApiRoute(bookAppointmentRoute, (c): any => {
     const userId = c.get("userId")!;
     const { slot_id } = c.req.valid("json");
 
@@ -417,7 +417,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(listAppointmentsRoute, (c) => {
+  app.openApiRoute(listAppointmentsRoute, (c): any => {
     const userId = c.get("userId");
     const appointments = db
       .query<Record<string, unknown>, [number]>(
@@ -455,7 +455,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(getAppointmentRoute, (c) => {
+  app.openApiRoute(getAppointmentRoute, (c): any => {
     const userId = c.get("userId");
     const id = Number(c.req.param("id"));
     const appointment = db

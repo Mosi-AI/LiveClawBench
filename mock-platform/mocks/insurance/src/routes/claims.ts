@@ -106,7 +106,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(listClaimsRoute, (c) => {
+  app.openApiRoute(listClaimsRoute, (c): any => {
     const userId = c.get("userId");
     const claims = db
       .query<Record<string, unknown>, [number]>(
@@ -150,7 +150,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(createClaimRoute, async (c) => {
+  app.openApiRoute(createClaimRoute, async (c): Promise<any> => {
     const userId = c.get("userId");
     const body = c.req.valid("json");
     db.query(
@@ -158,7 +158,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
        (user_id, claim_type, total_amount, service_date, provider_name, check_item, status, notes)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
-      userId,
+      userId!,
       body.claim_type,
       body.total_amount,
       body.service_date,
@@ -200,7 +200,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(getClaimRoute, (c) => {
+  app.openApiRoute(getClaimRoute, (c): any => {
     const userId = c.get("userId");
     const id = Number(c.req.param("id"));
     const claim = getClaimById(db, id, userId!);
@@ -257,7 +257,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(updateClaimRoute, async (c) => {
+  app.openApiRoute(updateClaimRoute, async (c): Promise<any> => {
     const userId = c.get("userId");
     const id = Number(c.req.param("id"));
     const claim = getClaimById(db, id, userId!);
@@ -281,7 +281,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     if (fields.length > 0) {
       db.query(
         `UPDATE claim SET ${fields.join(", ")}, updated_at = datetime('now') WHERE id = ? AND user_id = ?`,
-      ).run(...values, id, userId);
+      ).run(...values as [string, ...any[]], id, userId!);
     }
 
     const updated = getClaimById(db, id, userId!);
@@ -329,7 +329,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(createLineItemRoute, async (c) => {
+  app.openApiRoute(createLineItemRoute, async (c): Promise<any> => {
     const userId = c.get("userId");
     const id = Number(c.req.param("id"));
     const claim = getClaimById(db, id, userId!);
@@ -393,7 +393,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(createAttachmentRoute, async (c) => {
+  app.openApiRoute(createAttachmentRoute, async (c): Promise<any> => {
     const userId = c.get("userId");
     const id = Number(c.req.param("id"));
     const claim = getClaimById(db, id, userId!);

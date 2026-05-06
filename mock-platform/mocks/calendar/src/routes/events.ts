@@ -46,16 +46,16 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(listRoute, (c) => {
+  app.openApiRoute(listRoute, (c): any => {
     const userIdParam = c.req.query("user_id");
     let sql = "SELECT * FROM calendar_event";
-    const params: unknown[] = [];
+    const params: (string | number)[] = [];
     if (userIdParam) {
       sql += " WHERE user_id = ?";
       params.push(Number(userIdParam));
     }
     sql += " ORDER BY start_time ASC";
-    const rows = db.query(sql).all(...params);
+    const rows = params.length > 0 ? db.query(sql).all(...params) : db.query(sql).all();
     return c.json({ events: rows });
   });
 
@@ -101,7 +101,7 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(createRouteDef, async (c) => {
+  app.openApiRoute(createRouteDef, async (c): Promise<any> => {
     const body = await c.req.json();
     const parse = CreateEventSchema.safeParse(body);
     if (!parse.success) {

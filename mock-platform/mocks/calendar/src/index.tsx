@@ -77,6 +77,11 @@ function getUserFromCookie(db: Database, c: any): { id: number; first_name: stri
   }
 }
 
+interface CalEvent { id: number; title: string; start_time: string; end_time: string; }
+
+const listEventsStmt = (db: Database) =>
+  db.query<CalEvent, [number]>("SELECT id, title, start_time, end_time FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC");
+
 function registerPageRoutes(app: any, db: Database): void {
   // GET / — Calendar portal home
   app.get("/", async (c: any) => {
@@ -84,9 +89,7 @@ function registerPageRoutes(app: any, db: Database): void {
     if (!user) {
       return c.redirect("/login");
     }
-    const events = db
-      .query("SELECT id, title, start_time, end_time FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC")
-      .all(user.id);
+    const events = listEventsStmt(db).all(user.id);
     return c.html(<CalendarPage user={user} events={events} />);
   });
 
@@ -131,9 +134,7 @@ function registerPageRoutes(app: any, db: Database): void {
     const endTime = String(body.end_time || "");
 
     if (!title || !startTime || !endTime) {
-      const events = db
-        .query("SELECT id, title, start_time, end_time FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC")
-        .all(user.id);
+      const events = listEventsStmt(db).all(user.id);
       return c.html(<CalendarPage user={user} events={events} error="All fields are required" />);
     }
 
@@ -142,9 +143,7 @@ function registerPageRoutes(app: any, db: Database): void {
     const endUtc = new Date(endTime).toISOString();
 
     if (new Date(startUtc) >= new Date(endUtc)) {
-      const events = db
-        .query("SELECT id, title, start_time, end_time FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC")
-        .all(user.id);
+      const events = listEventsStmt(db).all(user.id);
       return c.html(<CalendarPage user={user} events={events} error="End time must be after start time" />);
     }
 
@@ -156,9 +155,7 @@ function registerPageRoutes(app: any, db: Database): void {
       .get(user.id, endUtc, startUtc);
 
     if (overlap && overlap.count > 0) {
-      const events = db
-        .query("SELECT id, title, start_time, end_time FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC")
-        .all(user.id);
+      const events = listEventsStmt(db).all(user.id);
       return c.html(<CalendarPage user={user} events={events} error="Time overlaps with an existing event" />);
     }
 

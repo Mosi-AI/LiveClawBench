@@ -74,7 +74,7 @@ export function registerPlansRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(currentPolicyRoute, (c) => {
+  app.openApiRoute(currentPolicyRoute, (c): any => {
     const userId = c.get("userId");
     const policy = db
       .query<
@@ -157,7 +157,7 @@ export function registerPlansRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(getPlanRoute, (c) => {
+  app.openApiRoute(getPlanRoute, (c): any => {
     const id = Number(c.req.param("id"));
     const plan = db
       .query<
@@ -208,7 +208,7 @@ export function registerPlansRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(selectPlanRoute, (c) => {
+  app.openApiRoute(selectPlanRoute, (c): any => {
     const userId = c.get("userId")!;
     const id = Number(c.req.param("id"));
 

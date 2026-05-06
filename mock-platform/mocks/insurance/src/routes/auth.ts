@@ -117,7 +117,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(loginRoute, async (c) => {
+  app.openApiRoute(loginRoute, async (c): Promise<any> => {
     const { email, password } = c.req.valid("json");
     const user = getUserByEmail(db, email);
     if (!user || !bcryptjs.compareSync(password, user.password_hash)) {
@@ -166,7 +166,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(registerRoute, async (c) => {
+  app.openApiRoute(registerRoute, async (c): Promise<any> => {
     const { email, password, first_name, last_name } = c.req.valid("json");
 
     const existing = getUserByEmail(db, email);
@@ -212,7 +212,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(meRoute, (c) => {
+  app.openApiRoute(meRoute, (c): any => {
     const userId = c.get("userId");
     if (!userId) {
       return c.json({ error: "Unauthorized" }, 401);
