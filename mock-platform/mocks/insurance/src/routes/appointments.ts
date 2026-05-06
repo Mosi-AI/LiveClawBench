@@ -1,0 +1,387 @@
+import { z } from "zod";
+import { createRoute } from "mock-lib";
+import type { OpenAPIApp } from "mock-lib";
+import type { Database } from "bun:sqlite";
+import { ErrorResponseSchema } from "mock-lib";
+
+const CheckItemEnum = z.enum([
+  "general_checkup",
+  "dental",
+  "vision",
+  "lab",
+  "imaging",
+  "specialist",
+]);
+
+const ProviderSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  district: z.string(),
+  distance_km: z.number(),
+  network_status: z.string(),
+});
+
+const ProviderDetailSchema = ProviderSchema.extend({
+  services: z.array(
+    z.object({
+      id: z.number(),
+      check_item: z.string(),
+      service_name: z.string(),
+      cost: z.number(),
+    }),
+  ),
+});
+
+const SlotSchema = z.object({
+  id: z.number(),
+  provider_service_id: z.number(),
+  start_time: z.string(),
+  end_time: z.string(),
+  is_available: z.number(),
+});
+
+const AppointmentSchema = z.object({
+  id: z.number(),
+  user_id: z.number(),
+  provider_id: z.number(),
+  slot_id: z.number(),
+  provider_name: z.string(),
+  service_name_snapshot: z.string(),
+  check_item: z.string(),
+  slot_start_time: z.string(),
+  slot_end_time: z.string(),
+  cost_snapshot: z.number(),
+  distance_km_snapshot: z.number(),
+  created_at: z.string(),
+});
+
+const BookAppointmentBodySchema = z.object({
+  slot_id: z.number().int().positive(),
+});
+
+const IdParamSchema = z.string().regex(/^\d+$/);
+
+export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
+  // GET /api/providers
+  const listProvidersRoute = createRoute({
+    method: "get",
+    path: "/api/providers",
+    summary: "List providers",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({ providers: z.array(ProviderSchema) }),
+          },
+        },
+        description: "List of providers",
+      },
+    },
+  });
+
+  app.openApiRoute(listProvidersRoute, (c) => {
+    const providers = db
+      .query<
+        { id: number; name: string; district: string; distance_km: number; network_status: string },
+        []
+      >("SELECT id, name, district, distance_km, network_status FROM provider ORDER BY distance_km")
+      .all();
+    return c.json({ providers });
+  }, { auth: "required" });
+
+  // GET /api/providers/:id
+  const getProviderRoute = createRoute({
+    method: "get",
+    path: "/api/providers/{id}",
+    summary: "Get provider with services",
+    request: {
+      params: z.object({ id: IdParamSchema }),
+    },
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: ProviderDetailSchema,
+          },
+        },
+        description: "Provider details",
+      },
+      404: {
+        content: {
+          "application/json": {
+            schema: ErrorResponseSchema,
+          },
+        },
+        description: "Provider not found",
+      },
+    },
+  });
+
+  app.openApiRoute(getProviderRoute, (c) => {
+    const id = Number(c.req.param("id"));
+    const provider = db
+      .query<
+        { id: number; name: string; district: string; distance_km: number; network_status: string },
+        [number]
+      >("SELECT id, name, district, distance_km, network_status FROM provider WHERE id = ?")
+      .get(id);
+    if (!provider) {
+      return c.json({ error: "Provider not found" }, 404);
+    }
+
+    const services = db
+      .query<{ id: number; check_item: string; service_name: string; cost: number }, [number]>(
+        "SELECT id, check_item, service_name, cost FROM provider_service WHERE provider_id = ?",
+      )
+      .all(id);
+
+    return c.json({ ...provider, services });
+  }, { auth: "required" });
+
+  // GET /api/providers/:id/services/:service_id/slots
+  const listSlotsRoute = createRoute({
+    method: "get",
+    path: "/api/providers/{id}/services/{service_id}/slots",
+    summary: "List available appointment slots for a provider service",
+    request: {
+      params: z.object({
+        id: IdParamSchema,
+        service_id: IdParamSchema,
+      }),
+    },
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({ slots: z.array(SlotSchema) }),
+          },
+        },
+        description: "List of available slots",
+      },
+      404: {
+        content: {
+          "application/json": {
+            schema: ErrorResponseSchema,
+          },
+        },
+        description: "Provider or service not found",
+      },
+    },
+  });
+
+  app.openApiRoute(listSlotsRoute, (c) => {
+    const providerId = Number(c.req.param("id"));
+    const serviceId = Number(c.req.param("service_id"));
+
+    // Verify the service belongs to the provider
+    const service = db
+      .query<{ id: number }, [number, number]>(
+        "SELECT id FROM provider_service WHERE id = ? AND provider_id = ?",
+      )
+      .get(serviceId, providerId);
+    if (!service) {
+      return c.json({ error: "Service not found for this provider" }, 404);
+    }
+
+    const slots = db
+      .query<
+        { id: number; provider_service_id: number; start_time: string; end_time: string; is_available: number },
+        [number]
+      >(
+        `SELECT id, provider_service_id, start_time, end_time, is_available
+         FROM appointment_slot
+         WHERE provider_service_id = ? AND is_available = 1
+         ORDER BY start_time`,
+      )
+      .all(serviceId);
+    return c.json({ slots });
+  }, { auth: "required" });
+
+  // POST /api/appointments
+  const bookAppointmentRoute = createRoute({
+    method: "post",
+    path: "/api/appointments",
+    summary: "Book an appointment (freezes snapshot)",
+    request: {
+      body: {
+        content: {
+          "application/json": {
+            schema: BookAppointmentBodySchema,
+          },
+        },
+      },
+    },
+    responses: {
+      201: {
+        content: {
+          "application/json": {
+            schema: AppointmentSchema,
+          },
+        },
+        description: "Appointment booked",
+      },
+      400: {
+        content: {
+          "application/json": {
+            schema: ErrorResponseSchema,
+          },
+        },
+        description: "Slot unavailable or invalid",
+      },
+    },
+  });
+
+  app.openApiRoute(bookAppointmentRoute, (c) => {
+    const userId = c.get("userId")!;
+    const { slot_id } = c.req.valid("json");
+
+    // Fetch slot, service, and provider in one go for snapshots
+    const slot = db
+      .query<
+        {
+          slot_id: number;
+          start_time: string;
+          end_time: string;
+          is_available: number;
+          provider_service_id: number;
+          check_item: string;
+          service_name: string;
+          cost: number;
+          provider_id: number;
+          provider_name: string;
+          distance_km: number;
+        },
+        [number]
+      >(
+        `SELECT
+           s.id AS slot_id,
+           s.start_time, s.end_time, s.is_available,
+           s.provider_service_id,
+           ps.check_item, ps.service_name, ps.cost,
+           p.id AS provider_id,
+           p.name AS provider_name,
+           p.distance_km
+         FROM appointment_slot s
+         JOIN provider_service ps ON ps.id = s.provider_service_id
+         JOIN provider p ON p.id = ps.provider_id
+         WHERE s.id = ?`,
+      )
+      .get(slot_id);
+
+    if (!slot) {
+      return c.json({ error: "Slot not found" }, 404);
+    }
+    if (slot.is_available !== 1) {
+      return c.json({ error: "Slot is not available" }, 400);
+    }
+
+    // Mark slot as unavailable and insert appointment in a transaction
+    const book = db.transaction(() => {
+      db.query("UPDATE appointment_slot SET is_available = 0 WHERE id = ?").run(
+        slot_id,
+      );
+
+      db.query(
+        `INSERT INTO appointment
+         (user_id, provider_id, slot_id,
+          provider_name, service_name_snapshot, check_item,
+          slot_start_time, slot_end_time,
+          cost_snapshot, distance_km_snapshot)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).run(
+        userId,
+        slot.provider_id,
+        slot.slot_id,
+        slot.provider_name,
+        slot.service_name,
+        slot.check_item,
+        slot.start_time,
+        slot.end_time,
+        slot.cost,
+        slot.distance_km,
+      );
+
+      const row = db
+        .query<{ id: number }, []>("SELECT last_insert_rowid() AS id")
+        .get();
+      return row!.id;
+    });
+
+    const appointmentId = book();
+    const appointment = db
+      .query<Record<string, unknown>, [number]>(
+        "SELECT * FROM appointment WHERE id = ?",
+      )
+      .get(appointmentId);
+    return c.json(appointment, 201);
+  }, { auth: "required" });
+
+  // GET /api/appointments
+  const listAppointmentsRoute = createRoute({
+    method: "get",
+    path: "/api/appointments",
+    summary: "List user appointments",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({ appointments: z.array(AppointmentSchema) }),
+          },
+        },
+        description: "List of appointments",
+      },
+    },
+  });
+
+  app.openApiRoute(listAppointmentsRoute, (c) => {
+    const userId = c.get("userId");
+    const appointments = db
+      .query<Record<string, unknown>, [number]>(
+        "SELECT * FROM appointment WHERE user_id = ? ORDER BY slot_start_time DESC",
+      )
+      .all(userId!);
+    return c.json({ appointments });
+  }, { auth: "required" });
+
+  // GET /api/appointments/:id
+  const getAppointmentRoute = createRoute({
+    method: "get",
+    path: "/api/appointments/{id}",
+    summary: "Get appointment details",
+    request: {
+      params: z.object({ id: IdParamSchema }),
+    },
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: AppointmentSchema,
+          },
+        },
+        description: "Appointment details",
+      },
+      404: {
+        content: {
+          "application/json": {
+            schema: ErrorResponseSchema,
+          },
+        },
+        description: "Appointment not found",
+      },
+    },
+  });
+
+  app.openApiRoute(getAppointmentRoute, (c) => {
+    const userId = c.get("userId");
+    const id = Number(c.req.param("id"));
+    const appointment = db
+      .query<Record<string, unknown>, [number, number]>(
+        "SELECT * FROM appointment WHERE id = ? AND user_id = ?",
+      )
+      .get(id, userId!);
+    if (!appointment) {
+      return c.json({ error: "Appointment not found" }, 404);
+    }
+    return c.json(appointment);
+  }, { auth: "required" });
+}
