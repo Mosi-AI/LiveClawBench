@@ -1,6 +1,7 @@
 /** @jsxImportSource hono/jsx */
 import type { FC } from "hono/jsx";
 import { Layout } from "./layout";
+import { formatCents } from "./format";
 
 interface Plan {
   id: number;
@@ -15,10 +16,6 @@ interface Plan {
 interface PlansListPageProps {
   user: { first_name: string; last_name: string };
   plans: Plan[];
-}
-
-function formatCents(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
 }
 
 export const PlansListPage: FC<PlansListPageProps> = ({ user, plans }) => {

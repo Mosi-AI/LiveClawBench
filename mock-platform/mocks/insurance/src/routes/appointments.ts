@@ -4,15 +4,6 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ErrorResponseSchema } from "mock-lib";
 
-const CheckItemEnum = z.enum([
-  "general_checkup",
-  "dental",
-  "vision",
-  "lab",
-  "imaging",
-  "specialist",
-]);
-
 const ProviderSchema = z.object({
   id: z.number(),
   name: z.string(),

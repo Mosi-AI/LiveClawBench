@@ -4,6 +4,7 @@ import { createRoute, sign, tokenCookieOptions } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ErrorResponseSchema } from "mock-lib";
+import type { UserRow, SafeUser } from "../types";
 
 const LoginBodySchema = z.object({
   email: z.string().email(),
@@ -47,39 +48,28 @@ export function serializeCookie(
 export function getUserByEmail(
   db: Database,
   email: string,
-): { id: number; email: string; password_hash: string; first_name: string; last_name: string; phone: string | null } | null {
+): UserRow | null {
   return db
-    .query<
-      {
-        id: number;
-        email: string;
-        password_hash: string;
-        first_name: string;
-        last_name: string;
-        phone: string | null;
-      },
-      [string]
-    >("SELECT id, email, password_hash, first_name, last_name, phone FROM users WHERE email = ?")
+    .query<UserRow, [string]>(
+      "SELECT id, email, password_hash, first_name, last_name, phone FROM users WHERE email = ?",
+    )
     .get(email);
 }
 
 function getUserById(
   db: Database,
   id: number,
-): { id: number; email: string; password_hash: string; first_name: string; last_name: string; phone: string | null } | null {
+): UserRow | null {
   return db
-    .query<
-      {
-        id: number;
-        email: string;
-        password_hash: string;
-        first_name: string;
-        last_name: string;
-        phone: string | null;
-      },
-      [number]
-    >("SELECT id, email, password_hash, first_name, last_name, phone FROM users WHERE id = ?")
+    .query<UserRow, [number]>(
+      "SELECT id, email, password_hash, first_name, last_name, phone FROM users WHERE id = ?",
+    )
     .get(id);
+}
+
+function toSafeUser(user: UserRow): SafeUser {
+  const { password_hash: _, ...safeUser } = user;
+  return safeUser;
 }
 
 export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
@@ -128,8 +118,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const cookieStr = serializeCookie("token", token, tokenCookieOptions());
     c.header("Set-Cookie", cookieStr);
 
-    const { password_hash: _, ...safeUser } = user;
-    return c.json({ token, user: safeUser });
+    return c.json({ token, user: toSafeUser(user) });
   });
 
   // POST /api/auth/register
@@ -192,7 +181,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     c.header("Set-Cookie", cookieStr);
 
     const { password_hash: _, ...safeUser } = newUser;
-    return c.json({ token, user: safeUser }, 201);
+    return c.json({ token, user: toSafeUser(newUser) }, 201);
   });
 
   // GET /api/auth/me
@@ -221,7 +210,6 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     if (!user) {
       return c.json({ error: "User not found" }, 404);
     }
-    const { password_hash: _, ...safeUser } = user;
-    return c.json(safeUser);
+    return c.json(toSafeUser(user));
   }, { auth: "required" });
 }

@@ -76,45 +76,14 @@ def check_claim():
 
 
 def check_blood_test_appointment():
-    try:
-        conn = sqlite3.connect(INSURANCE_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open insurance database: {e}")
-        return 0.0
-
-    cursor.execute(
-        """
-        SELECT id, service_name_snapshot, cost_snapshot, provider_name
-        FROM appointment
-        WHERE user_id = 1
-          AND service_name_snapshot = 'Blood Test'
-        ORDER BY id DESC
-        LIMIT 1
-        """
-    )
-    row = cursor.fetchone()
-    conn.close()
-
-    if not row:
-        print("FAIL: No Blood Test appointment found for user 1")
-        return 0.0
-
-    print(
-        f"Blood Test: id={row['id']}, service={row['service_name_snapshot']}, "
-        f"cost={row['cost_snapshot']}, provider={row['provider_name']}"
-    )
-
-    if row["cost_snapshot"] == BLOOD_TEST_COST:
-        print("PASS: Blood Test appointment booked with correct snapshot")
-        return 0.25
-
-    print(f"PARTIAL: Blood Test booked but cost_snapshot={row['cost_snapshot']} (expected {BLOOD_TEST_COST})")
-    return 0.0
+    return _check_appointment("Blood Test", BLOOD_TEST_COST)
 
 
 def check_diet_consultation_appointment():
+    return _check_appointment("Diet Consultation", DIET_CONSULT_COST)
+
+
+def _check_appointment(service_name: str, expected_cost: int) -> float:
     try:
         conn = sqlite3.connect(INSURANCE_DB_PATH)
         conn.row_factory = sqlite3.Row
@@ -128,28 +97,29 @@ def check_diet_consultation_appointment():
         SELECT id, service_name_snapshot, cost_snapshot, provider_name
         FROM appointment
         WHERE user_id = 1
-          AND service_name_snapshot = 'Diet Consultation'
+          AND service_name_snapshot = ?
         ORDER BY id DESC
         LIMIT 1
-        """
+        """,
+        (service_name,),
     )
     row = cursor.fetchone()
     conn.close()
 
     if not row:
-        print("FAIL: No Diet Consultation appointment found for user 1")
+        print(f"FAIL: No {service_name} appointment found for user 1")
         return 0.0
 
     print(
-        f"Diet Consultation: id={row['id']}, service={row['service_name_snapshot']}, "
+        f"{service_name}: id={row['id']}, service={row['service_name_snapshot']}, "
         f"cost={row['cost_snapshot']}, provider={row['provider_name']}"
     )
 
-    if row["cost_snapshot"] == DIET_CONSULT_COST:
-        print("PASS: Diet Consultation appointment booked with correct snapshot")
+    if row["cost_snapshot"] == expected_cost:
+        print(f"PASS: {service_name} appointment booked with correct snapshot")
         return 0.25
 
-    print(f"PARTIAL: Diet Consultation booked but cost_snapshot={row['cost_snapshot']} (expected {DIET_CONSULT_COST})")
+    print(f"PARTIAL: {service_name} booked but cost_snapshot={row['cost_snapshot']} (expected {expected_cost})")
     return 0.0
 
 
@@ -163,7 +133,6 @@ def check_calendar_events():
         print(f"FAIL: Could not open insurance database: {e}")
         return 0.0
 
-    # Read the booked appointment times
     ins_cursor.execute(
         """
         SELECT service_name_snapshot, slot_start_time, slot_end_time
@@ -213,42 +182,30 @@ def check_calendar_events():
         return 0.0
 
     # Match calendar events to appointment snapshots by title and exact times
-    matched = 0
-    for name, times in expected.items():
-        for evt in cal_events:
-            title_lower = (evt["title"] or "").lower()
-            if name.lower() in title_lower and evt["start_time"] == times["start"] and evt["end_time"] == times["end"]:
-                matched += 1
-                print(f"Calendar match: '{evt['title']}' at {evt['start_time']} - {evt['end_time']} == {name}")
-                break
-
-    if matched < 2:
-        print(f"FAIL: Only {matched}/2 calendar events match the booked appointment times")
-        print(f"Expected: {expected}")
-        print(f"Found: {[(e['title'], e['start_time'], e['end_time']) for e in cal_events]}")
-        return 0.0
-
-    # Verify the two matched events don't overlap
     matched_events = []
     for name, times in expected.items():
         for evt in cal_events:
             title_lower = (evt["title"] or "").lower()
             if name.lower() in title_lower and evt["start_time"] == times["start"] and evt["end_time"] == times["end"]:
                 matched_events.append(evt)
+                print(f"Calendar match: '{evt['title']}' at {evt['start_time']} - {evt['end_time']} == {name}")
                 break
 
-    if len(matched_events) == 2:
-        s1, e1 = matched_events[0]["start_time"], matched_events[0]["end_time"]
-        s2, e2 = matched_events[1]["start_time"], matched_events[1]["end_time"]
-        if e1 <= s2 or e2 <= s1:
-            print("PASS: Calendar events match appointment times and do not overlap")
-            return 0.25
-        else:
-            print("FAIL: Calendar events overlap")
-            return 0.0
+    if len(matched_events) < 2:
+        print(f"FAIL: Only {len(matched_events)}/2 calendar events match the booked appointment times")
+        print(f"Expected: {expected}")
+        print(f"Found: {[(e['title'], e['start_time'], e['end_time']) for e in cal_events]}")
+        return 0.0
 
-    print("PASS: Calendar events match appointment times")
-    return 0.25
+    # Verify the two matched events don't overlap
+    s1, e1 = matched_events[0]["start_time"], matched_events[0]["end_time"]
+    s2, e2 = matched_events[1]["start_time"], matched_events[1]["end_time"]
+    if e1 <= s2 or e2 <= s1:
+        print("PASS: Calendar events match appointment times and do not overlap")
+        return 0.25
+
+    print("FAIL: Calendar events overlap")
+    return 0.0
 
 
 def main():

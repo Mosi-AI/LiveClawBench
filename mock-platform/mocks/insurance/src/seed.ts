@@ -4,8 +4,9 @@ import { initSchema } from "./db/schema";
 
 export const DEFAULT_USER_EMAIL = "peter.griffin@work.mosi.inc";
 export const DEFAULT_USER_PASSWORD = "password123";
-export const BCRYPT_SALT_ROUNDS = 10;
 export const PLAN_EFFECTIVE_YEAR = 2027;
+
+const BCRYPT_SALT_ROUNDS = 10;
 
 type CheckItem =
   | "general_checkup"
@@ -388,10 +389,7 @@ function lastInsertId(db: Database): number {
   const row = db
     .query<{ id: number }, []>("SELECT last_insert_rowid() AS id")
     .get();
-  if (row == null) {
-    throw new Error("seed: failed to read last_insert_rowid()");
-  }
-  return Number(row.id);
+  return Number(row?.id ?? 0);
 }
 
 /**
@@ -411,7 +409,7 @@ export function seedDatabase(db: Database): void {
   const userCount = db
     .query<{ c: number }, []>("SELECT COUNT(*) AS c FROM users")
     .get();
-  if ((userCount?.c ?? 0) > 0) {
+  if (userCount?.c) {
     console.log("insurance: database already seeded, skipping");
     return;
   }

@@ -1,6 +1,7 @@
 /** @jsxImportSource hono/jsx */
 import type { FC } from "hono/jsx";
 import { Layout } from "./layout";
+import { formatCents, capitalize } from "./format";
 
 interface LineItem {
   id: number;
@@ -30,14 +31,6 @@ interface ClaimDetailPageProps {
   claim: Claim;
   line_items: LineItem[];
   attachments: Attachment[];
-}
-
-function formatCents(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 export const ClaimDetailPage: FC<ClaimDetailPageProps> = ({

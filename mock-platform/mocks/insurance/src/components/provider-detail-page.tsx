@@ -1,6 +1,7 @@
 /** @jsxImportSource hono/jsx */
 import type { FC } from "hono/jsx";
 import { Layout } from "./layout";
+import { formatCents } from "./format";
 
 interface Service {
   id: number;
@@ -28,10 +29,6 @@ interface ProviderDetailPageProps {
   provider: Provider;
   services: Service[];
   slotsByService: Record<number, Slot[]>;
-}
-
-function formatCents(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
 }
 
 function formatSlot(start: string, end: string): string {

@@ -18,6 +18,7 @@ import { registerAuthRoutes, getUserByEmail, serializeCookie } from "./routes/au
 import { registerClaimsRoutes } from "./routes/claims";
 import { registerAppointmentRoutes } from "./routes/appointments";
 import { registerPlansRoutes } from "./routes/plans";
+import type { UserRow } from "./types";
 import { LoginPage } from "./components/login-page";
 import { Layout } from "./components/layout";
 import { ClaimsListPage } from "./components/claims-list-page";
@@ -150,24 +151,11 @@ export function createInsuranceApp(): MockAppV2 {
   function getCurrentUser(
     database: typeof db,
     userId: number,
-  ): {
-    id: number;
-    email: string;
-    first_name: string;
-    last_name: string;
-    phone: string | null;
-  } {
+  ): UserRow {
     return database
-      .query<
-        {
-          id: number;
-          email: string;
-          first_name: string;
-          last_name: string;
-          phone: string | null;
-        },
-        [number]
-      >("SELECT id, email, first_name, last_name, phone FROM users WHERE id = ?")
+      .query<UserRow, [number]>(
+        "SELECT id, email, first_name, last_name, phone FROM users WHERE id = ?",
+      )
       .get(userId)!;
   }
 

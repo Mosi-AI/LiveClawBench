@@ -1,6 +1,7 @@
 /** @jsxImportSource hono/jsx */
 import type { FC } from "hono/jsx";
 import { Layout } from "./layout";
+import { formatCents } from "./format";
 
 interface Benefit {
   benefit_category: string;
@@ -26,10 +27,6 @@ interface PlanWithBenefits extends Plan {
 interface PlansSelectPageProps {
   user: { first_name: string; last_name: string };
   plans: PlanWithBenefits[];
-}
-
-function formatCents(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
 }
 
 function formatCoverage(type: string, value: number | null): string {
