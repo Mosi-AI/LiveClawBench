@@ -34,9 +34,10 @@ const BINARY_PORTS: Record<string, number> = {
   shop: 1234,
   todolist: 5002,
   "doc-search": 8123,
+  smarthome: 5003,
 };
 
-// All 30 benchmark task names (canonical source of truth)
+// All 34 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -48,6 +49,7 @@ const ALL_TASK_NAMES = new Set([
   "skill-conflict-resolution", "skill-dependency-fix", "noise-filtering",
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination",
+  "smart-home-thermostat", "grocery-reorder", "smart-home-morning-recovery", "grocery-budget-plan",
 ]);
 
 interface AssetMapping {
@@ -246,6 +248,18 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_orders.json /tmp/mosi_shop_orders.json");
     lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_cart.json /tmp/mosi_shop_cart.json");
     lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_user.json /tmp/mosi_shop_user.json");
+    lines.push("");
+  }
+
+  // Step 0b: Data directory initialization for smarthome tasks
+  // The smarthome binary stores data at /var/lib/mock-data/smarthome/ and verifiers
+  // read from /tmp/mosi_smart_home.sqlite via symlink.
+  if (binaries.includes("smarthome")) {
+    lines.push("# Initialize smarthome data directory and verifier-compatible symlinks");
+    lines.push("mkdir -p /var/lib/mock-data/smarthome");
+    lines.push("chown mock:mock /var/lib/mock-data/smarthome");
+    lines.push("chmod 700 /var/lib/mock-data/smarthome");
+    lines.push("ln -sf /var/lib/mock-data/smarthome/smarthome.db /tmp/mosi_smart_home.sqlite");
     lines.push("");
   }
 
