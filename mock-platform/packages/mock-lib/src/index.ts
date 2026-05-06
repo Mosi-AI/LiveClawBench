@@ -29,3 +29,6 @@ export type { RouteConfig } from "./openapi/types";
 export { createRoute } from "./openapi/types";
 export { ErrorResponseSchema, FactoryValidationSchema } from "./openapi/schemas";
 export { createOpenAPIMockApp } from "./openapi/create-app";
+
+// CLI
+export { parseCliArgs, parseCliPort } from "./cli";

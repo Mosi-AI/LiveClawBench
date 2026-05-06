@@ -69,6 +69,19 @@ async function createMock(name: string): Promise<void> {
     JSON.stringify(packageJson, null, 2) + "\n",
   );
 
+  // Write tsconfig.json
+  const tsconfigJson = {
+    extends: "../../tsconfig.json",
+    compilerOptions: {
+      baseUrl: ".",
+    },
+    include: ["src/**/*", "tests/**/*"],
+  };
+  await writeFile(
+    join(mockDir, "tsconfig.json"),
+    JSON.stringify(tsconfigJson, null, 2) + "\n",
+  );
+
   // Write entry point — exports the conventional create<PascalCase>App factory
   // expected by scripts/generate-openapi.ts. Sentinel route is registered via
   // openApiRoute so the generated spec includes at least one path. Server
@@ -76,8 +89,9 @@ async function createMock(name: string): Promise<void> {
   // generation never boot a listener.
   const entryContent = `import { z } from "zod";
 import { createMockApp, createRoute, startServer } from "mock-lib";
+import type { MockAppV2 } from "mock-lib";
 
-export function ${factoryName}() {
+export function ${factoryName}(): MockAppV2 {
   const mockApp = createMockApp({
     name: "${kebab}",
     openApi: {
@@ -87,10 +101,7 @@ export function ${factoryName}() {
     },
   });
 
-  // Sentinel route for isolation verification (AC-1.1).
-  // Each mock registers a unique sentinel that build-all.ts checks for
-  // both presence (own) and absence (foreign) to prove cross-contamination
-  // freedom.
+  // Sentinel route for isolation verification.
   const sentinelRoute = createRoute({
     method: "get",
     path: "/__mock_sentinel__/${kebab}",
@@ -100,8 +111,7 @@ export function ${factoryName}() {
         content: {
           "application/json": {
             schema: z.object({
-              mock: z.literal("${kebab}"),
-              sentinel: z.literal(true),
+              ok: z.boolean(),
             }),
           },
         },
@@ -110,25 +120,55 @@ export function ${factoryName}() {
     },
   });
 
-  mockApp.app.openApiRoute(sentinelRoute, (c) =>
-    c.json({ mock: "${kebab}" as const, sentinel: true as const }),
-  );
+  mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
-  // ${kebab} routes will be added in subsequent migration tasks.
-
-  return mockApp;
+  return {
+    ...mockApp,
+    seed: () => {
+      // Initialize mock data here (databases, fixtures, etc.)
+    },
+  };
 }
 
 if (import.meta.main) {
-  const mockApp = ${factoryName}();
-  startServer(mockApp);
+  const app = ${factoryName}();
+  startServer(app);
 }
 `;
   await writeFile(join(srcDir, "index.ts"), entryContent);
 
+  // Write baseline tests
+  const testsDir = join(mockDir, "tests");
+  await mkdir(testsDir, { recursive: true });
+
+  const testContent = `import { describe, expect, test } from "bun:test";
+import { ${factoryName} } from "../src/index";
+
+describe("${kebab} mock", () => {
+  const app = ${factoryName}().app;
+
+  test("GET /health returns 200", async () => {
+    const res = await app.request("/health");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+  });
+
+  test("GET /__mock_sentinel__/${kebab} returns sentinel", async () => {
+    const res = await app.request("/__mock_sentinel__/${kebab}");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+  });
+});
+`;
+  await writeFile(join(testsDir, "index.test.ts"), testContent);
+
   console.log(`Created mock package: mocks/${kebab}/`);
   console.log(`  - mocks/${kebab}/package.json`);
+  console.log(`  - mocks/${kebab}/tsconfig.json`);
   console.log(`  - mocks/${kebab}/src/index.ts (exports ${factoryName})`);
+  console.log(`  - mocks/${kebab}/tests/index.test.ts`);
   console.log(`\nNext steps:`);
   console.log(`  1. Run 'bun install' to link the new package.`);
   console.log(

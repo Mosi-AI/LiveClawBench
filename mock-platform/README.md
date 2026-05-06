@@ -27,6 +27,7 @@ mock-platform/
 | `json-store.ts` | JSON file persistence layer with atomic write |
 | `static-assets.ts` | Static file serving from `/opt/mock/static/` |
 | `types.ts` | Shared TypeScript interfaces |
+| `openapi.ts` | Zod schema + `@hono/zod-openapi` integration; auto-generates OpenAPI 3.1 specs |
 
 All mock services use `createMockApp()` which automatically exposes:
 
@@ -66,6 +67,56 @@ bun run build:images
 bun test
 ```
 
+## OpenAPI 3.1 Schema Generation
+
+Mock routes declare request/response schemas via Zod. `@hono/zod-openapi` generates OpenAPI 3.1 specs at build time, producing `dist/openapi/*.json`.
+
+### Design Decisions
+
+**Why Zod + `@hono/zod-openapi`?**
+
+- Single source of truth: route handlers and API docs share the same Zod schema. Changing validation rules updates the spec automatically.
+- Type inference: `z.infer<typeof Schema>` gives TypeScript types without manual duplication.
+- Hono-native: `@hono/zod-openapi` is a first-party Hono package, so middleware composition and type narrowing work out of the box.
+
+**Schema registration pattern**
+
+Each mock defines routes with `createRoute()` from `@hono/zod-openapi`, then registers them on the Hono app instance. Example:
+
+```typescript
+import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { z } from "zod";
+
+const route = createRoute({
+  method: "get",
+  path: "/api/products",
+  request: { query: z.object({ q: z.string().optional() }) },
+  responses: {
+    200: { content: { "application/json": { schema: z.array(ProductSchema) } }, description: "Product list" },
+  },
+});
+
+app.openapi(route, (c) => { ... });
+```
+
+**Security scheme**
+
+All protected routes use a Bearer token scheme (`Authorization: Bearer <jwt>`). The JWT secret is generated in-memory via `crypto.getRandomValues()` at binary startup — no `.env` file, no env var, no command-line arg.
+
+**Validation error injection**
+
+A middleware catches Zod validation errors and returns structured `400` responses with field-level detail, making it easy for both agents and verifiers to diagnose malformed requests.
+
+**Regeneration**
+
+```bash
+# Rebuild all OpenAPI specs after route changes
+bun run generate-openapi
+
+# Verify specs are up to date (CI gate)
+bun run check-openapi
+```
+
 ## Configuration
 
 - `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented)
@@ -90,7 +141,7 @@ MOCK_PRODUCTS_PATH=tasks/watch-shop/environment/shop-app/frontend/data/sample_pr
   bun run mocks/shop/src/index.tsx --port 3000
 
 # Run doc-search mock with a specific task's documents
-BROWSER_MOCK_DATA_DIR=tasks/mixed-tool-memory/environment/browser_mock_sidecar \
+BROWSER_MOCK_DATA_DIR=tasks/mixed-tool-memory/environment \
   bun run mocks/doc-search/src/index.ts --port 3001
 ```
 
@@ -102,3 +153,33 @@ BROWSER_MOCK_DATA_DIR=tasks/mixed-tool-memory/environment/browser_mock_sidecar \
 ## Negative-Path Testing
 
 The Layer 2 test specification in `docs/tests/negative-paths-reference.md` documents 16 targeted fail-fast checks against shop and doc-search. Layer 1 `bun:test` suites already provide executable negative-path coverage: shop has 39 tests in `mocks/shop/src/index.test.ts` and doc-search has 18 tests in `mocks/doc-search/src/index.test.ts`. Run them with `bun test`.
+
+## Design Principles
+
+All mocks in this platform follow these conventions:
+
+1. **Factory Pattern**: Each mock exports `createXxxApp()` returning `MockAppV2`. No global state, no side effects on import.
+2. **Server Startup Guarded**: Entry point uses `if (import.meta.main)` so dynamic imports (e.g., OpenAPI generation) never boot a listener.
+3. **Seed Before Listen**: Data initialization goes in `seed()` callback. `startServer()` consumes `mockApp.seed` directly. Seed failures are fatal.
+4. **Self-Contained Binary**: Each mock compiles to a standalone binary via `bun build --compile`. No runtime dependency on node_modules.
+5. **Zod Schema-First**: All request/response validation uses Zod schemas. OpenAPI specs are generated automatically from route definitions.
+6. **Test Isolation**: Tests use `beforeEach` to create fresh app instances. No shared state between tests. `seed()` must be idempotent.
+
+## Adding a New Mock
+
+```bash
+# 1. Scaffold
+bun run create-mock <name>
+
+# 2. Implement in mocks/<name>/src/
+#    - Export create<PascalCase>App() factory returning MockAppV2
+#    - Put seed logic in the seed property of the returned object
+#    - Register routes via app.openApiRoute() or app.page()
+#    - Put tests in mocks/<name>/tests/
+
+# 3. Validate
+bun test                           # Run tests
+bun run check-openapi              # Regenerate and verify specs
+bun run build                      # Compile all binaries
+bun run build:images               # Build per-task Docker images
+```

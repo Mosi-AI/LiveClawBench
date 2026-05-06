@@ -36,8 +36,8 @@ export type AppEnv = {
 };
 
 /**
- * The assembled mock application.
- * Returned by createMockApp() and consumed by startServer().
+ * Legacy mock application interface.
+ * @deprecated Use MockAppV2 from `./openapi/types` for all new code.
  */
 export interface MockApp {
   /** The configuration this app was created with */
