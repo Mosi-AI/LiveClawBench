@@ -223,6 +223,15 @@ export function registerPlansRoutes(app: OpenAPIApp, db: Database): void {
       return c.json({ error: "Plan not found" }, 404);
     }
 
+    // Update active policy: terminate old, insert new
+    db.query(
+      `UPDATE current_policy SET status = 'terminated', updated_at = datetime('now') WHERE user_id = ? AND status = 'active'`,
+    ).run(userId);
+    db.query(
+      `INSERT INTO current_policy (user_id, plan_id, status) VALUES (?, ?, 'active')`,
+    ).run(userId, plan.id);
+
+    // Record the selection event with snapshots
     db.query(
       `INSERT INTO plan_selection
        (user_id, plan_id, year, plan_code_snapshot, plan_name_snapshot, deductible_snapshot, premium_snapshot)

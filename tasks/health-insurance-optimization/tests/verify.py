@@ -29,10 +29,13 @@ def check_claim():
 
     cursor.execute(
         """
-        SELECT id, total_amount, provider_name, check_item, status
+        SELECT id, claim_type, total_amount, provider_name, check_item, service_date, status
         FROM claim
         WHERE user_id = 1
           AND total_amount = ?
+          AND claim_type = 'reimbursement'
+          AND provider_name = 'Metro Lab Services'
+          AND check_item = 'lab'
         ORDER BY id DESC
         LIMIT 1
         """,
@@ -42,20 +45,23 @@ def check_claim():
     conn.close()
 
     if not row:
-        print(f"FAIL: No claim found with total_amount={CLAIM_AMOUNT} for user 1")
+        print("FAIL: No matching reimbursement claim found for user 1")
         return 0.0
 
     print(
-        f"Claim: id={row['id']}, amount={row['total_amount']}, "
+        f"Claim: id={row['id']}, type={row['claim_type']}, amount={row['total_amount']}, "
         f"provider={row['provider_name']}, check_item={row['check_item']}, "
-        f"status={row['status']}"
+        f"service_date={row['service_date']}, status={row['status']}"
     )
 
-    if row["total_amount"] == CLAIM_AMOUNT:
-        print("PASS: Reimbursement claim submitted with correct amount")
+    if (row["total_amount"] == CLAIM_AMOUNT
+            and row["claim_type"] == "reimbursement"
+            and row["provider_name"] == "Metro Lab Services"
+            and row["check_item"] == "lab"):
+        print("PASS: Reimbursement claim submitted with correct details")
         return 0.25
 
-    print(f"FAIL: Claim amount mismatch (expected {CLAIM_AMOUNT}, got {row['total_amount']})")
+    print("FAIL: Claim details mismatch")
     return 0.0
 
 
