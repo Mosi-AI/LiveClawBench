@@ -2,7 +2,7 @@
   {
     "name": "liveclawbench",
     "version": "0.1.0",
-    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 30 tasks with 4 complexity factors (A1/A2/B1/B2) across 7 task domains.",
+    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 32 tasks with 4 complexity factors (A1/A2/B1/B2) across 7 task domains.",
     "tasks": [
       {"name": "skill-creation", "path": "tasks/skill-creation"},
       {"name": "skill-supplementation", "path": "tasks/skill-supplementation"},
@@ -33,7 +33,9 @@
       {"name": "incremental-update-ctp", "path": "tasks/incremental-update-ctp"},
       {"name": "conflict-repair-acb", "path": "tasks/conflict-repair-acb"},
       {"name": "mixed-tool-memory", "path": "tasks/mixed-tool-memory"},
-      {"name": "live-web-research-sqlite-fts5", "path": "tasks/live-web-research-sqlite-fts5"}
+      {"name": "live-web-research-sqlite-fts5", "path": "tasks/live-web-research-sqlite-fts5"},
+      {"name": "insurance-deductible-selection", "path": "tasks/insurance-deductible-selection"},
+      {"name": "health-insurance-optimization", "path": "tasks/health-insurance-optimization"}
     ]
   }
 ]
