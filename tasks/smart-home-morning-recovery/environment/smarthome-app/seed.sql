@@ -1,59 +1,50 @@
--- Seed data for smart-home-morning-recovery task
--- Focus: Wearable/recovery data and morning routine optimization
+-- Seed data for smart-home-thermostat task
+-- Focus: Thermostat control and room metrics
 
 -- Room
-INSERT INTO room (id, name) VALUES (1, 'Bedroom');
+INSERT INTO room (id, name) VALUES (1, 'Living Room');
 
 -- Room Metrics
 INSERT INTO room_metrics (id, temperature, humidity, unit_temp, noise, light, air_quality)
-VALUES (1, 68.0, 55.0, 'F', 25.0, 100.0, 90);
+VALUES (1, 72.5, 45.0, 'F', 35.0, 450.0, 85);
 
--- Thermostat Settings
+-- Thermostat Settings (singleton)
 INSERT INTO thermostat_settings (id, mode, temperature, updated_at)
-VALUES (1, 'eco', 68.0, '2026-05-06T06:00:00Z');
+VALUES (1, 'comfort', 72.0, '2026-05-06T08:00:00Z');
 
--- Coffee Schedule
+-- Coffee Schedule (singleton)
 INSERT INTO coffee_schedule (id, start_time, updated_at)
-VALUES (1, '06:30', '2026-05-06T06:00:00Z');
+VALUES (1, '07:00', '2026-05-06T08:00:00Z');
 
--- Benchmark Clock
-INSERT INTO benchmark_clock (id, current_time)
-VALUES (1, '2026-05-06T06:45:00Z');
+-- Benchmark Clock for deterministic time
+INSERT INTO benchmark_clock (id, clock_time)
+VALUES (1, '2026-05-06T08:30:00Z');
 
--- Inventory
+-- Inventory (minimal for thermostat task)
 INSERT INTO inventory_item (item_name, quantity, unit, location, expiry_date, category) VALUES
-('Coffee Beans', 1.0, 'lbs', 'pantry', '2026-06-01', 'beverages'),
-('Milk', 1.0, 'gallons', 'fridge', '2026-05-13', 'dairy'),
-('Orange Juice', 0.5, 'gallons', 'fridge', '2026-05-10', 'beverages'),
-('Eggs', 12.0, 'count', 'fridge', '2026-05-20', 'protein'),
-('Bread', 1.0, 'loaf', 'pantry', '2026-05-12', 'bakery');
+('Milk', 2.0, 'gallons', 'fridge', '2026-05-13', 'dairy'),
+('Bread', 1.0, 'loaf', 'pantry', '2026-05-10', 'bakery');
 
--- Grocery Products
+-- Grocery Products (minimal)
 INSERT INTO grocery_product (product_id, name, price, stock_status) VALUES
-('PROD001', 'Premium Coffee Beans', 14.99, 'in_stock'),
-('PROD002', 'Organic Milk', 5.99, 'in_stock'),
-('PROD003', 'Fresh Orange Juice', 6.99, 'in_stock'),
-('PROD004', 'Free Range Eggs', 7.49, 'in_stock'),
-('PROD005', 'Artisan Bread', 5.99, 'in_stock');
+('PROD001', 'Organic Milk', 4.99, 'in_stock'),
+('PROD002', 'Whole Wheat Bread', 3.49, 'in_stock');
 
--- Wearable/Recovery State (key focus for this task)
+-- Wearable/Recovery State
 INSERT INTO wearable_recovery_state (id, sleep_hours, sleep_score, readiness, resting_heart_rate)
-VALUES (1, 5.5, 58.0, 45.0, 72.0);
+VALUES (1, 7.5, 85.0, 78.0, 62.0);
 
--- Calendar Events (morning workout)
+-- Calendar Events
 INSERT INTO calendar_event (id, title, start_time, event_type, workout_type, updated_at) VALUES
-(1, 'Morning HIIT Workout', '2026-05-06T07:00:00Z', 'workout', 'hiit', '2026-05-06T06:00:00Z'),
-(2, 'Breakfast', '2026-05-06T08:00:00Z', 'meal', NULL, '2026-05-06T06:00:00Z'),
-(3, 'Work Start', '2026-05-06T09:00:00Z', 'work', NULL, '2026-05-06T06:00:00Z');
+(1, 'Morning Workout', '2026-05-06T07:00:00Z', 'workout', 'yoga', '2026-05-06T08:00:00Z'),
+(2, 'Team Meeting', '2026-05-06T10:00:00Z', 'meeting', NULL, '2026-05-06T08:00:00Z');
 
 -- User Constraints
 INSERT INTO user_constraints (id, calorie_target, macro_targets, allergy_constraints, weekly_budget_limit)
-VALUES (1, 1800.0, '{"protein": 135, "carbs": 225, "fat": 60}', '[]', 100.0);
+VALUES (1, 2000.0, '{"protein": 150, "carbs": 250, "fat": 65}', '[]', 150.0);
 
--- Recipes (breakfast focused)
+-- Recipes
 INSERT INTO recipe (id, name, meal_type, ingredients, calories_total, allergens) VALUES
-(1, 'Energizing Smoothie', 'breakfast', '["banana", "spinach", "protein powder", "almond milk"]', 300.0, '["nuts"]'),
-(2, 'Avocado Toast', 'breakfast', '["bread", "avocado", "eggs", "salt"]', 400.0, NULL),
-(3, 'Overnight Oats', 'breakfast', '["oats", "milk", "berries", "honey"]', 350.0, '["dairy"]'),
-(4, 'Light Salad', 'lunch', '["lettuce", "tomato", "cucumber", "olive oil"]', 200.0, NULL),
-(5, 'Grilled Fish', 'dinner', '["fish", "lemon", "herbs", "vegetables"]', 400.0, '["fish"]');
+(1, 'Oatmeal with Berries', 'breakfast', '["oats", "milk", "berries", "honey"]', 350.0, '["dairy"]'),
+(2, 'Grilled Chicken Salad', 'lunch', '["chicken", "lettuce", "tomato", "olive oil"]', 450.0, NULL),
+(3, 'Salmon with Vegetables', 'dinner', '["salmon", "broccoli", "carrots", "lemon"]', 550.0, '["fish"]');

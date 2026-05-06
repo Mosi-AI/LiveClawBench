@@ -3,7 +3,7 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "smarthome"],
+  "binaries": ["airline", "email", "shop", "todolist", "doc-search"],
   "tasks": {
     "watch-shop": {
       "binaries": ["shop"],
@@ -85,29 +85,10 @@
       ]
     },
     "skill-combination": { "binaries": [] },
-    "smart-home-thermostat": {
-      "binaries": ["smarthome"],
-      "assets": [
-        { "src": "tasks/smart-home-thermostat/environment/smarthome-app/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
-      ]
-    },
-    "grocery-reorder": {
-      "binaries": ["smarthome"],
-      "assets": [
-        { "src": "tasks/grocery-reorder/environment/smarthome-app/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
-      ]
-    },
-    "smart-home-morning-recovery": {
-      "binaries": ["smarthome"],
-      "assets": [
-        { "src": "tasks/smart-home-morning-recovery/environment/smarthome-app/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
-      ]
-    },
-    "grocery-budget-plan": {
-      "binaries": ["smarthome"],
-      "assets": [
-        { "src": "tasks/grocery-budget-plan/environment/smarthome-app/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
-      ]
-    }
+    "smart-home-thermostat": { "binaries": [] },
+    "grocery-reorder": { "binaries": [] },
+    "smart-home-morning-recovery": { "binaries": [] },
+    "grocery-budget-plan": { "binaries": [] },
+    "smarthome_test": { "binaries": [] }
   }
 }

@@ -17,7 +17,7 @@ INSERT INTO coffee_schedule (id, start_time, updated_at)
 VALUES (1, '07:00', '2026-05-06T08:00:00Z');
 
 -- Benchmark Clock for deterministic time
-INSERT INTO benchmark_clock (id, current_time)
+INSERT INTO benchmark_clock (id, clock_time)
 VALUES (1, '2026-05-06T08:30:00Z');
 
 -- Inventory (minimal for thermostat task)

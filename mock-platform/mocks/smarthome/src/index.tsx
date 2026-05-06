@@ -188,7 +188,7 @@ function initDatabase(): void {
     -- Benchmark clock for deterministic time-based status
     CREATE TABLE IF NOT EXISTS benchmark_clock (
       id INTEGER PRIMARY KEY CHECK (id = 1),
-      current_time TEXT NOT NULL
+      clock_time TEXT NOT NULL
     );
 
     -- Room metrics
@@ -351,8 +351,8 @@ function populateInventorySnapshot(): void {
   }
 
   // Use benchmark_clock for deterministic captured_at, fallback to seed time if not set
-  const clock = database.query("SELECT current_time FROM benchmark_clock WHERE id = 1").get() as { current_time: string } | null;
-  const capturedAt = clock?.current_time || "2026-05-06T08:00:00Z";
+  const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string } | null;
+  const capturedAt = clock?.clock_time || "2026-05-06T08:00:00Z";
 
   // Copy inventory items to snapshot
   database.exec(`
@@ -385,8 +385,8 @@ function isValidWorkoutType(type: string): type is WorkoutType {
 // Get deterministic timestamp from benchmark_clock (required for benchmark-verifiable state)
 function getBenchmarkTime(): string {
   const database = assertDb();
-  const clock = database.query("SELECT current_time FROM benchmark_clock WHERE id = 1").get() as { current_time: string } | null;
-  return clock?.current_time || "2026-05-06T08:00:00Z";
+  const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string } | null;
+  return clock?.clock_time || "2026-05-06T08:00:00Z";
 }
 
 // Derive coffee status from start_time and benchmark_clock in a timezone-stable way
@@ -934,13 +934,13 @@ function registerRoutes(app: Hono<AppEnv>): void {
   app.get("/api/coffee-schedule", (c) => {
     const database = assertDb();
     const schedule = database.query("SELECT start_time, updated_at FROM coffee_schedule WHERE id = 1").get() as { start_time: string; updated_at: string };
-    const clock = database.query("SELECT current_time FROM benchmark_clock WHERE id = 1").get() as { current_time: string };
+    const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string };
 
     if (!schedule) {
       return c.json({ error: "Coffee schedule not found" }, 404);
     }
 
-    const status = clock ? deriveCoffeeStatus(schedule.start_time, clock.current_time) : "scheduled";
+    const status = clock ? deriveCoffeeStatus(schedule.start_time, clock.clock_time) : "scheduled";
     return c.json({ start_time: schedule.start_time, status, updated_at: schedule.updated_at });
   });
 
@@ -1186,7 +1186,8 @@ function registerRoutes(app: Hono<AppEnv>): void {
   // Meal Plan API
   app.get("/api/meal-plan", (c) => {
     const database = assertDb();
-    const plan = database.query("SELECT plan_id, created_at, plan_data FROM meal_plan ORDER BY created_at DESC LIMIT 1").get();
+    // Use id DESC as tie-breaker for deterministic retrieval when multiple plans share the same created_at
+    const plan = database.query("SELECT plan_id, created_at, plan_data FROM meal_plan ORDER BY created_at DESC, id DESC LIMIT 1").get();
     if (!plan) {
       return c.json({ error: "No meal plan found" }, 404);
     }
