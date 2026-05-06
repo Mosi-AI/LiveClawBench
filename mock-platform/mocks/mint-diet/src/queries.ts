@@ -1,4 +1,4 @@
-// covers multiple pure helpers: scaleMacros and isValidLocalDate, both sourced from this file
+// Database query helpers and pure utility functions for mint-diet.
 import type { Database } from "bun:sqlite";
 
 // ---------------------------------------------------------------------------
@@ -28,11 +28,15 @@ export interface FoodCatalog {
   fat_g: number | null;
 }
 
+export type MealSlot = "breakfast" | "lunch" | "dinner" | "snacks";
+export type PlanMealSlot = Exclude<MealSlot, "snacks">;
+export type PlanStatus = "draft" | "active" | "archived";
+
 export interface FoodEntry {
   id: number;
   daily_log_id: number;
   food_catalog_id: number | null;
-  meal_slot: string;
+  meal_slot: MealSlot;
   food_name: string;
   quantity_value: number;
   quantity_unit: string;
@@ -48,7 +52,7 @@ export interface MealPlan {
   title: string;
   start_date: string;
   end_date: string;
-  status: string;
+  status: PlanStatus;
   target_calories_kcal: number | null;
   notes: string | null;
 }
@@ -62,7 +66,7 @@ export interface MealPlanDay {
 export interface MealPlanItem {
   id: number;
   meal_plan_day_id: number;
-  meal_slot: string;
+  meal_slot: PlanMealSlot;
   dish_name: string;
   notes: string | null;
   sort_order: number;
@@ -96,9 +100,13 @@ export interface EffectiveBudget {
 // ---------------------------------------------------------------------------
 
 export function scaleMacros(catalog: FoodCatalog, quantityValue: number, quantityUnit: string): Macros {
+  if (!Number.isFinite(catalog.serving_size_value) || catalog.serving_size_value <= 0) {
+    throw new Error(`Invalid serving size for catalog food ${catalog.id}`);
+  }
+
   const factor = quantityUnit === "份"
     ? quantityValue
-    : quantityValue / (catalog.serving_size_value || 1);
+    : quantityValue / catalog.serving_size_value;
   return {
     calories: (catalog.calories_kcal ?? 0) * factor,
     protein:  (catalog.protein_g     ?? 0) * factor,
@@ -137,6 +145,7 @@ export interface DailyTotals {
 }
 
 export function computeDailyTotals(db: Database, dailyLogId: number): DailyTotals {
+  // Recomputes totals from food_entry. Must match the logic in schema.ts triggers.
   const row = db.query(`
     SELECT
       COALESCE(SUM(calories_kcal), 0) AS calories,
@@ -173,9 +182,10 @@ export function resolveEffectiveBudget(db: Database, date: string): EffectiveBud
 // ---------------------------------------------------------------------------
 
 export function searchFoodCatalog(db: Database, q: string, limit = 20): FoodCatalog[] {
+  const escapedQuery = q.replace(/[\\%_]/g, (char) => `\\${char}`);
   return db.query(
-    "SELECT * FROM food_catalog WHERE name LIKE ? COLLATE NOCASE LIMIT ?"
-  ).all(`%${q}%`, limit) as FoodCatalog[];
+    "SELECT * FROM food_catalog WHERE name COLLATE NOCASE LIKE ? ESCAPE '\\' LIMIT ?"
+  ).all(`%${escapedQuery}%`, limit) as FoodCatalog[];
 }
 
 export function getFoodById(db: Database, id: number): FoodCatalog | null {
@@ -189,7 +199,7 @@ export function getFoodById(db: Database, id: number): FoodCatalog | null {
 export interface FoodEntryInput {
   dailyLogId: number;
   foodCatalogId: number | null;
-  mealSlot: string;
+  mealSlot: MealSlot;
   foodName: string;
   quantityValue: number;
   quantityUnit: string;
@@ -286,12 +296,13 @@ export interface CreatePlanInput {
   title: string;
   startDate: string;
   endDate: string;
-  status: string;
+  status: PlanStatus;
   targetCaloriesKcal: number | null;
   notes: string | null;
 }
 
 function localDateStr(date: Date): string {
+  // Duplicated in date.ts (localDateStr). Keep implementations identical.
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
@@ -364,7 +375,7 @@ export function getMealPlanItem(db: Database, id: number): MealPlanItem | null {
 
 export interface MealPlanItemInput {
   mealPlanDayId: number;
-  mealSlot: string;
+  mealSlot: PlanMealSlot;
   dishName: string;
   notes: string | null;
 }

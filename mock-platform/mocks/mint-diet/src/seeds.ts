@@ -47,13 +47,17 @@ const FOOD_CATALOG: SeedFood[] = [
 
 export function seedFoodCatalog(db: Database): void {
   const count = (db.query("SELECT COUNT(*) AS cnt FROM food_catalog").get() as { cnt: number }).cnt;
-  if (count > 0) return;
+  if (count > 0) {
+    console.log(`Food catalog already seeded with ${count} items`);
+    return;
+  }
 
   const insert = db.prepare(`
     INSERT INTO food_catalog (name, serving_size_value, serving_size_unit, calories_kcal, protein_g, carbs_g, fat_g)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
+  console.log(`Seeding food catalog with ${FOOD_CATALOG.length} items`);
   db.transaction(() => {
     for (const food of FOOD_CATALOG) {
       insert.run(food.name, food.serving_size_value, food.serving_size_unit, food.calories_kcal, food.protein_g, food.carbs_g, food.fat_g);

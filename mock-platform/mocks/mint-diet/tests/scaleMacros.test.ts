@@ -1,8 +1,8 @@
 // This suite covers multiple pure helpers: scaleMacros and isValidLocalDate, both sourced from queries.ts
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { scaleMacros, isValidLocalDate } from "./queries.js";
-import type { FoodCatalog } from "./queries.js";
+import { scaleMacros, isValidLocalDate } from "../src/queries.js";
+import type { FoodCatalog } from "../src/queries.js";
 
 const makeCatalog = (overrides: Partial<FoodCatalog> = {}): FoodCatalog => ({
   id: 1,
@@ -46,6 +46,11 @@ describe("scaleMacros", () => {
     assert.equal(result.carbs, 0);
     assert.equal(result.fat, 0);
     assert.equal(Number.isNaN(result.calories), false);
+  });
+
+  it("throws when catalog serving size is invalid", () => {
+    const catalog = makeCatalog({ serving_size_value: 0 });
+    assert.throws(() => scaleMacros(catalog, 50, "g"), /Invalid serving size/);
   });
 });
 

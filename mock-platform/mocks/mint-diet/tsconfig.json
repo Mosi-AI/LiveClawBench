@@ -17,5 +17,5 @@
       "mock-lib": ["../../packages/mock-lib/src/index.ts"]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "tests/**/*"]
 }
