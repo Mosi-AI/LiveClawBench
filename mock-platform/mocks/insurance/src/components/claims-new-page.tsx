@@ -16,8 +16,8 @@ export const ClaimsNewPage: FC<ClaimsNewPageProps> = ({ user }) => {
           <input type="text" name="claim_type" required />
         </label>
         <label>
-          Total Amount (cents)
-          <input type="number" name="total_amount" required />
+          Total Amount ($)
+          <input type="number" name="total_amount" step="0.01" required />
         </label>
         <label>
           Service Date

@@ -194,7 +194,7 @@ export function createInsuranceApp(): MockAppV2 {
     const userId = c.get("userId")!;
     const body = await c.req.parseBody();
     const claim_type = String(body.claim_type ?? "");
-    const total_amount = parseInt(String(body.total_amount ?? "0"), 10);
+    const total_amount = Math.round(parseFloat(String(body.total_amount ?? "0")) * 100);
     const service_date = String(body.service_date ?? "");
     const provider_name = String(body.provider_name ?? "");
     const check_item = String(body.check_item ?? "");
