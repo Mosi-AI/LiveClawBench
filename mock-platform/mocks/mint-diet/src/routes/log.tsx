@@ -26,6 +26,39 @@ import {
 } from "./helpers";
 import type { MintDietApp, RouteDeps } from "./types";
 
+export interface ManualMacroValues {
+  caloriesKcal: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+}
+
+const MANUAL_MACRO_FIELDS = [
+  ["calories_kcal", "calories", "caloriesKcal"],
+  ["protein_g", "protein", "proteinG"],
+  ["carbs_g", "carbs", "carbsG"],
+  ["fat_g", "fat", "fatG"],
+] as const;
+
+export function isCatalogQuantityUnit(catalog: FoodCatalog, quantityUnit: string): boolean {
+  return quantityUnit === catalog.serving_size_unit || quantityUnit === "份";
+}
+
+export function parseManualMacros(body: Record<string, unknown>): { values: ManualMacroValues } | { error: string } {
+  const values: ManualMacroValues = { caloriesKcal: 0, proteinG: 0, carbsG: 0, fatG: 0 };
+
+  for (const [bodyKey, label, valueKey] of MANUAL_MACRO_FIELDS) {
+    const raw = String(body[bodyKey] ?? "").trim();
+    if (!raw) continue;
+
+    const value = parseNonNegFloat(raw);
+    if (value === null) return { error: `Invalid ${label} value` };
+    values[valueKey] = value;
+  }
+
+  return { values };
+}
+
 export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) {
   app.get("/log", (c) => c.redirect(`/log/${todayLocal()}`, 302));
 
@@ -124,6 +157,9 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
       if (!catalog) {
         return c.html(<EntryForm date={date} slot={mealSlot} error={CATALOG_MISSING_ERROR} prefill={makePrefill()} />, 422);
       }
+      if (!isCatalogQuantityUnit(catalog, quantityUnit)) {
+        return c.html(<EntryForm date={date} slot={mealSlot} food={catalog} error="Invalid quantity unit for selected food" prefill={makePrefill()} />, 422);
+      }
       try {
         const macros = scaleMacros(catalog, quantityValue, quantityUnit);
         caloriesKcal = macros.calories;
@@ -135,10 +171,14 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
         return c.html(<EntryForm date={date} slot={mealSlot} error="Selected food has invalid catalog nutrition data" prefill={makePrefill()} />, 422);
       }
     } else {
-      caloriesKcal = parseNonNegFloat(String(body.calories_kcal ?? "")) ?? 0;
-      proteinG = parseNonNegFloat(String(body.protein_g ?? "")) ?? 0;
-      carbsG = parseNonNegFloat(String(body.carbs_g ?? "")) ?? 0;
-      fatG = parseNonNegFloat(String(body.fat_g ?? "")) ?? 0;
+      const macros = parseManualMacros(body as Record<string, unknown>);
+      if ("error" in macros) {
+        return c.html(<EntryForm date={date} slot={mealSlot} error={macros.error} prefill={makePrefill()} />, 422);
+      }
+      caloriesKcal = macros.values.caloriesKcal;
+      proteinG = macros.values.proteinG;
+      carbsG = macros.values.carbsG;
+      fatG = macros.values.fatG;
     }
 
     if (caloriesKcal > 100000) return c.html(
@@ -217,6 +257,9 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
       if (!catalog) {
         return c.html(<EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error={CATALOG_MISSING_ERROR} prefill={makePrefill()} />, 422);
       }
+      if (!isCatalogQuantityUnit(catalog, quantityUnit)) {
+        return c.html(<EntryForm date={date} slot={entry.meal_slot} food={catalog} entry={entry} error="Invalid quantity unit for selected food" prefill={makePrefill()} />, 422);
+      }
       try {
         const macros = scaleMacros(catalog, quantityValue, quantityUnit);
         caloriesKcal = macros.calories;
@@ -228,10 +271,14 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
         return c.html(<EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Selected food has invalid catalog nutrition data" prefill={makePrefill()} />, 422);
       }
     } else {
-      caloriesKcal = parseNonNegFloat(String(body.calories_kcal ?? "")) ?? 0;
-      proteinG = parseNonNegFloat(String(body.protein_g ?? "")) ?? 0;
-      carbsG = parseNonNegFloat(String(body.carbs_g ?? "")) ?? 0;
-      fatG = parseNonNegFloat(String(body.fat_g ?? "")) ?? 0;
+      const macros = parseManualMacros(body as Record<string, unknown>);
+      if ("error" in macros) {
+        return c.html(<EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error={macros.error} prefill={makePrefill()} />, 422);
+      }
+      caloriesKcal = macros.values.caloriesKcal;
+      proteinG = macros.values.proteinG;
+      carbsG = macros.values.carbsG;
+      fatG = macros.values.fatG;
     }
 
     if (caloriesKcal > 100000) return c.html(

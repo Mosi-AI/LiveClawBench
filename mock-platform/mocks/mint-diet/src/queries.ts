@@ -162,6 +162,7 @@ export function resolveEffectiveBudget(db: Database, date: string): EffectiveBud
     SELECT id, title, target_calories_kcal
     FROM meal_plan
     WHERE start_date <= ? AND end_date >= ? AND target_calories_kcal IS NOT NULL
+      AND status = 'active'
     ORDER BY start_date ASC, id ASC
     LIMIT 1
   `).get(date, date) as { id: number; title: string; target_calories_kcal: number } | null;
