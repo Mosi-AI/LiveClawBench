@@ -237,7 +237,7 @@ describe("SSR pages", () => {
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain("Current Plan");
-    expect(html).toContain("Balanced Silver");
+    expect(html).toContain("Budget HDHP");
   });
 
   test("GET /plans/select returns 200 HTML", async () => {

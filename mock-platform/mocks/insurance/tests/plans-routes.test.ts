@@ -42,8 +42,8 @@ describe("plans routes", () => {
     const body = await res.json();
     expect(body.status).toBe("active");
     expect(body.plan).toBeDefined();
-    expect(body.plan.code).toBe("B");
-    expect(body.plan.name).toBe("Balanced Silver");
+    expect(body.plan.code).toBe("A");
+    expect(body.plan.name).toBe("Budget HDHP");
   });
 
   test("GET /api/plans returns exactly 3 plans", async () => {

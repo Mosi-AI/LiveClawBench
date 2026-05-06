@@ -29,13 +29,15 @@ def check_claim():
 
     cursor.execute(
         """
-        SELECT id, claim_type, total_amount, provider_name, check_item, service_date, status
+        SELECT id, claim_type, total_amount, provider_name, check_item,
+               service_date, notes, status
         FROM claim
         WHERE user_id = 1
           AND total_amount = ?
           AND claim_type = 'reimbursement'
           AND provider_name = 'Metro Lab Services'
           AND check_item = 'lab'
+          AND service_date = '2026-05-10'
         ORDER BY id DESC
         LIMIT 1
         """,
@@ -51,17 +53,25 @@ def check_claim():
     print(
         f"Claim: id={row['id']}, type={row['claim_type']}, amount={row['total_amount']}, "
         f"provider={row['provider_name']}, check_item={row['check_item']}, "
-        f"service_date={row['service_date']}, status={row['status']}"
+        f"service_date={row['service_date']}, notes={row['notes']}, status={row['status']}"
     )
 
+    notes = (row["notes"] or "").lower()
     if (row["total_amount"] == CLAIM_AMOUNT
             and row["claim_type"] == "reimbursement"
             and row["provider_name"] == "Metro Lab Services"
-            and row["check_item"] == "lab"):
+            and row["check_item"] == "lab"
+            and row["service_date"] == "2026-05-10"
+            and "blood work follow-up" in notes):
         print("PASS: Reimbursement claim submitted with correct details")
         return 0.25
 
-    print("FAIL: Claim details mismatch")
+    if row["service_date"] != "2026-05-10":
+        print(f"FAIL: service_date is {row['service_date']}, expected 2026-05-10")
+    elif "blood work follow-up" not in notes:
+        print(f"FAIL: notes '{row['notes']}' does not contain 'blood work follow-up'")
+    else:
+        print("FAIL: Claim details mismatch")
     return 0.0
 
 

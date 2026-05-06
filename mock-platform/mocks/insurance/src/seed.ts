@@ -310,7 +310,7 @@ const PLANS: ReadonlyArray<PlanSeed> = [
   },
 ];
 
-const ACTIVE_POLICY_PLAN_CODE: PlanCode = "B";
+const ACTIVE_POLICY_PLAN_CODE: PlanCode = "A";
 
 interface ClaimSeed {
   claim_type: string;
@@ -400,7 +400,7 @@ function lastInsertId(db: Database): number {
  *   - 12 providers, each offering 3-6 services across the 6 check_item categories
  *   - 3-5 appointment_slot rows per provider_service over the next 14 days
  *   - 3 insurance_plans (A/B/C, effective_year 2027) each with 6 plan_benefit rows
- *   - 1 active current_policy on user 1 (Plan B)
+ *   - 1 active current_policy on user 1 (Plan A)
  *   - 3 claims on user 1, one per status (submitted / reviewing / reimbursed)
  *
  * Idempotent: if `users` already has rows, the seed is a no-op.

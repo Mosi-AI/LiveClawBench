@@ -147,7 +147,7 @@ describe("insurance seed", () => {
     db.close();
   });
 
-  test("user 1 has exactly one active current_policy pointing at plan B", () => {
+  test("user 1 has exactly one active current_policy pointing at plan A", () => {
     const db = freshSeededDb();
     const active = db
       .query<
@@ -162,7 +162,7 @@ describe("insurance seed", () => {
       .all();
     expect(active.length).toBe(1);
     expect(active[0].user_id).toBe(1);
-    expect(active[0].plan_code).toBe("B");
+    expect(active[0].plan_code).toBe("A");
     expect(active[0].status).toBe("active");
     db.close();
   });
