@@ -38,6 +38,7 @@ const BINARY_PORTS: Record<string, number> = {
   todolist: 5002,
   "doc-search": 8123,
   insurance: 6000,
+  calendar: 5003,
 };
 
 // All 30 benchmark task names (canonical source of truth)
@@ -53,6 +54,7 @@ const ALL_TASK_NAMES = new Set([
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination",
   "insurance-deductible-selection",
+  "health-insurance-optimization",
 ]);
 
 interface AssetMapping {

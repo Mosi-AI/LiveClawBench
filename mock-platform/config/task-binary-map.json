@@ -3,7 +3,7 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "insurance"],
+  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "insurance", "calendar"],
   "tasks": {
     "watch-shop": {
       "binaries": ["shop"],
@@ -122,6 +122,12 @@
     "skill-combination": { "binaries": [] },
     "insurance-deductible-selection": {
       "binaries": ["insurance"],
+      "assets": [
+        { "src": "mock-platform/static/insurance/css/style.css", "dest": "/opt/mock/static/insurance/css/style.css" }
+      ]
+    },
+    "health-insurance-optimization": {
+      "binaries": ["insurance", "calendar"],
       "assets": [
         { "src": "mock-platform/static/insurance/css/style.css", "dest": "/opt/mock/static/insurance/css/style.css" }
       ]
