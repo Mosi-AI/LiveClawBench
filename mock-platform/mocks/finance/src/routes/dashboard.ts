@@ -4,18 +4,27 @@ import type { Database } from "bun:sqlite";
 import { DashboardConfigSchema } from "../schemas/dashboard";
 import { computeDashboardMetrics, parseAndValidateFormula } from "../db/queries/dashboard";
 
+function isValidWeights(value: unknown): value is Record<string, number> {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+  for (const v of Object.values(value)) {
+    if (typeof v !== "number") return false;
+  }
+  return true;
+}
+
 function isValidConfig(row: { formula_json: string; department_weight_json: string }): boolean {
   const formulaCheck = parseAndValidateFormula(row.formula_json);
   if (formulaCheck.error) return false;
   try {
-    JSON.parse(row.department_weight_json || "{}");
+    const parsed = JSON.parse(row.department_weight_json || "{}");
+    if (!isValidWeights(parsed)) return false;
   } catch {
     return false;
   }
   return true;
 }
 
-function getEffectiveConfig(db: Database, userId: number) {
+export function getEffectiveConfig(db: Database, userId: number) {
   const userConfig = db
     .query<{ id: number; user_id: number; date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string }, [number]>(
       "SELECT * FROM dashboard_config WHERE user_id = ?"
@@ -111,6 +120,15 @@ export function registerDashboardRoutes(app: OpenAPIApp, db: Database) {
     const formulaCheck = parseAndValidateFormula(formula_json);
     if (formulaCheck.error) {
       return c.json({ error: formulaCheck.error }, 400);
+    }
+
+    try {
+      const parsedWeights = JSON.parse(department_weight_json || "{}");
+      if (!isValidWeights(parsedWeights)) {
+        return c.json({ error: "Invalid department weights: must be an object with numeric values" }, 400);
+      }
+    } catch {
+      return c.json({ error: "Invalid department weights JSON" }, 400);
     }
 
     db.run(

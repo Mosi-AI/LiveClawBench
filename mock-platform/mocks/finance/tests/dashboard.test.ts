@@ -311,4 +311,124 @@ describe("dashboard", () => {
     });
     expect(res.status).toBe(200);
   });
+
+  it("POST /api/dashboard/config formula_json > 10KB returns 400", async () => {
+    const cookie = await login(app);
+    const bigFormula = JSON.stringify({ op: "const", value: "x".repeat(11000) });
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-06-30",
+        formula_json: bigFormula,
+        department_weight_json: "{}",
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("POST /api/dashboard/config department_weight_json > 4KB returns 400", async () => {
+    const cookie = await login(app);
+    const bigWeights = JSON.stringify({ x: "y".repeat(5000) });
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-06-30",
+        formula_json: "{}",
+        department_weight_json: bigWeights,
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("POST /api/dashboard/config persists valid config", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-03-01",
+        date_range_end: "2026-05-31",
+        formula_json: "{}",
+        department_weight_json: JSON.stringify({ Engineering: 1.5 }),
+      }),
+    });
+    expect(res.status).toBe(200);
+
+    const dashboardRes = await app.request("/api/dashboard", { headers: { Cookie: cookie } });
+    const json = await dashboardRes.json();
+    expect(json.config.date_range_start).toBe("2026-03-01");
+    expect(json.config.date_range_end).toBe("2026-05-31");
+    expect(json.config.department_weight_json).toBe(JSON.stringify({ Engineering: 1.5 }));
+  });
+
+  it("POST /api/dashboard/config null weights returns 400", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-06-30",
+        formula_json: "{}",
+        department_weight_json: "null",
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("POST /api/dashboard/config array weights returns 400", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-06-30",
+        formula_json: "{}",
+        department_weight_json: "[]",
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("POST /api/dashboard/config non-numeric weight values returns 400", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/dashboard/config", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date_range_start: "2026-01-01",
+        date_range_end: "2026-06-30",
+        formula_json: "{}",
+        department_weight_json: JSON.stringify({ Engineering: "two" }),
+      }),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it("null department weights in DB falls back to defaults", async () => {
+    const adminId = finance.db
+      .query<{ id: number }, []>("SELECT id FROM user WHERE role = 'admin' ORDER BY id LIMIT 1")
+      .get()!.id;
+    finance.db.run(
+      `UPDATE dashboard_config SET department_weight_json = 'null' WHERE user_id = ?`,
+      [adminId]
+    );
+
+    const johnLogin = await app.request("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: "john", password: "user123" }),
+    });
+    const johnCookie = johnLogin.headers.get("set-cookie") ?? "";
+
+    const res = await app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
+    const json = await res.json();
+    expect(json.config.date_range_start).toBe("2026-01-01");
+    expect(json.config.date_range_end).toBe("2026-12-31");
+  });
 });

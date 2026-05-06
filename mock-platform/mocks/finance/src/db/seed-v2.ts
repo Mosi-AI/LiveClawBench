@@ -1,21 +1,6 @@
 import type { Database } from "bun:sqlite";
-import { readFileSync, existsSync } from "node:fs";
 
 export function seedV2(db: Database): void {
-  const seedPath = process.env.MOCK_FINANCE_SEED_SQL ?? "/opt/mock/data/finance_seed.sql";
-
-  if (existsSync(seedPath)) {
-    try {
-      const sql = readFileSync(seedPath, "utf-8");
-      db.exec(sql);
-      return;
-    } catch {
-      console.warn(`[finance] Seed file not readable at ${seedPath}, falling back to default seed.`);
-    }
-  } else if (process.env.MOCK_FINANCE_SEED_SQL) {
-    console.warn(`[finance] Seed file not found at ${seedPath}, falling back to default seed.`);
-  }
-
   // Dashboard config: 1 row for admin user (id=1)
   if (
     db

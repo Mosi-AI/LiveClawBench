@@ -17,7 +17,7 @@ import { registerExpenseRoutes } from "./routes/expense";
 import { registerInvoiceRoutes } from "./routes/invoice";
 import { registerAssetRoutes } from "./routes/asset";
 import { registerSystemConfigRoutes } from "./routes/system-config";
-import { registerDashboardRoutes } from "./routes/dashboard";
+import { registerDashboardRoutes, getEffectiveConfig } from "./routes/dashboard";
 import { registerPortfolioRoutes } from "./routes/portfolio";
 
 import { LoginPage } from "./pages/login";
@@ -146,24 +146,7 @@ export function createFinanceApp() {
     const user = db.query<{ role: string }, [number]>("SELECT role FROM user WHERE id = ?").get(userId);
     const isAdmin = user?.role === "admin";
 
-    const userConfig = db
-      .query<{ date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string }, [number]>(
-        "SELECT date_range_start, date_range_end, formula_json, department_weight_json FROM dashboard_config WHERE user_id = ?"
-      )
-      .get(userId);
-
-    let config: { date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string };
-    if (userConfig) {
-      config = userConfig;
-    } else {
-      const admin = db.query<{ id: number }, []>("SELECT id FROM user WHERE role = 'admin' ORDER BY id LIMIT 1").get();
-      const adminConfig = admin
-        ? db.query<{ date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string }, [number]>(
-            "SELECT date_range_start, date_range_end, formula_json, department_weight_json FROM dashboard_config WHERE user_id = ?"
-          ).get(admin.id)
-        : null;
-      config = adminConfig ?? { date_range_start: "2026-01-01", date_range_end: "2026-12-31", formula_json: "{}", department_weight_json: "{}" };
-    }
+    const config = getEffectiveConfig(db, userId);
 
     const { computeDashboardMetrics } = require("./db/queries/dashboard");
     const metrics = computeDashboardMetrics(db, config);

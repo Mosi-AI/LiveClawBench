@@ -151,4 +151,44 @@ describe("portfolio", () => {
       );
     }).toThrow();
   });
+
+  it("transaction rolls back on partial failure", async () => {
+    const cookie = await login(app);
+    const beforeOrders = finance.db
+      .query<{ count: number }, []>("SELECT COUNT(*) AS count FROM portfolio_order")
+      .get()!.count;
+    const beforeValue = finance.db
+      .query<{ current_value: number }, []>("SELECT current_value FROM portfolio_holding WHERE asset_class_code = 'eq'")
+      .get()!.current_value;
+
+    const originalRun = finance.db.run.bind(finance.db);
+    let runCalls = 0;
+    finance.db.run = function (sql: string, ...params: any[]) {
+      runCalls++;
+      if (runCalls === 2 && typeof sql === "string" && sql.includes("UPDATE portfolio_holding")) {
+        throw new Error("Simulated DB failure");
+      }
+      return originalRun(sql, ...params);
+    } as any;
+
+    try {
+      const res = await app.request("/api/portfolio/orders", {
+        method: "POST",
+        headers: { Cookie: cookie, "Content-Type": "application/json" },
+        body: JSON.stringify({ asset_class_code: "eq", direction: "buy", amount: 1000 }),
+      });
+      expect(res.status).toBe(500);
+    } finally {
+      finance.db.run = originalRun;
+    }
+
+    const afterOrders = finance.db
+      .query<{ count: number }, []>("SELECT COUNT(*) AS count FROM portfolio_order")
+      .get()!.count;
+    const afterValue = finance.db
+      .query<{ current_value: number }, []>("SELECT current_value FROM portfolio_holding WHERE asset_class_code = 'eq'")
+      .get()!.current_value;
+    expect(afterOrders).toBe(beforeOrders);
+    expect(afterValue).toBe(beforeValue);
+  });
 });

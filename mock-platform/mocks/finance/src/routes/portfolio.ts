@@ -50,33 +50,45 @@ export function registerPortfolioRoutes(app: OpenAPIApp, db: Database) {
     }
     const { asset_class_code, direction, amount } = parse.data;
 
-    const holding = db
-      .query<{ current_value: number }, [string]>(
-        "SELECT current_value FROM portfolio_holding WHERE asset_class_code = ?"
-      )
-      .get(asset_class_code);
-    if (!holding) {
-      return c.json({ error: "Holding not found" }, 400);
-    }
-    if (direction === "sell" && amount > holding.current_value) {
-      return c.json({ error: "Sell amount exceeds holding value" }, 400);
-    }
-
+    let orderId: number;
     const tx = db.transaction(() => {
+      const holding = db
+        .query<{ current_value: number }, [string]>(
+          "SELECT current_value FROM portfolio_holding WHERE asset_class_code = ?"
+        )
+        .get(asset_class_code);
+      if (!holding) {
+        throw new Error("Holding not found");
+      }
+      if (direction === "sell" && amount > holding.current_value) {
+        throw new Error("Sell amount exceeds holding value");
+      }
+
       db.run(
         `INSERT INTO portfolio_order (asset_class_code, direction, amount, status)
          VALUES (?, ?, ?, ?)`,
         [asset_class_code, direction, amount, "executed"]
       );
+      orderId = Number(db.query<{ id: number }, []>("SELECT last_insert_rowid() AS id").get()!.id);
       const delta = direction === "buy" ? amount : -amount;
       db.run(
         `UPDATE portfolio_holding SET current_value = current_value + ? WHERE asset_class_code = ?`,
         [delta, asset_class_code]
       );
     });
-    tx();
 
-    const order = db.query("SELECT * FROM portfolio_order ORDER BY id DESC LIMIT 1").get();
+    try {
+      tx();
+    } catch (e: any) {
+      if (e.message === "Holding not found" || e.message === "Sell amount exceeds holding value") {
+        return c.json({ error: e.message }, 400);
+      }
+      throw e;
+    }
+
+    const order = db
+      .query("SELECT * FROM portfolio_order WHERE id = ?")
+      .get(orderId!) as Record<string, unknown>;
     return c.json(order, 201);
   }, { auth: "required" });
 }
