@@ -37,6 +37,7 @@ const BINARY_PORTS: Record<string, number> = {
   shop: 1234,
   todolist: 5002,
   "doc-search": 8123,
+  smarthome: 5003,
 };
 
 function portProxyLines(listenPort: number, targetPort: number): string[] {
@@ -69,7 +70,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 30 benchmark task names (canonical source of truth)
+// All 31 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -81,6 +82,8 @@ const ALL_TASK_NAMES = new Set([
   "skill-conflict-resolution", "skill-dependency-fix", "noise-filtering",
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination",
+  // "smart-home-thermostat", "grocery-reorder", "smart-home-morning-recovery", "grocery-budget-plan",
+  "smarthome_test",
 ]);
 
 interface AssetMapping {
@@ -337,10 +340,32 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("");
   }
 
-  // Step 1: Launch Bun mock binaries
-  if (binaries.length > 0) {
-    lines.push("# Start Bun mock binaries");
-    for (const bin of binaries) {
+  // Step 0b: Data directory initialization for smarthome tasks
+  // The smarthome binary stores data at /var/lib/mock-data/smarthome/ and verifiers
+  // read from /tmp/mosi_smart_home.sqlite via symlink.
+  if (binaries.includes("smarthome")) {
+    lines.push("# Initialize smarthome data directory and verifier-compatible symlinks");
+    lines.push("mkdir -p /var/lib/mock-data/smarthome");
+    lines.push("chown mock:mock /var/lib/mock-data/smarthome");
+    lines.push("chmod 700 /var/lib/mock-data/smarthome");
+    lines.push("ln -sf /var/lib/mock-data/smarthome/smarthome.db /tmp/mosi_smart_home.sqlite");
+    lines.push("");
+  }
+
+  // Binaries that are stubs (health/sentinel only) — the real services are
+  // started by the task's startup.sh.  Implemented binaries (shop, doc-search)
+  // are full Bun replacements and should be launched directly.
+  // TODO: Remove this filter block when airline, email, and todolist
+  // are fully migrated from Python stubs to Bun implementations.
+  // Condition: all entries in STUB_BINARIES are removed.
+  const STUB_BINARIES = new Set(["email", "airline", "todolist"]);
+  const implementedBinaries = binaries.filter((b) => !STUB_BINARIES.has(b));
+  const hasStubBinaries = binaries.some((b) => STUB_BINARIES.has(b));
+
+  // Step 1: Launch implemented Bun mock binaries (skip stubs)
+  if (implementedBinaries.length > 0) {
+    lines.push("# Start Bun mock binaries (implemented services)");
+    for (const bin of implementedBinaries) {
       const port = BINARY_PORTS[bin];
       if (bin === "doc-search") {
         // Doc-search requires explicit --database and --log flags for verifier
@@ -590,6 +615,17 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       lines.push("");
     }
   }
+  // python-fastapi: The following block was added to support tasks with binaries: []
+  // that still need to run startup.sh for Python FastAPI services. Now that smarthome
+  // tasks use Bun mock (binaries: ["smarthome"]), this block is no longer necessary
+  // for smarthome_test but is kept for potential future use.
+  // else if (binaries.length === 0) {
+  //   lines.push("# No mock binaries — check for task-specific startup.sh");
+  //   lines.push("if [ -f /workspace/environment/startup.sh ]; then");
+  //   lines.push("  bash /workspace/environment/startup.sh");
+  //   lines.push("fi");
+  //   lines.push("");
+  // }
 
   // Step 3: Final wait for all services to be ready
   if (binaries.length > 0 || startupExtra) {
