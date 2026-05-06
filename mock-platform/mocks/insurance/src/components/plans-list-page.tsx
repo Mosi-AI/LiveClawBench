@@ -38,7 +38,7 @@ export const PlansListPage: FC<PlansListPageProps> = ({ user, plans }) => {
             <p>
               <strong>Deductible:</strong> {formatCents(plan.deductible)}
             </p>
-            <a href={`/plans/${plan.id}`} class="btn">
+            <a href="/plans/select" class="btn">
               View Details
             </a>
           </div>
