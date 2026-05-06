@@ -108,13 +108,18 @@ if [ -n "${BLOOD_APPT_ERROR}" ]; then
   exit 1
 fi
 
-# Extract the booked appointment time for calendar event
-BLOOD_APPT_TIME=$(echo "${BLOOD_APPT_RESPONSE}" | python3 -c "
+# Extract the booked appointment times for calendar events
+BLOOD_APPT_START=$(echo "${BLOOD_APPT_RESPONSE}" | python3 -c "
 import sys, json
 data = json.load(sys.stdin)
 print(data.get('slot_start_time', ''))
 ")
-echo "[Insurance] Blood Test booked at ${BLOOD_APPT_TIME}"
+BLOOD_APPT_END=$(echo "${BLOOD_APPT_RESPONSE}" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+print(data.get('slot_end_time', ''))
+")
+echo "[Insurance] Blood Test booked at ${BLOOD_APPT_START} - ${BLOOD_APPT_END}"
 
 # ============================================================================
 # Part 4: Insurance — find and book Diet Consultation at Nutrition & Wellness
@@ -176,52 +181,57 @@ if [ -n "${DIET_APPT_ERROR}" ]; then
   exit 1
 fi
 
-DIET_APPT_TIME=$(echo "${DIET_APPT_RESPONSE}" | python3 -c "
+DIET_APPT_START=$(echo "${DIET_APPT_RESPONSE}" | python3 -c "
 import sys, json
 data = json.load(sys.stdin)
 print(data.get('slot_start_time', ''))
 ")
-echo "[Insurance] Diet Consultation booked at ${DIET_APPT_TIME}"
+DIET_APPT_END=$(echo "${DIET_APPT_RESPONSE}" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+print(data.get('slot_end_time', ''))
+")
+echo "[Insurance] Diet Consultation booked at ${DIET_APPT_START} - ${DIET_APPT_END}"
 
 # ============================================================================
-# Part 5: Calendar — create two non-overlapping events
+# Part 5: Calendar — create two events matching booked appointment times
 # ============================================================================
 
 echo "[Calendar] Creating Blood Test calendar event..."
-BLOOD_CAL_RESPONSE=$(curl -s -X POST "${CALENDAR_API}/api/events" \
+BLOOD_CAL_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${CALENDAR_API}/api/events" \
   -H "Content-Type: application/json" \
   -d "{
     \"user_id\": 1,
     \"title\": \"Blood Test\",
-    \"start_time\": \"${BLOOD_APPT_TIME}\",
-    \"end_time\": \"$(python3 -c \"from datetime import datetime, timedelta; dt=datetime.fromisoformat('${BLOOD_APPT_TIME}'.replace('Z','+00:00')); print((dt+timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ'))\")\"
+    \"start_time\": \"${BLOOD_APPT_START}\",
+    \"end_time\": \"${BLOOD_APPT_END}\"
   }")
 
-echo "[Calendar] Blood Test event: ${BLOOD_CAL_RESPONSE}"
+BLOOD_CAL_STATUS=$(echo "${BLOOD_CAL_RESPONSE}" | tail -1)
+if [ "${BLOOD_CAL_STATUS}" != "201" ] && [ "${BLOOD_CAL_STATUS}" != "200" ]; then
+  echo "FAIL: Blood Test calendar event creation returned ${BLOOD_CAL_STATUS}"
+  echo "Response: ${BLOOD_CAL_RESPONSE}"
+  exit 1
+fi
+echo "[Calendar] Blood Test event created"
 
 echo "[Calendar] Creating Diet Consultation calendar event..."
-# Schedule Diet Consultation 2 hours after Blood Test to avoid overlap
-DIET_CAL_START=$(python3 -c "
-from datetime import datetime, timedelta
-dt = datetime.fromisoformat('${BLOOD_APPT_TIME}'.replace('Z','+00:00'))
-print((dt + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M:%SZ'))
-")
-DIET_CAL_END=$(python3 -c "
-from datetime import datetime, timedelta
-dt = datetime.fromisoformat('${DIET_CAL_START}'.replace('Z','+00:00'))
-print((dt + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ'))
-")
-
-DIET_CAL_RESPONSE=$(curl -s -X POST "${CALENDAR_API}/api/events" \
+DIET_CAL_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "${CALENDAR_API}/api/events" \
   -H "Content-Type: application/json" \
   -d "{
     \"user_id\": 1,
     \"title\": \"Diet Consultation\",
-    \"start_time\": \"${DIET_CAL_START}\",
-    \"end_time\": \"${DIET_CAL_END}\"
+    \"start_time\": \"${DIET_APPT_START}\",
+    \"end_time\": \"${DIET_APPT_END}\"
   }")
 
-echo "[Calendar] Diet Consultation event: ${DIET_CAL_RESPONSE}"
+DIET_CAL_STATUS=$(echo "${DIET_CAL_RESPONSE}" | tail -1)
+if [ "${DIET_CAL_STATUS}" != "201" ] && [ "${DIET_CAL_STATUS}" != "200" ]; then
+  echo "FAIL: Diet Consultation calendar event creation returned ${DIET_CAL_STATUS}"
+  echo "Response: ${DIET_CAL_RESPONSE}"
+  exit 1
+fi
+echo "[Calendar] Diet Consultation event created"
 
 echo ""
 echo "=== All tasks complete ==="
