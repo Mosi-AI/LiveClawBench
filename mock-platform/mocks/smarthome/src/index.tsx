@@ -386,22 +386,67 @@ function getBenchmarkTime(): string {
   return clock?.current_time || "2026-05-06T08:00:00Z";
 }
 
-// Generate deterministic order ID based on benchmark clock and counter
-let orderCounter = 0;
-function generateOrderId(): string {
-  const time = getBenchmarkTime();
-  const timestamp = time.replace(/[-:T]/g, "").substring(0, 14);
-  orderCounter++;
-  return `ORD${timestamp}-${orderCounter.toString(36).toUpperCase().padStart(3, "0")}`;
+// Derive coffee status from start_time and benchmark_clock in a timezone-stable way
+function deriveCoffeeStatus(startTime: string, currentTime: string): string {
+  // Parse HH:MM start time
+  const [startHour, startMin] = startTime.split(":").map(Number);
+  const startMinutes = startHour * 60 + startMin;
+
+  // Parse ISO 8601 current time in a timezone-stable way (use UTC)
+  // Format: 2026-05-06T06:45:00Z
+  const timeMatch = currentTime.match(/T(\d{2}):(\d{2}):/);
+  if (!timeMatch) {
+    return "scheduled"; // Fallback if time format is invalid
+  }
+  const currentHour = parseInt(timeMatch[1], 10);
+  const currentMin = parseInt(timeMatch[2], 10);
+  const currentMinutes = currentHour * 60 + currentMin;
+
+  if (currentMinutes < startMinutes - 30) {
+    return "scheduled";
+  } else if (currentMinutes < startMinutes) {
+    return "preparing";
+  } else if (currentMinutes < startMinutes + 30) {
+    return "brewing";
+  } else {
+    return "ready";
+  }
 }
 
-// Generate deterministic plan ID based on benchmark clock and counter
-let planCounter = 0;
-function generatePlanId(): string {
+// Generate deterministic order ID based on benchmark clock and database state
+function generateOrderId(): string {
+  const database = assertDb();
   const time = getBenchmarkTime();
   const timestamp = time.replace(/[-:T]/g, "").substring(0, 14);
-  planCounter++;
-  return `PLAN${timestamp}-${planCounter.toString(36).toUpperCase().padStart(3, "0")}`;
+
+  // Query existing orders with same timestamp prefix to get next suffix
+  const prefix = `ORD${timestamp}-`;
+  const existing = database.query("SELECT order_id FROM grocery_order WHERE order_id LIKE ? ORDER BY order_id DESC LIMIT 1").all(`${prefix}%`) as { order_id: string }[];
+  let nextSuffix = 1;
+  if (existing.length > 0) {
+    const lastSuffix = existing[0].order_id.substring(prefix.length);
+    nextSuffix = parseInt(lastSuffix, 36) + 1;
+  }
+
+  return `ORD${timestamp}-${nextSuffix.toString(36).toUpperCase().padStart(3, "0")}`;
+}
+
+// Generate deterministic plan ID based on benchmark clock and database state
+function generatePlanId(): string {
+  const database = assertDb();
+  const time = getBenchmarkTime();
+  const timestamp = time.replace(/[-:T]/g, "").substring(0, 14);
+
+  // Query existing plans with same timestamp prefix to get next suffix
+  const prefix = `PLAN${timestamp}-`;
+  const existing = database.query("SELECT plan_id FROM meal_plan WHERE plan_id LIKE ? ORDER BY plan_id DESC LIMIT 1").all(`${prefix}%`) as { plan_id: string }[];
+  let nextSuffix = 1;
+  if (existing.length > 0) {
+    const lastSuffix = existing[0].plan_id.substring(prefix.length);
+    nextSuffix = parseInt(lastSuffix, 36) + 1;
+  }
+
+  return `PLAN${timestamp}-${nextSuffix.toString(36).toUpperCase().padStart(3, "0")}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -869,6 +914,13 @@ function registerRoutes(app: Hono<AppEnv>): void {
     }
 
     const database = assertDb();
+
+    // Verify singleton exists before update
+    const existing = database.query("SELECT id FROM thermostat_settings WHERE id = 1").get();
+    if (!existing) {
+      return c.json({ error: "Thermostat settings unavailable - required state not initialized" }, 503);
+    }
+
     const now = getBenchmarkTime();
     database.query("UPDATE thermostat_settings SET mode = ?, temperature = ?, updated_at = ? WHERE id = 1").run(mode, temperature, now);
 
@@ -909,6 +961,13 @@ function registerRoutes(app: Hono<AppEnv>): void {
     }
 
     const database = assertDb();
+
+    // Verify singleton exists before update
+    const existing = database.query("SELECT id FROM coffee_schedule WHERE id = 1").get();
+    if (!existing) {
+      return c.json({ error: "Coffee schedule unavailable - required state not initialized" }, 503);
+    }
+
     const now = getBenchmarkTime();
     database.query("UPDATE coffee_schedule SET start_time = ?, updated_at = ? WHERE id = 1").run(startTime, now);
 
