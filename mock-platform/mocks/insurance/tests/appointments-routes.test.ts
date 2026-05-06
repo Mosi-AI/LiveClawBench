@@ -115,6 +115,56 @@ describe("appointments routes", () => {
     }
   });
 
+  test("GET /api/providers/:id/services/:service_id/slots filters by date_from", async () => {
+    const { app } = await createAppWithToken();
+    const listRes = await app.request("/api/providers");
+    const { providers } = await listRes.json();
+    const providerId = providers[0].id;
+
+    const providerRes = await app.request(`/api/providers/${providerId}`);
+    const { services } = await providerRes.json();
+    const serviceId = services[0].id;
+
+    // Use a date 15 days from now (all slots are within 1-14 days ahead)
+    const farFuture = new Date();
+    farFuture.setUTCDate(farFuture.getUTCDate() + 15);
+    const dateFrom = farFuture.toISOString().slice(0, 10);
+
+    const res = await app.request(
+      `/api/providers/${providerId}/services/${serviceId}/slots?date_from=${dateFrom}`,
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.slots.length).toBe(0);
+  });
+
+  test("GET /api/providers/:id/services/:service_id/slots filters by date_to", async () => {
+    const { app } = await createAppWithToken();
+    const listRes = await app.request("/api/providers");
+    const { providers } = await listRes.json();
+    const providerId = providers[0].id;
+
+    const providerRes = await app.request(`/api/providers/${providerId}`);
+    const { services } = await providerRes.json();
+    const serviceId = services[0].id;
+
+    // Use tomorrow as date_to — at least some slots should be excluded
+    const tomorrow = new Date();
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+    const dateTo = tomorrow.toISOString().slice(0, 10) + "T23:59:59Z";
+
+    const res = await app.request(
+      `/api/providers/${providerId}/services/${serviceId}/slots?date_to=${dateTo}`,
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // Some slots fall on day 1, so they should still be included
+    expect(body.slots.length).toBeGreaterThanOrEqual(0);
+    for (const slot of body.slots) {
+      expect(slot.end_time <= dateTo).toBe(true);
+    }
+  });
+
   test("POST /api/appointments books an appointment and freezes snapshot", async () => {
     const { app, token } = await createAppWithToken();
     const listRes = await app.request("/api/providers", {

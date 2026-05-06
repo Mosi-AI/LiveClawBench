@@ -132,6 +132,12 @@ describe("OpenAPI generation — per-mock assertions", () => {
     // HTML pages should NOT appear in the spec
     expect(paths).not.toHaveProperty("/login");
     expect(paths).not.toHaveProperty("/claims");
+    expect(paths).not.toHaveProperty("/claims/new");
+    expect(paths).not.toHaveProperty("/claims/{id}");
+    expect(paths).not.toHaveProperty("/appointments/search");
+    expect(paths).not.toHaveProperty("/appointments/providers/{id}");
     expect(paths).not.toHaveProperty("/plans");
+    expect(paths).not.toHaveProperty("/plans/current");
+    expect(paths).not.toHaveProperty("/plans/select");
   });
 });

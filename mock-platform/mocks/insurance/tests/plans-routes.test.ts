@@ -1,6 +1,7 @@
 import { describe, expect, test, beforeEach } from "bun:test";
 import { _resetSecret, resetDb } from "mock-lib";
 import { createInsuranceApp } from "../src/index";
+import { getInsuranceDb } from "../src/db";
 import {
   DEFAULT_USER_EMAIL,
   DEFAULT_USER_PASSWORD,
@@ -117,7 +118,7 @@ describe("plans routes", () => {
     expect(body.error).toBe("Plan not found");
   });
 
-  test("plan snapshot is immutable after selection", async () => {
+  test("plan snapshot is immutable after source plan mutation", async () => {
     const { app, token } = await createAppWithToken();
     const listRes = await app.request("/api/plans", {
       headers: { Authorization: `Bearer ${token}` },
@@ -125,22 +126,63 @@ describe("plans routes", () => {
     const { plans } = await listRes.json();
     const planId = plans.find((p: any) => p.code === "B").id;
 
-    // Select the plan
+    // Select the plan (creates plan_selection with frozen snapshot)
     await app.request(`/api/plans/${planId}/select`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    // Mutate the source plan (direct DB manipulation would be needed here,
-    // but we verify the snapshot row exists with the correct values)
-    const db = app.request as any; // can't easily access db here
-    // Instead, just verify the response had the right snapshot values
-    const selectRes = await app.request(`/api/plans/${planId}/select`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const body = await selectRes.json();
-    expect(body.plan_name_snapshot).toBe("Balanced Silver");
-    expect(body.plan_code_snapshot).toBe("B");
+    // Read the snapshot values from the DB
+    const db = getInsuranceDb();
+    const snapshotBefore = db
+      .query<
+        {
+          plan_code_snapshot: string;
+          plan_name_snapshot: string;
+          deductible_snapshot: number;
+          premium_snapshot: number;
+        },
+        []
+      >(
+        "SELECT plan_code_snapshot, plan_name_snapshot, deductible_snapshot, premium_snapshot FROM plan_selection ORDER BY id DESC LIMIT 1",
+      )
+      .get()!;
+
+    expect(snapshotBefore.plan_code_snapshot).toBe("B");
+    expect(snapshotBefore.plan_name_snapshot).toBe("Balanced Silver");
+
+    // Mutate the source insurance_plan row directly
+    db.query(
+      "UPDATE insurance_plan SET deductible = 999999, name = 'Hacked Plan' WHERE id = ?",
+    ).run(planId);
+
+    // Verify the plan_selection snapshot was NOT affected
+    const snapshotAfter = db
+      .query<
+        {
+          plan_code_snapshot: string;
+          plan_name_snapshot: string;
+          deductible_snapshot: number;
+          premium_snapshot: number;
+        },
+        []
+      >(
+        "SELECT plan_code_snapshot, plan_name_snapshot, deductible_snapshot, premium_snapshot FROM plan_selection ORDER BY id DESC LIMIT 1",
+      )
+      .get()!;
+
+    expect(snapshotAfter.plan_code_snapshot).toBe("B");
+    expect(snapshotAfter.plan_name_snapshot).toBe("Balanced Silver");
+    expect(snapshotAfter.deductible_snapshot).toBe(snapshotBefore.deductible_snapshot);
+    expect(snapshotAfter.premium_snapshot).toBe(snapshotBefore.premium_snapshot);
+
+    // Also verify the source plan WAS actually mutated
+    const mutatedPlan = db
+      .query<{ name: string; deductible: number }, [number]>(
+        "SELECT name, deductible FROM insurance_plan WHERE id = ?",
+      )
+      .get(planId)!;
+    expect(mutatedPlan.name).toBe("Hacked Plan");
+    expect(mutatedPlan.deductible).toBe(999999);
   });
 });

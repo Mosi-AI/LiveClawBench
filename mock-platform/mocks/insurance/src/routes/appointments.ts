@@ -206,11 +206,15 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
   const listSlotsRoute = createRoute({
     method: "get",
     path: "/api/providers/{id}/services/{service_id}/slots",
-    summary: "List available appointment slots for a provider service",
+    summary: "List available appointment slots for a provider service. Query filters: date_from, date_to",
     request: {
       params: z.object({
         id: IdParamSchema,
         service_id: IdParamSchema,
+      }),
+      query: z.object({
+        date_from: z.string().optional(),
+        date_to: z.string().optional(),
       }),
     },
     responses: {
@@ -247,17 +251,33 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
       return c.json({ error: "Service not found for this provider" }, 404);
     }
 
+    const q = c.req.query();
+    const dateFrom = q.date_from;
+    const dateTo = q.date_to;
+
+    const conditions: string[] = ["provider_service_id = ?", "is_available = 1"];
+    const params: (string | number)[] = [serviceId];
+
+    if (dateFrom) {
+      conditions.push("start_time >= ?");
+      params.push(dateFrom);
+    }
+    if (dateTo) {
+      conditions.push("end_time <= ?");
+      params.push(dateTo);
+    }
+
     const slots = db
       .query<
         { id: number; provider_service_id: number; start_time: string; end_time: string; is_available: number },
-        [number]
+        any
       >(
         `SELECT id, provider_service_id, start_time, end_time, is_available
          FROM appointment_slot
-         WHERE provider_service_id = ? AND is_available = 1
+         WHERE ${conditions.join(" AND ")}
          ORDER BY start_time`,
       )
-      .all(serviceId);
+      .all(...params);
     return c.json({ slots });
   });
 

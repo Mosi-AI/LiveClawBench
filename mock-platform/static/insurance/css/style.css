@@ -212,6 +212,49 @@ textarea:focus {
   margin-right: 8px;
 }
 
+/* Filter Form */
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.filter-form label {
+  margin-bottom: 0;
+  flex: 1 1 160px;
+}
+
+.filter-form input,
+.filter-form select {
+  margin-top: 4px;
+}
+
+.filter-form button {
+  height: 36px;
+}
+
+.button-link {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  color: #4b5563;
+  background: #f3f4f6;
+  height: 36px;
+  line-height: 20px;
+}
+
+.button-link:hover {
+  background: #e5e7eb;
+}
+
 /* Login */
 form[action="/login"] {
   max-width: 360px;

@@ -485,7 +485,7 @@ export function seedDatabase(db: Database): void {
         let serviceName = tmpl.service_name;
         let cost = tmpl.cost;
 
-        // AC-7 verifier fixtures: deterministic names / costs for round-trip A
+        // Verifier fixtures: deterministic names / costs for health-insurance-optimization
         if (provider.name === "Metro Lab Services" && checkItem === "lab") {
           serviceName = "Blood Test";
           cost = 2500;

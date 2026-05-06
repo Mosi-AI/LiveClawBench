@@ -65,6 +65,7 @@ export async function pageAuthRequired(c: Context<AppEnv>, next: Next) {
 export function createInsuranceApp(): MockAppV2 {
   const mockApp = createMockApp({
     name: "insurance",
+    port: 6000,
     openApi: {
       enabled: true,
       title: "Insurance Mock API",
@@ -241,6 +242,63 @@ export function createInsuranceApp(): MockAppV2 {
   app.page("/appointments/search", (c) => {
     const userId = c.get("userId")!;
     const user = getCurrentUser(db, userId);
+
+    // Parse query filters (same logic as the public API)
+    const q = c.req.query();
+    const checkItem = q.check_item;
+    const district = q.district;
+    const networkStatus = q.network_status;
+    const maxDistance = q.max_distance ? parseFloat(q.max_distance) : undefined;
+    const maxPrice = q.max_price ? parseInt(q.max_price, 10) : undefined;
+
+    const conditions: string[] = ["1=1"];
+    const params: (string | number)[] = [];
+
+    if (district) {
+      conditions.push("p.district = ?");
+      params.push(district);
+    }
+    if (networkStatus) {
+      conditions.push("p.network_status = ?");
+      params.push(networkStatus);
+    }
+    if (maxDistance !== undefined && !isNaN(maxDistance)) {
+      conditions.push("p.distance_km <= ?");
+      params.push(maxDistance);
+    }
+
+    let providerQuery: string;
+    let queryParams: (string | number)[];
+
+    if (checkItem || maxPrice !== undefined) {
+      const serviceConditions: string[] = [];
+      const serviceParams: (string | number)[] = [];
+      if (checkItem) {
+        serviceConditions.push("ps.check_item = ?");
+        serviceParams.push(checkItem);
+      }
+      if (maxPrice !== undefined && !isNaN(maxPrice)) {
+        serviceConditions.push("ps.cost <= ?");
+        serviceParams.push(maxPrice);
+      }
+      providerQuery = `
+        SELECT DISTINCT p.id, p.name, p.district, p.distance_km, p.network_status
+        FROM provider p
+        JOIN provider_service ps ON ps.provider_id = p.id
+        WHERE ${conditions.join(" AND ")} AND ${serviceConditions.join(" AND ")}
+        ORDER BY p.distance_km
+      `;
+      queryParams = [...params, ...serviceParams];
+    } else {
+      providerQuery = `
+        SELECT id, name, district, distance_km, network_status
+        FROM provider p
+        WHERE ${conditions.join(" AND ")}
+        ORDER BY distance_km
+      `;
+      queryParams = params;
+    }
+
     const providers = db
       .query<
         {
@@ -250,12 +308,23 @@ export function createInsuranceApp(): MockAppV2 {
           distance_km: number;
           network_status: string;
         },
-        []
-      >(
-        "SELECT id, name, district, distance_km, network_status FROM provider ORDER BY distance_km",
-      )
-      .all();
-    return c.html(<AppointmentsSearchPage user={user} providers={providers} />);
+        any
+      >(providerQuery)
+      .all(...queryParams);
+
+    return c.html(
+      <AppointmentsSearchPage
+        user={user}
+        providers={providers}
+        filters={{
+          check_item: checkItem ?? "",
+          district: district ?? "",
+          network_status: networkStatus ?? "",
+          max_distance: q.max_distance ?? "",
+          max_price: q.max_price ?? "",
+        }}
+      />,
+    );
   });
 
   app.use("/appointments/providers/:id", pageAuthRequired);

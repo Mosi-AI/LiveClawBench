@@ -117,6 +117,67 @@ describe("SSR pages", () => {
     expect(html).toContain("data-table");
   });
 
+  test("GET /appointments/search with district filter shows only matching providers", async () => {
+    const { app, token } = await createAppWithToken();
+    const res = await app.request("/appointments/search?district=Central", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("Central");
+    // Should not show providers from other districts
+    expect(html).not.toContain("Riverside");
+    expect(html).not.toContain("North");
+  });
+
+  test("GET /appointments/search with check_item filter shows only matching providers", async () => {
+    const { app, token } = await createAppWithToken();
+    const res = await app.request("/appointments/search?check_item=lab", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("Metro Lab Services");
+    // Should not show providers that don't offer lab
+    expect(html).not.toContain("Nutrition & Wellness Center");
+  });
+
+  test("GET /appointments/search with max_distance filter excludes distant providers", async () => {
+    const { app, token } = await createAppWithToken();
+    const res = await app.request("/appointments/search?max_distance=2", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    // Providers within 2km should appear
+    expect(html).toContain("Central");
+    // Distant providers should not appear
+    expect(html).not.toContain("Highland");
+    expect(html).not.toContain("Greenfield");
+  });
+
+  test("GET /appointments/search with max_price filter excludes expensive providers", async () => {
+    const { app, token } = await createAppWithToken();
+    const res = await app.request("/appointments/search?max_price=3000", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    // Metro Lab Services offers Blood Test at 2500 cents
+    expect(html).toContain("Metro Lab Services");
+  });
+
+  test("GET /appointments/search filter form preserves current values", async () => {
+    const { app, token } = await createAppWithToken();
+    const res = await app.request("/appointments/search?district=Central&check_item=lab", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('value="Central"');
+    expect(html).toContain('value="lab"');
+  });
+
   test("GET /appointments/providers/:id returns 200 HTML", async () => {
     const { app, token } = await createAppWithToken();
     const listRes = await app.request("/api/providers");
