@@ -15,6 +15,8 @@ export function getEmailDb(options?: { path?: string }): Database {
 }
 
 export function resetEmailDb(): void {
+  // Resets the process-level singleton (file-backed DBs only).
+  // In-memory DBs bypass the singleton, so this is a no-op in tests.
   resetDb();
 }
 

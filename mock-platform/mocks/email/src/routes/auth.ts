@@ -55,7 +55,8 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Invalid username or password"), 401);
     }
 
-    // Try Werkzeug hash first, then plaintext fallback
+    // Intentional dual-path: Werkzeug hash for production, plaintext fallback
+    // for sandbox/test scenarios where seeds may use non-hashed passwords.
     let valid = false;
     if (row.password_hash.startsWith("pbkdf2:")) {
       valid = await verifyWerkzeugHash(row.password_hash, password);

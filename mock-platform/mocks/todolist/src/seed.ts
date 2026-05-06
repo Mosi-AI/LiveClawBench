@@ -109,6 +109,15 @@ function getTaskSpecificTodos(taskName: string): Array<{
 export function seedDatabase(db: Database, taskName?: string): void {
   const effectiveTaskName = taskName ?? process.env.TASK_NAME ?? "";
 
+  // Skip if baseline todos already exist (handles container restart and
+  // cross-app containers where seed may have been called already)
+  const existingCount = Number(
+    (db.query("SELECT COUNT(*) as count FROM todos").get() as { count: number }).count
+  );
+  if (existingCount > 0) {
+    return;
+  }
+
   const stmt = db.query(
     `INSERT INTO todos (title, date, time, location, person, description)
      VALUES (?, ?, ?, ?, ?, ?)`

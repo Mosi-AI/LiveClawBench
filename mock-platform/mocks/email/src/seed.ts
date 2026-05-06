@@ -431,17 +431,17 @@ Peter`,
 
 interface SeedConfig {
   senders: { username: string; email: string }[];
-  inbox: { senderIndex: number; subject: string; body: string; days_ago: number; is_read: number }[];
+  inbox: { senderUsername: string; subject: string; body: string; days_ago: number; is_read: number }[];
   sent: { recipient_email: string; subject: string; body: string; days_ago: number }[];
 }
 
 function makeSeedConfig(taskName: string): SeedConfig {
   const baselineInbox = [
-    { senderIndex: 0, ...INBOX_PROJECT_PROPOSAL },
-    { senderIndex: 1, ...INBOX_MEETING },
-    { senderIndex: 2, ...INBOX_TECH_ARCH },
-    { senderIndex: 3, ...INBOX_FEATURE_REQ },
-    { senderIndex: 4, ...INBOX_INVOICE },
+    { senderUsername: "john.smith", ...INBOX_PROJECT_PROPOSAL },
+    { senderUsername: "sarah.jones", ...INBOX_MEETING },
+    { senderUsername: "mike.wilson", ...INBOX_TECH_ARCH },
+    { senderUsername: "lisa.chen", ...INBOX_FEATURE_REQ },
+    { senderUsername: "david.brown", ...INBOX_INVOICE },
   ];
 
   const baselineSent = [SENT_PROPOSAL, SENT_JOB_APP, SENT_SUPPORT, SENT_PROGRESS, SENT_WEEKEND];
@@ -460,7 +460,7 @@ function makeSeedConfig(taskName: string): SeedConfig {
         senders,
         inbox: [
           ...baselineInbox,
-          { senderIndex: 5, ...INBOX_PARTNERSHIP },
+          { senderUsername: "lau.pai", ...INBOX_PARTNERSHIP },
         ],
         sent: baselineSent,
       };
@@ -473,8 +473,8 @@ function makeSeedConfig(taskName: string): SeedConfig {
         senders,
         inbox: [
           ...baselineInbox,
-          { senderIndex: 5, ...INBOX_BIRTHDAY },
-          { senderIndex: 6, ...INBOX_PORTABLE_WASHER },
+          { senderUsername: "brian.griffin", ...INBOX_BIRTHDAY },
+          { senderUsername: "lois.griffin", ...INBOX_PORTABLE_WASHER },
         ],
         sent: baselineSent,
       };
@@ -487,8 +487,8 @@ function makeSeedConfig(taskName: string): SeedConfig {
         senders,
         inbox: [
           ...baselineInbox,
-          { senderIndex: 6, ...INBOX_FLIGHT_BOOKING },
-          { senderIndex: 5, ...INBOX_PARTNERSHIP },
+          { senderUsername: "gkd.airline", ...INBOX_FLIGHT_BOOKING },
+          { senderUsername: "lau.pai", ...INBOX_PARTNERSHIP },
         ],
         sent: baselineSent,
       };
@@ -500,8 +500,8 @@ function makeSeedConfig(taskName: string): SeedConfig {
         senders,
         inbox: [
           ...baselineInbox,
-          { senderIndex: 6, ...INBOX_FLIGHT_CANCELLATION },
-          { senderIndex: 5, ...INBOX_PARTNERSHIP },
+          { senderUsername: "gkd.airline", ...INBOX_FLIGHT_CANCELLATION },
+          { senderUsername: "lau.pai", ...INBOX_PARTNERSHIP },
         ],
         sent: baselineSent,
       };
@@ -513,8 +513,8 @@ function makeSeedConfig(taskName: string): SeedConfig {
         senders,
         inbox: [
           ...baselineInbox,
-          { senderIndex: 6, ...INBOX_FLIGHT_DELAY },
-          { senderIndex: 5, ...INBOX_PARTNERSHIP },
+          { senderUsername: "gkd.airline", ...INBOX_FLIGHT_DELAY },
+          { senderUsername: "lau.pai", ...INBOX_PARTNERSHIP },
         ],
         sent: baselineSent,
       };
@@ -526,7 +526,7 @@ function makeSeedConfig(taskName: string): SeedConfig {
         senders,
         inbox: [
           ...baselineInbox,
-          { senderIndex: 5, ...INBOX_PARTNERSHIP },
+          { senderUsername: "lau.pai", ...INBOX_PARTNERSHIP },
         ],
         sent: [...baselineSent, SENT_GARY],
       };
@@ -599,8 +599,7 @@ export function seedDatabase(db: Database): void {
 
   // Create inbox emails
   for (const inboxEmail of config.inbox) {
-    const senderName = config.senders[inboxEmail.senderIndex]?.username;
-    const senderId = senderName ? senderIdByUsername.get(senderName) : undefined;
+    const senderId = senderIdByUsername.get(inboxEmail.senderUsername);
     const createdAt = new Date();
     createdAt.setDate(createdAt.getDate() - inboxEmail.days_ago);
 
