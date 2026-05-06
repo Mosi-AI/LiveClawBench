@@ -6,6 +6,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { runMigrations } from "./db/migrate";
 import { seed } from "./db/seed";
+import { seedV2 } from "./db/seed-v2";
 import { z } from "zod";
 
 import { registerAuthRoutes } from "./routes/auth";
@@ -16,6 +17,8 @@ import { registerExpenseRoutes } from "./routes/expense";
 import { registerInvoiceRoutes } from "./routes/invoice";
 import { registerAssetRoutes } from "./routes/asset";
 import { registerSystemConfigRoutes } from "./routes/system-config";
+import { registerDashboardRoutes } from "./routes/dashboard";
+import { registerPortfolioRoutes } from "./routes/portfolio";
 
 import { LoginPage } from "./pages/login";
 import { HomePage } from "./pages/home";
@@ -27,6 +30,8 @@ import { ExpenseCreatePage } from "./pages/expense";
 import { InvoiceCreatePage } from "./pages/invoice";
 import { AssetPage } from "./pages/asset";
 import { AssetEditPage } from "./pages/asset-edit";
+import { DashboardPage } from "./pages/dashboard";
+import { PortfolioPage } from "./pages/portfolio";
 
 function createDbState() {
   const dbPath = process.env.MOCK_FINANCE_DB_PATH
@@ -135,6 +140,12 @@ export function createFinanceApp() {
     return c.html(<AssetEditPage asset={row} />);
   });
 
+  app.use("/dashboard", authRequired);
+  app.page("/dashboard", (c) => c.html(<DashboardPage />));
+
+  app.use("/portfolio", authRequired);
+  app.page("/portfolio", (c) => c.html(<PortfolioPage />));
+
   registerAuthRoutes(app, db);
   registerDepartmentRoutes(app, db);
   registerTransactionRoutes(app, db);
@@ -143,6 +154,8 @@ export function createFinanceApp() {
   registerInvoiceRoutes(app, db);
   registerAssetRoutes(app, db);
   registerSystemConfigRoutes(app, db);
+  registerDashboardRoutes(app, db);
+  registerPortfolioRoutes(app, db);
 
   return {
     ...mockApp,
@@ -151,6 +164,7 @@ export function createFinanceApp() {
     seed: async () => {
       runMigrations(db);
       seed(db);
+      seedV2(db);
     },
   };
 }

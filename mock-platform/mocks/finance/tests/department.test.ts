@@ -59,11 +59,14 @@ describe("departments", () => {
       "invoice",
       "invoice_line_item",
       "asset_record",
+      "dashboard_config",
+      "portfolio_holding",
+      "portfolio_order",
     ];
     for (const t of expected) {
       expect(tableNames).toContain(t);
     }
-    expect(tableNames.length).toBe(12);
+    expect(tableNames.length).toBe(15);
   });
 
   it("user count is 3", async () => {
