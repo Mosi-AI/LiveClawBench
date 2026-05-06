@@ -1,4 +1,6 @@
 import { getDb, resetDb, type SqliteOptions } from "mock-lib";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 
 const AIRLINE_DB_PATH =
   process.env.AIRLINE_DB_PATH ?? "/var/lib/mock-data/airline/airline.db";
@@ -8,10 +10,21 @@ export interface AirlineDbOptions {
 }
 
 export function getAirlineDb(options?: AirlineDbOptions) {
+  const path = options?.dbPath ?? AIRLINE_DB_PATH;
+  if (path !== ":memory:") {
+    try {
+      mkdirSync(dirname(path), { recursive: true });
+    } catch {
+      return getDb({
+        path: ":memory:",
+        autoMigrate: true,
+      } as SqliteOptions);
+    }
+  }
   return getDb({
-    path: options?.dbPath ?? AIRLINE_DB_PATH,
+    path,
     autoMigrate: true,
-  });
+  } as SqliteOptions);
 }
 
 export function resetAirlineDb() {

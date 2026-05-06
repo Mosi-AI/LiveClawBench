@@ -32,28 +32,59 @@ describe("appointments routes", () => {
     return { app, token };
   }
 
-  test("GET /api/providers returns providers", async () => {
-    const { app, token } = await createAppWithToken();
-    const res = await app.request("/api/providers", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  test("GET /api/providers returns providers without auth", async () => {
+    const { app } = await createAppWithToken();
+    const res = await app.request("/api/providers");
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.providers).toBeDefined();
-    expect(body.providers.length).toBeGreaterThanOrEqual(12);
+    expect(body.providers.length).toBeGreaterThanOrEqual(14);
+    // Each provider should include services
+    expect(body.providers[0].services).toBeDefined();
+    expect(body.providers[0].services.length).toBeGreaterThan(0);
   });
 
-  test("GET /api/providers/:id returns provider with services", async () => {
-    const { app, token } = await createAppWithToken();
-    const listRes = await app.request("/api/providers", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  test("GET /api/providers filters by check_item", async () => {
+    const { app } = await createAppWithToken();
+    const res = await app.request("/api/providers?check_item=lab");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.providers.length).toBeGreaterThan(0);
+    for (const p of body.providers) {
+      expect(p.services.some((s: any) => s.check_item === "lab")).toBe(true);
+    }
+  });
+
+  test("GET /api/providers filters by district and max_distance", async () => {
+    const { app } = await createAppWithToken();
+    const res = await app.request("/api/providers?district=Central&max_distance=2");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.providers.length).toBeGreaterThan(0);
+    for (const p of body.providers) {
+      expect(p.district).toBe("Central");
+      expect(p.distance_km).toBeLessThanOrEqual(2);
+    }
+  });
+
+  test("GET /api/providers filters by max_price", async () => {
+    const { app } = await createAppWithToken();
+    const res = await app.request("/api/providers?max_price=3000");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.providers.length).toBeGreaterThan(0);
+    for (const p of body.providers) {
+      expect(p.services.some((s: any) => s.cost <= 3000)).toBe(true);
+    }
+  });
+
+  test("GET /api/providers/:id returns provider with services without auth", async () => {
+    const { app } = await createAppWithToken();
+    const listRes = await app.request("/api/providers");
     const { providers } = await listRes.json();
     const providerId = providers[0].id;
 
-    const res = await app.request(`/api/providers/${providerId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await app.request(`/api/providers/${providerId}`);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.id).toBe(providerId);
@@ -61,23 +92,18 @@ describe("appointments routes", () => {
     expect(body.services.length).toBeGreaterThan(0);
   });
 
-  test("GET /api/providers/:id/services/:service_id/slots returns available slots", async () => {
-    const { app, token } = await createAppWithToken();
-    const listRes = await app.request("/api/providers", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  test("GET /api/providers/:id/services/:service_id/slots returns available slots without auth", async () => {
+    const { app } = await createAppWithToken();
+    const listRes = await app.request("/api/providers");
     const { providers } = await listRes.json();
     const providerId = providers[0].id;
 
-    const providerRes = await app.request(`/api/providers/${providerId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const providerRes = await app.request(`/api/providers/${providerId}`);
     const { services } = await providerRes.json();
     const serviceId = services[0].id;
 
     const res = await app.request(
       `/api/providers/${providerId}/services/${serviceId}/slots`,
-      { headers: { Authorization: `Bearer ${token}` } },
     );
     expect(res.status).toBe(200);
     const body = await res.json();

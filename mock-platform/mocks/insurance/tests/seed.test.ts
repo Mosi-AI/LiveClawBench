@@ -49,8 +49,8 @@ describe("insurance seed", () => {
   test("seeds the documented row counts across all 12 tables", () => {
     const db = freshSeededDb();
     expect(count(db, "users")).toBe(1);
-    expect(count(db, "provider")).toBe(12);
-    expect(count(db, "provider_service")).toBe(55);
+    expect(count(db, "provider")).toBe(14);
+    expect(count(db, "provider_service")).toBe(57);
     expect(count(db, "insurance_plan")).toBe(3);
     expect(count(db, "plan_benefit")).toBe(18);
     expect(count(db, "current_policy")).toBe(1);
@@ -75,7 +75,7 @@ describe("insurance seed", () => {
          GROUP BY provider_service_id`,
       )
       .all();
-    expect(rows.length).toBe(55);
+    expect(rows.length).toBe(57);
     for (const row of rows) {
       expect(row.n).toBeGreaterThanOrEqual(3);
       expect(row.n).toBeLessThanOrEqual(5);
@@ -237,6 +237,42 @@ describe("insurance seed", () => {
     // Specialty categories are intentionally rarer
     expect(byItem.get("imaging")).toBeGreaterThanOrEqual(5);
     expect(byItem.get("specialist")).toBeGreaterThanOrEqual(5);
+    db.close();
+  });
+
+  test("AC-7 fixtures: Blood Test at 2500 cents and Diet Consultation at 5000 cents exist with slots", () => {
+    const db = freshSeededDb();
+    const bloodTest = db
+      .query<{ id: number; service_name: string; cost: number; provider_id: number }, []>(
+        "SELECT id, service_name, cost, provider_id FROM provider_service WHERE service_name = 'Blood Test'",
+      )
+      .get();
+    expect(bloodTest).not.toBeNull();
+    expect(bloodTest!.cost).toBe(2500);
+
+    const dietConsult = db
+      .query<{ id: number; service_name: string; cost: number; provider_id: number }, []>(
+        "SELECT id, service_name, cost, provider_id FROM provider_service WHERE service_name = 'Diet Consultation'",
+      )
+      .get();
+    expect(dietConsult).not.toBeNull();
+    expect(dietConsult!.cost).toBe(5000);
+
+    // Each fixture must have available slots
+    const bloodSlots = db
+      .query<{ c: number }, [number]>(
+        "SELECT COUNT(*) AS c FROM appointment_slot WHERE provider_service_id = ? AND is_available = 1",
+      )
+      .get(bloodTest!.id);
+    expect(bloodSlots!.c).toBeGreaterThanOrEqual(3);
+
+    const dietSlots = db
+      .query<{ c: number }, [number]>(
+        "SELECT COUNT(*) AS c FROM appointment_slot WHERE provider_service_id = ? AND is_available = 1",
+      )
+      .get(dietConsult!.id);
+    expect(dietSlots!.c).toBeGreaterThanOrEqual(3);
+
     db.close();
   });
 });

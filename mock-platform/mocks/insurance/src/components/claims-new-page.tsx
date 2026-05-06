@@ -10,7 +10,7 @@ export const ClaimsNewPage: FC<ClaimsNewPageProps> = ({ user }) => {
   return (
     <Layout title="New Claim" user={user}>
       <h1>Submit a New Claim</h1>
-      <form method="POST" action="/api/claims" class="form-card">
+      <form method="POST" action="/claims/new" class="form-card">
         <label>
           Claim Type
           <input type="text" name="claim_type" required />

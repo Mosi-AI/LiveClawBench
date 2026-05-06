@@ -70,6 +70,25 @@ describe("SSR pages", () => {
     expect(html).toContain("<form");
   });
 
+  test("POST /claims/new creates claim and redirects to /claims/:id", async () => {
+    const { app, token } = await createAppWithToken();
+    const res = await app.request("/claims/new", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        claim_type: "medical",
+        total_amount: "25000",
+        service_date: "2026-05-01",
+        provider_name: "Test Clinic",
+        check_item: "lab",
+        notes: "Test note",
+      }).toString(),
+    });
+    expect(res.status).toBe(302);
+    const location = res.headers.get("location");
+    expect(location).toMatch(/^\/claims\/\d+$/);
+  });
+
   test("GET /claims/:id returns 200 HTML", async () => {
     const { app, token } = await createAppWithToken();
     const listRes = await app.request("/api/claims", {
@@ -100,9 +119,7 @@ describe("SSR pages", () => {
 
   test("GET /appointments/providers/:id returns 200 HTML", async () => {
     const { app, token } = await createAppWithToken();
-    const listRes = await app.request("/api/providers", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const listRes = await app.request("/api/providers");
     const { providers } = await listRes.json();
     const providerId = providers[0].id;
 
@@ -113,6 +130,31 @@ describe("SSR pages", () => {
     const html = await res.text();
     expect(html).toContain(providers[0].name);
     expect(html).toContain("Services");
+  });
+
+  test("POST /appointments/book books slot and redirects to /appointments/search", async () => {
+    const { app, token } = await createAppWithToken();
+    const listRes = await app.request("/api/providers");
+    const { providers } = await listRes.json();
+    const providerId = providers[0].id;
+
+    const providerRes = await app.request(`/api/providers/${providerId}`);
+    const { services } = await providerRes.json();
+    const serviceId = services[0].id;
+
+    const slotsRes = await app.request(
+      `/api/providers/${providerId}/services/${serviceId}/slots`,
+    );
+    const { slots } = await slotsRes.json();
+    const slotId = slots[0].id;
+
+    const res = await app.request("/appointments/book", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ slot_id: String(slotId) }).toString(),
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("/appointments/search");
   });
 
   test("GET /plans returns 200 HTML", async () => {
@@ -148,6 +190,23 @@ describe("SSR pages", () => {
     expect(html).toContain("Select Budget HDHP");
     expect(html).toContain("Select Balanced Silver");
     expect(html).toContain("Select Premier Gold");
+  });
+
+  test("POST /plans/select selects plan and redirects to /plans/current", async () => {
+    const { app, token } = await createAppWithToken();
+    const plansRes = await app.request("/api/plans", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const { plans } = await plansRes.json();
+    const planId = plans[0].id;
+
+    const res = await app.request("/plans/select", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ plan_id: String(planId) }).toString(),
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("/plans/current");
   });
 
   test("all pages link to /static/css/style.css", async () => {

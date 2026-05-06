@@ -71,10 +71,10 @@ export const ProviderDetailPage: FC<ProviderDetailPageProps> = ({
           {slotsByService[svc.id]?.length ? (
             <form
               method="POST"
-              action="/api/appointments"
+              action="/appointments/book"
               class="slot-form"
             >
-              <input type="hidden" name="slot_id" value={String(svc.id)} />
+              <input type="hidden" name="provider_id" value={String(provider.id)} />
               <label>
                 Select a slot:
                 <select name="slot_id" required>

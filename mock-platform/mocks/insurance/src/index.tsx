@@ -184,6 +184,24 @@ export function createInsuranceApp(): MockAppV2 {
     const user = getCurrentUser(db, userId);
     return c.html(<ClaimsNewPage user={user} />);
   });
+  app.post("/claims/new", pageAuthRequired, async (c) => {
+    const userId = c.get("userId")!;
+    const body = await c.req.parseBody();
+    const claim_type = String(body.claim_type ?? "");
+    const total_amount = parseInt(String(body.total_amount ?? "0"), 10);
+    const service_date = String(body.service_date ?? "");
+    const provider_name = String(body.provider_name ?? "");
+    const check_item = String(body.check_item ?? "");
+    const notes = String(body.notes ?? "");
+
+    db.query(
+      `INSERT INTO claim (user_id, claim_type, total_amount, service_date, provider_name, check_item, status, notes)
+       VALUES (?, ?, ?, ?, ?, ?, 'submitted', ?)`,
+    ).run(userId, claim_type, total_amount, service_date, provider_name, check_item, notes);
+
+    const row = db.query<{ id: number }, []>("SELECT last_insert_rowid() AS id").get();
+    return c.redirect(`/claims/${row!.id}`);
+  });
 
   app.use("/claims/:id", pageAuthRequired);
   app.page("/claims/:id", (c) => {
@@ -298,6 +316,69 @@ export function createInsuranceApp(): MockAppV2 {
     );
   });
 
+  app.post("/appointments/book", pageAuthRequired, async (c) => {
+    const userId = c.get("userId")!;
+    const body = await c.req.parseBody();
+    const slot_id = parseInt(String(body.slot_id ?? "0"), 10);
+
+    const slot = db
+      .query<
+        {
+          slot_id: number;
+          start_time: string;
+          end_time: string;
+          is_available: number;
+          provider_service_id: number;
+          check_item: string;
+          service_name: string;
+          cost: number;
+          provider_id: number;
+          provider_name: string;
+          distance_km: number;
+        },
+        [number]
+      >(
+        `SELECT s.id AS slot_id, s.start_time, s.end_time, s.is_available,
+                s.provider_service_id, ps.check_item, ps.service_name, ps.cost,
+                p.id AS provider_id, p.name AS provider_name, p.distance_km
+         FROM appointment_slot s
+         JOIN provider_service ps ON ps.id = s.provider_service_id
+         JOIN provider p ON p.id = ps.provider_id
+         WHERE s.id = ?`,
+      )
+      .get(slot_id);
+
+    if (!slot || slot.is_available !== 1) {
+      return c.redirect("/appointments/search");
+    }
+
+    const book = db.transaction(() => {
+      db.query("UPDATE appointment_slot SET is_available = 0 WHERE id = ?").run(
+        slot_id,
+      );
+      db.query(
+        `INSERT INTO appointment
+         (user_id, provider_id, slot_id, provider_name, service_name_snapshot, check_item,
+          slot_start_time, slot_end_time, cost_snapshot, distance_km_snapshot)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).run(
+        userId,
+        slot.provider_id,
+        slot.slot_id,
+        slot.provider_name,
+        slot.service_name,
+        slot.check_item,
+        slot.start_time,
+        slot.end_time,
+        slot.cost,
+        slot.distance_km,
+      );
+    });
+    book();
+
+    return c.redirect("/appointments/search");
+  });
+
   // --- Plans pages ---
   app.use("/plans", pageAuthRequired);
   app.page("/plans", (c) => {
@@ -397,6 +478,47 @@ export function createInsuranceApp(): MockAppV2 {
     return c.html(
       <PlansSelectPage user={user} plans={plansWithBenefits} />,
     );
+  });
+  app.post("/plans/select", pageAuthRequired, async (c) => {
+    const userId = c.get("userId")!;
+    const body = await c.req.parseBody();
+    const plan_id = parseInt(String(body.plan_id ?? "0"), 10);
+
+    const plan = db
+      .query<
+        {
+          id: number;
+          code: string;
+          name: string;
+          effective_year: number;
+          premium_monthly: number;
+          deductible: number;
+        },
+        [number]
+      >(
+        "SELECT id, code, name, effective_year, premium_monthly, deductible FROM insurance_plan WHERE id = ?",
+      )
+      .get(plan_id);
+
+    if (!plan) {
+      return c.notFound();
+    }
+
+    db.query(
+      `INSERT INTO plan_selection
+       (user_id, plan_id, year, plan_code_snapshot, plan_name_snapshot, deductible_snapshot, premium_snapshot)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    ).run(
+      userId,
+      plan.id,
+      plan.effective_year,
+      plan.code,
+      plan.name,
+      plan.deductible,
+      plan.premium_monthly,
+    );
+
+    return c.redirect("/plans/current");
   });
 
   return {

@@ -54,6 +54,18 @@ interface ProviderSeed {
 
 const PROVIDERS: ReadonlyArray<ProviderSeed> = [
   {
+    name: "Metro Lab Services",
+    district: "Central",
+    distance_km: 1.2,
+    offers: ["lab"],
+  },
+  {
+    name: "Nutrition & Wellness Center",
+    district: "Central",
+    distance_km: 1.8,
+    offers: ["specialist"],
+  },
+  {
     name: "Central Family Clinic",
     district: "Central",
     distance_km: 0.8,
@@ -470,12 +482,23 @@ export function seedDatabase(db: Database): void {
 
       for (const checkItem of provider.offers) {
         const tmpl = SERVICE_TEMPLATES[checkItem];
-        insertProviderService.run(
-          providerId,
-          checkItem,
-          tmpl.service_name,
-          tmpl.cost,
-        );
+        let serviceName = tmpl.service_name;
+        let cost = tmpl.cost;
+
+        // AC-7 verifier fixtures: deterministic names / costs for round-trip A
+        if (provider.name === "Metro Lab Services" && checkItem === "lab") {
+          serviceName = "Blood Test";
+          cost = 2500;
+        }
+        if (
+          provider.name === "Nutrition & Wellness Center" &&
+          checkItem === "specialist"
+        ) {
+          serviceName = "Diet Consultation";
+          cost = 5000;
+        }
+
+        insertProviderService.run(providerId, checkItem, serviceName, cost);
         const serviceId = lastInsertId(db);
 
         const slotCount = 3 + (serviceCounter % 3); // 3, 4, or 5

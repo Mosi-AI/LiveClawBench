@@ -78,7 +78,8 @@ export const PlansSelectPage: FC<PlansSelectPageProps> = ({ user, plans }) => {
               </tbody>
             </table>
 
-            <form method="POST" action={`/api/plans/${plan.id}/select`}>
+            <form method="POST" action="/plans/select">
+              <input type="hidden" name="plan_id" value={String(plan.id)} />
               <button type="submit" class="btn">
                 Select {plan.name}
               </button>

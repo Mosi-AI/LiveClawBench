@@ -66,28 +66,92 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
   const listProvidersRoute = createRoute({
     method: "get",
     path: "/api/providers",
-    summary: "List providers",
+    summary: "List providers (public). Query filters: check_item, district, network_status, max_distance, max_price",
     responses: {
       200: {
         content: {
           "application/json": {
-            schema: z.object({ providers: z.array(ProviderSchema) }),
+            schema: z.object({ providers: z.array(ProviderDetailSchema) }),
           },
         },
-        description: "List of providers",
+        description: "List of providers with services",
       },
     },
   });
 
   app.openApiRoute(listProvidersRoute, (c) => {
-    const providers = db
-      .query<
-        { id: number; name: string; district: string; distance_km: number; network_status: string },
-        []
-      >("SELECT id, name, district, distance_km, network_status FROM provider ORDER BY distance_km")
-      .all();
-    return c.json({ providers });
-  }, { auth: "required" });
+    const q = c.req.query();
+    const checkItem = q.check_item;
+    const district = q.district;
+    const networkStatus = q.network_status;
+    const maxDistance = q.max_distance ? parseFloat(q.max_distance) : undefined;
+    const maxPrice = q.max_price ? parseInt(q.max_price, 10) : undefined;
+
+    const conditions: string[] = ["1=1"];
+    const params: (string | number)[] = [];
+
+    if (district) {
+      conditions.push("p.district = ?");
+      params.push(district);
+    }
+    if (networkStatus) {
+      conditions.push("p.network_status = ?");
+      params.push(networkStatus);
+    }
+    if (maxDistance !== undefined && !isNaN(maxDistance)) {
+      conditions.push("p.distance_km <= ?");
+      params.push(maxDistance);
+    }
+
+    let providerQuery: string;
+    let queryParams: (string | number)[];
+
+    if (checkItem || maxPrice !== undefined) {
+      // Filtering by service attributes requires a JOIN + GROUP BY
+      const serviceConditions: string[] = [];
+      const serviceParams: (string | number)[] = [];
+      if (checkItem) {
+        serviceConditions.push("ps.check_item = ?");
+        serviceParams.push(checkItem);
+      }
+      if (maxPrice !== undefined && !isNaN(maxPrice)) {
+        serviceConditions.push("ps.cost <= ?");
+        serviceParams.push(maxPrice);
+      }
+      providerQuery = `
+        SELECT DISTINCT p.id, p.name, p.district, p.distance_km, p.network_status
+        FROM provider p
+        JOIN provider_service ps ON ps.provider_id = p.id
+        WHERE ${conditions.join(" AND ")} AND ${serviceConditions.join(" AND ")}
+        ORDER BY p.distance_km
+      `;
+      queryParams = [...params, ...serviceParams];
+    } else {
+      providerQuery = `
+        SELECT id, name, district, distance_km, network_status
+        FROM provider p
+        WHERE ${conditions.join(" AND ")}
+        ORDER BY distance_km
+      `;
+      queryParams = params;
+    }
+
+    const providerRows = db.query<
+      { id: number; name: string; district: string; distance_km: number; network_status: string },
+      any
+    >(providerQuery).all(...queryParams);
+
+    const providersWithServices = providerRows.map((provider) => {
+      const services = db
+        .query<{ id: number; check_item: string; service_name: string; cost: number }, [number]>(
+          "SELECT id, check_item, service_name, cost FROM provider_service WHERE provider_id = ?",
+        )
+        .all(provider.id);
+      return { ...provider, services };
+    });
+
+    return c.json({ providers: providersWithServices });
+  });
 
   // GET /api/providers/:id
   const getProviderRoute = createRoute({
@@ -136,7 +200,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
       .all(id);
 
     return c.json({ ...provider, services });
-  }, { auth: "required" });
+  });
 
   // GET /api/providers/:id/services/:service_id/slots
   const listSlotsRoute = createRoute({
@@ -195,7 +259,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
       )
       .all(serviceId);
     return c.json({ slots });
-  }, { auth: "required" });
+  });
 
   // POST /api/appointments
   const bookAppointmentRoute = createRoute({
