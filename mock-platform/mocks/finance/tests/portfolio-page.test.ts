@@ -38,7 +38,7 @@ describe("portfolio page", () => {
     const res = await app.request("/portfolio", { headers: { Cookie: cookie } });
     const html = await res.text();
     expect(html).toContain("Place Order");
-    expect(html).toContain('action="/api/portfolio/orders"');
+    expect(html).toContain('action="/portfolio"');
     expect(html).toContain('name="asset_class_code"');
     expect(html).toContain('value="eq"');
     expect(html).toContain('value="fi"');
@@ -66,5 +66,53 @@ describe("portfolio page", () => {
   it("GET /portfolio without auth returns 401", async () => {
     const res = await app.request("/portfolio");
     expect(res.status).toBe(401);
+  });
+
+  it("POST /portfolio with invalid amount shows error", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/portfolio", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ asset_class_code: "eq", direction: "buy", amount: "-100" }).toString(),
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("Invalid input");
+  });
+
+  it("POST /portfolio with sell exceeding holding shows error", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/portfolio", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ asset_class_code: "eq", direction: "sell", amount: "999999" }).toString(),
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("exceeds holding value");
+  });
+
+  it("POST /portfolio with invalid asset class shows error", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/portfolio", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ asset_class_code: "xx", direction: "buy", amount: "1000" }).toString(),
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("Invalid asset class");
+  });
+
+  it("POST /portfolio valid buy redirects to portfolio", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/portfolio", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ asset_class_code: "eq", direction: "buy", amount: "5000" }).toString(),
+    });
+    expect(res.status).toBe(302);
+    const location = res.headers.get("location") ?? "";
+    expect(location).toBe("/portfolio");
   });
 });

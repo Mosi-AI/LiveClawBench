@@ -161,7 +161,61 @@ export function createFinanceApp() {
       )
       .all();
     const total_value = holdings.reduce((sum, h) => sum + (h.current_value ?? 0), 0);
-    return c.html(<PortfolioPage holdings={holdings} total_value={total_value} />);
+    const error = c.req.query("error");
+    return c.html(<PortfolioPage holdings={holdings} total_value={total_value} error={error} />);
+  });
+  app.post("/portfolio", async (c) => {
+    const form = await c.req.parseBody();
+    const asset_class_code = String(form.asset_class_code ?? "");
+    const direction = String(form.direction ?? "");
+    const amount = Number(form.amount ?? NaN);
+
+    if (!asset_class_code || !direction || isNaN(amount) || amount <= 0) {
+      const holdings = db
+        .query<{ asset_class_code: string; asset_name: string; current_value: number }, []>(
+          "SELECT asset_class_code, asset_name, current_value FROM portfolio_holding ORDER BY asset_class_code"
+        )
+        .all();
+      const total_value = holdings.reduce((sum, h) => sum + (h.current_value ?? 0), 0);
+      return c.html(<PortfolioPage holdings={holdings} total_value={total_value} error="Invalid input: please select an asset, direction, and enter a positive amount." />);
+    }
+
+    const holding = db
+      .query<{ current_value: number }, [string]>("SELECT current_value FROM portfolio_holding WHERE asset_class_code = ?")
+      .get(asset_class_code);
+    if (!holding) {
+      const holdings = db
+        .query<{ asset_class_code: string; asset_name: string; current_value: number }, []>(
+          "SELECT asset_class_code, asset_name, current_value FROM portfolio_holding ORDER BY asset_class_code"
+        )
+        .all();
+      const total_value = holdings.reduce((sum, h) => sum + (h.current_value ?? 0), 0);
+      return c.html(<PortfolioPage holdings={holdings} total_value={total_value} error="Invalid asset class selected." />);
+    }
+    if (direction === "sell" && amount > holding.current_value) {
+      const holdings = db
+        .query<{ asset_class_code: string; asset_name: string; current_value: number }, []>(
+          "SELECT asset_class_code, asset_name, current_value FROM portfolio_holding ORDER BY asset_class_code"
+        )
+        .all();
+      const total_value = holdings.reduce((sum, h) => sum + (h.current_value ?? 0), 0);
+      return c.html(<PortfolioPage holdings={holdings} total_value={total_value} error="Sell amount exceeds holding value." />);
+    }
+
+    const tx = db.transaction(() => {
+      db.run(
+        "INSERT INTO portfolio_order (asset_class_code, direction, amount, status) VALUES (?, ?, ?, ?)",
+        [asset_class_code, direction, amount, "executed"]
+      );
+      const delta = direction === "buy" ? amount : -amount;
+      db.run(
+        "UPDATE portfolio_holding SET current_value = current_value + ? WHERE asset_class_code = ?",
+        [delta, asset_class_code]
+      );
+    });
+    tx();
+
+    return c.redirect("/portfolio");
   });
 
   registerAuthRoutes(app, db);

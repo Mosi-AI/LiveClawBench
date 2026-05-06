@@ -1,7 +1,7 @@
 /** @jsxImportSource hono/jsx */
 import { Layout } from "../components/layout";
 
-export function PortfolioPage({ holdings, total_value }: { holdings: Array<{ asset_class_code: string; asset_name: string; current_value: number }>; total_value: number }) {
+export function PortfolioPage({ holdings, total_value, error }: { holdings: Array<{ asset_class_code: string; asset_name: string; current_value: number }>; total_value: number; error?: string }) {
   const labels: Record<string, string> = { eq: "Equities", fi: "Fixed Income", ca: "Cash", al: "Alternatives" };
 
   return (
@@ -32,8 +32,13 @@ export function PortfolioPage({ holdings, total_value }: { holdings: Array<{ ass
         </tfoot>
       </table>
 
+      {error && (
+        <div style="background:#fef2f2;border:1px solid #ef4444;color:#991b1b;padding:12px 16px;border-radius:4px;margin-bottom:16px;max-width:400px;">
+          {error}
+        </div>
+      )}
       <h3>Place Order</h3>
-      <form method="POST" action="/api/portfolio/orders" style="max-width:400px;">
+      <form method="POST" action="/portfolio" style="max-width:400px;">
         <div style="margin-bottom:12px;">
           <label>Asset Class</label>
           <select name="asset_class_code" required style="width:100%;padding:8px;margin-top:4px;">
