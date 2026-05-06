@@ -1,5 +1,4 @@
-import { getDb, type SqliteOptions } from "mock-lib";
-import type { Database } from "bun:sqlite";
+import { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
@@ -16,16 +15,14 @@ export function getCalendarDb(options?: CalendarDbOptions): Database {
     try {
       mkdirSync(dirname(path), { recursive: true });
     } catch {
-      return getDb({
-        path: ":memory:",
-        autoMigrate: true,
-      } as SqliteOptions);
+      const db = new Database(":memory:", { create: true });
+      initSchema(db);
+      return db;
     }
   }
-  return getDb({
-    path,
-    autoMigrate: true,
-  } as SqliteOptions);
+  const db = new Database(path, { create: true });
+  initSchema(db);
+  return db;
 }
 
 const DROP_ORDER = ["calendar_event", "users"] as const;
