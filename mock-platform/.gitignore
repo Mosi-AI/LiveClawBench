@@ -1,4 +1,8 @@
-dist/
+dist/*
+!dist/openapi/
+dist/openapi/*.yaml
+dist/openapi/*.yml
 .tmp-images/
 jobs/
+mocks/*/dist/
 

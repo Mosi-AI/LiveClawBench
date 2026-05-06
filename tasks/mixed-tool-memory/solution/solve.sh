@@ -13,6 +13,9 @@ GATEWAY_LOG="${OUTPUT}/gateway.log"
 GATEWAY_PID=""
 BROWSER_READY=0
 BROWSER_MOCK_PORT="${BROWSER_MOCK_PORT:-8123}"
+# Legacy: browser_mock_sidecar was the Python mock server (removed in Plan 2.5).
+# Kept as guard for backward compatibility; the -f check always fails
+# since the directory no longer exists.
 BROWSER_MOCK_DIR="${ROOT}/browser_mock_sidecar"
 BROWSER_MOCK_DB="${OUTPUT}/browser_mock_documents.sqlite"
 BROWSER_MOCK_BASE_URL="${BROWSER_MOCK_BASE_URL:-}"

@@ -1,12 +1,39 @@
-import { createMockApp, startServer } from "mock-lib";
+import { z } from "zod";
+import { createMockApp, createRoute, startServer } from "mock-lib";
 
-const app = createMockApp({ name: "todolist" });
+export function createTodolistApp() {
+  const mockApp = createMockApp({
+    name: "todolist",
+    port: 5002,
+    openApi: {
+      enabled: true,
+      title: "Todolist Mock API",
+      version: "1.0.0",
+    },
+  });
 
-// Sentinel route for binary isolation verification.
-app.app.get("/__mock_sentinel__/todolist", (c) =>
-  c.json({ mock: "todolist", sentinel: true }),
-);
+  const sentinelRoute = createRoute({
+    method: "get",
+    path: "/__mock_sentinel__/todolist",
+    summary: "Binary isolation probe",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({ ok: z.boolean() }),
+          },
+        },
+        description: "OK",
+      },
+    },
+  });
 
-// TodoList-specific routes will be added in Plan 2 migration tasks.
+  mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
-startServer(app);
+  return mockApp;
+}
+
+if (import.meta.main) {
+  const mockApp = createTodolistApp();
+  startServer(mockApp);
+}

@@ -1,14 +1,39 @@
-import { createMockApp, startServer } from "mock-lib";
+import { z } from "zod";
+import { createMockApp, createRoute, startServer } from "mock-lib";
 
-const app = createMockApp({ name: "airline" });
+export function createAirlineApp() {
+  const mockApp = createMockApp({
+    name: "airline",
+    port: 5000,
+    openApi: {
+      enabled: true,
+      title: "Airline Mock API",
+      version: "1.0.0",
+    },
+  });
 
-// Sentinel route for binary isolation verification.
-// Each mock registers a unique sentinel that build-all.ts checks for
-// both presence (own) and absence (foreign) to prove cross-contamination freedom.
-app.app.get("/__mock_sentinel__/airline", (c) =>
-  c.json({ mock: "airline", sentinel: true }),
-);
+  const sentinelRoute = createRoute({
+    method: "get",
+    path: "/__mock_sentinel__/airline",
+    summary: "Binary isolation probe",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({ ok: z.boolean() }),
+          },
+        },
+        description: "OK",
+      },
+    },
+  });
 
-// Airline-specific routes will be added in Plan 2 migration tasks.
+  mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
-startServer(app);
+  return mockApp;
+}
+
+if (import.meta.main) {
+  const mockApp = createAirlineApp();
+  startServer(mockApp);
+}
