@@ -18,7 +18,7 @@ import { registerInvoiceRoutes } from "./routes/invoice";
 import { registerAssetRoutes } from "./routes/asset";
 import { registerSystemConfigRoutes } from "./routes/system-config";
 import { registerDashboardRoutes, getEffectiveConfig } from "./routes/dashboard";
-import { registerPortfolioRoutes } from "./routes/portfolio";
+import { registerPortfolioRoutes, executePortfolioOrder } from "./routes/portfolio";
 
 import { LoginPage } from "./pages/login";
 import { HomePage } from "./pages/home";
@@ -166,55 +166,24 @@ export function createFinanceApp() {
   });
   app.post("/portfolio", async (c) => {
     const form = await c.req.parseBody();
-    const asset_class_code = String(form.asset_class_code ?? "");
-    const direction = String(form.direction ?? "");
-    const amount = Number(form.amount ?? NaN);
-
-    if (!asset_class_code || !direction || isNaN(amount) || amount <= 0) {
-      const holdings = db
-        .query<{ asset_class_code: string; asset_name: string; current_value: number }, []>(
-          "SELECT asset_class_code, asset_name, current_value FROM portfolio_holding ORDER BY asset_class_code"
-        )
-        .all();
-      const total_value = holdings.reduce((sum, h) => sum + (h.current_value ?? 0), 0);
-      return c.html(<PortfolioPage holdings={holdings} total_value={total_value} error="Invalid input: please select an asset, direction, and enter a positive amount." />);
+    const body: Record<string, unknown> = Object.fromEntries(Object.entries(form));
+    if (typeof body.amount === "string") {
+      const num = Number(body.amount);
+      body.amount = isNaN(num) ? body.amount : num;
     }
 
-    const holding = db
-      .query<{ current_value: number }, [string]>("SELECT current_value FROM portfolio_holding WHERE asset_class_code = ?")
-      .get(asset_class_code);
-    if (!holding) {
-      const holdings = db
-        .query<{ asset_class_code: string; asset_name: string; current_value: number }, []>(
-          "SELECT asset_class_code, asset_name, current_value FROM portfolio_holding ORDER BY asset_class_code"
-        )
-        .all();
-      const total_value = holdings.reduce((sum, h) => sum + (h.current_value ?? 0), 0);
-      return c.html(<PortfolioPage holdings={holdings} total_value={total_value} error="Invalid asset class selected." />);
-    }
-    if (direction === "sell" && amount > holding.current_value) {
-      const holdings = db
-        .query<{ asset_class_code: string; asset_name: string; current_value: number }, []>(
-          "SELECT asset_class_code, asset_name, current_value FROM portfolio_holding ORDER BY asset_class_code"
-        )
-        .all();
-      const total_value = holdings.reduce((sum, h) => sum + (h.current_value ?? 0), 0);
-      return c.html(<PortfolioPage holdings={holdings} total_value={total_value} error="Sell amount exceeds holding value." />);
-    }
+    const result = executePortfolioOrder(db, body);
 
-    const tx = db.transaction(() => {
-      db.run(
-        "INSERT INTO portfolio_order (asset_class_code, direction, amount, status) VALUES (?, ?, ?, ?)",
-        [asset_class_code, direction, amount, "executed"]
-      );
-      const delta = direction === "buy" ? amount : -amount;
-      db.run(
-        "UPDATE portfolio_holding SET current_value = current_value + ? WHERE asset_class_code = ?",
-        [delta, asset_class_code]
-      );
-    });
-    tx();
+    const holdings = db
+      .query<{ asset_class_code: string; asset_name: string; current_value: number }, []>(
+        "SELECT asset_class_code, asset_name, current_value FROM portfolio_holding ORDER BY asset_class_code"
+      )
+      .all();
+    const total_value = holdings.reduce((sum, h) => sum + (h.current_value ?? 0), 0);
 
+    if (!result.success) {
+      return c.html(<PortfolioPage holdings={holdings} total_value={total_value} error={result.error} />);
+    }
     return c.redirect("/portfolio");
   });
 

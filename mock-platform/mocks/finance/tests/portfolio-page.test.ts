@@ -101,7 +101,19 @@ describe("portfolio page", () => {
     });
     expect(res.status).toBe(200);
     const html = await res.text();
-    expect(html).toContain("Invalid asset class");
+    expect(html).toContain("Invalid input");
+  });
+
+  it("POST /portfolio with invalid direction shows error", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/portfolio", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ asset_class_code: "eq", direction: "oops", amount: "1000" }).toString(),
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("Invalid input");
   });
 
   it("POST /portfolio valid buy redirects to portfolio", async () => {
