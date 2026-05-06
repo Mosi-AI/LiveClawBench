@@ -39,6 +39,36 @@ const BINARY_PORTS: Record<string, number> = {
   "doc-search": 8123,
 };
 
+function portProxyLines(listenPort: number, targetPort: number): string[] {
+  return [
+    `python3 -c "`,
+    `import socketserver, socket, threading`,
+    `class P(socketserver.ThreadingTCPServer):`,
+    `  allow_reuse_address = True`,
+    `  def server_bind(self):`,
+    `    super().server_bind()`,
+    `    import os`,
+    `    os.set_inheritable(self.socket.fileno(), False)`,
+    `class H(socketserver.BaseRequestHandler):`,
+    `  def handle(self):`,
+    `    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${targetPort}))`,
+    `    def fwd(src,dst):`,
+    `      try:`,
+    `        while (d:=src.recv(8192)): dst.send(d)`,
+    `      except: pass`,
+    `    threading.Thread(target=fwd,args=(self.request,b),daemon=True).start()`,
+    `    try:`,
+    `      fwd(b,self.request)`,
+    `    finally:`,
+    `      try: self.request.shutdown(socket.SHUT_RDWR)`,
+    `      except: pass`,
+    `      try: b.shutdown(socket.SHUT_RDWR)`,
+    `      except: pass`,
+    `P(('0.0.0.0',${listenPort}),H).serve_forever()`,
+    `" > /dev/null 2>&1 &`,
+  ];
+}
+
 // All 30 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
@@ -74,8 +104,6 @@ interface TaskMapping {
   startup_extra?: string;
   /** Optional per-task assets to COPY into the image */
   assets?: AssetMapping[];
-  /** Optional single frontend SPA build configuration (backward-compatible) */
-  frontend?: FrontendConfig;
   /** Optional multiple frontend SPA build configurations */
   frontends?: FrontendConfig[];
 }
@@ -207,28 +235,6 @@ function validateMapping(raw: unknown): MappingConfig {
       }
     }
 
-    // Validate optional frontend field (backward-compatible single frontend)
-    if ("frontend" in taskObj) {
-      const fe = taskObj.frontend;
-      if (typeof fe !== "object" || fe === null) {
-        errors.push(`Task "${taskName}" 'frontend' must be an object`);
-      } else {
-        const feObj = fe as Record<string, unknown>;
-        for (const key of ["src", "buildDir", "dest"]) {
-          if (typeof feObj[key] !== "string" || !(feObj[key] as string)) {
-            errors.push(`Task "${taskName}" 'frontend.${key}' must be a non-empty string`);
-          }
-        }
-        // Check for unknown keys in frontend object
-        const allowedFrontendKeys = new Set(["src", "buildDir", "dest"]);
-        for (const key of Object.keys(feObj)) {
-          if (!allowedFrontendKeys.has(key)) {
-            errors.push(`Task "${taskName}" 'frontend' has unknown key: "${key}"`);
-          }
-        }
-      }
-    }
-
     // Validate optional frontends array
     if ("frontends" in taskObj) {
       const fes = taskObj.frontends;
@@ -331,17 +337,10 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("");
   }
 
-  // Binaries that are stubs (health/sentinel only) — the real services are
-  // started by the task's startup.sh. Implemented binaries are full Bun
-  // replacements and should be launched directly.
-  const STUB_BINARIES = new Set<string>([]);
-  const implementedBinaries = binaries.filter((b) => !STUB_BINARIES.has(b));
-  const hasStubBinaries = binaries.some((b) => STUB_BINARIES.has(b));
-
-  // Step 1: Launch implemented Bun mock binaries (skip stubs)
-  if (implementedBinaries.length > 0) {
-    lines.push("# Start Bun mock binaries (implemented services)");
-    for (const bin of implementedBinaries) {
+  // Step 1: Launch Bun mock binaries
+  if (binaries.length > 0) {
+    lines.push("# Start Bun mock binaries");
+    for (const bin of binaries) {
       const port = BINARY_PORTS[bin];
       if (bin === "doc-search") {
         // Doc-search requires explicit --database and --log flags for verifier
@@ -358,7 +357,6 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         // verifier imports resolve to /workspace/environment/airline-app.
         lines.push(`export AIRLINE_DB_PATH=/var/lib/mock-data/airline/airline.db`);
         lines.push(`export DATABASE_URL=sqlite:////var/lib/mock-data/airline/airline.db`);
-        lines.push(`export AIRLINE_DB_PATH=/var/lib/mock-data/airline/airline.db`);
         lines.push(`mkdir -p /var/lib/mock-data/airline`);
         // Replace the legacy airline-app with python_compat bridge so verifier
         // imports resolve to /opt/mock/python_compat/airline-app. The -T flag
@@ -378,31 +376,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/airline-npm-install.log`);
         // Proxy port 5173 to Bun airline port for legacy URL compatibility
         // Uses Python's socketserver (always available) as a simple TCP forwarder.
-        lines.push(`python3 -c "`);
-        lines.push(`import socketserver, socket, threading`);
-        lines.push(`class P(socketserver.ThreadingTCPServer):`);
-        lines.push(`  allow_reuse_address = True`);
-        lines.push(`  def server_bind(self):`);
-        lines.push(`    super().server_bind()`);
-        lines.push(`    import os`);
-        lines.push(`    os.set_inheritable(self.socket.fileno(), False)`);
-        lines.push(`class H(socketserver.BaseRequestHandler):`);
-        lines.push(`  def handle(self):`);
-        lines.push(`    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${port}))`);
-        lines.push(`    def fwd(src,dst):`);
-        lines.push(`      try:`);
-        lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
-        lines.push(`      except: pass`);
-        lines.push(`    threading.Thread(target=fwd,args=(self.request,b),daemon=True).start()`);
-        lines.push(`    try:`);
-        lines.push(`      fwd(b,self.request)`);
-        lines.push(`    finally:`);
-        lines.push(`      try: self.request.shutdown(socket.SHUT_RDWR)`);
-        lines.push(`      except: pass`);
-        lines.push(`      try: b.shutdown(socket.SHUT_RDWR)`);
-        lines.push(`      except: pass`);
-        lines.push(`P(('0.0.0.0',5173),H).serve_forever()`);
-        lines.push(`" > /dev/null 2>&1 &`);
+        lines.push(...portProxyLines(5173, port));
       } else if (bin === "email") {
         // Email Bun binary must share the SQLite DB with the Python verifier
         // so that verifier scripts (which import SQLAlchemy models) see the
@@ -421,31 +395,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`echo "Email frontend served by Bun on port ${port}" > /tmp/email-frontend.log`);
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/email-npm-install.log`);
         // Proxy port 5174 to Bun email port for legacy URL compatibility
-        lines.push(`python3 -c "`);
-        lines.push(`import socketserver, socket, threading`);
-        lines.push(`class P(socketserver.ThreadingTCPServer):`);
-        lines.push(`  allow_reuse_address = True`);
-        lines.push(`  def server_bind(self):`);
-        lines.push(`    super().server_bind()`);
-        lines.push(`    import os`);
-        lines.push(`    os.set_inheritable(self.socket.fileno(), False)`);
-        lines.push(`class H(socketserver.BaseRequestHandler):`);
-        lines.push(`  def handle(self):`);
-        lines.push(`    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${port}))`);
-        lines.push(`    def fwd(src,dst):`);
-        lines.push(`      try:`);
-        lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
-        lines.push(`      except: pass`);
-        lines.push(`    threading.Thread(target=fwd,args=(self.request,b),daemon=True).start()`);
-        lines.push(`    try:`);
-        lines.push(`      fwd(b,self.request)`);
-        lines.push(`    finally:`);
-        lines.push(`      try: self.request.shutdown(socket.SHUT_RDWR)`);
-        lines.push(`      except: pass`);
-        lines.push(`      try: b.shutdown(socket.SHUT_RDWR)`);
-        lines.push(`      except: pass`);
-        lines.push(`P(('0.0.0.0',5174),H).serve_forever()`);
-        lines.push(`" > /dev/null 2>&1 &`);
+        lines.push(...portProxyLines(5174, port));
       } else if (bin === "todolist") {
         lines.push(`export TODOLIST_DB_PATH=/var/lib/mock-data/todolist/todolist.db`);
         lines.push(`mkdir -p /var/lib/mock-data/todolist`);
@@ -453,48 +403,24 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`echo "Todolist frontend served by Bun on port ${port}" > /tmp/todolist-frontend.log`);
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/todolist-npm-install.log`);
         // Proxy port 3000 to Bun todolist port for legacy URL compatibility
-        lines.push(`python3 -c "`);
-        lines.push(`import socketserver, socket, threading`);
-        lines.push(`class P(socketserver.ThreadingTCPServer):`);
-        lines.push(`  allow_reuse_address = True`);
-        lines.push(`  def server_bind(self):`);
-        lines.push(`    super().server_bind()`);
-        lines.push(`    import os`);
-        lines.push(`    os.set_inheritable(self.socket.fileno(), False)`);
-        lines.push(`class H(socketserver.BaseRequestHandler):`);
-        lines.push(`  def handle(self):`);
-        lines.push(`    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${port}))`);
-        lines.push(`    def fwd(src,dst):`);
-        lines.push(`      try:`);
-        lines.push(`        while (d:=src.recv(8192)): dst.send(d)`);
-        lines.push(`      except: pass`);
-        lines.push(`    threading.Thread(target=fwd,args=(self.request,b),daemon=True).start()`);
-        lines.push(`    try:`);
-        lines.push(`      fwd(b,self.request)`);
-        lines.push(`    finally:`);
-        lines.push(`      try: self.request.shutdown(socket.SHUT_RDWR)`);
-        lines.push(`      except: pass`);
-        lines.push(`      try: b.shutdown(socket.SHUT_RDWR)`);
-        lines.push(`      except: pass`);
-        lines.push(`P(('0.0.0.0',3000),H).serve_forever()`);
-        lines.push(`" > /dev/null 2>&1 &`);
+        lines.push(...portProxyLines(3000, port));
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }
     }
     lines.push("");
     lines.push("# Wait for mock binaries to bind their ports");
-    lines.push("for port in " + implementedBinaries.map((b) => BINARY_PORTS[b]).join(" ") + "; do");
+    lines.push("for port in " + binaries.map((b) => BINARY_PORTS[b]).join(" ") + "; do");
     lines.push("  wait_http \"http://localhost:${port}/health\"");
     lines.push("done");
     // Also wait for proxy ports to be ready
-    if (implementedBinaries.includes("airline")) {
+    if (binaries.includes("airline")) {
       lines.push("wait_http \"http://localhost:5173/health\"");
     }
-    if (implementedBinaries.includes("email")) {
+    if (binaries.includes("email")) {
       lines.push("wait_http \"http://localhost:5174/health\"");
     }
-    if (implementedBinaries.includes("todolist")) {
+    if (binaries.includes("todolist")) {
       lines.push("wait_http \"http://localhost:3000/health\"");
     }
     lines.push("");
@@ -544,7 +470,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     // shop-app startup lines when the Bun mock-shop binary is present.
     // When implemented binaries include 'shop', strip Python shop-app startup lines
     // to avoid port conflicts (Python start.sh kills processes on port 1234).
-    if (implementedBinaries.includes("shop")) {
+    if (binaries.includes("shop")) {
       let inShopBlock = false;
       filtered = filtered.filter((line) => {
         const l = line.trim();
@@ -572,7 +498,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     // When Bun mock-airline is implemented, legacy Python airline-app startup
     // (both backend python3 run.py and frontend npm run dev) must be stripped
     // to avoid port-5000 conflicts.
-    if (implementedBinaries.includes("airline")) {
+    if (binaries.includes("airline")) {
       let inAirlineBlock = false;
       filtered = filtered.filter((line) => {
         const l = line.trim();
@@ -592,7 +518,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     // Email-app block filter (port-conflict avoidance):
     // When Bun mock-email is implemented, legacy Python email-app startup
     // must be stripped to avoid port-5001 conflicts.
-    if (implementedBinaries.includes("email")) {
+    if (binaries.includes("email")) {
       let inEmailBlock = false;
       filtered = filtered.filter((line) => {
         const l = line.trim();
@@ -612,7 +538,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     // Todolist-app block filter (port-conflict avoidance):
     // When Bun mock-todolist is implemented, legacy Python todolist-app startup
     // must be stripped to avoid port-5002 conflicts.
-    if (implementedBinaries.includes("todolist")) {
+    if (binaries.includes("todolist")) {
       let inTodolistBlock = false;
       filtered = filtered.filter((line) => {
         const l = line.trim();
@@ -634,7 +560,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     // When implemented binaries include 'doc-search', strip Python sqlite bootstrap
     // because the Bun binary handles DB initialization via initDatabase().
     // The Python bootstrap would delete/recreate the DB after Bun has opened it.
-    if (implementedBinaries.includes("doc-search")) {
+    if (binaries.includes("doc-search")) {
       let inSqliteBlock = false;
       filtered = filtered.filter((line) => {
         const l = line.trim();
@@ -663,85 +589,12 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       lines.push(stripped);
       lines.push("");
     }
-  } else if (hasStubBinaries && implementedBinaries.length === 0) {
-    // Tasks with ONLY stub binaries (no implemented ones) and no startup_extra:
-    // start the real Python/Node services from the task's startup.sh instead.
-    // Run via bash since startup.sh files use Bash-specific features.
-    lines.push("# Legacy app fallback — stub binaries, run real services via bash");
-    lines.push("if [ -f /workspace/environment/startup.sh ]; then");
-    lines.push("  bash /workspace/environment/startup.sh");
-    lines.push("fi");
-    lines.push("");
-  } else if (hasStubBinaries && implementedBinaries.length > 0 && !startupExtra) {
-    // Mixed tasks: some binaries are implemented (Bun), others are stubs (legacy Python).
-    // No startup_extra provided, so load the task's default startup.sh and filter
-    // out blocks for implemented services to avoid port conflicts.
-    const taskStartupPath = join(
-      import.meta.dir, "..", "..", "tasks", task, "environment", "startup.sh"
-    );
-    let taskStartup: string | undefined;
-    if (existsSync(taskStartupPath)) {
-      taskStartup = readFileSync(taskStartupPath, "utf-8");
-    }
-    if (taskStartup) {
-      let filtered = taskStartup
-        .split("\n")
-        .filter((line) => !line.startsWith("#!") && line.trim() !== "set -euo pipefail");
-
-      // Apply the same block filters as startup_extra path
-      if (implementedBinaries.includes("airline")) {
-        let inAirlineBlock = false;
-        filtered = filtered.filter((line) => {
-          const l = line.trim();
-          if (l.match(/^#\s*Start\s+airline-app/i)) {
-            inAirlineBlock = true;
-            return false;
-          }
-          if (inAirlineBlock && l.match(/^#\s*Start\s+/i)) {
-            inAirlineBlock = false;
-            return true;
-          }
-          if (inAirlineBlock) return false;
-          return true;
-        });
-      }
-      if (implementedBinaries.includes("shop")) {
-        let inShopBlock = false;
-        filtered = filtered.filter((line) => {
-          const l = line.trim();
-          if (l.match(/^#\s*Start\s+shop-app/i)) {
-            inShopBlock = true;
-            return false;
-          }
-          if (inShopBlock && l.match(/^#\s*Start\s+/i)) {
-            inShopBlock = false;
-            return true;
-          }
-          if (inShopBlock) return false;
-          return true;
-        });
-      }
-
-      const stripped = filtered.join("\n").trimEnd();
-      if (stripped) {
-        lines.push("# Filtered legacy startup (stub services only, implemented services stripped)");
-        lines.push(stripped);
-        lines.push("");
-      }
-    }
   }
 
   // Step 3: Final wait for all services to be ready
-  if (implementedBinaries.length > 0 || startupExtra || hasStubBinaries) {
+  if (binaries.length > 0 || startupExtra) {
     lines.push("# Wait for all services to be ready");
-    // Probe stub service ports (email: 5001/5174, todolist: 5002/3000)
-    if (hasStubBinaries) {
-      lines.push("# Probe legacy service ports until they accept connections");
-      lines.push("wait_http \"http://localhost:5001/api/health\" 20");
-      lines.push("wait_http \"http://localhost:5174/\" 20");
-    } else {
-      lines.push("sleep 2");
-    }
+    lines.push("sleep 2");
     lines.push("");
   }
 
@@ -754,7 +607,6 @@ async function buildTaskImage(
   dryRun: boolean,
   startupExtraPath?: string,
   assets?: AssetMapping[],
-  frontend?: FrontendConfig,
   frontends?: FrontendConfig[],
 ): Promise<BuildTaskImageResult> {
   const imageTag = `liveclawbench-${task}-base:latest`;
@@ -851,9 +703,8 @@ async function buildTaskImage(
 
   const startupContent = generateStartupScript(task, binaries, startupExtraContent);
 
-  // Normalize frontends: merge optional single `frontend` with `frontends` array
+  // Collect frontend build configurations
   const allFrontends: FrontendConfig[] = [];
-  if (frontend) allFrontends.push(frontend);
   if (frontends) allFrontends.push(...frontends);
 
   // Build frontend SPAs on host if configured
@@ -1215,7 +1066,7 @@ async function main() {
   const results: BuildTaskImageResult[] = [];
   for (const [task, config] of Object.entries(mapping.tasks)) {
     process.stdout.write(`Building ${task} (${config.binaries.length} binaries)... `);
-    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontend, config.frontends);
+    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontends);
     results.push(result);
 
     if (result.success) {

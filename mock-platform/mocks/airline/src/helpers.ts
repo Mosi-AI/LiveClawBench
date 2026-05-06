@@ -1,5 +1,8 @@
 import type { Database } from "bun:sqlite";
 import type { ApiResponse, PaginatedResult } from "./types";
+import { formatDateTime } from "mock-lib";
+
+export { formatDateTime };
 
 export const DEFAULT_USER_ID = 1;
 
@@ -25,10 +28,6 @@ export function paginate<T>(
     per_page: perPage,
     pages: Math.ceil(total / perPage),
   };
-}
-
-export function formatDateTime(d: Date): string {
-  return d.toISOString().replace("T", " ").slice(0, 19);
 }
 
 export function parsePageParams(

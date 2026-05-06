@@ -14,7 +14,7 @@ function emailToDict(row: Record<string, unknown>, attachments: Record<string, u
     subject: row.subject,
     body: row.body,
     folder: row.folder,
-    is_read: row.is_read,
+    is_read: Boolean(row.is_read),
     created_at: row.created_at,
     updated_at: row.updated_at,
     attachments,
@@ -135,12 +135,10 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
 
     const folder = sendNow ? "sent" : "drafts";
 
-    db.query(
+    const { lastInsertRowid: emailId } = db.query(
       `INSERT INTO emails (sender_id, recipient_id, recipient_email, subject, body, folder, is_read, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now'), datetime('now'))`
     ).run(userId, recipient?.id ?? null, recipientEmail, subject, emailBody, folder);
-
-    const emailId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
 
     // Link attachments
     for (const attId of attachmentIds) {
@@ -150,12 +148,12 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
     // If sending now and recipient exists, create inbox copy
     let recipientEmailId: number | null = null;
     if (sendNow && recipient) {
-      db.query(
+      const { lastInsertRowid: recipientInboxId } = db.query(
         `INSERT INTO emails (sender_id, recipient_id, recipient_email, subject, body, folder, is_read, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, 'inbox', 0, datetime('now'), datetime('now'))`
       ).run(userId, recipient.id, recipientEmail, subject, emailBody);
 
-      recipientEmailId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+      recipientEmailId = Number(recipientInboxId);
 
       // Duplicate attachments for recipient's copy
       for (const attId of attachmentIds) {
@@ -299,7 +297,7 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
 
     // Create recipient inbox copy if recipient is internal user
     if (email.recipient_id) {
-      db.query(
+      const { lastInsertRowid: recipientEmailId } = db.query(
         `INSERT INTO emails (sender_id, recipient_id, recipient_email, subject, body, folder, is_read, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, 'inbox', 0, datetime('now'), datetime('now'))`
       ).run(
@@ -309,8 +307,6 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
         String(email.subject),
         String(email.body),
       );
-
-      const recipientEmailId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
 
       // Duplicate attachments
       for (const att of attachments) {

@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { sign } from "mock-lib";
+import { sign, verify } from "mock-lib";
 import { err, getUserById, verifyWerkzeugHash, generateWerkzeugHashSync } from "../helpers";
 
 export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
@@ -28,13 +28,12 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const passwordHash = generateWerkzeugHashSync(password);
-    db.query(
+    const { lastInsertRowid: userId } = db.query(
       "INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, datetime('now'))"
     ).run(username, email, passwordHash);
 
-    const row = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
-    const user = getUserById(db, row.id);
-    const accessToken = await sign({ userId: row.id });
+    const user = getUserById(db, Number(userId));
+    const accessToken = await sign({ userId: Number(userId) });
 
     return c.json({ message: "User registered successfully", user, access_token: accessToken }, 201);
   });
@@ -82,7 +81,6 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const token = authHeader.slice(7);
-    const { verify } = await import("mock-lib");
     const payload = await verify(token);
     if (!payload?.userId) {
       return c.json(err("Invalid or expired token"), 401);

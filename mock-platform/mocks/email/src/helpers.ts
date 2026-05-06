@@ -1,4 +1,8 @@
 import type { Database } from "bun:sqlite";
+import { verify } from "mock-lib";
+import { formatDateTime } from "mock-lib";
+
+export { formatDateTime };
 
 export const DEFAULT_USER_ID = 1;
 
@@ -16,10 +20,6 @@ export function err(message: string): { error: string } {
   return { error: message };
 }
 
-export function formatDateTime(d: Date): string {
-  return d.toISOString().replace("T", " ").slice(0, 19);
-}
-
 export function getUserById(db: Database, userId: number) {
   return db
     .query("SELECT id, username, email, created_at FROM users WHERE id = ?")
@@ -32,7 +32,6 @@ export async function getAuthUserId(c: any): Promise<number | null> {
 
   const token = authHeader.slice(7);
   try {
-    const { verify } = await import("mock-lib");
     const payload = await verify(token);
     if (payload?.userId) return payload.userId as number;
   } catch {
@@ -84,42 +83,6 @@ export async function verifyWerkzeugHash(hash: string, password: string): Promis
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
   return derivedHash === storedHash;
-}
-
-/**
- * Generate a Werkzeug-compatible pbkdf2:sha256 hash (async).
- * Used for seeding the peter user with a known hash format.
- */
-export async function generateWerkzeugHash(password: string, iterations = 600000): Promise<string> {
-  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
-  const saltHex = Array.from(saltBytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-
-  const passwordBytes = new TextEncoder().encode(password);
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    passwordBytes,
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits"],
-  );
-
-  const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt: new TextEncoder().encode(saltHex),
-      iterations,
-      hash: "SHA-256",
-    },
-    keyMaterial,
-    256,
-  );
-
-  const hashHex = Array.from(new Uint8Array(derivedBits))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return `pbkdf2:sha256:${iterations}$${saltHex}$${hashHex}`;
 }
 
 import { pbkdf2Sync } from "node:crypto";

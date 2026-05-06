@@ -251,7 +251,7 @@ describe("email mock", () => {
     });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.email.is_read).toBe(1);
+    expect(body.email.is_read).toBe(true);
   });
 
   // --- Attachments ---

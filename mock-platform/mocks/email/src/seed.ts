@@ -565,11 +565,11 @@ export function seedDatabase(db: Database): void {
   let peterRow = db.query("SELECT id FROM users WHERE username = ?").get("peter") as { id: number } | null;
   if (!peterRow) {
     const peterHash = generateWerkzeugHashSync("password123");
-    db.query(
+    const { lastInsertRowid: peterId } = db.query(
       `INSERT INTO users (username, email, password_hash, created_at)
        VALUES (?, ?, ?, datetime('now'))`
     ).run("peter", "peter.griffin@email.app", peterHash);
-    peterRow = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
+    peterRow = { id: Number(peterId) };
   }
   const peterId = peterRow.id;
 
@@ -579,11 +579,11 @@ export function seedDatabase(db: Database): void {
     let senderRow = db.query("SELECT id FROM users WHERE username = ?").get(sender.username) as { id: number } | null;
     if (!senderRow) {
       const hash = generateWerkzeugHashSync("password123");
-      db.query(
+      const { lastInsertRowid: senderId } = db.query(
         `INSERT INTO users (username, email, password_hash, created_at)
          VALUES (?, ?, ?, datetime('now'))`
       ).run(sender.username, sender.email, hash);
-      senderRow = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
+      senderRow = { id: Number(senderId) };
     }
     senderIdByUsername.set(sender.username, senderRow.id);
   }

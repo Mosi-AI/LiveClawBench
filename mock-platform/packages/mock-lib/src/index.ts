@@ -30,5 +30,8 @@ export { createRoute } from "./openapi/types";
 export { ErrorResponseSchema, FactoryValidationSchema } from "./openapi/schemas";
 export { createOpenAPIMockApp } from "./openapi/create-app";
 
+// Formatting
+export { formatDateTime } from "./format";
+
 // CLI
 export { parseCliArgs, parseCliPort } from "./cli";

@@ -131,7 +131,7 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     try {
-      db.query(
+      const { lastInsertRowid: todoId } = db.query(
         `INSERT INTO todos (title, date, time, location, person, description)
          VALUES (?, ?, ?, ?, ?, ?)`
       ).run(
@@ -143,8 +143,7 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
         data.description != null ? String(data.description) : null,
       );
 
-      const todoId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
-      const row = db.query("SELECT * FROM todos WHERE id = ?").get(todoId) as Record<string, unknown>;
+      const row = db.query("SELECT * FROM todos WHERE id = ?").get(Number(todoId)) as Record<string, unknown>;
       return c.json(rowToTodo(row), 201);
     } catch (e) {
       return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
