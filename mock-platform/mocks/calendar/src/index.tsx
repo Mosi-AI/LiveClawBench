@@ -59,7 +59,7 @@ export function createCalendarApp(): MockAppV2 {
 function getUserFromCookie(db: Database, c: any): { id: number; first_name: string; last_name: string } | null {
   // Simple cookie-based session check
   const cookieHeader = c.req.header("cookie") || "";
-  const match = cookieHeader.match(/token=([^;]+)/);
+  const match = cookieHeader.match(/calendar_token=([^;]+)/);
   if (!match) return null;
   try {
     const parts = (match[1] || "").split(".");
@@ -119,7 +119,7 @@ function registerPageRoutes(app: any, db: Database): void {
     const payload = btoa(JSON.stringify({ userId: user.id, exp: Date.now() + 86400000 }));
     const token = `${header}.${payload}.sig`;
 
-    c.header("Set-Cookie", `token=${token}; HttpOnly; SameSite=Lax; Max-Age=86400; Path=/`);
+    c.header("Set-Cookie", `calendar_token=${token}; HttpOnly; SameSite=Lax; Max-Age=86400; Path=/`);
     return c.redirect("/");
   });
 
