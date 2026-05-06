@@ -123,3 +123,33 @@ export interface SystemConfig {
   created_at: string;
   updated_at: string;
 }
+
+export interface DashboardConfig {
+  id: number;
+  user_id: number;
+  date_range_start: string;
+  date_range_end: string;
+  formula_json: string;
+  department_weight_json: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PortfolioHolding {
+  id: number;
+  asset_class_code: string;
+  asset_name: string;
+  current_value: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PortfolioOrder {
+  id: number;
+  asset_class_code: string;
+  direction: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}

@@ -2,11 +2,13 @@
 
 const NAV_ITEMS = [
   { href: "/departments", label: "Departments" },
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/transactions", label: "Transactions" },
   { href: "/accounts", label: "Accounts" },
   { href: "/expenses/new", label: "Expenses" },
   { href: "/invoices/new", label: "Invoices" },
   { href: "/assets", label: "Assets" },
+  { href: "/portfolio", label: "Portfolio" },
 ];
 
 export function HomePage({ userId }: { userId?: number }) {

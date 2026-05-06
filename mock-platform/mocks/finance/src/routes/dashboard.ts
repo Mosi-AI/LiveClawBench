@@ -1,40 +1,117 @@
 import { createRoute } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { z } from "zod";
+import { DashboardConfigSchema } from "../schemas/dashboard";
+import { computeDashboardMetrics, parseAndValidateFormula } from "../db/queries/dashboard";
+
+function getEffectiveConfig(db: Database, userId: number) {
+  const userConfig = db
+    .query<{ id: number; user_id: number; date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string }, [number]>(
+      "SELECT * FROM dashboard_config WHERE user_id = ?"
+    )
+    .get(userId);
+  if (userConfig) return userConfig;
+
+  const admin = db
+    .query<{ id: number }, []>("SELECT id FROM user WHERE role = 'admin' ORDER BY id LIMIT 1")
+    .get();
+  if (admin) {
+    const adminConfig = db
+      .query<{ id: number; user_id: number; date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string }, [number]>(
+        "SELECT * FROM dashboard_config WHERE user_id = ?"
+      )
+      .get(admin.id);
+    if (adminConfig) return adminConfig;
+  }
+
+  return {
+    id: 0,
+    user_id: userId,
+    date_range_start: "2026-01-01",
+    date_range_end: "2026-12-31",
+    formula_json: "{}",
+    department_weight_json: "{}",
+  };
+}
 
 export function registerDashboardRoutes(app: OpenAPIApp, db: Database) {
-  const listRoute = createRoute({
+  const getRoute = createRoute({
     method: "get",
     path: "/api/dashboard",
-    summary: "List dashboard configs",
+    summary: "Get dashboard data",
     responses: {
-      200: { description: "List of dashboard configs" },
+      200: { description: "Dashboard KPIs and trend data" },
     },
   });
 
-  app.openApiRoute(listRoute, (c) => {
-    const rows = db.query("SELECT * FROM dashboard_config").all();
-    return c.json({ data: rows });
+  app.openApiRoute(getRoute, (c) => {
+    const userId = c.var.userId as number;
+    const config = getEffectiveConfig(db, userId);
+    const metrics = computeDashboardMetrics(db, config);
+    return c.json({
+      config: {
+        date_range_start: config.date_range_start,
+        date_range_end: config.date_range_end,
+        formula_json: config.formula_json,
+        department_weight_json: config.department_weight_json,
+      },
+      kpis: metrics.kpis,
+      monthly: metrics.monthly,
+    });
   }, { auth: "required" });
 
-  const detailRoute = createRoute({
-    method: "get",
-    path: "/api/dashboard/{id}",
-    summary: "Get dashboard config detail",
+  const postRoute = createRoute({
+    method: "post",
+    path: "/api/dashboard/config",
+    summary: "Update dashboard config",
     request: {
-      params: z.object({ id: z.string() }),
+      body: {
+        content: {
+          "application/json": { schema: DashboardConfigSchema },
+        },
+      },
     },
     responses: {
-      200: { description: "Dashboard config detail" },
-      404: { description: "Not found" },
+      200: { description: "Config updated" },
+      400: { description: "Invalid input" },
+      403: { description: "Forbidden" },
     },
   });
 
-  app.openApiRoute(detailRoute, (c) => {
-    const id = Number(c.req.param("id"));
-    const row = db.query("SELECT * FROM dashboard_config WHERE id = ?").get(id);
-    if (!row) return c.json({ error: "Not found" }, 404);
-    return c.json(row);
+  app.openApiRoute(postRoute, async (c) => {
+    const userId = c.var.userId as number;
+    const user = db.query<{ role: string }, [number]>("SELECT role FROM user WHERE id = ?").get(userId);
+    if (!user || user.role !== "admin") {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    const body = await c.req.json();
+    const parse = DashboardConfigSchema.safeParse(body);
+    if (!parse.success) {
+      return c.json({ error: "Invalid input", details: parse.error.format() }, 400);
+    }
+    const { date_range_start, date_range_end, formula_json, department_weight_json } = parse.data;
+
+    if (date_range_start > date_range_end) {
+      return c.json({ error: "Invalid date range" }, 400);
+    }
+
+    const formulaCheck = parseAndValidateFormula(formula_json);
+    if (formulaCheck.error) {
+      return c.json({ error: formulaCheck.error }, 400);
+    }
+
+    db.run(
+      `INSERT INTO dashboard_config (user_id, date_range_start, date_range_end, formula_json, department_weight_json)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(user_id) DO UPDATE SET
+         date_range_start = excluded.date_range_start,
+         date_range_end = excluded.date_range_end,
+         formula_json = excluded.formula_json,
+         department_weight_json = excluded.department_weight_json`,
+      [userId, date_range_start, date_range_end, formula_json, department_weight_json]
+    );
+
+    return c.json({ success: true });
   }, { auth: "required" });
 }

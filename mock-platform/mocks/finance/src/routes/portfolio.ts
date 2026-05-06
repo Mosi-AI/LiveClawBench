@@ -1,67 +1,78 @@
 import { createRoute } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { z } from "zod";
+import { CreateOrderSchema } from "../schemas/portfolio";
 
 export function registerPortfolioRoutes(app: OpenAPIApp, db: Database) {
-  const holdingsRoute = createRoute({
+  const getRoute = createRoute({
     method: "get",
-    path: "/api/portfolio/holdings",
-    summary: "List portfolio holdings",
+    path: "/api/portfolio",
+    summary: "Get portfolio holdings",
     responses: {
-      200: { description: "List of portfolio holdings" },
+      200: { description: "Portfolio holdings with total value" },
     },
   });
 
-  app.openApiRoute(holdingsRoute, (c) => {
-    const rows = db.query("SELECT * FROM portfolio_holding").all();
-    return c.json({ data: rows });
+  app.openApiRoute(getRoute, (c) => {
+    const rows = db
+      .query("SELECT * FROM portfolio_holding ORDER BY asset_class_code")
+      .all() as Array<{ asset_class_code: string; asset_name: string; current_value: number }>;
+    const total_value = rows.reduce((sum, r) => sum + (r.current_value ?? 0), 0);
+    return c.json({ holdings: rows, total_value });
   }, { auth: "required" });
 
-  const ordersRoute = createRoute({
-    method: "get",
-    path: "/api/portfolio/orders",
-    summary: "List portfolio orders",
-    responses: {
-      200: { description: "List of portfolio orders" },
-    },
-  });
-
-  app.openApiRoute(ordersRoute, (c) => {
-    const rows = db.query("SELECT * FROM portfolio_order").all();
-    return c.json({ data: rows });
-  }, { auth: "required" });
-
-  const createOrderRoute = createRoute({
+  const postRoute = createRoute({
     method: "post",
     path: "/api/portfolio/orders",
     summary: "Create portfolio order",
     request: {
       body: {
         content: {
-          "application/json": {
-            schema: z.object({
-              asset_class_code: z.string(),
-              direction: z.string(),
-              amount: z.number(),
-            }),
-          },
+          "application/json": { schema: CreateOrderSchema },
         },
       },
     },
     responses: {
-      201: { description: "Order created" },
+      201: { description: "Order created and holding updated" },
+      400: { description: "Invalid request" },
     },
   });
 
-  app.openApiRoute(createOrderRoute, async (c) => {
+  app.openApiRoute(postRoute, async (c) => {
     const body = await c.req.json();
-    db.run(
-      `INSERT INTO portfolio_order (asset_class_code, direction, amount, status)
-       VALUES (?, ?, ?, ?)`,
-      [body.asset_class_code, body.direction, body.amount, "submitted"]
-    );
-    const row = db.query("SELECT * FROM portfolio_order ORDER BY id DESC LIMIT 1").get();
-    return c.json(row, 201);
+    const parse = CreateOrderSchema.safeParse(body);
+    if (!parse.success) {
+      return c.json({ error: "Invalid input", details: parse.error.format() }, 400);
+    }
+    const { asset_class_code, direction, amount } = parse.data;
+
+    const holding = db
+      .query<{ current_value: number }, [string]>(
+        "SELECT current_value FROM portfolio_holding WHERE asset_class_code = ?"
+      )
+      .get(asset_class_code);
+    if (!holding) {
+      return c.json({ error: "Holding not found" }, 400);
+    }
+    if (direction === "sell" && amount > holding.current_value) {
+      return c.json({ error: "Sell amount exceeds holding value" }, 400);
+    }
+
+    const tx = db.transaction(() => {
+      db.run(
+        `INSERT INTO portfolio_order (asset_class_code, direction, amount, status)
+         VALUES (?, ?, ?, ?)`,
+        [asset_class_code, direction, amount, "executed"]
+      );
+      const delta = direction === "buy" ? amount : -amount;
+      db.run(
+        `UPDATE portfolio_holding SET current_value = current_value + ? WHERE asset_class_code = ?`,
+        [delta, asset_class_code]
+      );
+    });
+    tx();
+
+    const order = db.query("SELECT * FROM portfolio_order ORDER BY id DESC LIMIT 1").get();
+    return c.json(order, 201);
   }, { auth: "required" });
 }
