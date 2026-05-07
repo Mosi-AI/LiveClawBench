@@ -13,7 +13,9 @@ export function registerUserRoutes(app: OpenAPIApp, db: Database): void {
       return c.json({ users: [] });
     }
 
-    const pattern = `%${query}%`;
+    // Escape LIKE wildcards (% _ \) so the user's literal query is matched
+    const escaped = query.replace(/[\\%_]/g, "\\$&");
+    const pattern = `%${escaped}%`;
     const rows = db.query(
       `SELECT id, username, email, created_at FROM users
        WHERE username LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\'

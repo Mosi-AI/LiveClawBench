@@ -37,7 +37,8 @@ function getNextSunday(): string {
   const today = new Date();
   // Python weekday(): 0=Mon, 6=Sun
   const pyWeekday = (today.getDay() + 6) % 7;
-  const daysUntilSunday = 6 - pyWeekday;
+  let daysUntilSunday = 6 - pyWeekday;
+  if (daysUntilSunday === 0) daysUntilSunday = 7;
   const sunday = new Date(today);
   sunday.setDate(today.getDate() + daysUntilSunday);
   return sunday.toISOString().slice(0, 10);

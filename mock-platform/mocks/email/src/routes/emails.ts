@@ -269,7 +269,11 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
     if (email.recipient_id !== userId) return c.json(err("Access denied"), 403);
 
     const body = (await c.req.json()) as Record<string, unknown>;
-    const isRead = body.is_read !== false ? 1 : 0;
+    const isReadRaw = body.is_read;
+    if (isReadRaw !== true && isReadRaw !== false) {
+      return c.json(err("is_read must be a boolean"), 400);
+    }
+    const isRead = isReadRaw === true ? 1 : 0;
 
     db.query("UPDATE emails SET is_read = ?, updated_at = datetime('now') WHERE id = ?").run(isRead, emailId);
 

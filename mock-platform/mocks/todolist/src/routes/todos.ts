@@ -1,6 +1,9 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 
+// NOTE: Intentionally no auth middleware — matches original Flask
+// implementation. All CRUD endpoints are open in this mock.
+
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const MONTH_PATTERN = /^\d{4}-\d{2}$/;
 const TIME_PATTERN = /^\d{2}:\d{2}$/;

@@ -1,4 +1,6 @@
 import type { Database } from "bun:sqlite";
+import type { Context } from "hono";
+import type { AppEnv } from "mock-lib";
 import { verify } from "mock-lib";
 import { formatDateTime } from "mock-lib";
 
@@ -26,7 +28,7 @@ export function getUserById(db: Database, userId: number) {
     .get(userId) as { id: number; username: string; email: string; created_at: string } | null;
 }
 
-export async function getAuthUserId(c: any): Promise<number | null> {
+export async function getAuthUserId(c: Context<AppEnv>): Promise<number | null> {
   const authHeader = c.req.header("Authorization");
   if (!authHeader?.startsWith("Bearer ")) return null;
 
