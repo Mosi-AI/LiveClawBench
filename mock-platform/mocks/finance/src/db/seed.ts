@@ -61,25 +61,31 @@ export function seed(db: Database): void {
   );
 
   // Transaction records
-  const txnData: [string, string, number, string, string, string][] = [
-    ["2026-01-05", "Acme Corp", 12500.5, "software", "pending", "pending"],
-    ["2026-01-10", "Globex", 52000.0, "travel", "pending", "pending"],
-    ["2026-01-12", "Initech", 3400.0, "office_supplies", "pending", "pending"],
-    ["2026-01-15", "Hooli", 78000.0, "marketing", "pending", "pending"],
-    ["2026-01-18", "Massive Dynamic", 2100.0, "utilities", "pending", "pending"],
-    ["2026-02-01", "Stark Ind", 15000.0, "professional_services", "flagged", "pending"],
-    ["2026-02-05", "Wayne Ent", 9000.0, "meals", "pending", "pending"],
-    ["2026-02-08", "Cyberdyne", 67000.0, "transport", "pending", "pending"],
-    ["2026-02-10", "Umbrella", 4500.0, "software", "pending", "pending"],
-    ["2026-02-14", "Oscorp", 32000.0, "travel", "pending", "pending"],
-  ];
-  for (const [date, vendor, amount, category, status, approvalStatus] of txnData) {
-    db.run(
-      `INSERT OR IGNORE INTO transaction_record
-        (trade_date, vendor_name, amount, category, status, approval_status, approval_note)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [date, vendor, round2(amount), category, status, approvalStatus, ""]
-    );
+  if (
+    db
+      .query<{ count: number }, []>("SELECT COUNT(*) AS count FROM transaction_record")
+      .get()!.count === 0
+  ) {
+    const txnData: [string, string, number, string, string, string][] = [
+      ["2026-01-05", "Acme Corp", 12500.5, "software", "pending", "pending"],
+      ["2026-01-10", "Globex", 52000.0, "travel", "pending", "pending"],
+      ["2026-01-12", "Initech", 3400.0, "office_supplies", "pending", "pending"],
+      ["2026-01-15", "Hooli", 78000.0, "marketing", "pending", "pending"],
+      ["2026-01-18", "Massive Dynamic", 2100.0, "utilities", "pending", "pending"],
+      ["2026-02-01", "Stark Ind", 15000.0, "professional_services", "flagged", "pending"],
+      ["2026-02-05", "Wayne Ent", 9000.0, "meals", "pending", "pending"],
+      ["2026-02-08", "Cyberdyne", 67000.0, "transport", "pending", "pending"],
+      ["2026-02-10", "Umbrella", 4500.0, "software", "pending", "pending"],
+      ["2026-02-14", "Oscorp", 32000.0, "travel", "pending", "pending"],
+    ];
+    for (const [date, vendor, amount, category, status, approvalStatus] of txnData) {
+      db.run(
+        `INSERT INTO transaction_record
+          (trade_date, vendor_name, amount, category, status, approval_status, approval_note)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [date, vendor, round2(amount), category, status, approvalStatus, ""]
+      );
+    }
   }
 
   // Account balances
@@ -189,19 +195,25 @@ export function seed(db: Database): void {
   }
 
   // Asset records
-  const assets: [string, number, number, number, string, number][] = [
-    ["Server Rack A", 50000.0, 5000.0, 5, "straight_line", 9000.0],
-    ["Laptop Fleet", 80000.0, 8000.0, 4, "straight_line", 18000.0],
-    ["Office Furniture", 30000.0, 3000.0, 10, "straight_line", 2700.0],
-    ["Company Vehicle", 60000.0, 10000.0, 6, "declining_balance", 10000.0],
-    ["Network Equipment", 25000.0, 2500.0, 5, "straight_line", 4500.0],
-  ];
-  for (const [name, cost, residual, life, method, annual] of assets) {
-    db.run(
-      `INSERT OR IGNORE INTO asset_record
-        (asset_name, cost_basis, residual_value, useful_life_years, depreciation_method, annual_depreciation)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [name, round2(cost), round2(residual), life, method, round2(annual)]
-    );
+  if (
+    db
+      .query<{ count: number }, []>("SELECT COUNT(*) AS count FROM asset_record")
+      .get()!.count === 0
+  ) {
+    const assets: [string, number, number, number, string, number][] = [
+      ["Server Rack A", 50000.0, 5000.0, 5, "straight_line", 9000.0],
+      ["Laptop Fleet", 80000.0, 8000.0, 4, "straight_line", 18000.0],
+      ["Office Furniture", 30000.0, 3000.0, 10, "straight_line", 2700.0],
+      ["Company Vehicle", 60000.0, 10000.0, 6, "declining_balance", 10000.0],
+      ["Network Equipment", 25000.0, 2500.0, 5, "straight_line", 4500.0],
+    ];
+    for (const [name, cost, residual, life, method, annual] of assets) {
+      db.run(
+        `INSERT INTO asset_record
+          (asset_name, cost_basis, residual_value, useful_life_years, depreciation_method, annual_depreciation)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [name, round2(cost), round2(residual), life, method, round2(annual)]
+      );
+    }
   }
 }
