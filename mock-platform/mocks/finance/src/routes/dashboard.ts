@@ -12,7 +12,8 @@ function isValidWeights(value: unknown): value is Record<string, number> {
   return true;
 }
 
-function isValidConfig(row: { formula_json: string; department_weight_json: string }): boolean {
+function isValidConfig(row: { date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string }): boolean {
+  if (row.date_range_start > row.date_range_end) return false;
   const formulaCheck = parseAndValidateFormula(row.formula_json);
   if (formulaCheck.error) return false;
   try {
