@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Verify health-insurance-optimization task:
-   1. Check if a $250 reimbursement claim was submitted.
-   2. Check if Blood Test appointment was booked with correct snapshot.
-   3. Check if Diet Consultation appointment was booked with correct snapshot.
-   4. Check if two calendar events exist that match the booked appointment times
-      and have corresponding titles, and that they do not overlap.
+1. Check if a $250 reimbursement claim was submitted.
+2. Check if Blood Test appointment was booked with correct snapshot.
+3. Check if Diet Consultation appointment was booked with correct snapshot.
+4. Check if two calendar events exist that match the booked appointment times
+   and have corresponding titles, and that they do not overlap.
 """
 
 import sqlite3
@@ -57,12 +57,14 @@ def check_claim():
     )
 
     notes = (row["notes"] or "").lower()
-    if (row["total_amount"] == CLAIM_AMOUNT
-            and row["claim_type"] == "reimbursement"
-            and row["provider_name"] == "Metro Lab Services"
-            and row["check_item"] == "lab"
-            and row["service_date"] == "2026-05-10"
-            and "blood work follow-up" in notes):
+    if (
+        row["total_amount"] == CLAIM_AMOUNT
+        and row["claim_type"] == "reimbursement"
+        and row["provider_name"] == "Metro Lab Services"
+        and row["check_item"] == "lab"
+        and row["service_date"] == "2026-05-10"
+        and "blood work follow-up" in notes
+    ):
         print("PASS: Reimbursement claim submitted with correct details")
         return 0.25
 
@@ -119,7 +121,9 @@ def _check_appointment(service_name: str, expected_cost: int) -> float:
         print(f"PASS: {service_name} appointment booked with correct snapshot")
         return 0.25
 
-    print(f"PARTIAL: {service_name} booked but cost_snapshot={row['cost_snapshot']} (expected {expected_cost})")
+    print(
+        f"PARTIAL: {service_name} booked but cost_snapshot={row['cost_snapshot']} (expected {expected_cost})"
+    )
     return 0.0
 
 
@@ -186,15 +190,25 @@ def check_calendar_events():
     for name, times in expected.items():
         for evt in cal_events:
             title_lower = (evt["title"] or "").lower()
-            if name.lower() in title_lower and evt["start_time"] == times["start"] and evt["end_time"] == times["end"]:
+            if (
+                name.lower() in title_lower
+                and evt["start_time"] == times["start"]
+                and evt["end_time"] == times["end"]
+            ):
                 matched_events.append(evt)
-                print(f"Calendar match: '{evt['title']}' at {evt['start_time']} - {evt['end_time']} == {name}")
+                print(
+                    f"Calendar match: '{evt['title']}' at {evt['start_time']} - {evt['end_time']} == {name}"
+                )
                 break
 
     if len(matched_events) < 2:
-        print(f"FAIL: Only {len(matched_events)}/2 calendar events match the booked appointment times")
+        print(
+            f"FAIL: Only {len(matched_events)}/2 calendar events match the booked appointment times"
+        )
         print(f"Expected: {expected}")
-        print(f"Found: {[(e['title'], e['start_time'], e['end_time']) for e in cal_events]}")
+        print(
+            f"Found: {[(e['title'], e['start_time'], e['end_time']) for e in cal_events]}"
+        )
         return 0.0
 
     # Verify the two matched events don't overlap

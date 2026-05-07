@@ -4,7 +4,9 @@ from app.models import BaseModel, db
 class BaggageTracking(BaseModel):
     __tablename__ = "baggage_tracking"
 
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=False, index=True
+    )
     booking_id = db.Column(db.Integer, db.ForeignKey("bookings.id"))
     flight_number = db.Column(db.String(10), nullable=False)
     flight_time = db.Column(db.DateTime, nullable=False)
@@ -17,8 +19,12 @@ class BaggageTracking(BaseModel):
     status = db.Column(db.String(20), default="processing", index=True)
     location = db.Column(db.String(200))
 
-    user = db.relationship("User", backref=db.backref("baggage_reports", lazy="dynamic"))
-    booking = db.relationship("Booking", backref=db.backref("baggage_reports", lazy="dynamic"))
+    user = db.relationship(
+        "User", backref=db.backref("baggage_reports", lazy="dynamic")
+    )
+    booking = db.relationship(
+        "Booking", backref=db.backref("baggage_reports", lazy="dynamic")
+    )
 
     def to_dict(self):
         return {

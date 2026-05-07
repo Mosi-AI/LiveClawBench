@@ -8,15 +8,16 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     const ref = c.req.param("booking_reference");
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
+    const bookingId = Number(booking.id);
 
     // Check payment completed
-    const payment = db.query("SELECT * FROM payments WHERE booking_id = ?").get(booking.id) as Record<string, unknown> | null;
+    const payment = db.query("SELECT * FROM payments WHERE booking_id = ?").get(bookingId) as Record<string, unknown> | null;
     if (!payment || payment.payment_status !== "completed") {
       return c.json(err("Payment must be completed before check-in"), 400);
     }
 
     // Check all passengers have seats
-    const unseated = db.query("SELECT COUNT(*) as count FROM passengers WHERE booking_id = ? AND seat_id IS NULL").get(booking.id) as { count: number };
+    const unseated = db.query("SELECT COUNT(*) as count FROM passengers WHERE booking_id = ? AND seat_id IS NULL").get(bookingId) as { count: number };
     if (unseated.count > 0) {
       // Check if there are no economy window seats available — mention upgrade fee
       const flightId = Number(booking.flight_id);
@@ -38,7 +39,7 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     // Check within 24h of departure
-    const flight = db.query("SELECT departure_time FROM flights WHERE id = ?").get(booking.flight_id) as { departure_time: string } | null;
+    const flight = db.query("SELECT departure_time FROM flights WHERE id = ?").get(booking.flight_id != null ? Number(booking.flight_id) : 0) as { departure_time: string } | null;
     if (flight) {
       const departure = new Date(flight.departure_time.replace(" ", "T"));
       const now = new Date();
@@ -51,9 +52,9 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
       }
     }
 
-    db.query("UPDATE bookings SET checked_in = 1, check_in_time = datetime('now'), updated_at = datetime('now') WHERE id = ?").run(booking.id);
+    db.query("UPDATE bookings SET checked_in = 1, check_in_time = datetime('now'), updated_at = datetime('now') WHERE id = ?").run(bookingId);
 
-    const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(booking.id) as Record<string, unknown>;
+    const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(bookingId) as Record<string, unknown>;
     return c.json(ok(updated, "Check-in successful"));
   });
 
@@ -62,17 +63,19 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     const ref = c.req.param("booking_reference");
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
+    const bookingId = Number(booking.id);
+    const flightId = booking.flight_id != null ? Number(booking.flight_id) : 0;
 
     if (!booking.checked_in) {
       return c.json(err("Must check in first"), 400);
     }
 
-    const flight = db.query("SELECT * FROM flights WHERE id = ?").get(booking.flight_id) as Record<string, unknown> | null;
+    const flight = db.query("SELECT * FROM flights WHERE id = ?").get(flightId) as Record<string, unknown> | null;
     const passengers = db.query(`
       SELECT p.*, s.seat_number FROM passengers p
       LEFT JOIN seats s ON p.seat_id = s.id
       WHERE p.booking_id = ?
-    `).all(booking.id) as Record<string, unknown>[];
+    `).all(bookingId) as Record<string, unknown>[];
 
     const boardingPasses = passengers.map((p) => ({
       passenger_name: `${p.first_name} ${p.last_name}`,

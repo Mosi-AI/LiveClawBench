@@ -6,7 +6,9 @@ from app.models import BaseModel, db
 class EmailNotification(BaseModel):
     __tablename__ = "email_notifications"
 
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=False, index=True
+    )
     booking_id = db.Column(db.Integer, db.ForeignKey("bookings.id"))
     email_type = db.Column(db.String(30), nullable=False, index=True)
     recipient_email = db.Column(db.String(120), nullable=False)
@@ -35,8 +37,16 @@ class EmailNotification(BaseModel):
 class CalendarEvent(BaseModel):
     __tablename__ = "calendar_events"
 
-    booking_id = db.Column(db.Integer, db.ForeignKey("bookings.id"), nullable=False, unique=True, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    booking_id = db.Column(
+        db.Integer,
+        db.ForeignKey("bookings.id"),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=False, index=True
+    )
     event_id = db.Column(db.String(100), unique=True, nullable=False)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
@@ -68,13 +78,17 @@ class CalendarEvent(BaseModel):
 class ChatSession(BaseModel):
     __tablename__ = "chat_sessions"
 
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=False, index=True
+    )
     session_id = db.Column(db.String(100), unique=True, nullable=False, index=True)
     status = db.Column(db.String(20), default="active", index=True)
     started_at = db.Column(db.DateTime, default=datetime.now)
     ended_at = db.Column(db.DateTime)
 
-    messages = db.relationship("ChatMessage", backref="session", lazy="dynamic", cascade="all, delete-orphan")
+    messages = db.relationship(
+        "ChatMessage", backref="session", lazy="dynamic", cascade="all, delete-orphan"
+    )
 
     def close(self):
         self.status = "closed"
@@ -89,7 +103,9 @@ class ChatSession(BaseModel):
             "status": self.status,
             "started_at": self.started_at.isoformat(),
             "ended_at": self.ended_at.isoformat() if self.ended_at else None,
-            "messages": [m.to_dict() for m in self.messages.order_by(ChatMessage.created_at)],
+            "messages": [
+                m.to_dict() for m in self.messages.order_by(ChatMessage.created_at)
+            ],
         }
 
     def __repr__(self):
@@ -99,7 +115,9 @@ class ChatSession(BaseModel):
 class ChatMessage(BaseModel):
     __tablename__ = "chat_messages"
 
-    session_id = db.Column(db.Integer, db.ForeignKey("chat_sessions.id"), nullable=False, index=True)
+    session_id = db.Column(
+        db.Integer, db.ForeignKey("chat_sessions.id"), nullable=False, index=True
+    )
     message = db.Column(db.Text, nullable=False)
     sender_type = db.Column(db.String(20), nullable=False)
     sender_name = db.Column(db.String(50))
@@ -122,7 +140,9 @@ class ChatMessage(BaseModel):
 class PriceHistory(BaseModel):
     __tablename__ = "price_history"
 
-    flight_id = db.Column(db.Integer, db.ForeignKey("flights.id"), nullable=False, index=True)
+    flight_id = db.Column(
+        db.Integer, db.ForeignKey("flights.id"), nullable=False, index=True
+    )
     cabin_class = db.Column(db.String(20), nullable=False)
     old_price = db.Column(db.Float, nullable=False)
     new_price = db.Column(db.Float, nullable=False)

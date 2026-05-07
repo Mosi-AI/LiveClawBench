@@ -15,9 +15,18 @@ class User(BaseModel):
     is_verified = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
 
-    bookings = db.relationship("Booking", backref="user", lazy="dynamic", cascade="all, delete-orphan")
-    email_notifications = db.relationship("EmailNotification", backref="user", lazy="dynamic", cascade="all, delete-orphan")
-    chat_sessions = db.relationship("ChatSession", backref="user", lazy="dynamic", cascade="all, delete-orphan")
+    bookings = db.relationship(
+        "Booking", backref="user", lazy="dynamic", cascade="all, delete-orphan"
+    )
+    email_notifications = db.relationship(
+        "EmailNotification",
+        backref="user",
+        lazy="dynamic",
+        cascade="all, delete-orphan",
+    )
+    chat_sessions = db.relationship(
+        "ChatSession", backref="user", lazy="dynamic", cascade="all, delete-orphan"
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -32,7 +41,9 @@ class User(BaseModel):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "phone": self.phone,
-            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None,
+            "date_of_birth": self.date_of_birth.isoformat()
+            if self.date_of_birth
+            else None,
             "is_verified": self.is_verified,
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat(),

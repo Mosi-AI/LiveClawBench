@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Verify insurance-deductible-selection task: check if Balanced Silver plan was selected
-   and the active policy was updated."""
+and the active policy was updated."""
 
 import sqlite3
 import sys
 
 DB_PATH = "/var/lib/mock-data/insurance/insurance.db"
+
 
 def check():
     try:
@@ -65,7 +66,10 @@ def check():
         f"year={row['year']}, deductible={row['deductible_snapshot']}, premium={row['premium_snapshot']}"
     )
 
-    if row["plan_code_snapshot"] == "B" and row["plan_name_snapshot"] == "Balanced Silver":
+    if (
+        row["plan_code_snapshot"] == "B"
+        and row["plan_name_snapshot"] == "Balanced Silver"
+    ):
         print("PASS: Balanced Silver plan selected and active policy updated")
         return 1.0
 

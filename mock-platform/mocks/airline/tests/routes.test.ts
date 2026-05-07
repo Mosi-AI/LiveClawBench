@@ -182,7 +182,7 @@ describe("airline routes", () => {
       }
 
       // Create a booking for this flight
-      const totalPrice = overrides.total_price ?? 300;
+      const totalPrice = Number(overrides.total_price ?? 300);
       const ref = `REFUND-${Date.now()}`;
       db.query(
         "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, 1, ?, 'economy', ?, 'confirmed', 0)"

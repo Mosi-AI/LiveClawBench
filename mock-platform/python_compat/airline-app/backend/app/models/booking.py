@@ -8,20 +8,36 @@ from app.models import BaseModel, db
 class Booking(BaseModel):
     __tablename__ = "bookings"
 
-    booking_reference = db.Column(db.String(10), unique=True, nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
-    flight_id = db.Column(db.Integer, db.ForeignKey("flights.id"), nullable=False, index=True)
+    booking_reference = db.Column(
+        db.String(10), unique=True, nullable=False, index=True
+    )
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=False, index=True
+    )
+    flight_id = db.Column(
+        db.Integer, db.ForeignKey("flights.id"), nullable=False, index=True
+    )
     cabin_class = db.Column(db.String(20), nullable=False)
     total_price = db.Column(db.Float, nullable=False)
-    booking_status = db.Column(db.String(20), nullable=False, default="pending", index=True)
+    booking_status = db.Column(
+        db.String(20), nullable=False, default="pending", index=True
+    )
     checked_in = db.Column(db.Boolean, default=False)
     check_in_time = db.Column(db.DateTime)
     booked_at = db.Column(db.DateTime, default=datetime.now)
 
-    passengers = db.relationship("Passenger", backref="booking", lazy="dynamic", cascade="all, delete-orphan")
-    payment = db.relationship("Payment", backref="booking", uselist=False, cascade="all, delete-orphan")
-    claims = db.relationship("Claim", backref="booking", lazy="dynamic", cascade="all, delete-orphan")
-    calendar_event = db.relationship("CalendarEvent", backref="booking", uselist=False, cascade="all, delete-orphan")
+    passengers = db.relationship(
+        "Passenger", backref="booking", lazy="dynamic", cascade="all, delete-orphan"
+    )
+    payment = db.relationship(
+        "Payment", backref="booking", uselist=False, cascade="all, delete-orphan"
+    )
+    claims = db.relationship(
+        "Claim", backref="booking", lazy="dynamic", cascade="all, delete-orphan"
+    )
+    calendar_event = db.relationship(
+        "CalendarEvent", backref="booking", uselist=False, cascade="all, delete-orphan"
+    )
 
     @staticmethod
     def generate_booking_reference():
@@ -34,7 +50,9 @@ class Booking(BaseModel):
         if self.checked_in:
             raise ValueError("Already checked in")
         flight = self.flight
-        hours_until_departure = (flight.departure_time - datetime.now()).total_seconds() / 3600
+        hours_until_departure = (
+            flight.departure_time - datetime.now()
+        ).total_seconds() / 3600
         if hours_until_departure > 24:
             raise ValueError("Check-in only available within 24 hours of departure")
         self.checked_in = True
@@ -62,7 +80,9 @@ class Booking(BaseModel):
             "total_price": self.total_price,
             "booking_status": self.booking_status,
             "checked_in": self.checked_in,
-            "check_in_time": self.check_in_time.isoformat() if self.check_in_time else None,
+            "check_in_time": self.check_in_time.isoformat()
+            if self.check_in_time
+            else None,
             "booked_at": self.booked_at.isoformat(),
             "passengers": [p.to_dict() for p in self.passengers],
             "payment": self.payment.to_dict() if self.payment else None,
@@ -75,7 +95,9 @@ class Booking(BaseModel):
 class Passenger(BaseModel):
     __tablename__ = "passengers"
 
-    booking_id = db.Column(db.Integer, db.ForeignKey("bookings.id"), nullable=False, index=True)
+    booking_id = db.Column(
+        db.Integer, db.ForeignKey("bookings.id"), nullable=False, index=True
+    )
     seat_id = db.Column(db.Integer, db.ForeignKey("seats.id"))
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
@@ -103,7 +125,9 @@ class Passenger(BaseModel):
             "seat": self.seat.to_dict() if self.seat else None,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None,
+            "date_of_birth": self.date_of_birth.isoformat()
+            if self.date_of_birth
+            else None,
             "nationality": self.nationality,
             "meal_preference": self.meal_preference,
             "special_assistance": self.special_assistance,
@@ -116,11 +140,19 @@ class Passenger(BaseModel):
 class Payment(BaseModel):
     __tablename__ = "payments"
 
-    booking_id = db.Column(db.Integer, db.ForeignKey("bookings.id"), nullable=False, unique=True, index=True)
+    booking_id = db.Column(
+        db.Integer,
+        db.ForeignKey("bookings.id"),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
     amount = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(3), default="USD")
     payment_method = db.Column(db.String(20), default="credit_card")
-    payment_status = db.Column(db.String(20), nullable=False, default="pending", index=True)
+    payment_status = db.Column(
+        db.String(20), nullable=False, default="pending", index=True
+    )
     card_last_four = db.Column(db.String(4))
     card_type = db.Column(db.String(20))
     card_holder_name = db.Column(db.String(100))
@@ -167,7 +199,9 @@ class Payment(BaseModel):
 class Claim(BaseModel):
     __tablename__ = "claims"
 
-    booking_id = db.Column(db.Integer, db.ForeignKey("bookings.id"), nullable=False, index=True)
+    booking_id = db.Column(
+        db.Integer, db.ForeignKey("bookings.id"), nullable=False, index=True
+    )
     claim_type = db.Column(db.String(20), nullable=False, index=True)
     claim_amount = db.Column(db.Float, nullable=False)
     claim_reason = db.Column(db.Text, nullable=False)
@@ -193,7 +227,9 @@ class Claim(BaseModel):
         return {
             "id": self.id,
             "booking_id": self.booking_id,
-            "booking_reference": self.booking.booking_reference if self.booking else None,
+            "booking_reference": self.booking.booking_reference
+            if self.booking
+            else None,
             "claim_type": self.claim_type,
             "claim_amount": self.claim_amount,
             "claim_reason": self.claim_reason,

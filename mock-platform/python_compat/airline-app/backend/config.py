@@ -10,7 +10,9 @@ class Config:
         os.path.abspath(os.path.dirname(__file__)), "instance", "airline.db"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or "jwt-secret-key-change-in-production"
+    JWT_SECRET_KEY = (
+        os.environ.get("JWT_SECRET_KEY") or "jwt-secret-key-change-in-production"
+    )
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
     CORS_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]

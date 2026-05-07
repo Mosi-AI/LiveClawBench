@@ -1,5 +1,6 @@
 import { initSchema } from "./db/schema";
-import { generateSeats, formatDateTime } from "./db/seat-generation";
+import { generateSeats } from "./db/seat-generation";
+import { formatDateTime } from "./helpers";
 import type { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import { generateBookingReference } from "./helpers";
@@ -528,12 +529,12 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
     `origin_code = 'JFK' AND destination_code = 'LAX' AND departure_time LIKE '${departureDate.toISOString().split("T")[0]}%'`,
   ];
   for (const filter of conflictingFilters) {
-    const conflictingFlightIds = db.query(`SELECT id FROM flights WHERE ${filter}`).all().map((r: Record<string, number>) => r.id);
+    const conflictingFlightIds = (db.query(`SELECT id FROM flights WHERE ${filter}`).all() as Record<string, number>[]).map((r) => r.id);
     if (conflictingFlightIds.length === 0) continue;
 
-    const conflictingBookingIds = db.query(
+    const conflictingBookingIds = (db.query(
       `SELECT id FROM bookings WHERE flight_id IN (${conflictingFlightIds.join(",")})`
-    ).all().map((r: Record<string, number>) => r.id);
+    ).all() as Record<string, number>[]).map((r) => r.id);
 
     if (conflictingBookingIds.length > 0) {
       const bookingList = conflictingBookingIds.join(",");
