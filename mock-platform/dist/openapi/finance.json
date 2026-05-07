@@ -355,12 +355,9 @@
         "parameters": [
           {
             "schema": {
-              "type": [
-                "number",
-                "null"
-              ]
+              "type": "number"
             },
-            "required": false,
+            "required": true,
             "name": "id",
             "in": "path"
           }
@@ -422,12 +419,9 @@
         "parameters": [
           {
             "schema": {
-              "type": [
-                "number",
-                "null"
-              ]
+              "type": "number"
             },
-            "required": false,
+            "required": true,
             "name": "id",
             "in": "path"
           }
@@ -522,12 +516,9 @@
         "parameters": [
           {
             "schema": {
-              "type": [
-                "number",
-                "null"
-              ]
+              "type": "number"
             },
-            "required": false,
+            "required": true,
             "name": "id",
             "in": "path"
           }
@@ -586,12 +577,9 @@
         "parameters": [
           {
             "schema": {
-              "type": [
-                "number",
-                "null"
-              ]
+              "type": "number"
             },
-            "required": false,
+            "required": true,
             "name": "id",
             "in": "path"
           }
@@ -749,12 +737,9 @@
         "parameters": [
           {
             "schema": {
-              "type": [
-                "number",
-                "null"
-              ]
+              "type": "number"
             },
-            "required": false,
+            "required": true,
             "name": "id",
             "in": "path"
           }
@@ -1041,12 +1026,9 @@
         "parameters": [
           {
             "schema": {
-              "type": [
-                "number",
-                "null"
-              ]
+              "type": "number"
             },
-            "required": false,
+            "required": true,
             "name": "id",
             "in": "path"
           }
@@ -1149,12 +1131,9 @@
         "parameters": [
           {
             "schema": {
-              "type": [
-                "number",
-                "null"
-              ]
+              "type": "number"
             },
-            "required": false,
+            "required": true,
             "name": "id",
             "in": "path"
           }
