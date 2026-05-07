@@ -357,8 +357,8 @@ def test_meal_plan():
     # Expected pattern: PLAN20260506083000-001 (based on benchmark_clock)
     import re
     if isinstance(plan_id, str):
-        # Pattern: PLAN + YYYYMMDDHHMMSS + - + 3-char suffix
-        expected_pattern = r"^PLAN\d{14}-[A-Z0]{3}$"
+        # Pattern: PLAN + YYYYMMDDHHMMSS + - + 3-char suffix (uppercase letters or digits)
+        expected_pattern = r"^PLAN\d{14}-[A-Z0-9]{3}$"
         if re.match(expected_pattern, plan_id):
             # Further verify timestamp matches benchmark_clock
             expected_timestamp = "20260506083000"  # From EXPECTED_BENCHMARK_TIME
@@ -371,7 +371,7 @@ def test_meal_plan():
                 print(f"       Got: {plan_id}")
         else:
             print(f"FAIL: plan_id does not follow expected deterministic pattern")
-            print(f"       Expected: PLAN{YYYYMMDDHHMMSS}-{XXX}")
+            print(f"       Expected: PLAN<YYYYMMDDHHMMSS>-<XXX>")
             print(f"       Got: {plan_id}")
     else:
         print(f"FAIL: plan_id is missing or not a valid string: {plan_id}")
