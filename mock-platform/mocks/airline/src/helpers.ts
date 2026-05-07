@@ -1,6 +1,11 @@
 import type { Database } from "bun:sqlite";
-import type { ApiResponse, PaginatedResult } from "./types";
 import { formatDateTime } from "mock-lib";
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+}
 
 export { formatDateTime };
 

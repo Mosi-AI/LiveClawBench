@@ -52,7 +52,9 @@ class Email(db.Model):
     folder = db.Column(db.String(50), default="inbox")
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
 
     attachments = db.relationship(
         "Attachment", backref="email", lazy="select", cascade="all, delete-orphan"
@@ -66,7 +68,9 @@ class Email(db.Model):
             "sender_name": self.sender.username if self.sender else None,
             "recipient_id": self.recipient_id,
             "recipient_email": self.recipient_email,
-            "recipient_name": self.recipient.username if self.recipient else self.recipient_email,
+            "recipient_name": self.recipient.username
+            if self.recipient
+            else self.recipient_email,
             "subject": self.subject,
             "body": self.body,
             "folder": self.folder,
@@ -81,7 +85,9 @@ class Attachment(db.Model):
     __tablename__ = "attachments"
 
     id = db.Column(db.Integer, primary_key=True)
-    email_id = db.Column(db.Integer, db.ForeignKey("emails.id", ondelete="CASCADE"), nullable=True)
+    email_id = db.Column(
+        db.Integer, db.ForeignKey("emails.id", ondelete="CASCADE"), nullable=True
+    )
     filename = db.Column(db.String(255), nullable=False)
     original_filename = db.Column(db.String(255), nullable=False)
     file_path = db.Column(db.String(500), nullable=False)

@@ -607,7 +607,7 @@ export function seedDatabase(db: Database): void {
       `INSERT INTO emails (sender_id, recipient_id, recipient_email, subject, body, folder, is_read, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, 'inbox', ?, ?, ?)`
     ).run(
-      senderId,
+      senderId!,
       peterId,
       "peter.griffin@email.app",
       inboxEmail.subject,

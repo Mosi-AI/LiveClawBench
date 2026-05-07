@@ -135,10 +135,12 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
 
     const folder = sendNow ? "sent" : "drafts";
 
-    const { lastInsertRowid: emailId } = db.query(
-      `INSERT INTO emails (sender_id, recipient_id, recipient_email, subject, body, folder, is_read, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now'), datetime('now'))`
-    ).run(userId, recipient?.id ?? null, recipientEmail, subject, emailBody, folder);
+    const emailId = Number(
+      db.query(
+        `INSERT INTO emails (sender_id, recipient_id, recipient_email, subject, body, folder, is_read, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, 0, datetime('now'), datetime('now'))`
+      ).run(userId, recipient?.id ?? null, recipientEmail, subject, emailBody, folder).lastInsertRowid
+    );
 
     // Link attachments
     for (const attId of attachmentIds) {
@@ -148,12 +150,14 @@ export function registerEmailRoutes(app: OpenAPIApp, db: Database): void {
     // If sending now and recipient exists, create inbox copy
     let recipientEmailId: number | null = null;
     if (sendNow && recipient) {
-      const { lastInsertRowid: recipientInboxId } = db.query(
-        `INSERT INTO emails (sender_id, recipient_id, recipient_email, subject, body, folder, is_read, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, 'inbox', 0, datetime('now'), datetime('now'))`
-      ).run(userId, recipient.id, recipientEmail, subject, emailBody);
+      const recipientInboxId = Number(
+        db.query(
+          `INSERT INTO emails (sender_id, recipient_id, recipient_email, subject, body, folder, is_read, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, 'inbox', 0, datetime('now'), datetime('now'))`
+        ).run(userId, recipient.id, recipientEmail, subject, emailBody).lastInsertRowid
+      );
 
-      recipientEmailId = Number(recipientInboxId);
+      recipientEmailId = recipientInboxId;
 
       // Duplicate attachments for recipient's copy
       for (const attId of attachmentIds) {

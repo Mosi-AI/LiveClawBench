@@ -10,7 +10,9 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
-SEED_META_PATH = Path(os.environ.get("SEED_META_PATH", "/var/lib/mock-data/seed-meta.json"))
+SEED_META_PATH = Path(
+    os.environ.get("SEED_META_PATH", "/var/lib/mock-data/seed-meta.json")
+)
 
 
 def load_seed_meta() -> dict | None:

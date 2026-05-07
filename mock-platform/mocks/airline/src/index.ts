@@ -73,7 +73,7 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
     registerFrontendFallback(app, frontendDir);
   }
 
-  return mockApp;
+  return { ...mockApp, db };
 }
 
 if (import.meta.main) {

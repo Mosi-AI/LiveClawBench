@@ -31,8 +31,8 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
-    const passengers = db.query("SELECT * FROM passengers WHERE booking_id = ?").all(booking.id) as Record<string, unknown>[];
-    const payment = db.query("SELECT * FROM payments WHERE booking_id = ?").get(booking.id) as Record<string, unknown> | null;
+    const passengers = db.query("SELECT * FROM passengers WHERE booking_id = ?").all(Number(booking.id)) as Record<string, unknown>[];
+    const payment = db.query("SELECT * FROM payments WHERE booking_id = ?").get(Number(booking.id)) as Record<string, unknown> | null;
 
     return c.json(ok({ ...booking, passengers, payment }));
   });
@@ -121,13 +121,13 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
 
     for (const assignment of assignments) {
       // Validate passenger belongs to booking
-      const passenger = db.query("SELECT * FROM passengers WHERE id = ? AND booking_id = ?").get(assignment.passenger_id, booking.id) as Record<string, unknown> | null;
+      const passenger = db.query("SELECT * FROM passengers WHERE id = ? AND booking_id = ?").get(assignment.passenger_id, Number(booking.id)) as Record<string, unknown> | null;
       if (!passenger) {
         return c.json(err(`Passenger ${assignment.passenger_id} not found in booking`), 404);
       }
 
       // Get seat on this flight
-      const seat = db.query("SELECT * FROM seats WHERE id = ? AND flight_id = ?").get(assignment.seat_id, booking.flight_id) as Record<string, unknown> | null;
+      const seat = db.query("SELECT * FROM seats WHERE id = ? AND flight_id = ?").get(assignment.seat_id, Number(booking.flight_id)) as Record<string, unknown> | null;
       if (!seat) {
         return c.json(err(`Seat ${assignment.seat_id} not found`), 404);
       }
@@ -138,7 +138,7 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
         if (isEconomyWindow) {
           const availableEconWindow = db.query(
             "SELECT COUNT(*) as count FROM seats WHERE flight_id = ? AND cabin_class = 'economy' AND is_window = 1 AND is_available = 1"
-          ).get(booking.flight_id) as { count: number };
+          ).get(Number(booking.flight_id)) as { count: number };
           if (availableEconWindow.count === 0) {
             return c.json(err(
               `Seat ${seat.seat_number} is not available. No economy window seats are available on this flight. ` +
@@ -151,12 +151,12 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
       }
 
       // Update passenger with seat
-      db.query("UPDATE passengers SET seat_id = ? WHERE id = ? AND booking_id = ?").run(assignment.seat_id, assignment.passenger_id, booking.id);
+      db.query("UPDATE passengers SET seat_id = ? WHERE id = ? AND booking_id = ?").run(assignment.seat_id, assignment.passenger_id, Number(booking.id));
       // Mark seat as unavailable
       db.query("UPDATE seats SET is_available = 0 WHERE id = ?").run(assignment.seat_id);
     }
 
-    const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(booking.id) as Record<string, unknown>;
+    const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(Number(booking.id)) as Record<string, unknown>;
     return c.json(ok(updated, "Seats assigned successfully"));
   });
 
@@ -167,11 +167,11 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     if (!booking) return c.json(err("Booking not found"), 404);
 
     // Release seats
-    db.query("UPDATE seats SET is_available = 1 WHERE id IN (SELECT seat_id FROM passengers WHERE booking_id = ? AND seat_id IS NOT NULL)").run(booking.id);
+    db.query("UPDATE seats SET is_available = 1 WHERE id IN (SELECT seat_id FROM passengers WHERE booking_id = ? AND seat_id IS NOT NULL)").run(Number(booking.id));
 
-    db.query("UPDATE bookings SET booking_status = 'cancelled', updated_at = datetime('now') WHERE id = ?").run(booking.id);
+    db.query("UPDATE bookings SET booking_status = 'cancelled', updated_at = datetime('now') WHERE id = ?").run(Number(booking.id));
 
-    const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(booking.id) as Record<string, unknown>;
+    const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(Number(booking.id)) as Record<string, unknown>;
     return c.json(ok(updated, "Booking cancelled successfully"));
   });
 }

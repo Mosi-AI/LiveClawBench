@@ -48,7 +48,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
 
     db.query(
       "INSERT INTO claims (booking_id, claim_type, claim_amount, claim_reason, claim_status) VALUES (?, ?, ?, ?, 'pending')"
-    ).run(booking.id, claimType, claimAmount, claimReason);
+    ).run(Number(booking.id), claimType, claimAmount, claimReason);
 
     const claimId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
     const claim = db.query("SELECT * FROM claims WHERE id = ?").get(claimId) as Record<string, unknown>;
@@ -90,7 +90,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
-    const flight = db.query("SELECT * FROM flights WHERE id = ?").get(booking.flight_id) as Record<string, unknown> | null;
+    const flight = db.query("SELECT * FROM flights WHERE id = ?").get(Number(booking.flight_id)) as Record<string, unknown> | null;
     const totalPrice = Number(booking.total_price);
     const delayMinutes = Number(flight?.delay_minutes ?? 0);
 

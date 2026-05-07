@@ -22,7 +22,6 @@ Usage:
 """
 
 import json
-import os
 import sys
 from pathlib import Path
 from statistics import mean
@@ -128,7 +127,10 @@ def validate_cohort(trials, required_model: str | None, required_timeout: float 
 
 def main():
     if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} <evidence_root> [required_model] [required_timeout_multiplier]", file=sys.stderr)
+        print(
+            f"Usage: {sys.argv[0]} <evidence_root> [required_model] [required_timeout_multiplier]",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     evidence_root = sys.argv[1]
@@ -179,8 +181,12 @@ def main():
     # Per-task summary
     print("## Per-Task Threshold Evaluation")
     print("")
-    print("| Task | B Count | M Count | B Mean | M Mean | B Max | M Max | Mean Delta | Max Delta | Mean Pass | Max Pass |")
-    print("|------|---------|---------|--------|--------|-------|-------|------------|-----------|-----------|----------|")
+    print(
+        "| Task | B Count | M Count | B Mean | M Mean | B Max | M Max | Mean Delta | Max Delta | Mean Pass | Max Pass |"
+    )
+    print(
+        "|------|---------|---------|--------|--------|-------|-------|------------|-----------|-----------|----------|"
+    )
 
     all_mean_pass = True
     all_max_pass = True
@@ -220,16 +226,26 @@ def main():
         )
 
     print("")
-    print(f"**Mean threshold pass (mean(Migrated) >= mean(Baseline) - 0.1):** {'ALL PASS' if all_mean_pass else 'PENDING/FAIL'}")
-    print(f"**Max threshold pass (max(Migrated) >= max(Baseline) - 0.5):** {'ALL PASS' if all_max_pass else 'PENDING/FAIL'}")
-    print(f"**Failed or incomplete tasks:** {', '.join(failed_tasks) if failed_tasks else 'None'}")
+    print(
+        f"**Mean threshold pass (mean(Migrated) >= mean(Baseline) - 0.1):** {'ALL PASS' if all_mean_pass else 'PENDING/FAIL'}"
+    )
+    print(
+        f"**Max threshold pass (max(Migrated) >= max(Baseline) - 0.5):** {'ALL PASS' if all_max_pass else 'PENDING/FAIL'}"
+    )
+    print(
+        f"**Failed or incomplete tasks:** {', '.join(failed_tasks) if failed_tasks else 'None'}"
+    )
     print("")
 
     # Cohort rule
     if len(failed_tasks) <= 1:
-        print(f"**Cohort rule (≤1 task may fail):** PASS ({len(failed_tasks)} task(s) failed/incomplete)")
+        print(
+            f"**Cohort rule (≤1 task may fail):** PASS ({len(failed_tasks)} task(s) failed/incomplete)"
+        )
     else:
-        print(f"**Cohort rule (≤1 task may fail):** FAIL ({len(failed_tasks)} tasks failed/incomplete)")
+        print(
+            f"**Cohort rule (≤1 task may fail):** FAIL ({len(failed_tasks)} tasks failed/incomplete)"
+        )
 
 
 if __name__ == "__main__":

@@ -6,7 +6,6 @@ and analyzes agent behavior to determine success/failure rates per task per mode
 
 import csv
 import json
-import sys
 from collections import defaultdict
 
 from datasets import load_dataset
@@ -183,11 +182,19 @@ def classify_flight_cancel_claim(traj: dict) -> float:
 
     lower = all_text.lower()
     # Success: agent sent claim email
-    if "email" in lower and ("claim" in lower or "compensation" in lower or "refund" in lower):
+    if "email" in lower and (
+        "claim" in lower or "compensation" in lower or "refund" in lower
+    ):
         # Check for email sending indicators
         email_sent = any(
             x in lower
-            for x in ["email sent", "sent email", "email has been sent", "/send", "compose"]
+            for x in [
+                "email sent",
+                "sent email",
+                "email has been sent",
+                "/send",
+                "compose",
+            ]
         )
         if email_sent:
             return 1.0
@@ -279,7 +286,9 @@ def main():
             runs = results.get(model, {}).get(task, [])
             if runs:
                 for r in runs:
-                    print(f"  {model:25s} {task:35s} run={r['run_id']} score={r['score']:.1f}")
+                    print(
+                        f"  {model:25s} {task:35s} run={r['run_id']} score={r['score']:.1f}"
+                    )
 
 
 if __name__ == "__main__":

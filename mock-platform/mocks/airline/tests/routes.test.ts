@@ -1,14 +1,18 @@
+import type { Database } from "bun:sqlite";
 import { describe, expect, test, beforeEach } from "bun:test";
 import { createAirlineApp } from "../src/index";
-import { resetAirlineDb, getAirlineDb } from "../src/db";
+import { resetAirlineDb } from "../src/db";
 import type { OpenAPIApp } from "mock-lib";
 
 describe("airline routes", () => {
   let app: OpenAPIApp;
+  let db: Database;
 
   beforeEach(() => {
     resetAirlineDb();
-    app = createAirlineApp({ dbPath: ":memory:" }).app;
+    const mockApp = createAirlineApp({ dbPath: ":memory:" });
+    app = mockApp.app;
+    db = mockApp.db;
   });
 
   describe("auth", () => {
@@ -168,7 +172,6 @@ describe("airline routes", () => {
 
   describe("claims calculate-refund (Flask parity)", () => {
     async function setupBookingOnExistingFlight(overrides: Record<string, unknown> = {}) {
-      const db = getAirlineDb();
       // Get first seeded flight
       const flight = db.query("SELECT id, base_price_economy FROM flights LIMIT 1").get() as { id: number; base_price_economy: number } | null;
       expect(flight).toBeDefined();
@@ -182,7 +185,7 @@ describe("airline routes", () => {
       }
 
       // Create a booking for this flight
-      const totalPrice = overrides.total_price ?? 300;
+      const totalPrice = Number(overrides.total_price ?? 300);
       const ref = `REFUND-${Date.now()}`;
       db.query(
         "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, 1, ?, 'economy', ?, 'confirmed', 0)"
@@ -291,7 +294,6 @@ describe("airline routes", () => {
       const bookingId = bookingBody.data.id;
 
       // Query passenger from DB directly
-      const db = getAirlineDb();
       const passenger = db.query("SELECT id FROM passengers WHERE booking_id = ? LIMIT 1").get(bookingId) as { id: number } | null;
       expect(passenger).toBeDefined();
 

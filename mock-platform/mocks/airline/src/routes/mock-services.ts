@@ -29,7 +29,7 @@ function registerPaymentRoutes(app: OpenAPIApp, db: Database, prefix: string): v
     if (!success) {
       db.query(
         "INSERT INTO payments (booking_id, amount, currency, payment_status, card_last_four, card_type, card_holder_name) VALUES (?, ?, 'USD', 'failed', ?, 'visa', ?)"
-      ).run(bookingId, booking.total_price, cardNumber.slice(-4), cardHolder);
+      ).run(bookingId, Number(booking.total_price), cardNumber.slice(-4), cardHolder);
       return c.json(err("Payment declined"), 400);
     }
 
@@ -44,7 +44,7 @@ function registerPaymentRoutes(app: OpenAPIApp, db: Database, prefix: string): v
     } else {
       db.query(
         "INSERT INTO payments (booking_id, amount, currency, payment_status, card_last_four, card_type, card_holder_name, transaction_id, paid_at) VALUES (?, ?, 'USD', 'completed', ?, 'visa', ?, ?, datetime('now'))"
-      ).run(bookingId, booking.total_price, cardNumber.slice(-4), cardHolder, transactionId);
+      ).run(bookingId, Number(booking.total_price), cardNumber.slice(-4), cardHolder, transactionId);
     }
 
     // Update booking to confirmed
@@ -181,7 +181,7 @@ function registerChatRoutes(app: OpenAPIApp, db: Database, prefix: string): void
     const session = db.query("SELECT * FROM chat_sessions WHERE session_id = ? AND user_id = ?").get(sessionId, DEFAULT_USER_ID) as Record<string, unknown> | null;
     if (!session) return c.json(err("Session not found"), 404);
 
-    db.query("UPDATE chat_sessions SET status = 'closed', ended_at = datetime('now') WHERE id = ?").run(session.id);
+    db.query("UPDATE chat_sessions SET status = 'closed', ended_at = datetime('now') WHERE id = ?").run(Number(session.id));
     return c.json(ok(null, "Chat session closed"));
   });
 }

@@ -27,9 +27,18 @@ class Flight(BaseModel):
     gate = db.Column(db.String(10))
     terminal = db.Column(db.String(10))
 
-    seats = db.relationship("Seat", backref="flight", lazy="dynamic", cascade="all, delete-orphan")
-    bookings = db.relationship("Booking", backref="flight", lazy="dynamic", cascade="all, delete-orphan")
-    status_history = db.relationship("FlightStatusHistory", backref="flight", lazy="dynamic", cascade="all, delete-orphan")
+    seats = db.relationship(
+        "Seat", backref="flight", lazy="dynamic", cascade="all, delete-orphan"
+    )
+    bookings = db.relationship(
+        "Booking", backref="flight", lazy="dynamic", cascade="all, delete-orphan"
+    )
+    status_history = db.relationship(
+        "FlightStatusHistory",
+        backref="flight",
+        lazy="dynamic",
+        cascade="all, delete-orphan",
+    )
 
     __table_args__ = (
         db.Index("idx_route", "origin_code", "destination_code"),
@@ -97,13 +106,17 @@ class Flight(BaseModel):
         }
 
     def __repr__(self):
-        return f"<Flight {self.flight_number} {self.origin_code}->{self.destination_code}>"
+        return (
+            f"<Flight {self.flight_number} {self.origin_code}->{self.destination_code}>"
+        )
 
 
 class Seat(BaseModel):
     __tablename__ = "seats"
 
-    flight_id = db.Column(db.Integer, db.ForeignKey("flights.id"), nullable=False, index=True)
+    flight_id = db.Column(
+        db.Integer, db.ForeignKey("flights.id"), nullable=False, index=True
+    )
     seat_number = db.Column(db.String(5), nullable=False)
     cabin_class = db.Column(db.String(20), nullable=False)
     price = db.Column(db.Float, nullable=False)
@@ -141,7 +154,9 @@ class Seat(BaseModel):
 class FlightStatusHistory(BaseModel):
     __tablename__ = "flight_status_history"
 
-    flight_id = db.Column(db.Integer, db.ForeignKey("flights.id"), nullable=False, index=True)
+    flight_id = db.Column(
+        db.Integer, db.ForeignKey("flights.id"), nullable=False, index=True
+    )
     old_status = db.Column(db.String(20))
     new_status = db.Column(db.String(20), nullable=False)
     delay_minutes = db.Column(db.Integer)
