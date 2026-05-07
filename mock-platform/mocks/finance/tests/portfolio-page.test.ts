@@ -1,27 +1,20 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { _resetSecret } from "mock-lib";
-import { createFinanceApp } from "../src/index";
-import { login } from "./helpers";
+import { login, setupFinanceTest } from "./helpers";
 
 describe("portfolio page", () => {
-  let app: ReturnType<typeof createFinanceApp>["app"];
-  let finance: ReturnType<typeof createFinanceApp>;
+  const t = setupFinanceTest();
 
   beforeEach(async () => {
-    process.env.MOCK_FINANCE_DB_PATH = ":memory:";
-    _resetSecret();
-    finance = createFinanceApp();
-    app = finance.app;
-    await finance.seed!();
+    await t.init();
   });
 
   afterEach(() => {
-    delete process.env.MOCK_FINANCE_DB_PATH;
+    t.teardown();
   });
 
   it("GET /portfolio renders holdings table and total value", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/portfolio", { headers: { Cookie: cookie } });
+    const cookie = await login(t.app);
+    const res = await t.app.request("/portfolio", { headers: { Cookie: cookie } });
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain("Portfolio Holdings");
@@ -34,8 +27,8 @@ describe("portfolio page", () => {
   });
 
   it("GET /portfolio renders order form with correct fields", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/portfolio", { headers: { Cookie: cookie } });
+    const cookie = await login(t.app);
+    const res = await t.app.request("/portfolio", { headers: { Cookie: cookie } });
     const html = await res.text();
     expect(html).toContain("Place Order");
     expect(html).toContain('action="/portfolio"');
@@ -51,11 +44,11 @@ describe("portfolio page", () => {
   });
 
   it("GET /portfolio handles empty holdings", async () => {
-    finance.db.run("DELETE FROM portfolio_order");
-    finance.db.run("DELETE FROM portfolio_holding");
+    t.finance.db.run("DELETE FROM portfolio_order");
+    t.finance.db.run("DELETE FROM portfolio_holding");
 
-    const cookie = await login(app);
-    const res = await app.request("/portfolio", { headers: { Cookie: cookie } });
+    const cookie = await login(t.app);
+    const res = await t.app.request("/portfolio", { headers: { Cookie: cookie } });
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain("Portfolio Holdings");
@@ -64,13 +57,13 @@ describe("portfolio page", () => {
   });
 
   it("GET /portfolio without auth returns 401", async () => {
-    const res = await app.request("/portfolio");
+    const res = await t.app.request("/portfolio");
     expect(res.status).toBe(401);
   });
 
   it("POST /portfolio with invalid amount shows error", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/portfolio", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/portfolio", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ asset_class_code: "eq", direction: "buy", amount: "-100" }).toString(),
@@ -81,8 +74,8 @@ describe("portfolio page", () => {
   });
 
   it("POST /portfolio with sell exceeding holding shows error", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/portfolio", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/portfolio", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ asset_class_code: "eq", direction: "sell", amount: "999999" }).toString(),
@@ -93,8 +86,8 @@ describe("portfolio page", () => {
   });
 
   it("POST /portfolio with invalid asset class shows error", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/portfolio", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/portfolio", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ asset_class_code: "xx", direction: "buy", amount: "1000" }).toString(),
@@ -105,8 +98,8 @@ describe("portfolio page", () => {
   });
 
   it("POST /portfolio with invalid direction shows error", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/portfolio", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/portfolio", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ asset_class_code: "eq", direction: "oops", amount: "1000" }).toString(),
@@ -117,8 +110,8 @@ describe("portfolio page", () => {
   });
 
   it("POST /portfolio valid buy redirects to portfolio", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/portfolio", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/portfolio", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ asset_class_code: "eq", direction: "buy", amount: "5000" }).toString(),

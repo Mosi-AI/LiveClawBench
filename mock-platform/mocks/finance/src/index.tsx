@@ -8,6 +8,7 @@ import { runMigrations } from "./db/migrate";
 import { seed } from "./db/seed";
 import { seedV2 } from "./db/seed-v2";
 import { z } from "zod";
+import { parseFormBody } from "./utils";
 
 import { registerAuthRoutes } from "./routes/auth";
 import { registerDepartmentRoutes } from "./routes/department";
@@ -151,32 +152,26 @@ export function createFinanceApp() {
     return c.html(<DashboardPage config={config} kpis={metrics.kpis} monthly={metrics.monthly} isAdmin={isAdmin} />);
   });
 
-  app.use("/portfolio", authRequired);
-  app.page("/portfolio", (c) => {
-    const holdings = db
+  function getPortfolioHoldings(): Array<{ asset_class_code: string; asset_name: string; current_value: number }> {
+    return db
       .query<{ asset_class_code: string; asset_name: string; current_value: number }, []>(
         "SELECT asset_class_code, asset_name, current_value FROM portfolio_holding ORDER BY asset_class_code"
       )
       .all();
+  }
+
+  app.use("/portfolio", authRequired);
+  app.page("/portfolio", (c) => {
+    const holdings = getPortfolioHoldings();
     const total_value = holdings.reduce((sum, h) => sum + (h.current_value ?? 0), 0);
     const error = c.req.query("error");
     return c.html(<PortfolioPage holdings={holdings} total_value={total_value} error={error} />);
   });
   app.post("/portfolio", async (c) => {
-    const form = await c.req.parseBody();
-    const body: Record<string, unknown> = Object.fromEntries(Object.entries(form));
-    if (typeof body.amount === "string") {
-      const num = Number(body.amount);
-      body.amount = isNaN(num) ? body.amount : num;
-    }
-
+    const body = parseFormBody(await c.req.parseBody());
     const result = executePortfolioOrder(db, body);
 
-    const holdings = db
-      .query<{ asset_class_code: string; asset_name: string; current_value: number }, []>(
-        "SELECT asset_class_code, asset_name, current_value FROM portfolio_holding ORDER BY asset_class_code"
-      )
-      .all();
+    const holdings = getPortfolioHoldings();
     const total_value = holdings.reduce((sum, h) => sum + (h.current_value ?? 0), 0);
 
     if (!result.success) {

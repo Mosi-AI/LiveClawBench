@@ -7,31 +7,29 @@ export type FormulaNode =
   | { op: "add" | "subtract" | "multiply" | "divide"; left: FormulaNode; right: FormulaNode }
   | { op: "sum"; args: FormulaNode[] };
 
+type BinaryOp = "add" | "subtract" | "multiply" | "divide";
+
+const binaryEvaluators: Record<BinaryOp, (l: number, r: number) => number | null> = {
+  add: (l, r) => l + r,
+  subtract: (l, r) => l - r,
+  multiply: (l, r) => l * r,
+  divide: (l, r) => (r === 0 ? null : l / r),
+};
+
 export function evalFormula(node: FormulaNode, record: Record<string, number | null>): number | null {
   switch (node.op) {
     case "field":
       return record[node.name] ?? null;
     case "const":
       return node.value;
-    case "add": {
-      const l = evalFormula(node.left, record);
-      const r = evalFormula(node.right, record);
-      return l === null || r === null ? null : l + r;
-    }
-    case "subtract": {
-      const l = evalFormula(node.left, record);
-      const r = evalFormula(node.right, record);
-      return l === null || r === null ? null : l - r;
-    }
-    case "multiply": {
-      const l = evalFormula(node.left, record);
-      const r = evalFormula(node.right, record);
-      return l === null || r === null ? null : l * r;
-    }
+    case "add":
+    case "subtract":
+    case "multiply":
     case "divide": {
       const l = evalFormula(node.left, record);
       const r = evalFormula(node.right, record);
-      return l === null || r === null || r === 0 ? null : l / r;
+      if (l === null || r === null) return null;
+      return binaryEvaluators[node.op](l, r);
     }
     case "sum": {
       let total = 0;

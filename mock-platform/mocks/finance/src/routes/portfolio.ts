@@ -2,6 +2,7 @@ import { createRoute } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { CreateOrderSchema } from "../schemas/portfolio";
+import { parseFormBody } from "../utils";
 
 export interface OrderResult {
   success: boolean;
@@ -95,12 +96,7 @@ export function registerPortfolioRoutes(app: OpenAPIApp, db: Database) {
     if (contentType.includes("application/json")) {
       body = await c.req.json();
     } else {
-      const form = await c.req.parseBody();
-      body = Object.fromEntries(Object.entries(form));
-      if (typeof body.amount === "string") {
-        const num = Number(body.amount);
-        body.amount = isNaN(num) ? body.amount : num;
-      }
+      body = parseFormBody(await c.req.parseBody());
     }
 
     const result = executePortfolioOrder(db, body);

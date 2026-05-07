@@ -4,6 +4,15 @@ import type { Database } from "bun:sqlite";
 import { DashboardConfigSchema } from "../schemas/dashboard";
 import { computeDashboardMetrics, parseAndValidateFormula } from "../db/queries/dashboard";
 
+export interface DashboardConfigRow {
+  id: number;
+  user_id: number;
+  date_range_start: string;
+  date_range_end: string;
+  formula_json: string;
+  department_weight_json: string;
+}
+
 function isValidWeights(value: unknown): value is Record<string, number> {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
   for (const v of Object.values(value)) {
@@ -12,37 +21,41 @@ function isValidWeights(value: unknown): value is Record<string, number> {
   return true;
 }
 
-function isValidConfig(row: { date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string }): boolean {
-  if (row.date_range_start > row.date_range_end) return false;
+export function validateDashboardConfig(row: { date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string }): string | null {
+  if (row.date_range_start > row.date_range_end) {
+    return "Invalid date range";
+  }
   const formulaCheck = parseAndValidateFormula(row.formula_json);
-  if (formulaCheck.error) return false;
+  if (formulaCheck.error) {
+    return formulaCheck.error;
+  }
   try {
     const parsed = JSON.parse(row.department_weight_json || "{}");
-    if (!isValidWeights(parsed)) return false;
+    if (!isValidWeights(parsed)) {
+      return "Invalid department weights: must be an object with numeric values";
+    }
   } catch {
-    return false;
+    return "Invalid department weights JSON";
   }
-  return true;
+  return null;
 }
 
-export function getEffectiveConfig(db: Database, userId: number) {
-  const userConfig = db
-    .query<{ id: number; user_id: number; date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string }, [number]>(
-      "SELECT * FROM dashboard_config WHERE user_id = ?"
-    )
+function fetchConfig(db: Database, userId: number): DashboardConfigRow | null {
+  return db
+    .query<DashboardConfigRow, [number]>("SELECT * FROM dashboard_config WHERE user_id = ?")
     .get(userId);
-  if (userConfig && isValidConfig(userConfig)) return userConfig;
+}
+
+export function getEffectiveConfig(db: Database, userId: number): DashboardConfigRow {
+  const userConfig = fetchConfig(db, userId);
+  if (userConfig && !validateDashboardConfig(userConfig)) return userConfig;
 
   const admin = db
     .query<{ id: number }, []>("SELECT id FROM user WHERE role = 'admin' ORDER BY id LIMIT 1")
     .get();
   if (admin) {
-    const adminConfig = db
-      .query<{ id: number; user_id: number; date_range_start: string; date_range_end: string; formula_json: string; department_weight_json: string }, [number]>(
-        "SELECT * FROM dashboard_config WHERE user_id = ?"
-      )
-      .get(admin.id);
-    if (adminConfig && isValidConfig(adminConfig)) return adminConfig;
+    const adminConfig = fetchConfig(db, admin.id);
+    if (adminConfig && !validateDashboardConfig(adminConfig)) return adminConfig;
   }
 
   return {
@@ -114,22 +127,9 @@ export function registerDashboardRoutes(app: OpenAPIApp, db: Database) {
     }
     const { date_range_start, date_range_end, formula_json, department_weight_json } = parse.data;
 
-    if (date_range_start > date_range_end) {
-      return c.json({ error: "Invalid date range" }, 400);
-    }
-
-    const formulaCheck = parseAndValidateFormula(formula_json);
-    if (formulaCheck.error) {
-      return c.json({ error: formulaCheck.error }, 400);
-    }
-
-    try {
-      const parsedWeights = JSON.parse(department_weight_json || "{}");
-      if (!isValidWeights(parsedWeights)) {
-        return c.json({ error: "Invalid department weights: must be an object with numeric values" }, 400);
-      }
-    } catch {
-      return c.json({ error: "Invalid department weights JSON" }, 400);
+    const configError = validateDashboardConfig({ date_range_start, date_range_end, formula_json, department_weight_json });
+    if (configError) {
+      return c.json({ error: configError }, 400);
     }
 
     db.run(

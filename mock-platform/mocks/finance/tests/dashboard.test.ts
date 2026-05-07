@@ -1,27 +1,20 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { _resetSecret } from "mock-lib";
-import { createFinanceApp } from "../src/index";
-import { login } from "./helpers";
+import { login, setupFinanceTest } from "./helpers";
 
 describe("dashboard", () => {
-  let app: ReturnType<typeof createFinanceApp>["app"];
-  let finance: ReturnType<typeof createFinanceApp>;
+  const t = setupFinanceTest();
 
   beforeEach(async () => {
-    process.env.MOCK_FINANCE_DB_PATH = ":memory:";
-    _resetSecret();
-    finance = createFinanceApp();
-    app = finance.app;
-    await finance.seed!();
+    await t.init();
   });
 
   afterEach(() => {
-    delete process.env.MOCK_FINANCE_DB_PATH;
+    t.teardown();
   });
 
   it("GET /api/dashboard returns default KPIs", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard", { headers: { Cookie: cookie } });
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard", { headers: { Cookie: cookie } });
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.kpis).toBeDefined();
@@ -31,13 +24,13 @@ describe("dashboard", () => {
   });
 
   it("GET /api/dashboard without auth returns 401", async () => {
-    const res = await app.request("/api/dashboard");
+    const res = await t.app.request("/api/dashboard");
     expect(res.status).toBe(401);
   });
 
   it("POST /api/dashboard/config by admin succeeds", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -51,14 +44,14 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config by non-admin returns 403", async () => {
-    const loginRes = await app.request("/api/auth/login", {
+    const loginRes = await t.app.request("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "john", password: "user123" }),
     });
     expect(loginRes.status).toBe(200);
     const cookie = loginRes.headers.get("set-cookie") ?? "";
-    const res = await app.request("/api/dashboard/config", {
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -72,8 +65,8 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config invalid date range returns 400", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -87,9 +80,9 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config formula depth > 5 returns 400", async () => {
-    const cookie = await login(app);
+    const cookie = await login(t.app);
     const deep = { op: "add", left: { op: "const", value: 1 }, right: { op: "add", left: { op: "const", value: 1 }, right: { op: "add", left: { op: "const", value: 1 }, right: { op: "add", left: { op: "const", value: 1 }, right: { op: "add", left: { op: "const", value: 1 }, right: { op: "const", value: 1 } } } } } };
-    const res = await app.request("/api/dashboard/config", {
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -103,8 +96,8 @@ describe("dashboard", () => {
   });
 
   it("GET /api/dashboard uses admin config fallback", async () => {
-    const adminCookie = await login(app);
-    await app.request("/api/dashboard/config", {
+    const adminCookie = await login(t.app);
+    await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: adminCookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -115,35 +108,35 @@ describe("dashboard", () => {
       }),
     });
 
-    const johnLogin = await app.request("/api/auth/login", {
+    const johnLogin = await t.app.request("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "john", password: "user123" }),
     });
     const johnCookie = johnLogin.headers.get("set-cookie") ?? "";
 
-    const res = await app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
+    const res = await t.app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
     const json = await res.json();
     expect(json.config.date_range_end).toBe("2026-03-31");
   });
 
   it("GET /api/dashboard uses defaults when no config exists", async () => {
-    const johnLogin = await app.request("/api/auth/login", {
+    const johnLogin = await t.app.request("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "john", password: "user123" }),
     });
     const johnCookie = johnLogin.headers.get("set-cookie") ?? "";
 
-    const res = await app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
+    const res = await t.app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
     const json = await res.json();
     expect(json.config.date_range_start).toBe("2026-01-01");
     expect(json.config.date_range_end).toBe("2026-12-31");
   });
 
   it("malformed user config falls back to admin config", async () => {
-    const adminCookie = await login(app);
-    await app.request("/api/dashboard/config", {
+    const adminCookie = await login(t.app);
+    await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: adminCookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -154,7 +147,7 @@ describe("dashboard", () => {
       }),
     });
 
-    const johnLogin = await app.request("/api/auth/login", {
+    const johnLogin = await t.app.request("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "john", password: "user123" }),
@@ -162,42 +155,42 @@ describe("dashboard", () => {
     const johnId = (await johnLogin.json()).user.id;
     const johnCookie = johnLogin.headers.get("set-cookie") ?? "";
 
-    finance.db.run(
+    t.finance.db.run(
       `INSERT INTO dashboard_config (user_id, date_range_start, date_range_end, formula_json, department_weight_json)
        VALUES (?, '2026-01-01', '2026-12-31', 'not-json', '{}')`,
       [johnId]
     );
 
-    const res = await app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
+    const res = await t.app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
     const json = await res.json();
     expect(json.config.date_range_end).toBe("2026-06-30");
   });
 
   it("malformed admin config falls back to defaults", async () => {
-    const adminId = finance.db
+    const adminId = t.finance.db
       .query<{ id: number }, []>("SELECT id FROM user WHERE role = 'admin' ORDER BY id LIMIT 1")
       .get()!.id;
-    finance.db.run(
+    t.finance.db.run(
       `UPDATE dashboard_config SET formula_json = 'invalid' WHERE user_id = ?`,
       [adminId]
     );
 
-    const johnLogin = await app.request("/api/auth/login", {
+    const johnLogin = await t.app.request("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "john", password: "user123" }),
     });
     const johnCookie = johnLogin.headers.get("set-cookie") ?? "";
 
-    const res = await app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
+    const res = await t.app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
     const json = await res.json();
     expect(json.config.date_range_start).toBe("2026-01-01");
     expect(json.config.date_range_end).toBe("2026-12-31");
   });
 
   it("POST /api/dashboard/config unsupported operator returns 400", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -211,8 +204,8 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config unsupported field returns 400", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -226,8 +219,8 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config non-numeric const returns 400", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -241,8 +234,8 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config malformed JSON returns 400", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -256,8 +249,8 @@ describe("dashboard", () => {
   });
 
   it("department weights multiply correctly and unspecified default to 1.0", async () => {
-    const cookie = await login(app);
-    await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -268,14 +261,14 @@ describe("dashboard", () => {
       }),
     });
 
-    const res = await app.request("/api/dashboard", { headers: { Cookie: cookie } });
+    const res = await t.app.request("/api/dashboard", { headers: { Cookie: cookie } });
     const json = await res.json();
     expect(json.monthly[0].revenue).toBe(1260000);
   });
 
   it("date boundaries filter records and empty months show 0", async () => {
-    const cookie = await login(app);
-    await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -286,7 +279,7 @@ describe("dashboard", () => {
       }),
     });
 
-    const res = await app.request("/api/dashboard", { headers: { Cookie: cookie } });
+    const res = await t.app.request("/api/dashboard", { headers: { Cookie: cookie } });
     const json = await res.json();
     expect(json.monthly.length).toBe(3);
     expect(json.monthly[0].month).toBe("2026-01");
@@ -298,8 +291,8 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config accepts form-encoded data", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
@@ -313,9 +306,9 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config formula_json > 10KB returns 400", async () => {
-    const cookie = await login(app);
+    const cookie = await login(t.app);
     const bigFormula = JSON.stringify({ op: "const", value: "x".repeat(11000) });
-    const res = await app.request("/api/dashboard/config", {
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -329,9 +322,9 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config department_weight_json > 4KB returns 400", async () => {
-    const cookie = await login(app);
+    const cookie = await login(t.app);
     const bigWeights = JSON.stringify({ x: "y".repeat(5000) });
-    const res = await app.request("/api/dashboard/config", {
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -345,8 +338,8 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config persists valid config", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -358,7 +351,7 @@ describe("dashboard", () => {
     });
     expect(res.status).toBe(200);
 
-    const dashboardRes = await app.request("/api/dashboard", { headers: { Cookie: cookie } });
+    const dashboardRes = await t.app.request("/api/dashboard", { headers: { Cookie: cookie } });
     const json = await dashboardRes.json();
     expect(json.config.date_range_start).toBe("2026-03-01");
     expect(json.config.date_range_end).toBe("2026-05-31");
@@ -366,8 +359,8 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config null weights returns 400", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -381,8 +374,8 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config array weights returns 400", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -396,8 +389,8 @@ describe("dashboard", () => {
   });
 
   it("POST /api/dashboard/config non-numeric weight values returns 400", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/api/dashboard/config", {
+    const cookie = await login(t.app);
+    const res = await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: cookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -411,22 +404,22 @@ describe("dashboard", () => {
   });
 
   it("null department weights in DB falls back to defaults", async () => {
-    const adminId = finance.db
+    const adminId = t.finance.db
       .query<{ id: number }, []>("SELECT id FROM user WHERE role = 'admin' ORDER BY id LIMIT 1")
       .get()!.id;
-    finance.db.run(
+    t.finance.db.run(
       `UPDATE dashboard_config SET department_weight_json = 'null' WHERE user_id = ?`,
       [adminId]
     );
 
-    const johnLogin = await app.request("/api/auth/login", {
+    const johnLogin = await t.app.request("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "john", password: "user123" }),
     });
     const johnCookie = johnLogin.headers.get("set-cookie") ?? "";
 
-    const res = await app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
+    const res = await t.app.request("/api/dashboard", { headers: { Cookie: johnCookie } });
     const json = await res.json();
     expect(json.config.date_range_start).toBe("2026-01-01");
     expect(json.config.date_range_end).toBe("2026-12-31");
