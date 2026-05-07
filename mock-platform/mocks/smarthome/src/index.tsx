@@ -155,6 +155,19 @@ let db: Database | null = null;
 // Database initialization
 // ---------------------------------------------------------------------------
 
+// Check if required singleton tables have seed data (thermostat, coffee, benchmark_clock)
+function hasRequiredSeedData(): boolean {
+  if (!db) return false;
+  try {
+    const thermostat = db.query("SELECT id FROM thermostat_settings WHERE id = 1").get();
+    const coffee = db.query("SELECT id FROM coffee_schedule WHERE id = 1").get();
+    const clock = db.query("SELECT id FROM benchmark_clock WHERE id = 1").get();
+    return thermostat !== null && coffee !== null && clock !== null;
+  } catch {
+    return false;
+  }
+}
+
 function initDatabase(): void {
   const dbDir = DB_PATH.substring(0, DB_PATH.lastIndexOf("/"));
   try {
@@ -326,13 +339,16 @@ function initDatabase(): void {
     );
   `);
 
-  // Load seed SQL only on first init (fresh DB), preserve existing state on restart
-  if (!dbExists && existsSync(SEED_PATH)) {
+  // Load seed SQL if:
+  // 1. Fresh DB (doesn't exist yet), OR
+  // 2. Existing DB but required singleton tables are empty (handles restart after crash before seed)
+  const needsSeed = !dbExists || !hasRequiredSeedData();
+  if (needsSeed && existsSync(SEED_PATH)) {
     const sql = readFileSync(SEED_PATH, "utf-8");
     db.exec(sql);
-    console.log(`mock-smarthome: initialized fresh DB from ${SEED_PATH}`);
+    console.log(`mock-smarthome: initialized DB from ${SEED_PATH} (${dbExists ? "refilled empty tables" : "fresh DB"})`);
   } else if (dbExists) {
-    console.log(`mock-smarthome: found existing DB at ${DB_PATH}, preserving state`);
+    console.log(`mock-smarthome: found existing DB at ${DB_PATH} with valid seed data, preserving state`);
   } else {
     console.log(`mock-smarthome: no seed SQL found at ${SEED_PATH}, using empty tables`);
   }
