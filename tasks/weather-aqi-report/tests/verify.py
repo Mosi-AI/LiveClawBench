@@ -47,4 +47,10 @@ except (json.JSONDecodeError, KeyError) as e:
 for d in details:
     print(d)
 print(f"Score: {score}/1.0")
+
+import os
+os.makedirs("/logs/verifier", exist_ok=True)
+with open("/logs/verifier/reward.txt", "w") as f:
+    f.write(str(score))
+
 sys.exit(0 if score >= 0.5 else 1)

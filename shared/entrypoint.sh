@@ -1,5 +1,5 @@
 #!/bin/sh
-# shared/entrypoint.sh — Secure entrypoint for LiveClawBench task containers
+# shared/entrypoint.sh 鈥?Secure entrypoint for LiveClawBench task containers
 #
 # Executes startup scripts from the read-only /opt/mock/startup.d/ directory,
 # NOT from the agent-writable /workspace/ directory.
