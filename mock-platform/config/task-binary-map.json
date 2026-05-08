@@ -85,10 +85,6 @@
       ]
     },
     "skill-combination": { "binaries": [] },
-    "smart-home-thermostat": { "binaries": [] },
-    "grocery-reorder": { "binaries": [] },
-    "smart-home-morning-recovery": { "binaries": [] },
-    "grocery-budget-plan": { "binaries": [] },
     "smarthome_test": {
       "binaries": ["smarthome"],
       "assets": [
