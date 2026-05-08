@@ -5,6 +5,9 @@
   "version": "1.1",
   "binaries": ["airline", "email", "shop", "todolist", "doc-search", "weather"],
   "tasks": {
+    "weather-aqi-report": {
+      "binaries": ["weather"]
+    },
     "watch-shop": {
       "binaries": ["shop"],
       "assets": [
