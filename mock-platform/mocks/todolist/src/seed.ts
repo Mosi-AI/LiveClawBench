@@ -33,22 +33,28 @@ const SEED_TODOS = [
   { title: "Backup data", date: "2026-04-01", time: "22:00", location: "Home", person: null, description: "Recurring task" },
 ];
 
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function getNextSunday(): string {
   const today = new Date();
   // Python weekday(): 0=Mon, 6=Sun
   const pyWeekday = (today.getDay() + 6) % 7;
-  let daysUntilSunday = 6 - pyWeekday;
-  if (daysUntilSunday === 0) daysUntilSunday = 7;
+  const daysUntilSunday = 6 - pyWeekday;
   const sunday = new Date(today);
   sunday.setDate(today.getDate() + daysUntilSunday);
-  return sunday.toISOString().slice(0, 10);
+  return formatLocalDate(sunday);
 }
 
 function getTodayPlus(days: number): string {
   const today = new Date();
   const date = new Date(today);
   date.setDate(today.getDate() + days);
-  return date.toISOString().slice(0, 10);
+  return formatLocalDate(date);
 }
 
 function getTaskSpecificTodos(taskName: string): Array<{
