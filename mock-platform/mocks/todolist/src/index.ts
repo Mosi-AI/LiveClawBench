@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { existsSync } from "node:fs";
 import { createMockApp, createRoute, registerFrontendFallback, startServer } from "mock-lib";
 import { getTodolistDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
@@ -48,7 +49,10 @@ export function createTodolistApp(options?: { dbPath?: string; taskName?: string
   registerTodoRoutes(app, db);
 
   // SPA fallback for frontend assets (must be last)
-  registerFrontendFallback(app, "/opt/mock/frontend/todolist");
+  const frontendDir = existsSync("/opt/mock/frontend/todolist") ? "/opt/mock/frontend/todolist" : undefined;
+  if (frontendDir) {
+    registerFrontendFallback(app, frontendDir);
+  }
 
   return mockApp;
 }

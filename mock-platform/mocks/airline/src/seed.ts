@@ -76,10 +76,9 @@ function createUsers(db: Database, taskMode: boolean): number[] {
 
   const ids: number[] = [];
   for (const u of users) {
-    db.query(
+    ids.push(Number(db.query(
       "INSERT INTO users (email, password_hash, first_name, last_name, phone, date_of_birth, is_verified, is_active) VALUES (?, ?, ?, ?, ?, ?, 1, 1)"
-    ).run(u.email, u.password, u.first_name, u.last_name, u.phone, u.dob);
-    ids.push(Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id));
+    ).run(u.email, u.password, u.first_name, u.last_name, u.phone, u.dob).lastInsertRowid));
   }
   return ids;
 }
@@ -183,7 +182,7 @@ export function seedDatabase(db: Database, taskName?: string) {
           );
           const arrivalTime = new Date(departureTime.getTime() + config.hours * 3600000);
 
-          insertFlight.run(
+          const flightId = Number(insertFlight.run(
             `GKD${flightNumber}`,
             "GKD Airlines",
             config.origin,
@@ -200,9 +199,7 @@ export function seedDatabase(db: Database, taskName?: string) {
             config.price * 3,
             "Boeing 737",
             "scheduled",
-          );
-
-          const flightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+          ).lastInsertRowid);
 
           const seats = generateSeats(config.price, config.price * 2, config.price * 3);
           for (const seat of seats) {
@@ -297,7 +294,7 @@ function createFlightBookingData(db: Database, peterId: number, now: Date): void
     const arrivalTime = new Date(departureTime.getTime() + 5.5 * 3600000);
     const price = 349.99 + i * 50;
 
-    insertFlight.run(
+    const flightId = Number(insertFlight.run(
       `GKD${1001 + i}`,
       "GKD Airlines",
       "JFK",
@@ -316,9 +313,7 @@ function createFlightBookingData(db: Database, peterId: number, now: Date): void
       "scheduled",
       gates[i],
       "4",
-    );
-
-    const flightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+    ).lastInsertRowid);
 
     const seats = generateSeats(price, price * 2, price * 3);
     for (const seat of seats) {
@@ -345,7 +340,7 @@ function createFlightSeatSelectionData(db: Database, peterId: number, now: Date)
   const departureTime = new Date(now.getTime() + 1 * 86400000);
   const arrivalTime = new Date(departureTime.getTime() + 5.5 * 3600000);
 
-  db.query(
+  const flightId = Number(db.query(
     `INSERT INTO flights (flight_number, airline, origin_code, origin_city, origin_airport,
       destination_code, destination_city, destination_airport, departure_time, arrival_time,
       duration_minutes, base_price_economy, base_price_business, base_price_first,
@@ -369,9 +364,7 @@ function createFlightSeatSelectionData(db: Database, peterId: number, now: Date)
     "scheduled",
     "B22",
     "4",
-  );
-
-  const flightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).lastInsertRowid);
 
   // Create seats for GKD2001
   const seats = generateSeats(349.99, 699.99, 1049.99);
@@ -395,11 +388,9 @@ function createFlightSeatSelectionData(db: Database, peterId: number, now: Date)
 
   // Create Peter's booking (confirmed, NOT checked in, NO seat selected)
   const ref = generateBookingReference();
-  db.query(
+  const bookingId = Number(db.query(
     "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'confirmed', 0)"
-  ).run(ref, peterId, flightId, "economy", 349.99);
-
-  const bookingId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).run(ref, peterId, flightId, "economy", 349.99).lastInsertRowid);
 
   // Create passenger (no seat assigned)
   db.query(
@@ -419,7 +410,7 @@ function createFlightSeatSelectionFailedData(db: Database, peterId: number, now:
   const departureTime = new Date(now.getTime() + 1 * 86400000);
   const arrivalTime = new Date(departureTime.getTime() + 5 * 3600000);
 
-  db.query(
+  const flightId = Number(db.query(
     `INSERT INTO flights (flight_number, airline, origin_code, origin_city, origin_airport,
       destination_code, destination_city, destination_airport, departure_time, arrival_time,
       duration_minutes, base_price_economy, base_price_business, base_price_first,
@@ -443,9 +434,7 @@ function createFlightSeatSelectionFailedData(db: Database, peterId: number, now:
     "scheduled",
     "B22",
     "4",
-  );
-
-  const flightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).lastInsertRowid);
 
   // Create seats for GKD2001
   const seats = generateSeats(349.99, 699.99, 1049.99);
@@ -469,11 +458,9 @@ function createFlightSeatSelectionFailedData(db: Database, peterId: number, now:
 
   // Create Peter's booking (no seat selected)
   const ref = generateBookingReference();
-  db.query(
+  const bookingId = Number(db.query(
     "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'confirmed', 0)"
-  ).run(ref, peterId, flightId, "economy", 349.99);
-
-  const bookingId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).run(ref, peterId, flightId, "economy", 349.99).lastInsertRowid);
 
   db.query(
     "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth) VALUES (?, 'Peter', 'Griffin', '1975-04-12')"
@@ -491,18 +478,14 @@ function createFlightSeatSelectionFailedData(db: Database, peterId: number, now:
 
   for (let i = 0; i < windowSeats.length; i++) {
     const userEmail = `windowseat.user${i + 1}@test.com`;
-    db.query(
+    const userId = Number(db.query(
       "INSERT INTO users (email, password_hash, first_name, last_name, is_verified, is_active) VALUES (?, 'password123', ?, ?, 1, 1)"
-    ).run(userEmail, `Window${i + 1}`, `Passenger${i + 1}`);
-
-    const userId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+    ).run(userEmail, `Window${i + 1}`, `Passenger${i + 1}`).lastInsertRowid);
 
     const bookingRef = generateBookingReference();
-    db.query(
+    const bsBookingId = Number(db.query(
       "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'confirmed', 1)"
-    ).run(bookingRef, userId, flightId, "economy", 349.99);
-
-    const bsBookingId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+    ).run(bookingRef, userId, flightId, "economy", 349.99).lastInsertRowid);
 
     db.query(
       "INSERT INTO passengers (booking_id, seat_id, first_name, last_name, date_of_birth) VALUES (?, ?, ?, ?, '1990-01-01')"
@@ -544,8 +527,6 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
       db.query(`DELETE FROM payments WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM baggage_tracking WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM claims WHERE booking_id IN (${bookingList})`).run();
-      db.query(`DELETE FROM chat_messages WHERE session_id IN (SELECT id FROM chat_sessions WHERE booking_id IN (${bookingList}))`).run();
-      db.query(`DELETE FROM chat_sessions WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM bookings WHERE id IN (${bookingList})`).run();
     }
 
@@ -556,7 +537,7 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
     db.query(`DELETE FROM flights WHERE id IN (${flightList})`).run();
   }
 
-  db.query(
+  const flightId = Number(db.query(
     `INSERT INTO flights (flight_number, airline, origin_code, origin_city, origin_airport,
       destination_code, destination_city, destination_airport, departure_time, arrival_time,
       duration_minutes, base_price_economy, base_price_business, base_price_first,
@@ -580,9 +561,7 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
     "cancelled",
     "B22",
     "4",
-  );
-
-  const flightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).lastInsertRowid);
 
   // Create seats
   const seats = generateSeats(349.99, 699.99, 1049.99);
@@ -606,11 +585,9 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
 
   // Create Peter's booking
   const ref = generateBookingReference();
-  db.query(
+  const bookingId = Number(db.query(
     "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'confirmed', 0)"
-  ).run(ref, peterId, flightId, "economy", 349.99);
-
-  const bookingId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).run(ref, peterId, flightId, "economy", 349.99).lastInsertRowid);
 
   db.query(
     "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth) VALUES (?, 'Peter', 'Griffin', '1975-04-12')"
@@ -647,16 +624,21 @@ function createFlightInfoChangeNoticeData(db: Database, peterId: number, now: Da
       const bookingList = conflictingBookingIds.join(",");
       db.query(`DELETE FROM passengers WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM payments WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM baggage_tracking WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM claims WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM email_notifications WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM calendar_events WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM bookings WHERE id IN (${bookingList})`).run();
     }
 
     const flightList = conflictingFlightIds.join(",");
     db.query(`DELETE FROM seats WHERE flight_id IN (${flightList})`).run();
+    db.query(`DELETE FROM price_history WHERE flight_id IN (${flightList})`).run();
     db.query(`DELETE FROM flight_status_history WHERE flight_id IN (${flightList})`).run();
     db.query(`DELETE FROM flights WHERE id IN (${flightList})`).run();
   }
 
-  db.query(
+  const flightId = Number(db.query(
     `INSERT INTO flights (flight_number, airline, origin_code, origin_city, origin_airport,
       destination_code, destination_city, destination_airport, departure_time, arrival_time,
       duration_minutes, base_price_economy, base_price_business, base_price_first,
@@ -680,9 +662,7 @@ function createFlightInfoChangeNoticeData(db: Database, peterId: number, now: Da
     "scheduled",
     "B22",
     "4",
-  );
-
-  const flightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).lastInsertRowid);
 
   // Create seats
   const seats = generateSeats(349.99, 699.99, 1049.99);
@@ -706,11 +686,9 @@ function createFlightInfoChangeNoticeData(db: Database, peterId: number, now: Da
 
   // Create Peter's booking
   const ref = generateBookingReference();
-  db.query(
+  const bookingId = Number(db.query(
     "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'confirmed', 0)"
-  ).run(ref, peterId, flightId, "economy", 349.99);
-
-  const bookingId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).run(ref, peterId, flightId, "economy", 349.99).lastInsertRowid);
 
   db.query(
     "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth, nationality) VALUES (?, 'Peter', 'Griffin', '1985-06-15', 'US')"
@@ -742,7 +720,7 @@ function createBaggageTrackingData(db: Database, peterId: number, now: Date): vo
   const pastFlightTime = new Date(now.getTime() - 95 * 86400000);
   const pastArrivalTime = new Date(pastFlightTime.getTime() + 5.5 * 3600000);
 
-  db.query(
+  const pastFlightId = Number(db.query(
     `INSERT INTO flights (flight_number, airline, origin_code, origin_city, origin_airport,
       destination_code, destination_city, destination_airport, departure_time, arrival_time,
       duration_minutes, base_price_economy, base_price_business, base_price_first,
@@ -766,9 +744,7 @@ function createBaggageTrackingData(db: Database, peterId: number, now: Date): vo
     "landed",
     "A12",
     "4",
-  );
-
-  const pastFlightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).lastInsertRowid);
 
   // Create seats for GKD888
   const pastSeats = generateSeats(299.99, 599.99, 899.99);
@@ -813,7 +789,7 @@ function createBaggageTrackingData(db: Database, peterId: number, now: Date): vo
   const departureTime = new Date(now.getTime() + 1 * 86400000);
   const arrivalTime = new Date(departureTime.getTime() + 5.5 * 3600000);
 
-  db.query(
+  const flightId = Number(db.query(
     `INSERT INTO flights (flight_number, airline, origin_code, origin_city, origin_airport,
       destination_code, destination_city, destination_airport, departure_time, arrival_time,
       duration_minutes, base_price_economy, base_price_business, base_price_first,
@@ -837,9 +813,7 @@ function createBaggageTrackingData(db: Database, peterId: number, now: Date): vo
     "scheduled",
     "B22",
     "4",
-  );
-
-  const flightId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).lastInsertRowid);
 
   const seats = generateSeats(349.99, 699.99, 1049.99);
   for (const seat of seats) {
@@ -862,11 +836,9 @@ function createBaggageTrackingData(db: Database, peterId: number, now: Date): vo
 
   // Create Peter's booking on GKD2001
   const ref = generateBookingReference();
-  db.query(
+  const bookingId = Number(db.query(
     "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'confirmed', 0)"
-  ).run(ref, peterId, flightId, "economy", 349.99);
-
-  const bookingId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+  ).run(ref, peterId, flightId, "economy", 349.99).lastInsertRowid);
 
   db.query(
     "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth, nationality) VALUES (?, 'Peter', 'Griffin', '1985-06-15', 'US')"

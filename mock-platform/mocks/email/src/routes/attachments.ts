@@ -75,7 +75,7 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
       const arrayBuffer = await file.arrayBuffer();
       await Bun.write(fullPath, arrayBuffer);
 
-      db.query(
+      const insertResult = db.query(
         `INSERT INTO attachments (filename, original_filename, file_path, file_size, mime_type, created_at)
          VALUES (?, ?, ?, ?, ?, datetime('now'))`
       ).run(
@@ -86,10 +86,9 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
         file.type || "application/octet-stream",
       );
 
-      const row = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
       const att = db.query(
         "SELECT id, original_filename, file_size, mime_type, created_at FROM attachments WHERE id = ?"
-      ).get(row.id) as Record<string, unknown>;
+      ).get(Number(insertResult.lastInsertRowid)) as Record<string, unknown>;
 
       uploadedAttachments.push(attachmentToDict(att));
     }

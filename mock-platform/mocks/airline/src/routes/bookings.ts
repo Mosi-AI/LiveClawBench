@@ -168,6 +168,8 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
 
     // Release seats
     db.query("UPDATE seats SET is_available = 1 WHERE id IN (SELECT seat_id FROM passengers WHERE booking_id = ? AND seat_id IS NOT NULL)").run(Number(booking.id));
+    // Clear passenger seat references to maintain seat availability invariant
+    db.query("UPDATE passengers SET seat_id = NULL WHERE booking_id = ?").run(Number(booking.id));
 
     db.query("UPDATE bookings SET booking_status = 'cancelled', updated_at = datetime('now') WHERE id = ?").run(Number(booking.id));
 
