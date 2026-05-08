@@ -12,7 +12,7 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 
 | Repository | Role | URL |
 |---|---|---|
-| **LiveClawBench** (this repo) | Task corpus — 30 harbor-format benchmark tasks | — |
+| **LiveClawBench** (this repo) | Task corpus — 32 harbor-format benchmark tasks | — |
 | **claw-harbor** | Evaluation framework (fork of harbor with OpenClaw support) | https://github.com/Mosi-AI/claw-harbor |
 | **OpenClaw** | Agent platform running inside task containers | https://github.com/openclaw/openclaw |
 
@@ -162,6 +162,8 @@ task containers. Each mock compiles to a standalone binary via `bun build --comp
 | Airline | `mocks/airline/` | `mock-airline` | Flight booking, seat selection, baggage tracking |
 | Email | `mocks/email/` | `mock-email` | Email inbox, compose, reply |
 | Todolist | `mocks/todolist/` | `mock-todolist` | Task management |
+| Insurance | `mocks/insurance/` | `mock-insurance` | Health insurance: claims, appointments, plan selection |
+| Calendar | `mocks/calendar/` | `mock-calendar` | Calendar events CRUD with overlap rejection |
 
 ### Build Commands
 
@@ -223,6 +225,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `live-web-research-sqlite-fts5` | Deep Research & Report | medium | **llm_judge** |
 | `conflict-repair-acb` | Documents & Knowledge | easy | **llm_judge** |
 | `skill-combination` | Documents & Knowledge | easy | evaluate.py |
+| `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
+| `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
 
 ## Docker Image Architecture
 
@@ -376,8 +380,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-30 implemented tasks: A1=10, A2=6, B1=4, B2=11.
-Difficulty: Easy=18, Medium=7, Hard=5.
+32 implemented tasks: A1=11, A2=6, B1=4, B2=11.
+Difficulty: Easy=19, Medium=8, Hard=5.
 
 ## Known Issues
 

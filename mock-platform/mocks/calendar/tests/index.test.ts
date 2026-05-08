@@ -2,10 +2,14 @@ import { describe, expect, test, beforeEach } from "bun:test";
 import { createCalendarApp } from "../src/index";
 import { getCalendarDb, resetCalendarDb } from "../src/db";
 import { seedDatabase } from "../src/seed";
-import { resetDb } from "mock-lib";
 
 describe("calendar mock", () => {
-  const app = createCalendarApp().app;
+  let app: ReturnType<typeof createCalendarApp>["app"];
+
+  beforeEach(() => {
+    process.env.CALENDAR_DB_PATH = ":memory:";
+    app = createCalendarApp().app;
+  });
 
   test("GET /health returns 200", async () => {
     const res = await app.request("/health");

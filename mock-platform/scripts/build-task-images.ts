@@ -41,7 +41,7 @@ const BINARY_PORTS: Record<string, number> = {
   calendar: 5003,
 };
 
-// All 30 benchmark task names (canonical source of truth)
+// All 32 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -292,8 +292,8 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
   // Binaries that are stubs (health/sentinel only) — the real services are
   // started by the task's startup.sh.  Implemented binaries (shop, doc-search)
   // are full Bun replacements and should be launched directly.
-  // TODO: Remove this filter block when airline, email, and todolist
-  // are fully migrated from Python stubs to Bun implementations.
+  // TODO: Remove this filter block when email and todolist are fully
+  // migrated from Python stubs to Bun implementations.
   // Condition: all entries in STUB_BINARIES are removed.
   const STUB_BINARIES = new Set(["email", "todolist"]);
   const implementedBinaries = binaries.filter((b) => !STUB_BINARIES.has(b));

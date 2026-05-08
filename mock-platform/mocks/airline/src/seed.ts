@@ -538,15 +538,12 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
 
     if (conflictingBookingIds.length > 0) {
       const bookingList = conflictingBookingIds.join(",");
-      db.query(`DELETE FROM booking_seats WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM passengers WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM payments WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM baggage_tracking WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM claims WHERE booking_id IN (${bookingList})`).run();
-      db.query(`DELETE FROM refunds WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM chat_messages WHERE session_id IN (SELECT id FROM chat_sessions WHERE booking_id IN (${bookingList}))`).run();
       db.query(`DELETE FROM chat_sessions WHERE booking_id IN (${bookingList})`).run();
-      db.query(`DELETE FROM reviews WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM bookings WHERE id IN (${bookingList})`).run();
     }
 

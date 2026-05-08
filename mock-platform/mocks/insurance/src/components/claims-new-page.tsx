@@ -4,12 +4,14 @@ import { Layout } from "./layout";
 
 interface ClaimsNewPageProps {
   user: { first_name: string; last_name: string };
+  error?: string;
 }
 
-export const ClaimsNewPage: FC<ClaimsNewPageProps> = ({ user }) => {
+export const ClaimsNewPage: FC<ClaimsNewPageProps> = ({ user, error }) => {
   return (
     <Layout title="New Claim" user={user}>
       <h1>Submit a New Claim</h1>
+      {error && <p class="error">{error}</p>}
       <form method="post" action="/claims/new" class="form-card">
         <label>
           Claim Type

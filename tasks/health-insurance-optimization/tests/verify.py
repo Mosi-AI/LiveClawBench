@@ -230,7 +230,7 @@ def main():
     scores.append(check_calendar_events())
 
     total = sum(scores)
-    print(f"Score: {total:.2f}/1.00")
+    print(f"Score: {total:.1f}/1.0")
 
     # All four parts must pass for a successful exit
     all_passed = all(s >= 0.25 for s in scores)

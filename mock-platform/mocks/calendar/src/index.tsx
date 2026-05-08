@@ -101,7 +101,12 @@ function registerPageRoutes(app: any, db: Database): void {
 
   // POST /login — Login form handler
   app.post("/login", async (c: any) => {
-    const body = await c.req.parseBody();
+    let body: Record<string, string | File>;
+    try {
+      body = await c.req.parseBody();
+    } catch {
+      return c.html(<LoginPage error="Invalid form submission" />, 400);
+    }
     const email = String(body.email || "");
     const password = String(body.password || "");
 
@@ -129,7 +134,13 @@ function registerPageRoutes(app: any, db: Database): void {
     const user = getUserFromCookie(db, c);
     if (!user) return c.redirect("/login");
 
-    const body = await c.req.parseBody();
+    let body: Record<string, string | File>;
+    try {
+      body = await c.req.parseBody();
+    } catch {
+      const events = listEventsStmt(db).all(user.id);
+      return c.html(<CalendarPage user={user} events={events} error="Invalid form submission" />, 400);
+    }
     const title = String(body.title || "");
     const startTime = String(body.start_time || "");
     const endTime = String(body.end_time || "");

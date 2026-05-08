@@ -125,7 +125,18 @@ export function createInsuranceApp(): MockAppV2 {
 
   // SSR login form handler (POST)
   app.post("/login", async (c) => {
-    const body = await c.req.parseBody();
+    let body: Record<string, string | File>;
+    try {
+      body = await c.req.parseBody();
+    } catch {
+      return c.html(
+        <LoginPage
+          error="Invalid form submission"
+          next={c.req.query("next") ?? "/claims"}
+        />,
+        400,
+      );
+    }
     const email = String(body.email ?? "");
     const password = String(body.password ?? "");
     const next = String(body.next ?? "/claims");
@@ -180,7 +191,15 @@ export function createInsuranceApp(): MockAppV2 {
   });
   app.post("/claims/new", pageAuthRequired, async (c) => {
     const userId = c.get("userId")!;
-    const body = await c.req.parseBody();
+    let body: Record<string, string | File>;
+    try {
+      body = await c.req.parseBody();
+    } catch {
+      return c.html(
+        <ClaimsNewPage user={getCurrentUser(db, userId)} error="Invalid form submission" />,
+        400,
+      );
+    }
     const claim_type = String(body.claim_type ?? "");
     const total_amount = Math.round(parseFloat(String(body.total_amount ?? "0")) * 100);
     const service_date = String(body.service_date ?? "");
@@ -380,7 +399,12 @@ export function createInsuranceApp(): MockAppV2 {
 
   app.post("/appointments/book", pageAuthRequired, async (c) => {
     const userId = c.get("userId")!;
-    const body = await c.req.parseBody();
+    let body: Record<string, string | File>;
+    try {
+      body = await c.req.parseBody();
+    } catch {
+      return c.text("Invalid form submission", 400);
+    }
     const slot_id = parseInt(String(body.slot_id ?? "0"), 10);
 
     const slot = db
@@ -543,7 +567,12 @@ export function createInsuranceApp(): MockAppV2 {
   });
   app.post("/plans/select", pageAuthRequired, async (c) => {
     const userId = c.get("userId")!;
-    const body = await c.req.parseBody();
+    let body: Record<string, string | File>;
+    try {
+      body = await c.req.parseBody();
+    } catch {
+      return c.text("Invalid form submission", 400);
+    }
     const plan_id = parseInt(String(body.plan_id ?? "0"), 10);
 
     const plan = db
