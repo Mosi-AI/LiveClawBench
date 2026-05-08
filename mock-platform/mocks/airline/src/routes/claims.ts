@@ -39,20 +39,20 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     const claimAmount = parseFloat(String(body.claim_amount ?? "0"));
     const claimReason = String(body.claim_reason ?? "");
 
-    if (!bookingReference || !claimType || !claimReason || !body.claim_amount) {
+    if (!bookingReference || !claimType || !claimReason || body.claim_amount === undefined || body.claim_amount === null) {
       return c.json(err("booking_reference, claim_type, claim_amount and claim_reason are required"), 400);
     }
 
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(bookingReference) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
-    db.query(
+    const result = db.query(
       "INSERT INTO claims (booking_id, claim_type, claim_amount, claim_reason, claim_status) VALUES (?, ?, ?, ?, 'pending')"
     ).run(Number(booking.id), claimType, claimAmount, claimReason);
 
-    const claimId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+    const claimId = Number(result.lastInsertRowid);
     const claim = db.query("SELECT * FROM claims WHERE id = ?").get(claimId) as Record<string, unknown>;
-    return c.json(ok(claim, "Claim submitted successfully"));
+    return c.json(ok(claim, "Claim submitted successfully"), 201);
   });
 
   // PUT /api/claims/:claim_id

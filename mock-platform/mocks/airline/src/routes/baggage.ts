@@ -40,7 +40,7 @@ export function registerBaggageRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("flight_number, flight_time, passenger_name, passenger_phone, passenger_email and baggage_description are required"), 400);
     }
 
-    db.query(
+    const result = db.query(
       "INSERT INTO baggage_tracking (user_id, booking_id, flight_number, flight_time, passenger_name, passenger_phone, passenger_email, baggage_description, seat_number, loss_details, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'processing')"
     ).run(
       DEFAULT_USER_ID,
@@ -55,7 +55,7 @@ export function registerBaggageRoutes(app: OpenAPIApp, db: Database): void {
       lossDetails,
     );
 
-    const reportId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+    const reportId = Number(result.lastInsertRowid);
     const report = db.query("SELECT * FROM baggage_tracking WHERE id = ?").get(reportId) as Record<string, unknown>;
     return c.json(ok(report, "Baggage report submitted successfully"), 201);
   });

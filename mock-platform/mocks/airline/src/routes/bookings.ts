@@ -57,20 +57,26 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
 
     const totalPrice = basePrice * passengers.length;
 
-    // Generate unique booking reference
+    // Generate unique booking reference with retry on UNIQUE constraint
     let reference = generateBookingReference();
-    let existing = db.query("SELECT id FROM bookings WHERE booking_reference = ?").get(reference) as { id: number } | null;
-    while (existing) {
-      reference = generateBookingReference();
-      existing = db.query("SELECT id FROM bookings WHERE booking_reference = ?").get(reference) as { id: number } | null;
+    let attempts = 0;
+    let bookingId: number;
+    while (true) {
+      try {
+        const result = db.query(
+          "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'pending', 0)"
+        ).run(reference, DEFAULT_USER_ID, flightId, cabinClass, totalPrice);
+        bookingId = Number(result.lastInsertRowid);
+        break;
+      } catch (e: any) {
+        if (e.message?.includes("UNIQUE constraint failed") && attempts < 10) {
+          reference = generateBookingReference();
+          attempts++;
+          continue;
+        }
+        throw e;
+      }
     }
-
-    const insertBooking = db.query(
-      "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'pending', 0)"
-    );
-    insertBooking.run(reference, DEFAULT_USER_ID, flightId, cabinClass, totalPrice);
-
-    const bookingId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
 
     // Insert passengers
     for (const p of passengers) {
@@ -119,41 +125,58 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
-    for (const assignment of assignments) {
-      // Validate passenger belongs to booking
-      const passenger = db.query("SELECT * FROM passengers WHERE id = ? AND booking_id = ?").get(assignment.passenger_id, Number(booking.id)) as Record<string, unknown> | null;
-      if (!passenger) {
-        return c.json(err(`Passenger ${assignment.passenger_id} not found in booking`), 404);
-      }
-
-      // Get seat on this flight
-      const seat = db.query("SELECT * FROM seats WHERE id = ? AND flight_id = ?").get(assignment.seat_id, Number(booking.flight_id)) as Record<string, unknown> | null;
-      if (!seat) {
-        return c.json(err(`Seat ${assignment.seat_id} not found`), 404);
-      }
-
-      if (!seat.is_available) {
-        // Window seat unavailability in economy — check if upgrade fee applies
-        const isEconomyWindow = seat.cabin_class === "economy" && seat.is_window;
-        if (isEconomyWindow) {
-          const availableEconWindow = db.query(
-            "SELECT COUNT(*) as count FROM seats WHERE flight_id = ? AND cabin_class = 'economy' AND is_window = 1 AND is_available = 1"
-          ).get(Number(booking.flight_id)) as { count: number };
-          if (availableEconWindow.count === 0) {
-            return c.json(err(
-              `Seat ${seat.seat_number} is not available. No economy window seats are available on this flight. ` +
-              `You can upgrade to business class for an additional $350 to get a window seat. ` +
-              `Upgrade fee: $350`
-            ), 400);
-          }
+    db.query("BEGIN TRANSACTION").run();
+    try {
+      for (const assignment of assignments) {
+        // Validate passenger belongs to booking
+        const passenger = db.query("SELECT * FROM passengers WHERE id = ? AND booking_id = ?").get(assignment.passenger_id, Number(booking.id)) as Record<string, unknown> | null;
+        if (!passenger) {
+          db.query("ROLLBACK").run();
+          return c.json(err(`Passenger ${assignment.passenger_id} not found in booking`), 404);
         }
-        return c.json(err(`Seat ${seat.seat_number} is not available`), 400);
+
+        // Get seat on this flight
+        const seat = db.query("SELECT * FROM seats WHERE id = ? AND flight_id = ?").get(assignment.seat_id, Number(booking.flight_id)) as Record<string, unknown> | null;
+        if (!seat) {
+          db.query("ROLLBACK").run();
+          return c.json(err(`Seat ${assignment.seat_id} not found`), 404);
+        }
+
+        if (!seat.is_available) {
+          // Window seat unavailability in economy — check if upgrade fee applies
+          const isEconomyWindow = seat.cabin_class === "economy" && seat.is_window;
+          if (isEconomyWindow) {
+            const availableEconWindow = db.query(
+              "SELECT COUNT(*) as count FROM seats WHERE flight_id = ? AND cabin_class = 'economy' AND is_window = 1 AND is_available = 1"
+            ).get(Number(booking.flight_id)) as { count: number };
+            if (availableEconWindow.count === 0) {
+              db.query("ROLLBACK").run();
+              return c.json(err(
+                `Seat ${seat.seat_number} is not available. No economy window seats are available on this flight. ` +
+                `You can upgrade to business class for an additional $350 to get a window seat. ` +
+                `Upgrade fee: $350`
+              ), 400);
+            }
+          }
+          db.query("ROLLBACK").run();
+          return c.json(err(`Seat ${seat.seat_number} is not available`), 400);
+        }
+
+        // Atomically claim seat
+        const seatUpdate = db.query("UPDATE seats SET is_available = 0 WHERE id = ? AND is_available = 1").run(assignment.seat_id);
+        if (seatUpdate.changes === 0) {
+          db.query("ROLLBACK").run();
+          return c.json(err(`Seat ${seat.seat_number} is no longer available`), 409);
+        }
+
+        // Update passenger with seat
+        db.query("UPDATE passengers SET seat_id = ? WHERE id = ? AND booking_id = ?").run(assignment.seat_id, assignment.passenger_id, Number(booking.id));
       }
 
-      // Update passenger with seat
-      db.query("UPDATE passengers SET seat_id = ? WHERE id = ? AND booking_id = ?").run(assignment.seat_id, assignment.passenger_id, Number(booking.id));
-      // Mark seat as unavailable
-      db.query("UPDATE seats SET is_available = 0 WHERE id = ?").run(assignment.seat_id);
+      db.query("COMMIT").run();
+    } catch (e) {
+      db.query("ROLLBACK").run();
+      throw e;
     }
 
     const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(Number(booking.id)) as Record<string, unknown>;

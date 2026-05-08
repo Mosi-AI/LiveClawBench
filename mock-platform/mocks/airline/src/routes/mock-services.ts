@@ -47,8 +47,10 @@ function registerPaymentRoutes(app: OpenAPIApp, db: Database, prefix: string): v
       ).run(bookingId, Number(booking.total_price), cardNumber.slice(-4), cardHolder, transactionId);
     }
 
-    // Update booking to confirmed
-    db.query("UPDATE bookings SET booking_status = 'confirmed', updated_at = datetime('now') WHERE id = ?").run(bookingId);
+    // Update booking to confirmed only if still pending
+    if (booking.booking_status === "pending") {
+      db.query("UPDATE bookings SET booking_status = 'confirmed', updated_at = datetime('now') WHERE id = ?").run(bookingId);
+    }
 
     const payment = db.query("SELECT * FROM payments WHERE booking_id = ? ORDER BY id DESC LIMIT 1").get(bookingId) as Record<string, unknown>;
     return c.json(ok({ payment, booking_status: "confirmed" }, "Payment processed successfully"));
@@ -134,11 +136,11 @@ function registerChatRoutes(app: OpenAPIApp, db: Database, prefix: string): void
 
   app.post(`${prefix}/chat/sessions`, (c) => {
     const sessionId = `chat-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    db.query(
+    const result = db.query(
       "INSERT INTO chat_sessions (user_id, session_id, status) VALUES (?, ?, 'active')"
     ).run(DEFAULT_USER_ID, sessionId);
 
-    const id = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+    const id = Number(result.lastInsertRowid);
     const session = db.query("SELECT * FROM chat_sessions WHERE id = ?").get(id) as Record<string, unknown>;
     return c.json(ok(session, "Chat session created"));
   });

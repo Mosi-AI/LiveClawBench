@@ -32,13 +32,13 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Email already registered"), 400);
     }
 
-    db.query(
+    const result = db.query(
       "INSERT INTO users (email, password_hash, first_name, last_name, phone, date_of_birth, is_verified, is_active) VALUES (?, ?, ?, ?, ?, ?, 1, 1)"
     ).run(email, password, firstName, lastName, phone, dateOfBirth);
 
-    const row = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
-    const user = getUserById(db, row.id);
-    return c.json(ok({ user, access_token: generateJwtToken(row.id), refresh_token: generateJwtToken(row.id) + "-refresh" }, "Registration successful"), 201);
+    const userId = Number(result.lastInsertRowid);
+    const user = getUserById(db, userId);
+    return c.json(ok({ user, access_token: generateJwtToken(userId), refresh_token: generateJwtToken(userId) + "-refresh" }, "Registration successful"), 201);
   });
 
   // POST /api/auth/login
