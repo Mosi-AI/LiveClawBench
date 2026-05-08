@@ -10,7 +10,15 @@ function formatDate(dateStr: string): string {
 }
 
 function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function escHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 function renderNav(currentSlug: string): string {
@@ -67,7 +75,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
     const slug = c.req.param("slug");
     const loc = db.query("SELECT * FROM location WHERE slug = ?").get(slug) as Location | null;
     if (!loc) {
-      return renderPage("未找到城市", `<div class="card"><h2>未找到城市</h2><p>城市"${slug}"不存在。</p><a href="/">返回首页</a></div>`, "", 404);
+      return renderPage("未找到城市", `<div class="card"><h2>未找到城市</h2><p>城市"${escHtml(slug)}"不存在。</p><a href="/">返回首页</a></div>`, "", 404);
     }
 
     const today = todayStr();
@@ -129,7 +137,7 @@ ${tips.length > 0 ? `
     const slug = c.req.param("slug");
     const loc = db.query("SELECT * FROM location WHERE slug = ?").get(slug) as Location | null;
     if (!loc) {
-      return renderPage("未找到城市", `<div class="card"><h2>未找到城市</h2><p>城市"${slug}"不存在。</p><a href="/">返回首页</a></div>`, "", 404);
+      return renderPage("未找到城市", `<div class="card"><h2>未找到城市</h2><p>城市"${escHtml(slug)}"不存在。</p><a href="/">返回首页</a></div>`, "", 404);
     }
 
     const today = todayStr();
@@ -172,7 +180,7 @@ ${tomorrowHours.length > 0 ? `
     const slug = c.req.param("slug");
     const loc = db.query("SELECT * FROM location WHERE slug = ?").get(slug) as Location | null;
     if (!loc) {
-      return renderPage("未找到城市", `<div class="card"><h2>未找到城市</h2><p>城市"${slug}"不存在。</p><a href="/">返回首页</a></div>`, "", 404);
+      return renderPage("未找到城市", `<div class="card"><h2>未找到城市</h2><p>城市"${escHtml(slug)}"不存在。</p><a href="/">返回首页</a></div>`, "", 404);
     }
 
     const today = todayStr();
@@ -214,10 +222,11 @@ ${tomorrowHours.length > 0 ? `
       return c.redirect(`/location/${rows[0].slug}`);
     }
 
-    const title = q ? `搜索"${q}"` : "城市列表";
+    const qEsc = escHtml(q);
+    const title = q ? `搜索"${qEsc}"` : "城市列表";
     let body: string;
     if (rows.length === 0) {
-      body = `<div class="card"><h2>未找到城市</h2><p>没有找到与"${q}"匹配的城市。</p><a href="/search">查看全部城市</a></div>`;
+      body = `<div class="card"><h2>未找到城市</h2><p>没有找到与"${qEsc}"匹配的城市。</p><a href="/search">查看全部城市</a></div>`;
     } else {
       body = `<div class="card">
   <h2>${title}</h2>

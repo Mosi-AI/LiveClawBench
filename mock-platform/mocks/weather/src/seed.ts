@@ -4,6 +4,13 @@ import { existsSync, unlinkSync } from "node:fs";
 const DB_PATH = process.env.WEATHER_DB_PATH ?? "/tmp/weather.db";
 export let db!: Database;
 
+function localDateStr(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 interface CitySpec {
   slug: string;
   display_name: string;
@@ -317,10 +324,10 @@ export function initDb(): void {
   db.exec("PRAGMA foreign_keys = ON;");
 
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
+  const todayStr = localDateStr(today);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+  const tomorrowStr = localDateStr(tomorrow);
 
   initSchema(db);
   seedCities(db, todayStr, tomorrowStr);
