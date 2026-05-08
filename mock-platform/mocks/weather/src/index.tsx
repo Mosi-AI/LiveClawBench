@@ -21,6 +21,15 @@ function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
+function tomorrowStr(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function renderNav(currentSlug: string): string {
   const locations = db.query("SELECT slug, display_name FROM location ORDER BY id ASC").all() as { slug: string; display_name: string }[];
   return `<nav style="padding:8px 16px;background:#1a73e8;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
@@ -79,11 +88,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
     }
 
     const today = todayStr();
+    const tomorrow = tomorrowStr();
     const dailyRows = db.query(
       "SELECT * FROM weather_daily WHERE location_id = ? ORDER BY valid_date ASC"
     ).all(loc.id) as WeatherDaily[];
     const todayDaily = dailyRows.find(r => r.valid_date === today) ?? dailyRows[0];
-    const tomorrowDaily = dailyRows.find(r => r.valid_date !== today) ?? dailyRows[1];
+    const tomorrowDaily = dailyRows.find(r => r.valid_date === tomorrow) ?? null;
 
     const aqi = db.query(
       "SELECT * FROM air_quality_snapshot WHERE location_id = ?"
@@ -141,12 +151,13 @@ ${tips.length > 0 ? `
     }
 
     const today = todayStr();
+    const tomorrow = tomorrowStr();
     const hourlyRows = db.query(
       "SELECT * FROM weather_hourly WHERE location_id = ? ORDER BY valid_date ASC, hour ASC"
     ).all(loc.id) as WeatherHourly[];
 
     const todayHours = hourlyRows.filter(r => r.valid_date === today);
-    const tomorrowHours = hourlyRows.filter(r => r.valid_date !== today).slice(0, 6);
+    const tomorrowHours = hourlyRows.filter(r => r.valid_date === tomorrow).slice(0, 6);
 
     const body = `
 <div class="card">
