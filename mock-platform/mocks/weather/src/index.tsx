@@ -14,9 +14,7 @@ function todayStr(): string {
 }
 
 function tomorrowStr(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return cstDateStr(d);
+  return cstDateStr(new Date(Date.now() + 24 * 60 * 60 * 1000));
 }
 
 function escHtml(s: string): string {

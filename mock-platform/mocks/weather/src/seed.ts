@@ -321,15 +321,14 @@ function seedCities(database: Database, todayStr: string, tomorrowStr: string): 
 }
 
 export function initDb(): void {
+  try { db?.close(); } catch { /* ignore if not yet open */ }
   if (existsSync(DB_PATH)) unlinkSync(DB_PATH);
   db = new Database(DB_PATH, { create: true });
   db.exec("PRAGMA foreign_keys = ON;");
 
-  const today = new Date();
-  const todayStr = cstDateStr(today);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = cstDateStr(tomorrow);
+  const now = new Date();
+  const todayStr = cstDateStr(now);
+  const tomorrowStr = cstDateStr(new Date(now.getTime() + 24 * 60 * 60 * 1000));
   seedDate = todayStr;
 
   initSchema(db);
