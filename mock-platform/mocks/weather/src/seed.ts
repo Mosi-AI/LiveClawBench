@@ -196,18 +196,6 @@ function computeHourlyTemp(high: number, low: number, hour: number): number {
   return Math.round(avg + amp * Math.cos(((hour - 14) / 24) * 2 * Math.PI));
 }
 
-function hourlyCondition(daily: DailySpec, hour: number): string {
-  if (daily.condition_text.includes("雨") && hour >= 14 && hour <= 18) {
-    return daily.condition_text;
-  }
-  if (daily.condition_text === "晴" || daily.condition_text === "多云") {
-    return daily.condition_text;
-  }
-  if (hour >= 6 && hour <= 18) {
-    return daily.condition_text;
-  }
-  return daily.condition_text;
-}
 
 function initSchema(database: Database): void {
   database.exec(`
@@ -301,17 +289,14 @@ function seedCities(database: Database, todayStr: string, tomorrowStr: string): 
         daily.precip_mm, daily.wind_dir, daily.wind_speed_kmh, daily.uv_index
       );
 
-      const RAIN_WINDOW_HOURS = 11; // hours 10-20 inclusive
-      const hourlyPrecip = daily.precip_mm > 0 ? daily.precip_mm / RAIN_WINDOW_HOURS : 0;
+      const hourlyPrecip = daily.precip_mm > 0 ? daily.precip_mm / 11 : 0; // 11 hours: 10-20 inclusive
       const baseHumidity = daily.condition_text.includes("雨") ? 85 : daily.condition_text.includes("雪") ? 80 : 60;
       const baseCloud = daily.condition_text === "晴" ? 10 : daily.condition_text.includes("多云") ? 50 : 80;
 
       for (let hour = 0; hour < 24; hour++) {
         const tempC = computeHourlyTemp(daily.temp_high_c, daily.temp_low_c, hour);
-        const feelsLikeC = tempC + 2;
-        const condition = hourlyCondition(daily, hour);
         const precip = hour >= 10 && hour <= 20 ? hourlyPrecip : 0;
-        insertHourly.run(locationId, dateStr, hour, tempC, feelsLikeC, condition, precip, baseHumidity, baseCloud);
+        insertHourly.run(locationId, dateStr, hour, tempC, tempC + 2, daily.condition_text, precip, baseHumidity, baseCloud);
       }
     }
 
@@ -327,7 +312,6 @@ export function initDb(): void {
   mkdirSync(dirname(DB_PATH), { recursive: true });
   if (existsSync(DB_PATH)) unlinkSync(DB_PATH);
   db = new Database(DB_PATH, { create: true });
-  db.exec("PRAGMA foreign_keys = ON;");
 
   const now = new Date();
   const todayStr = cstDateStr(now);

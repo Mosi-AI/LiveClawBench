@@ -9,16 +9,20 @@ function formatDate(dateStr: string): string {
   return `${d.getMonth() + 1}月${d.getDate()}日`;
 }
 
-function todayStr(): string {
-  return cstDateStr();
-}
-
 function tomorrowStr(): string {
   return cstDateStr(new Date(Date.now() + 24 * 60 * 60 * 1000));
 }
 
 function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function getLocation(slug: string): Location | null {
+  return db.query("SELECT * FROM location WHERE slug = ?").get(slug) as Location | null;
+}
+
+function renderNotFound(slug: string): Response {
+  return renderPage("未找到城市", `<div class="card"><h2>未找到城市</h2><p>城市"${escHtml(slug)}"不存在。</p><a href="/">返回首页</a></div>`, "", 404);
 }
 
 function renderNav(currentSlug: string): string {
@@ -78,12 +82,10 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
   app.get("/location/:slug", (c) => {
     const slug = c.req.param("slug");
-    const loc = db.query("SELECT * FROM location WHERE slug = ?").get(slug) as Location | null;
-    if (!loc) {
-      return renderPage("未找到城市", `<div class="card"><h2>未找到城市</h2><p>城市"${escHtml(slug)}"不存在。</p><a href="/">返回首页</a></div>`, "", 404);
-    }
+    const loc = getLocation(slug);
+    if (!loc) return renderNotFound(slug);
 
-    const today = todayStr();
+    const today = cstDateStr();
     const tomorrow = tomorrowStr();
     const dailyRows = db.query(
       "SELECT * FROM weather_daily WHERE location_id = ? ORDER BY valid_date ASC"
@@ -141,12 +143,10 @@ ${tips.length > 0 ? `
 
   app.get("/location/:slug/hourly", (c) => {
     const slug = c.req.param("slug");
-    const loc = db.query("SELECT * FROM location WHERE slug = ?").get(slug) as Location | null;
-    if (!loc) {
-      return renderPage("未找到城市", `<div class="card"><h2>未找到城市</h2><p>城市"${escHtml(slug)}"不存在。</p><a href="/">返回首页</a></div>`, "", 404);
-    }
+    const loc = getLocation(slug);
+    if (!loc) return renderNotFound(slug);
 
-    const today = todayStr();
+    const today = cstDateStr();
     const tomorrow = tomorrowStr();
     const hourlyRows = db.query(
       "SELECT * FROM weather_hourly WHERE location_id = ? ORDER BY valid_date ASC, hour ASC"
@@ -185,12 +185,10 @@ ${tomorrowHours.length > 0 ? `
 
   app.get("/location/:slug/daily", (c) => {
     const slug = c.req.param("slug");
-    const loc = db.query("SELECT * FROM location WHERE slug = ?").get(slug) as Location | null;
-    if (!loc) {
-      return renderPage("未找到城市", `<div class="card"><h2>未找到城市</h2><p>城市"${escHtml(slug)}"不存在。</p><a href="/">返回首页</a></div>`, "", 404);
-    }
+    const loc = getLocation(slug);
+    if (!loc) return renderNotFound(slug);
 
-    const today = todayStr();
+    const today = cstDateStr();
     const dailyRows = db.query(
       "SELECT * FROM weather_daily WHERE location_id = ? ORDER BY valid_date ASC"
     ).all(loc.id) as WeatherDaily[];
