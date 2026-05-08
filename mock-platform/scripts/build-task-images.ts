@@ -40,7 +40,7 @@ const BINARY_PORTS: Record<string, number> = {
   smarthome: 5003,
 };
 
-// All 35 benchmark task names (canonical source of truth)
+// All 36 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -53,7 +53,8 @@ const ALL_TASK_NAMES = new Set([
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination",
   // "smart-home-thermostat", "grocery-reorder", "smart-home-morning-recovery", "grocery-budget-plan",
-  "smarthome_test",
+  "smarthome-testold",
+  "smarthome-test",
 ]);
 
 interface AssetMapping {
