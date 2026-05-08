@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { createMockApp, startServer } from "mock-lib";
 import type { AppEnv } from "mock-lib";
-import { db, initDb } from "./seed.js";
+import { db, initDb, seedDate, cstDateStr } from "./seed.js";
 import type { Location, WeatherDaily, WeatherHourly, AirQualitySnapshot, HealthActivityTip } from "./types.js";
 
 function formatDate(dateStr: string): string {
@@ -10,24 +10,17 @@ function formatDate(dateStr: string): string {
 }
 
 function todayStr(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function escHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  return cstDateStr();
 }
 
 function tomorrowStr(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return cstDateStr(d);
+}
+
+function escHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 function renderNav(currentSlug: string): string {
@@ -74,6 +67,11 @@ ${renderNav(slug)}
 }
 
 function registerRoutes(app: Hono<AppEnv>): void {
+  app.use("*", async (c, next) => {
+    if (cstDateStr() !== seedDate) initDb();
+    await next();
+  });
+
   app.get("/__mock_sentinel__/weather", (c) =>
     c.json({ mock: "weather", sentinel: true })
   );

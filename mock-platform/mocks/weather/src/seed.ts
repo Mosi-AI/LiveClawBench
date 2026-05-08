@@ -3,11 +3,13 @@ import { existsSync, unlinkSync } from "node:fs";
 
 const DB_PATH = process.env.WEATHER_DB_PATH ?? "/tmp/weather.db";
 export let db!: Database;
+export let seedDate: string = "";
 
-function localDateStr(d: Date): string {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
+export function cstDateStr(d: Date = new Date()): string {
+  const cst = new Date(d.getTime() + 8 * 60 * 60 * 1000);
+  const year = cst.getUTCFullYear();
+  const month = String(cst.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(cst.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
@@ -324,10 +326,11 @@ export function initDb(): void {
   db.exec("PRAGMA foreign_keys = ON;");
 
   const today = new Date();
-  const todayStr = localDateStr(today);
+  const todayStr = cstDateStr(today);
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = localDateStr(tomorrow);
+  const tomorrowStr = cstDateStr(tomorrow);
+  seedDate = todayStr;
 
   initSchema(db);
   seedCities(db, todayStr, tomorrowStr);
