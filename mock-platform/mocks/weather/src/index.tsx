@@ -163,9 +163,9 @@ ${tips.length > 0 ? `
 <div class="card">
   <h2>今天</h2>
   <table>
-    <thead><tr><th>时间</th><th>温度</th><th>体感</th><th>天气</th><th>降水(mm)</th></tr></thead>
+    <thead><tr><th>时间</th><th>温度</th><th>体感</th><th>天气</th><th>降水(mm)</th><th>湿度</th><th>云量</th></tr></thead>
     <tbody>
-      ${todayHours.map(h => `<tr><td>${String(h.hour).padStart(2, "0")}:00</td><td>${h.temp_c}°C</td><td>${h.feels_like_c}°C</td><td>${h.condition_text}</td><td>${h.precip_mm.toFixed(1)}</td></tr>`).join("")}
+      ${todayHours.map(h => `<tr><td>${String(h.hour).padStart(2, "0")}:00</td><td>${h.temp_c}°C</td><td>${h.feels_like_c}°C</td><td>${h.condition_text}</td><td>${h.precip_mm.toFixed(1)}</td><td>${h.humidity}%</td><td>${h.cloud_cover}%</td></tr>`).join("")}
     </tbody>
   </table>
 </div>
@@ -173,9 +173,9 @@ ${tomorrowHours.length > 0 ? `
 <div class="card">
   <h2>明日预览</h2>
   <table>
-    <thead><tr><th>时间</th><th>温度</th><th>体感</th><th>天气</th><th>降水(mm)</th></tr></thead>
+    <thead><tr><th>时间</th><th>温度</th><th>体感</th><th>天气</th><th>降水(mm)</th><th>湿度</th><th>云量</th></tr></thead>
     <tbody>
-      ${tomorrowHours.map(h => `<tr><td>${String(h.hour).padStart(2, "0")}:00</td><td>${h.temp_c}°C</td><td>${h.feels_like_c}°C</td><td>${h.condition_text}</td><td>${h.precip_mm.toFixed(1)}</td></tr>`).join("")}
+      ${tomorrowHours.map(h => `<tr><td>${String(h.hour).padStart(2, "0")}:00</td><td>${h.temp_c}°C</td><td>${h.feels_like_c}°C</td><td>${h.condition_text}</td><td>${h.precip_mm.toFixed(1)}</td><td>${h.humidity}%</td><td>${h.cloud_cover}%</td></tr>`).join("")}
     </tbody>
   </table>
 </div>` : ""}

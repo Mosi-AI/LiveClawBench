@@ -300,7 +300,8 @@ function seedCities(database: Database, todayStr: string, tomorrowStr: string): 
         daily.precip_mm, daily.wind_dir, daily.wind_speed_kmh, daily.uv_index
       );
 
-      const basePrecip = daily.precip_mm / 24;
+      const RAIN_WINDOW_HOURS = 11; // hours 10-20 inclusive
+      const hourlyPrecip = daily.precip_mm > 0 ? daily.precip_mm / RAIN_WINDOW_HOURS : 0;
       const baseHumidity = daily.condition_text.includes("雨") ? 85 : daily.condition_text.includes("雪") ? 80 : 60;
       const baseCloud = daily.condition_text === "晴" ? 10 : daily.condition_text.includes("多云") ? 50 : 80;
 
@@ -308,7 +309,7 @@ function seedCities(database: Database, todayStr: string, tomorrowStr: string): 
         const tempC = computeHourlyTemp(daily.temp_high_c, daily.temp_low_c, hour);
         const feelsLikeC = tempC + 2;
         const condition = hourlyCondition(daily, hour);
-        const precip = daily.precip_mm > 0 && hour >= 10 && hour <= 20 ? basePrecip * 2.5 : 0;
+        const precip = hour >= 10 && hour <= 20 ? hourlyPrecip : 0;
         insertHourly.run(locationId, dateStr, hour, tempC, feelsLikeC, condition, precip, baseHumidity, baseCloud);
       }
     }
