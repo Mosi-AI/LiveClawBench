@@ -523,7 +523,7 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
   const arrivalTime = new Date(departureDate.getTime() + 5.5 * 3600000);
 
   // Remove all data for conflicting flights in correct FK order:
-  // passengers/payments/booking_seats → bookings → seats → price_history/flight_status_history → flights
+  // passengers/payments/baggage_tracking/claims/chat_messages/chat_sessions → bookings → seats → price_history/flight_status_history → flights
   const conflictingFilters = [
     "flight_number = 'GKD2001'",
     `origin_code = 'JFK' AND destination_code = 'LAX' AND departure_time LIKE '${departureDate.toISOString().split("T")[0]}%'`,
