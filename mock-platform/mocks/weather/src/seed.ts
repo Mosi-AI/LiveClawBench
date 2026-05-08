@@ -1,5 +1,6 @@
 import { Database } from "bun:sqlite";
-import { existsSync, unlinkSync } from "node:fs";
+import { existsSync, mkdirSync, unlinkSync } from "node:fs";
+import { dirname } from "node:path";
 
 const DB_PATH = process.env.WEATHER_DB_PATH ?? "/tmp/weather.db";
 export let db!: Database;
@@ -323,6 +324,7 @@ function seedCities(database: Database, todayStr: string, tomorrowStr: string): 
 
 export function initDb(): void {
   try { db?.close(); } catch { /* ignore if not yet open */ }
+  mkdirSync(dirname(DB_PATH), { recursive: true });
   if (existsSync(DB_PATH)) unlinkSync(DB_PATH);
   db = new Database(DB_PATH, { create: true });
   db.exec("PRAGMA foreign_keys = ON;");
