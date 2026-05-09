@@ -15,8 +15,7 @@
  */
 
 import { createMockApp, startServer } from "mock-lib";
-import type { AppEnv } from "mock-lib";
-import { Hono } from "hono";
+import type { AppEnv, OpenAPIApp } from "mock-lib";
 import { html, raw } from "hono/html";
 import type { FC, Child } from "hono/jsx";
 import { Database } from "bun:sqlite";
@@ -821,7 +820,7 @@ const MealPlanPage: FC<{ constraints: UserConstraints; recipes: Recipe[] }> = ({
 // Route registration
 // ---------------------------------------------------------------------------
 
-function registerRoutes(app: Hono<AppEnv>): void {
+function registerRoutes(app: OpenAPIApp): void {
   // Sentinel route for binary isolation verification
   app.get("/__mock_sentinel__/smarthome", (c) =>
     c.json({ mock: "smarthome", sentinel: true }),
@@ -830,7 +829,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   // --- HTML Pages ---
 
   // Dashboard
-  app.get("/", (c) => {
+  app.page("/", (c) => {
     const database = assertDb();
     const metrics = database.query("SELECT * FROM room_metrics LIMIT 1").get() as RoomMetrics;
     const thermostat = database.query("SELECT * FROM thermostat_settings WHERE id = 1").get() as ThermostatSettings;
@@ -843,7 +842,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   // Thermostat page
-  app.get("/thermostat", (c) => {
+  app.page("/thermostat", (c) => {
     const database = assertDb();
     const thermostat = database.query("SELECT * FROM thermostat_settings WHERE id = 1").get() as ThermostatSettings;
 
@@ -855,7 +854,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   // Inventory page
-  app.get("/inventory", (c) => {
+  app.page("/inventory", (c) => {
     const database = assertDb();
     const items = database.query("SELECT * FROM inventory_item ORDER BY location, item_name").all() as InventoryItem[];
     // Inventory can be empty, no error needed
@@ -863,7 +862,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   // Grocery page
-  app.get("/grocery", (c) => {
+  app.page("/grocery", (c) => {
     const database = assertDb();
     const products = database.query("SELECT * FROM grocery_product ORDER BY name").all() as GroceryProduct[];
     // Grocery catalog can be empty, no error needed
@@ -871,7 +870,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   // Calendar page
-  app.get("/calendar", (c) => {
+  app.page("/calendar", (c) => {
     const database = assertDb();
     const events = database.query("SELECT * FROM calendar_event ORDER BY start_time").all() as CalendarEvent[];
     // Calendar can be empty, no error needed
@@ -879,7 +878,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   // Meal Plan page
-  app.get("/meal-plan", (c) => {
+  app.page("/meal-plan", (c) => {
     const database = assertDb();
     const constraints = database.query("SELECT * FROM user_constraints WHERE id = 1").get() as UserConstraints;
     const recipes = database.query("SELECT * FROM recipe ORDER BY meal_type, name").all() as Recipe[];
@@ -1124,6 +1123,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
     }, 201);
   });
 
+  app.get("/api/grocery/orders", (c) => {
+    const database = assertDb();
+    const orders = database.query("SELECT order_id, total, created_at FROM grocery_order ORDER BY created_at DESC").all() as GroceryOrder[];
+    return c.json(orders);
+  });
+
   // Wearable/Recovery API
   app.get("/api/wearable-recovery", (c) => {
     const database = assertDb();
@@ -1295,7 +1300,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
 const app = createMockApp({
   name: "smarthome",
-  port: 5003,
+  port: 5004,
   healthResponse: { ok: true, status: "healthy", service: "smarthome" },
   routes: registerRoutes,
 });

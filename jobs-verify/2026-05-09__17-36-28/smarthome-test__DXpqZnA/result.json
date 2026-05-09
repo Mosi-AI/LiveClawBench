@@ -1,0 +1,102 @@
+{
+    "id": "08b70976-a786-4297-b04b-c84d1d17cf16",
+    "task_name": "smarthome-test",
+    "trial_name": "smarthome-test__DXpqZnA",
+    "trial_uri": "file:///Users/liuxiaoyu/Desktop/xrj/Cityu/work/clawbench/implement/LiveClawBench/jobs-verify/2026-05-09__17-36-28/smarthome-test__DXpqZnA",
+    "task_id": {
+        "path": "tasks/smarthome-test"
+    },
+    "source": null,
+    "task_checksum": "46b33829f66476c757f3198f7b403588338294071a706592684acb3e48be042c",
+    "config": {
+        "task": {
+            "path": "tasks/smarthome-test",
+            "git_url": null,
+            "git_commit_id": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": null
+        },
+        "trial_name": "smarthome-test__DXpqZnA",
+        "trials_dir": "jobs-verify/2026-05-09__17-36-28",
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "openclaw",
+            "import_path": null,
+            "model_name": "moonshot/astron-code-latest",
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "kwargs": {},
+            "env": {
+                "CUSTOM_BASE_URL": "https://maas-coding-api.cn-huabei-1.xf-yun.com/v2",
+                "CUSTOM_API_KEY": "1f2d9975d34a53ea2c08127d898961ca:ZGY5OGZiYjE3OWVmZjJiMDJjNGVhNDgx",
+                "OPENCLAW_LLM_REQUEST_TIMEOUT_MS": "120000",
+                "OPENCLAW_LLM_IDLE_TIMEOUT_MS": "120000"
+            }
+        },
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "suppress_override_warnings": false,
+            "mounts_json": null,
+            "env": {},
+            "kwargs": {}
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "disable": false
+        },
+        "artifacts": [],
+        "job_id": "9b71c8a6-458c-4edc-ad24-9faea30a50d7"
+    },
+    "agent_info": {
+        "name": "openclaw",
+        "version": "2026.3.11",
+        "model_info": {
+            "name": "astron-code-latest",
+            "provider": "moonshot"
+        }
+    },
+    "agent_result": {
+        "n_input_tokens": 14787,
+        "n_cache_tokens": 128,
+        "n_output_tokens": 53,
+        "cost_usd": null,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": null,
+    "exception_info": {
+        "exception_type": "CancelledError",
+        "exception_message": "",
+        "exception_traceback": "Traceback (most recent call last):\n  File \"/Users/liuxiaoyu/Desktop/xrj/Cityu/work/clawbench/implement/LiveClawBench/.venv/lib/python3.12/site-packages/harbor/trial/trial.py\", line 500, in run\n    await self._execute_agent()\n  File \"/Users/liuxiaoyu/Desktop/xrj/Cityu/work/clawbench/implement/LiveClawBench/.venv/lib/python3.12/site-packages/harbor/trial/trial.py\", line 268, in _execute_agent\n    await asyncio.wait_for(\n  File \"/Users/liuxiaoyu/.local/share/uv/python/cpython-3.12.13-macos-x86_64-none/lib/python3.12/asyncio/tasks.py\", line 520, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/Users/liuxiaoyu/Desktop/xrj/Cityu/work/clawbench/implement/LiveClawBench/.venv/lib/python3.12/site-packages/harbor/agents/installed/base.py\", line 388, in run\n    result = await environment.exec(\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/liuxiaoyu/Desktop/xrj/Cityu/work/clawbench/implement/LiveClawBench/.venv/lib/python3.12/site-packages/harbor/environments/docker/docker.py\", line 419, in exec\n    return await self._run_docker_compose_command(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/liuxiaoyu/Desktop/xrj/Cityu/work/clawbench/implement/LiveClawBench/.venv/lib/python3.12/site-packages/harbor/environments/docker/docker.py\", line 248, in _run_docker_compose_command\n    stdout_bytes, stderr_bytes = await process.communicate()\n                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/liuxiaoyu/.local/share/uv/python/cpython-3.12.13-macos-x86_64-none/lib/python3.12/asyncio/subprocess.py\", line 201, in communicate\n    stdin, stdout, stderr = await tasks.gather(stdin, stdout, stderr)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/liuxiaoyu/.local/share/uv/python/cpython-3.12.13-macos-x86_64-none/lib/python3.12/asyncio/subprocess.py\", line 181, in _read_stream\n    output = await stream.read()\n             ^^^^^^^^^^^^^^^^^^^\n  File \"/Users/liuxiaoyu/.local/share/uv/python/cpython-3.12.13-macos-x86_64-none/lib/python3.12/asyncio/streams.py\", line 706, in read\n    block = await self.read(self._limit)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/liuxiaoyu/.local/share/uv/python/cpython-3.12.13-macos-x86_64-none/lib/python3.12/asyncio/streams.py\", line 713, in read\n    await self._wait_for_data('read')\n  File \"/Users/liuxiaoyu/.local/share/uv/python/cpython-3.12.13-macos-x86_64-none/lib/python3.12/asyncio/streams.py\", line 545, in _wait_for_data\n    await self._waiter\nasyncio.exceptions.CancelledError\n",
+        "occurred_at": "2026-05-09T17:37:47.354805"
+    },
+    "started_at": "2026-05-09T09:36:28.527504Z",
+    "finished_at": "2026-05-09T09:37:50.734910Z",
+    "environment_setup": {
+        "started_at": "2026-05-09T09:36:28.529170Z",
+        "finished_at": "2026-05-09T09:36:43.934247Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-05-09T09:36:43.934339Z",
+        "finished_at": "2026-05-09T09:36:45.717354Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-05-09T09:36:45.717566Z",
+        "finished_at": "2026-05-09T09:37:47.332418Z"
+    },
+    "verifier": null
+}

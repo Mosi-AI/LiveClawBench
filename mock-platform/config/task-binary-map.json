@@ -85,12 +85,6 @@
       ]
     },
     "skill-combination": { "binaries": [] },
-    "smarthome-testold": {
-      "binaries": ["smarthome"],
-      "assets": [
-        { "src": "tasks/smarthome-testold/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
-      ]
-    },
     "smarthome-test": {
       "binaries": ["smarthome"],
       "assets": [

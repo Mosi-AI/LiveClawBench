@@ -1,6 +1,6 @@
 # Smart Home Morning Routine
 
-You are helping the user complete their morning home automation routine. The user has a smart home control panel available at http://localhost:5003.
+You are helping the user complete their morning home automation routine. The user has a smart home control panel available at http://localhost:5004.
 
 ## Context
 

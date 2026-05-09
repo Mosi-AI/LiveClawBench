@@ -37,7 +37,7 @@ const BINARY_PORTS: Record<string, number> = {
   shop: 1234,
   todolist: 5002,
   "doc-search": 8123,
-  smarthome: 5003,
+  smarthome: 5004,
 };
 
 // All 36 benchmark task names (canonical source of truth)

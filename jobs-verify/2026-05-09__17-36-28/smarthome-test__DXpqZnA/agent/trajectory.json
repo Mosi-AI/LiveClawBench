@@ -1,0 +1,57 @@
+{
+  "schema_version": "ATIF-v1.2",
+  "session_id": "harbor",
+  "agent": {
+    "name": "openclaw",
+    "version": "2026.3.11",
+    "model_name": "moonshot/astron-code-latest"
+  },
+  "steps": [
+    {
+      "step_id": 1,
+      "timestamp": "2026-05-09T09:37:01.389Z",
+      "source": "user",
+      "message": "[Sat 2026-05-09 09:37 UTC] # Smart Home Morning Routine\n\nYou are helping the user complete their morning home automation routine. The user has a smart home control panel available at http://localhost:5004.\n\n## Context\n\nThe user has just woken up and needs your help with several morning tasks. The smart home system provides a web-based control panel with the following features:\n\n- **Dashboard**: Overview of room conditions and thermostat status\n- **Thermostat Control**: Adjust temperature and mode (comfort/eco/off)\n- **Inventory Management**: View and manage items in fridge and pantry\n- **Grocery Catalog**: Browse available products for ordering\n- **Calendar**: View and update scheduled events including workout types\n- **Meal Planning**: Create weekly meal plans based on dietary constraints\n\n## Your Tasks\n\nPlease complete the following morning routine tasks:\n\n1. **Check the current home status** - View the dashboard to understand current conditions\n\n2. **Adjust the thermostat** - The user feels cold this morning. Set the thermostat to comfort mode at 74°F\n\n3. **Review inventory** - Check what items are available in the fridge and pantry\n\n4. **Check today's calendar** - See what events are scheduled for today\n\n5. **Update workout** - If there's a workout scheduled, change it to \"walking\" (light exercise for today)\n\n6. **Create a meal plan** - Based on the available recipes and the user's dietary constraints, create a simple 7-day meal plan\n\n7. **Order groceries if needed** - If any essential items are low or missing, place a grocery order\n\nReport back on what you found and what actions you completed."
+    },
+    {
+      "step_id": 2,
+      "timestamp": "2026-05-09T09:37:34.075Z",
+      "source": "agent",
+      "model_name": "moonshot/astron-code-latest",
+      "message": "I'll help you with your morning routine! Let me start by checking the smart home dashboard to see the current status.",
+      "tool_calls": [
+        {
+          "tool_call_id": "call_e5b658c753c145eb990aeb0f",
+          "function_name": "browser",
+          "arguments": {
+            "action": "open",
+            "url": "http://localhost:5004",
+            "profile": "openclaw"
+          }
+        }
+      ],
+      "observation": {
+        "results": [
+          {
+            "source_call_id": "call_e5b658c753c145eb990aeb0f",
+            "content": "{\n  \"targetId\": \"41C37B3180E299AEABB43B2E6013B9F2\",\n  \"title\": \"\",\n  \"url\": \"http://localhost:5004/\",\n  \"wsUrl\": \"ws://127.0.0.1:18800/devtools/page/41C37B3180E299AEABB43B2E6013B9F2\",\n  \"type\": \"page\"\n}"
+          }
+        ]
+      },
+      "metrics": {
+        "prompt_tokens": 14787,
+        "completion_tokens": 53,
+        "cached_tokens": 128
+      }
+    }
+  ],
+  "final_metrics": {
+    "total_prompt_tokens": 14787,
+    "total_completion_tokens": 53,
+    "total_cached_tokens": 128,
+    "total_steps": 2
+  },
+  "extra": {
+    "session_timestamp": "2026-05-09T09:37:01.328Z"
+  }
+}

@@ -1,0 +1,53 @@
+{
+    "task": {
+        "path": "tasks/smarthome-test",
+        "git_url": null,
+        "git_commit_id": null,
+        "overwrite": false,
+        "download_dir": null,
+        "source": null
+    },
+    "trial_name": "smarthome-test__jb7NEbk",
+    "trials_dir": "jobs-verify/2026-05-09__17-35-59",
+    "timeout_multiplier": 1.0,
+    "agent_timeout_multiplier": null,
+    "verifier_timeout_multiplier": null,
+    "agent_setup_timeout_multiplier": null,
+    "environment_build_timeout_multiplier": null,
+    "agent": {
+        "name": "openclaw",
+        "import_path": null,
+        "model_name": "moonshot/astron-code-latest",
+        "override_timeout_sec": null,
+        "override_setup_timeout_sec": null,
+        "max_timeout_sec": null,
+        "kwargs": {},
+        "env": {
+            "CUSTOM_BASE_URL": "https://maas-coding-api.cn-huabei-1.xf-yun.com/v2",
+            "CUSTOM_API_KEY": "1f2d9975d34a53ea2c08127d898961ca:ZGY5OGZiYjE3OWVmZjJiMDJjNGVhNDgx",
+            "OPENCLAW_LLM_REQUEST_TIMEOUT_MS": "120000",
+            "OPENCLAW_LLM_IDLE_TIMEOUT_MS": "120000"
+        }
+    },
+    "environment": {
+        "type": "docker",
+        "import_path": null,
+        "force_build": false,
+        "delete": true,
+        "override_cpus": null,
+        "override_memory_mb": null,
+        "override_storage_mb": null,
+        "override_gpus": null,
+        "suppress_override_warnings": false,
+        "mounts_json": null,
+        "env": {},
+        "kwargs": {}
+    },
+    "verifier": {
+        "override_timeout_sec": null,
+        "max_timeout_sec": null,
+        "disable": false
+    },
+    "artifacts": [],
+    "job_id": "6368bdef-933e-4328-8c8e-b586971684d5"
+}

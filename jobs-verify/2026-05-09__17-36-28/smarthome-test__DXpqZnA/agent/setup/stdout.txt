@@ -1,0 +1,2 @@
+openclaw found in PATH, skipping installation
+OpenClaw 2026.3.11
