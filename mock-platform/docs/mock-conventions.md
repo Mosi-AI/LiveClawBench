@@ -61,30 +61,32 @@ Priority order for registering routes:
 
 ## Response Wrappers
 
-Standardize on a consistent response envelope. Recommended pattern (from airline):
+Use the standard envelope from `mock-lib`:
 
 ```typescript
-export interface ApiResponse<T> {
+import { ok, err } from "mock-lib";
+
+return c.json(ok({ items: [] }));           // { success: true, data: { items: [] } }
+return c.json(err("Not found"), 404);       // { success: false, message: "Not found" }
+```
+
+Shape:
+
+```typescript
+interface ApiResponse<T> {
   success: boolean;
   message?: string;
   data?: T;
 }
-
-export function ok<T>(data: T, message?: string): ApiResponse<T> {
-  return { success: true, ...(message ? { message } : {}), data };
-}
-
-export function err(message: string): ApiResponse<never> {
-  return { success: false, message };
-}
 ```
 
 Current state:
-- **airline**: uses `ok()`/`err()` consistently
-- **email**: mixed — `{ message, user, access_token }` for success, `{ error }` for failures
-- **todolist**: raw `{ error: string }` for errors, direct arrays/objects for success
+- **airline**: uses `ok()`/`err()` consistently (local helpers; can migrate to `mock-lib` imports)
+- **email**: mixed — success responses vary by endpoint; `err()` returns `{ error: string }` instead of `{ success: false, message }` — **needs migration**
+- **todolist**: raw `{ error: string }` for errors, direct arrays/objects for success — **needs migration**
+- **shop**: ad-hoc envelopes per route — **needs migration**
 
-**New mocks must** use the `ok()`/`err()` pattern.
+**New mocks must** import `ok`/`err` from `mock-lib` and use them for all JSON responses.
 
 ---
 
@@ -224,9 +226,11 @@ PR #41 migrated Email, TodoList, and Airline from Python Flask to Bun+TypeScript
 
 ### Still Present (Documented)
 
-| Issue | Location | Reason |
-|-------|----------|--------|
-| File size exceeds soft limits | airline `seed.ts` (~901), email `emails.ts` (~339) | In progress — see Phase 3 |
+None. All issues from PR #41 have been resolved.
+
+### Historical Notes
+
+- File size soft-limit violations (`airline/src/seed.ts` ~901 lines, `email/src/routes/emails.ts` ~339 lines) were resolved in commit `33615d9` by splitting into smaller modules.
 
 ### Fixed in This Pass
 

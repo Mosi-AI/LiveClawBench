@@ -1,5 +1,7 @@
 # Mock Platform Design Document
 
+> This document covers architecture, interfaces, and build layering. For implementation conventions (factory pattern, response wrappers, auth, testing, etc.), see [`docs/mock-conventions.md`](docs/mock-conventions.md).
+
 ## Monorepo Structure
 
 ```
@@ -48,10 +50,10 @@ These are targets, not hard rules. If a file exceeds the limit, split by domain 
 - Seed file: <=300 lines (split seed data from seed logic if larger)
 - Component file: <=300 lines (soft limit; CSS/JS string literals exempt)
 
-Known violations:
-- `airline/src/seed.ts`: ~901 lines
-- `email/src/routes/emails.ts`: ~339 lines
-- `todolist/src/routes/todos.ts`: ~255 lines
+Previously exceeded limits (resolved in commit `33615d9`):
+- `airline/src/seed.ts`: was ~901 lines, split into `seed/*.ts` (now ~124 lines)
+- `email/src/routes/emails.ts`: was ~339 lines, split into `emails-read.ts`, `emails-compose.ts`, `emails-actions.ts` (now ~11 lines each)
+- `todolist/src/routes/todos.ts`: was ~255 lines, now within limit
 
 ## Testing Guidelines
 
@@ -102,15 +104,17 @@ Pass `healthResponse` to `createMockApp()` for a custom payload (e.g., `{ status
 
 Current violators: email (`/health`, `/api/health`), todolist (`/health`, `/api/health`).
 
-## Known Pattern Violations
+## Historical Pattern Violations
 
-| Violation | Files | Status |
-|-----------|-------|--------|
-| In-factory seeding with no `seed` callback | `airline/src/index.ts`, `email/src/index.ts`, `todolist/src/index.ts` | **Fixed** — now return `seed` property; sync call retained for backward compatibility |
-| Duplicate `/health` endpoints | `email/src/index.ts`, `todolist/src/index.ts` | **Fixed** — removed manual `/health`; `/api/health` retained for test compatibility |
-| Missing `healthResponse` in `createMockApp()` | `airline/src/index.ts`, `email/src/index.ts`, `todolist/src/index.ts` | **Fixed** — added `{ ok: true, status: "healthy", service: <name> }` |
-| Plaintext passwords + fake JWT | `airline/src/routes/auth.ts`, `airline/src/seed.ts` | Documented — breaking change deferred |
-| File size exceeds soft limits | `airline/src/seed.ts` (~901), `email/src/routes/emails.ts` (~339), `todolist/src/routes/todos.ts` (~255) | Documented — deferred |
+All known pattern violations from the PR #41 migration (email, todolist, airline → Bun+TypeScript) have been resolved. Key fixes:
+
+- In-factory seeding → all mocks now return a `seed` callback in `MockAppV2`
+- Duplicate `/health` endpoints → auto-registered by `createMockApp()`; legacy `/api/health` retained only for test compatibility
+- Missing `healthResponse` → all mocks pass a custom health payload to `createMockApp()`
+- Plaintext passwords + fake JWT → migrated to `mock-lib` `sign/verify` + Werkzeug PBKDF2 (commit `33615d9`)
+- File size violations → split into smaller modules (commit `33615d9`)
+
+See commits `2606119`, `3881fe5`, `6cca7aa`, `7db3dcd`, `33615d9` for the full history.
 
 ## Known Limitations
 

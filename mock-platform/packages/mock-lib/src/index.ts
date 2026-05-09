@@ -3,6 +3,10 @@
 // Types
 export type { MockConfig, MockApp, AppEnv, CreateMockAppOptions, OpenApiConfig } from "./types";
 
+// Response helpers
+export type { ApiResponse } from "./response";
+export { ok, err } from "./response";
+
 // Factory
 export { createMockApp, registerFrontendFallback } from "./create-app";
 
