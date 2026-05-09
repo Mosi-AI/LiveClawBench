@@ -13,6 +13,7 @@ export function createTodolistApp(options?: { dbPath?: string; taskName?: string
   const mockApp = createMockApp({
     name: "todolist",
     port: 5002,
+    healthResponse: { ok: true, status: "healthy", service: "todolist" },
     openApi: {
       enabled: true,
       title: "Todolist Mock API",
@@ -22,8 +23,7 @@ export function createTodolistApp(options?: { dbPath?: string; taskName?: string
 
   const { app } = mockApp;
 
-  // Health checks
-  app.get("/health", (c) => c.json({ ok: true }));
+  // Legacy /api/health endpoint (kept for backward compatibility)
   app.get("/api/health", (c) => c.json({ status: "healthy", message: "Todolist API is running" }));
 
   // Sentinel route for binary isolation verification
@@ -54,7 +54,7 @@ export function createTodolistApp(options?: { dbPath?: string; taskName?: string
     registerFrontendFallback(app, frontendDir);
   }
 
-  return mockApp;
+  return { ...mockApp, seed: () => seedDatabase(db, options?.taskName) };
 }
 
 if (import.meta.main) {

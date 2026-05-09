@@ -16,6 +16,7 @@ export function createEmailApp(options?: { dbPath?: string }) {
   const mockApp = createMockApp({
     name: "email",
     port: 5001,
+    healthResponse: { ok: true, status: "healthy", service: "email" },
     openApi: {
       enabled: true,
       title: "Email Mock API",
@@ -25,8 +26,7 @@ export function createEmailApp(options?: { dbPath?: string }) {
 
   const { app } = mockApp;
 
-  // Health checks
-  app.get("/health", (c) => c.json({ ok: true }));
+  // Legacy /api/health endpoint (kept for backward compatibility)
   app.get("/api/health", (c) => c.json({ status: "healthy", message: "Email API is running" }));
 
   // Sentinel route for binary isolation verification
@@ -60,7 +60,7 @@ export function createEmailApp(options?: { dbPath?: string }) {
     registerFrontendFallback(app, frontendDir);
   }
 
-  return mockApp;
+  return { ...mockApp, seed: () => seedDatabase(db) };
 }
 
 if (import.meta.main) {

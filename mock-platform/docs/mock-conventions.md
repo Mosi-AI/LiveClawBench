@@ -1,0 +1,240 @@
+# Mock Service Conventions
+
+This document defines the patterns and conventions for mock services in the mock-platform. Following these conventions ensures consistency across mocks and makes the platform easier to maintain.
+
+---
+
+## Factory Pattern
+
+Every mock must export a factory function:
+
+```typescript
+export function createXxxApp(options?: { dbPath?: string }): MockAppV2 {
+  // ...
+}
+```
+
+Rules:
+- Return `{ ...mockApp, seed: () => void | Promise<void> }`. The `seed` callback is consumed by `startServer()` before the HTTP listener boots.
+- Use `if (import.meta.main)` guard to prevent accidental server startup on dynamic import.
+
+**Preferred** (shop, doc-search):
+```typescript
+export function createShopApp(): MockAppV2 {
+  const mockApp = createMockApp({ name: "shop", port: 1234 });
+  // ... register routes ...
+  return {
+    ...mockApp,
+    seed: async () => {
+      await loadProducts();
+      seedUser();
+    },
+  };
+}
+```
+
+**Transitional** (airline, email, todolist): These mocks call `seedDatabase()` synchronously in the factory body for backward compatibility with existing tests, while also returning the `seed` property so `startServer()` can invoke it. Since seed functions are idempotent, the double call is harmless.
+
+---
+
+## Route Registration
+
+Priority order for registering routes:
+
+1. **API routes** — `createRoute()` + `app.openApiRoute()`
+   - Generates OpenAPI 3.1 spec automatically
+   - Zod validation with automatic 400 error injection
+   - Optional bearer-auth security per route
+   - Used by: shop, doc-search
+
+2. **HTML pages** — `app.page()`
+   - Excluded from OpenAPI docs
+   - Used by: shop (TSX rendering)
+
+3. **Legacy fallback** — raw `app.get()` / `app.post()`
+   - Only acceptable for simple mocks or遗留 (legacy) Flask migrations
+   - Used by: airline, email, todolist
+
+**New mocks must** use option 1 for all API routes.
+
+---
+
+## Response Wrappers
+
+Standardize on a consistent response envelope. Recommended pattern (from airline):
+
+```typescript
+export interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+}
+
+export function ok<T>(data: T, message?: string): ApiResponse<T> {
+  return { success: true, ...(message ? { message } : {}), data };
+}
+
+export function err(message: string): ApiResponse<never> {
+  return { success: false, message };
+}
+```
+
+Current state:
+- **airline**: uses `ok()`/`err()` consistently
+- **email**: mixed — `{ message, user, access_token }` for success, `{ error }` for failures
+- **todolist**: raw `{ error: string }` for errors, direct arrays/objects for success
+
+**New mocks must** use the `ok()`/`err()` pattern.
+
+---
+
+## Authentication
+
+### JWT
+
+- **Required**: use `sign()` / `verify()` from `mock-lib`
+- Proper HMAC-SHA256 with per-process random secret
+- **Forbidden**: fake signatures like `.mock-signature`
+
+Example:
+```typescript
+import { sign, verify } from "mock-lib";
+
+const accessToken = await sign({ userId });
+const payload = await verify(token); // throws on invalid
+```
+
+### Passwords
+
+- **Required**: hash passwords before storage
+- Options:
+  - Werkzeug-compatible PBKDF2: `generateWerkzeugHashSync()` / `verifyWerkzeugHash()` (from email helpers)
+  - bcryptjs
+- **Forbidden**: plaintext storage or plaintext comparison
+
+> **Note**: `airline` intentionally deviates from this rule to match the original Python Flask implementation (plaintext passwords, fake JWT). Do NOT copy this pattern.
+
+---
+
+## Database & Seeding
+
+### Database choice
+
+- SQL mocks: `bun:sqlite`
+  - File DB via `mock-lib`'s `getDb()` helper
+  - In-memory for tests: `new Database(":memory:")`
+- JSON mocks: `mock-lib`'s `JsonStore`
+
+### Seeding rules
+
+- Seed must be **idempotent** — check existing data before inserting
+- Seed callback must be **async** and returned as `mockApp.seed`
+- Task-specific seed injection (e.g., `TASK_NAME` env var) should be handled inside the seed callback
+
+Example:
+```typescript
+export function seedDatabase(db: Database): void {
+  const existing = db.query("SELECT COUNT(*) as count FROM users").get() as { count: number };
+  if (existing.count > 0) return; // idempotent
+
+  // ... insert seed data ...
+}
+```
+
+---
+
+## Health Endpoints
+
+`createMockApp()` automatically registers `GET /health`. Do NOT manually add `/health` routes.
+
+Custom health payload:
+```typescript
+const mockApp = createMockApp({
+  name: "shop",
+  port: 1234,
+  healthResponse: { ok: true, status: "healthy", service: "shop-mosi-backend" },
+});
+```
+
+Note: If your mock already exposes `/api/health` and tests depend on it, keep it. New mocks should rely solely on the auto-registered `/health`.
+
+---
+
+## File Size Guidelines
+
+Soft limits — exceed only when splitting would hurt readability:
+
+| File type | Target | Action if exceeded |
+|-----------|--------|-------------------|
+| Entry point (`index.ts`) | <=150 | Extract route registration into `routes/*.ts` |
+| Route handler | <=200 | Split by resource (e.g., `bookings.ts` + `checkin.ts`) |
+| Seed file | <=300 | Split seed data from seed logic |
+| Component | <=300 | Extract sub-components |
+
+---
+
+## Testing
+
+- Test files live in `mocks/<name>/tests/`
+- Use `bun:test`
+- Fresh app instance per test via factory call
+- Call `seed()` explicitly in `beforeEach` when needed
+- Use explicit assertions; avoid snapshots (except algorithmic tests where the output is deterministic)
+
+Example test skeleton:
+```typescript
+import { describe, it, expect, beforeEach } from "bun:test";
+import { createShopApp } from "../src/index";
+
+describe("shop routes", () => {
+  let app: MockAppV2;
+
+  beforeEach(async () => {
+    app = createShopApp();
+    await app.seed?.();
+  });
+
+  it("returns products", async () => {
+    const res = await app.app.request("/api/products");
+    expect(res.status).toBe(200);
+  });
+});
+```
+
+---
+
+## PR #41 Review Verification
+
+PR #41 migrated Email, TodoList, and Airline from Python Flask to Bun+TypeScript. The following issues were verified:
+
+### Confirmed Fixed
+
+| Issue | Commit | Evidence |
+|-------|--------|----------|
+| `lastInsertRowid` instead of `SELECT last_insert_rowid()` | 3881fe5 | email `attachments.ts`, `seed.ts`; todolist `todos.ts` |
+| `existsSync` guards for frontend fallback | 2606119 | email/todolist `index.ts` |
+| Removed dead `chat_sessions.booking_id` | 2606119 | airline `seed.ts` |
+| `passengers.seat_id` NULL clearing on cancel | a79bff0 | airline `bookings.ts:195` |
+| FK chain cleanup in seed data | 2606119 | airline `seed.ts` |
+| Atomic seat claiming with `changes === 0` | a79bff0 | airline `bookings.ts:167` |
+| TOCTOU fix for seat availability | a79bff0 | `UPDATE seats SET is_available = 0 WHERE id = ? AND is_available = 1` |
+| `is_read` boolean validation | 6cca7aa | email `emails.ts` |
+| LIKE escaping | 6cca7aa | email `emails.ts` escapes `%` and `_` |
+| `getNextSunday` boundary fix | 6cca7aa | todolist `seed.ts` handles Sunday correctly |
+
+### Still Present (Documented)
+
+| Issue | Location | Reason |
+|-------|----------|--------|
+| Plaintext passwords in seed | airline `seed.ts:67-71` | Breaking change — task tests rely on known credentials |
+| Plaintext password comparison | airline `routes/auth.ts:50-51` | Breaking change — matches legacy Flask behavior |
+| Fake JWT (`mock-signature`) | airline `routes/auth.ts:5-13` | Breaking change — matches legacy Flask behavior |
+| File size exceeds soft limits | airline `seed.ts` (~901), email `emails.ts` (~339) | Deferred — low priority |
+
+### Fixed in This Pass
+
+| Issue | Location | Fix |
+|-------|----------|-----|
+| No `seed` callback | airline/email/todolist `index.ts` | Added `seed` property while retaining sync call for backward compatibility |
+| Duplicate `/health` | email/todolist `index.ts` | Removed manual `/health`; `/api/health` kept for test compatibility |
+| Missing `healthResponse` | airline/email/todolist `index.ts` | Added `{ ok: true, status, service }` to `createMockApp()` |

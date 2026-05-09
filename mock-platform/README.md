@@ -40,19 +40,19 @@ Search parity between the legacy Python mock implementations and the current Bun
 
 ## Mock Services
 
-| Service | Directory | Binary | Description |
-|---------|-----------|--------|-------------|
-| Shop | `mocks/shop/` | `mock-shop` | E-commerce: products, cart, orders, user profile, search |
-| Doc-search | `mocks/doc-search/` | `mock-doc-search` | FTS5 full-text search with BM25 ranking, JSONL access logging |
-| Airline | `mocks/airline/` | `mock-airline` | Flight booking, seat selection, baggage tracking |
-| Email | `mocks/email/` | `mock-email` | Email inbox, compose, reply |
-| Todolist | `mocks/todolist/` | `mock-todolist` | Task management |
+| Service | Directory | Binary | Route Style | Description |
+|---------|-----------|--------|-------------|-------------|
+| Shop | `mocks/shop/` | `mock-shop` | Zod OpenAPI | E-commerce: products, cart, orders, user profile, search |
+| Doc-search | `mocks/doc-search/` | `mock-doc-search` | Zod OpenAPI | FTS5 full-text search with BM25 ranking, JSONL access logging |
+| Airline | `mocks/airline/` | `mock-airline` | Raw Hono | Flight booking, seat selection, check-in, baggage, claims |
+| Email | `mocks/email/` | `mock-email` | Raw Hono | Email inbox, compose, reply, drafts, attachments |
+| Todolist | `mocks/todolist/` | `mock-todolist` | Raw Hono | Task management with date/month filtering |
 
 API documentation is auto-generated as OpenAPI 3.1 specs in `dist/openapi/*.json`. Run `bun run generate-openapi` to regenerate after route changes.
 
-### Why only shop and doc-search have internal docs
+### Internal Documentation
 
-`docs/shop-internal.md` and `docs/doc-search-internal.md` document implementation details that are not captured by the OpenAPI spec (e.g., search algorithm behavior, FTS5 schema, JSONL access log format). The other three mocks — airline, email, and todolist — are currently **stubs** that expose only the sentinel route (`/__mock_sentinel__/<name>`) and `GET /health`. They exist in the binary map so that multi-service tasks can reference them, but they have no business logic worth documenting beyond the auto-generated spec.
+`docs/shop-internal.md` and `docs/doc-search-internal.md` document implementation details not captured by the OpenAPI spec (e.g., search algorithm behavior, FTS5 schema, JSONL access log format). All five mocks have full business logic and internal documentation value — the OpenAPI specs cover the API surface, while internal docs cover domain-specific behaviors (e.g., airline seat upgrade rules, email Werkzeug hash compatibility, todolist task-specific seed injection).
 
 ## Build Commands
 
@@ -162,8 +162,35 @@ All mocks in this platform follow these conventions:
 2. **Server Startup Guarded**: Entry point uses `if (import.meta.main)` so dynamic imports (e.g., OpenAPI generation) never boot a listener.
 3. **Seed Before Listen**: Data initialization goes in `seed()` callback. `startServer()` consumes `mockApp.seed` directly. Seed failures are fatal.
 4. **Self-Contained Binary**: Each mock compiles to a standalone binary via `bun build --compile`. No runtime dependency on node_modules.
-5. **Zod Schema-First**: All request/response validation uses Zod schemas. OpenAPI specs are generated automatically from route definitions.
+5. **Zod Schema-First (recommended)**: New mocks should use Zod schemas for request/response validation. OpenAPI specs are generated automatically from route definitions.
+   - **Gold standard** (shop, doc-search): `createRoute()` + Zod schema, registered via `app.openApiRoute()`
+   - **Legacy raw routes** (airline, email, todolist): use `app.get()` / `app.post()` with manual validation, inherited from Flask migration
 6. **Test Isolation**: Tests use `beforeEach` to create fresh app instances. No shared state between tests. `seed()` must be idempotent.
+
+## Response Wrapper Patterns
+
+Mocks use three different response wrapper styles. New mocks should standardize on one:
+
+- **airline** — `ok(data, message?)` / `err(message)` helpers:
+  ```typescript
+  { success: true, data, message? }  // ok
+  { success: false, message }        // err
+  ```
+- **email** — Mixed: `{ message, user, access_token }` for success, `{ error: string }` for failures
+- **todolist** — Raw `{ error: string }` for errors, direct arrays/objects for success
+
+**Recommended for new mocks**: the airline `ok()`/`err()` pattern. It gives a consistent envelope, optional message, and clear boolean status.
+
+## Auth Patterns
+
+JWT and password handling vary across mocks:
+
+- **Proper JWT** (email, shop, doc-search): uses `mock-lib`'s `sign()`/`verify()` with HMAC-SHA256 and a per-process random secret. Tokens are verifiable and secure.
+- **Fake JWT** (airline): `${header}.${payload}.mock-signature` — no HMAC, no verification, purely cosmetic. Retained for backward compatibility with the original Flask implementation.
+- **Password storage** (email): uses Werkzeug-compatible PBKDF2 hashes via `generateWerkzeugHashSync()` / `verifyWerkzeugHash()` so Python verifiers can check the same hash.
+- **Plaintext passwords** (airline): stores and compares passwords in plaintext, matching the legacy Flask behavior.
+
+**New mocks must**: always use `mock-lib`'s `sign()`/`verify()` for JWT, and never store or compare plaintext passwords.
 
 ## Adding a New Mock
 

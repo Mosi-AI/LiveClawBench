@@ -2,6 +2,11 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ok, err, getUserById, DEFAULT_USER_ID } from "../helpers";
 
+/**
+ * NOTE: This mock intentionally uses plaintext passwords and fake JWTs
+ * to match the behavior of the original Python Flask implementation.
+ * Do NOT use this pattern for new mocks. See mock-conventions.md.
+ */
 function generateJwtToken(userId: number): string {
   const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
   const payload = Buffer.from(JSON.stringify({
