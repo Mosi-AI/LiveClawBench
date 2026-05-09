@@ -85,7 +85,8 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
             },
             "required": true,
             "name": "date",
@@ -114,15 +115,18 @@
                   },
                   "food_name": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "maxLength": 200
                   },
                   "quantity_value": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "pattern": "^(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:[eE][+-]?\\d+)?$"
                   },
                   "quantity_unit": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "maxLength": 32
                   },
                   "calories_kcal": {
                     "type": "string",
@@ -142,7 +146,10 @@
                   }
                 },
                 "required": [
-                  "slot"
+                  "slot",
+                  "food_name",
+                  "quantity_value",
+                  "quantity_unit"
                 ]
               }
             }
@@ -206,15 +213,18 @@
                   },
                   "food_name": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "maxLength": 200
                   },
                   "quantity_value": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "pattern": "^(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:[eE][+-]?\\d+)?$"
                   },
                   "quantity_unit": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "maxLength": 32
                   },
                   "calories_kcal": {
                     "type": "string",
@@ -232,7 +242,12 @@
                     "type": "string",
                     "default": ""
                   }
-                }
+                },
+                "required": [
+                  "food_name",
+                  "quantity_value",
+                  "quantity_unit"
+                ]
               }
             }
           }
@@ -328,15 +343,16 @@
                 "properties": {
                   "title": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "maxLength": 200
                   },
                   "start_date": {
                     "type": "string",
-                    "default": ""
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
                   },
                   "end_date": {
                     "type": "string",
-                    "default": ""
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
                   },
                   "status": {
                     "type": "string",
@@ -355,7 +371,12 @@
                     "type": "string",
                     "default": ""
                   }
-                }
+                },
+                "required": [
+                  "title",
+                  "start_date",
+                  "end_date"
+                ]
               }
             }
           }
@@ -381,9 +402,6 @@
                 }
               }
             }
-          },
-          "422": {
-            "description": "HTML response"
           },
           "500": {
             "description": "HTML response"
@@ -414,15 +432,16 @@
                 "properties": {
                   "title": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "maxLength": 200
                   },
                   "start_date": {
                     "type": "string",
-                    "default": ""
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
                   },
                   "end_date": {
                     "type": "string",
-                    "default": ""
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
                   },
                   "status": {
                     "type": "string",
@@ -441,7 +460,12 @@
                     "type": "string",
                     "default": ""
                   }
-                }
+                },
+                "required": [
+                  "title",
+                  "start_date",
+                  "end_date"
+                ]
               }
             }
           }
@@ -469,9 +493,6 @@
             }
           },
           "404": {
-            "description": "HTML response"
-          },
-          "422": {
             "description": "HTML response"
           },
           "500": {
@@ -547,7 +568,8 @@
                 "type": "object",
                 "properties": {
                   "plan_date": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
                   },
                   "meal_slot": {
                     "type": "string",
@@ -559,7 +581,8 @@
                   },
                   "dish_name": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "maxLength": 200
                   },
                   "notes": {
                     "type": "string",
@@ -568,7 +591,8 @@
                 },
                 "required": [
                   "plan_date",
-                  "meal_slot"
+                  "meal_slot",
+                  "dish_name"
                 ]
               }
             }
@@ -597,9 +621,6 @@
             }
           },
           "404": {
-            "description": "HTML response"
-          },
-          "422": {
             "description": "HTML response"
           },
           "500": {
@@ -648,7 +669,8 @@
                   },
                   "dish_name": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "maxLength": 200
                   },
                   "notes": {
                     "type": "string",
@@ -656,7 +678,8 @@
                   }
                 },
                 "required": [
-                  "meal_slot"
+                  "meal_slot",
+                  "dish_name"
                 ]
               }
             }
@@ -685,9 +708,6 @@
             }
           },
           "404": {
-            "description": "HTML response"
-          },
-          "422": {
             "description": "HTML response"
           },
           "500": {
@@ -773,11 +793,13 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "maxLength": 200
                   },
                   "quantity_value": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "pattern": "^(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:[eE][+-]?\\d+)?$"
                   },
                   "quantity_unit": {
                     "type": "string",
@@ -793,7 +815,11 @@
                     "type": "string",
                     "default": ""
                   }
-                }
+                },
+                "required": [
+                  "name",
+                  "quantity_value"
+                ]
               }
             }
           }
@@ -821,9 +847,6 @@
             }
           },
           "404": {
-            "description": "HTML response"
-          },
-          "422": {
             "description": "HTML response"
           },
           "500": {
@@ -864,11 +887,13 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "maxLength": 200
                   },
                   "quantity_value": {
                     "type": "string",
-                    "default": ""
+                    "minLength": 1,
+                    "pattern": "^(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:[eE][+-]?\\d+)?$"
                   },
                   "quantity_unit": {
                     "type": "string",
@@ -884,7 +909,11 @@
                     "type": "string",
                     "default": ""
                   }
-                }
+                },
+                "required": [
+                  "name",
+                  "quantity_value"
+                ]
               }
             }
           }
@@ -912,9 +941,6 @@
             }
           },
           "404": {
-            "description": "HTML response"
-          },
-          "422": {
             "description": "HTML response"
           },
           "500": {

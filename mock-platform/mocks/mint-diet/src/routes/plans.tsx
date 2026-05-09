@@ -1,5 +1,5 @@
 import { createRoute } from "mock-lib";
-import { IngredientTable, Layout, PlanCard, PlanDetailPage, PlanForm, SlotEditorPage } from "../components";
+import { Layout, PlanCard, PlanDetailPage, PlanForm, SlotEditorPage } from "../components";
 import {
   createPlan,
   deleteIngredientItem,
@@ -21,7 +21,6 @@ import {
 import {
   isPlanMealSlot,
   isResponse,
-  parseNonNegFloat,
   parsePositiveInt,
   runDbMutation,
 } from "./helpers";
@@ -47,7 +46,6 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
     request: formRequest(PlanFormSchema),
     responses: {
       303: RedirectResponse,
-      422: HtmlResponse,
       500: HtmlResponse,
     },
   });
@@ -63,7 +61,6 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
     responses: {
       303: RedirectResponse,
       404: HtmlResponse,
-      422: HtmlResponse,
       500: HtmlResponse,
     },
   });
@@ -93,7 +90,6 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
     responses: {
       303: RedirectResponse,
       404: HtmlResponse,
-      422: HtmlResponse,
       500: HtmlResponse,
     },
   });
@@ -109,7 +105,6 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
     responses: {
       303: RedirectResponse,
       404: HtmlResponse,
-      422: HtmlResponse,
       500: HtmlResponse,
     },
   });
@@ -139,7 +134,6 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
     responses: {
       303: RedirectResponse,
       404: HtmlResponse,
-      422: HtmlResponse,
       500: HtmlResponse,
     },
   });
@@ -155,7 +149,6 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
     responses: {
       303: RedirectResponse,
       404: HtmlResponse,
-      422: HtmlResponse,
       500: HtmlResponse,
     },
   });
@@ -191,27 +184,12 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
 
   app.openApiRoute(createPlanRoute, async (c) => {
     const body = c.req.valid("form");
-    const title = body.title.trim();
+    const title = body.title;
     const startDate = body.start_date;
     const endDate = body.end_date;
     const status = body.status;
-    const targetRaw = body.target_calories_kcal.trim();
-    const notes = body.notes.trim() || null;
-
-    const makePrefill = () => ({ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" });
-
-    if (!title) return c.html(<PlanForm error="Title is required" prefill={makePrefill()} />, 422);
-    if (title.length > 200) return c.html(<PlanForm error="Title must be 200 characters or fewer" prefill={makePrefill()} />, 422);
-    if (!isValidLocalDate(startDate) || !isValidLocalDate(endDate)) return c.html(<PlanForm error="Invalid date format" prefill={makePrefill()} />, 422);
-    if (startDate > endDate) return c.html(<PlanForm error="Start date must be before end date" prefill={makePrefill()} />, 422);
-
-    const start = new Date(startDate + "T00:00:00");
-    const end = new Date(endDate + "T00:00:00");
-    const days = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
-    if (days > 365) return c.html(<PlanForm error="Plan span must be 365 days or fewer" prefill={makePrefill()} />, 422);
-
-    const targetCaloriesKcal = targetRaw ? parseNonNegFloat(targetRaw) : null;
-    if (targetRaw && targetCaloriesKcal === null) return c.html(<PlanForm error="Invalid calorie target" prefill={makePrefill()} />, 422);
+    const targetCaloriesKcal = body.target_calories_kcal;
+    const notes = body.notes;
 
     const d = getDatabase();
     const planId = runDbMutation(c, () => createPlan(d, { title, startDate, endDate, status, targetCaloriesKcal, notes }));
@@ -259,27 +237,12 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
     if (!existing) return c.html(<Layout title="Not Found"><p>Plan not found</p></Layout>, 404);
 
     const body = c.req.valid("form");
-    const title = body.title.trim();
+    const title = body.title;
     const startDate = body.start_date;
     const endDate = body.end_date;
     const status = body.status;
-    const targetRaw = body.target_calories_kcal.trim();
-    const notes = body.notes.trim() || null;
-
-    const makePrefill = () => ({ title, start_date: startDate, end_date: endDate, status, target_calories_kcal: targetRaw, notes: notes ?? "" });
-
-    if (!title) return c.html(<PlanForm plan={existing.plan} error="Title is required" prefill={makePrefill()} />, 422);
-    if (title.length > 200) return c.html(<PlanForm plan={existing.plan} error="Title must be 200 characters or fewer" prefill={makePrefill()} />, 422);
-    if (!isValidLocalDate(startDate) || !isValidLocalDate(endDate)) return c.html(<PlanForm plan={existing.plan} error="Invalid date format" prefill={makePrefill()} />, 422);
-    if (startDate > endDate) return c.html(<PlanForm plan={existing.plan} error="Start date must be before end date" prefill={makePrefill()} />, 422);
-
-    const start = new Date(startDate + "T00:00:00");
-    const end = new Date(endDate + "T00:00:00");
-    const daySpan = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
-    if (daySpan > 365) return c.html(<PlanForm plan={existing.plan} error="Plan span must be 365 days or fewer" prefill={makePrefill()} />, 422);
-
-    const targetCaloriesKcal = targetRaw ? parseNonNegFloat(targetRaw) : null;
-    if (targetRaw && targetCaloriesKcal === null) return c.html(<PlanForm plan={existing.plan} error="Invalid calorie target" prefill={makePrefill()} />, 422);
+    const targetCaloriesKcal = body.target_calories_kcal;
+    const notes = body.notes;
 
     const updated = runDbMutation(c, () => updatePlan(d, planId, { title, startDate, endDate, status, targetCaloriesKcal, notes }));
     if (isResponse(updated)) return updated;
@@ -320,8 +283,8 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
     const body = c.req.valid("form");
     const planDate = body.plan_date;
     const mealSlot = body.meal_slot;
-    const dishName = body.dish_name.trim();
-    const notes = body.notes.trim() || null;
+    const dishName = body.dish_name;
+    const notes = body.notes;
 
     const d = getDatabase();
     const detail = getPlanDetail(d, planId);
@@ -329,25 +292,6 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
 
     const day = getDayByPlanAndDate(d, planId, planDate);
     if (!day) return c.html(<Layout title="Not Found"><p>Day not found in plan</p></Layout>, 404);
-
-    if (!dishName) {
-      const items = detail.itemsByDayBySlot[day.id]?.[mealSlot] ?? [];
-      return c.html(
-        <SlotEditorPage plan={detail.plan} day={day} slot={mealSlot} items={items}
-          error="Dish name is required"
-          prefill={{ dish_name: body.dish_name, notes: body.notes }} />,
-        422
-      );
-    }
-    if (dishName.length > 200) {
-      const items = detail.itemsByDayBySlot[day.id]?.[mealSlot] ?? [];
-      return c.html(
-        <SlotEditorPage plan={detail.plan} day={day} slot={mealSlot} items={items}
-          error="Dish name must be 200 characters or fewer"
-          prefill={{ dish_name: body.dish_name, notes: body.notes }} />,
-        422
-      );
-    }
 
     const inserted = runDbMutation(c, () => insertMealPlanItem(d, { mealPlanDayId: day.id, mealSlot, dishName, notes }));
     if (isResponse(inserted)) return inserted;
@@ -362,41 +306,11 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
 
     const body = c.req.valid("form");
     const mealSlot = body.meal_slot;
-    const dishName = body.dish_name.trim();
-    const notes = body.notes.trim() || null;
+    const dishName = body.dish_name;
+    const notes = body.notes;
 
     const day = getMealPlanDayById(d, item.meal_plan_day_id);
     const planDate = day?.plan_date ?? "";
-
-    const makePrefill = () => ({ dish_name: body.dish_name, notes: body.notes });
-    if (!dishName) {
-      const detail = getPlanDetail(d, planId);
-      const items = day ? (detail?.itemsByDayBySlot[day.id]?.[mealSlot] ?? []) : [];
-      return c.html(
-        <SlotEditorPage
-          plan={detail?.plan ?? { id: planId, title: "", start_date: "", end_date: "", status: "draft", target_calories_kcal: null, notes: null }}
-          day={day ?? { id: item.meal_plan_day_id, meal_plan_id: planId, plan_date: planDate }}
-          slot={mealSlot}
-          items={items}
-          error="Dish name is required"
-          prefill={makePrefill()} />,
-        422
-      );
-    }
-    if (dishName.length > 200) {
-      const detail = getPlanDetail(d, planId);
-      const items = day ? (detail?.itemsByDayBySlot[day.id]?.[mealSlot] ?? []) : [];
-      return c.html(
-        <SlotEditorPage
-          plan={detail?.plan ?? { id: planId, title: "", start_date: "", end_date: "", status: "draft", target_calories_kcal: null, notes: null }}
-          day={day ?? { id: item.meal_plan_day_id, meal_plan_id: planId, plan_date: planDate }}
-          slot={mealSlot}
-          items={items}
-          error="Dish name must be 200 characters or fewer"
-          prefill={makePrefill()} />,
-        422
-      );
-    }
 
     const updated = runDbMutation(c, () => updateMealPlanItem(d, itemId, { mealSlot, dishName, notes }));
     if (isResponse(updated)) return updated;
@@ -420,35 +334,15 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
   app.openApiRoute(addIngredientRoute, async (c) => {
     const { planId } = c.req.valid("param");
     const body = c.req.valid("form");
-    const name = body.name.trim();
-    const quantityValueRaw = parseNonNegFloat(body.quantity_value);
+    const name = body.name;
     const quantityUnit = body.quantity_unit;
-    const notes = body.notes.trim() || null;
+    const notes = body.notes;
 
     const d = getDatabase();
     const existing = getPlanDetail(d, planId);
     if (!existing) return c.html(<Layout title="Not Found"><p>Plan not found</p></Layout>, 404);
 
-    const makePrefillIng = () => ({ name: body.name, quantity_value: body.quantity_value, quantity_unit: quantityUnit });
-
-    const renderIngError = (error: string) => c.html(
-      <PlanDetailPage
-        plan={existing.plan}
-        days={existing.days}
-        itemsByDayBySlot={existing.itemsByDayBySlot}
-        ingredients={existing.ingredients}
-        tab="ingredients"
-        ingredientError={error}
-        ingredientPrefill={makePrefillIng()}
-      />,
-      422
-    );
-
-    if (!name) return renderIngError("Ingredient name is required");
-    if (name.length > 200) return renderIngError("Ingredient name must be 200 characters or fewer");
-    if (quantityValueRaw === null || quantityValueRaw < 0) return renderIngError("Invalid quantity value");
-
-    const quantityValue = quantityValueRaw;
+    const quantityValue = body.quantity_value;
     const inserted = runDbMutation(c, () => insertIngredientItem(d, { mealPlanId: planId, name, quantityValue, quantityUnit, notes }));
     if (isResponse(inserted)) return inserted;
     return c.redirect(`/plans/${planId}?tab=ingredients`, 303);
@@ -461,38 +355,11 @@ export function registerPlanRoutes(app: MintDietApp, { getDatabase }: RouteDeps)
     if (!ing) return c.html(<Layout title="Not Found"><p>Ingredient not found</p></Layout>, 404);
 
     const body = c.req.valid("form");
-    const name = body.name.trim();
-    const quantityValueRaw = parseNonNegFloat(body.quantity_value);
+    const name = body.name;
     const quantityUnit = body.quantity_unit;
-    const notes = body.notes.trim() || null;
+    const notes = body.notes;
 
-    const detail = getPlanDetail(d, planId);
-    const makePrefillUpd = () => ({ name: body.name, quantity_value: body.quantity_value, quantity_unit: quantityUnit });
-
-    const renderUpdError = (error: string) => c.html(
-      detail ? (
-        <PlanDetailPage
-          plan={detail.plan}
-          days={detail.days}
-          itemsByDayBySlot={detail.itemsByDayBySlot}
-          ingredients={detail.ingredients}
-          tab="ingredients"
-          ingredientError={error}
-          ingredientPrefill={makePrefillUpd()}
-        />
-      ) : (
-        <Layout title="Plan">
-          <IngredientTable plan={{ id: planId, title: "Plan", start_date: "", end_date: "", status: "draft", target_calories_kcal: null, notes: null }} ingredients={[]} error={error} prefill={makePrefillUpd()} />
-        </Layout>
-      ),
-      422
-    );
-
-    if (!name) return renderUpdError("Ingredient name is required");
-    if (name.length > 200) return renderUpdError("Ingredient name must be 200 characters or fewer");
-    if (quantityValueRaw === null || quantityValueRaw < 0) return renderUpdError("Invalid quantity value");
-
-    const quantityValue = quantityValueRaw;
+    const quantityValue = body.quantity_value;
     const updated = runDbMutation(c, () => updateIngredientItem(d, ingId, { name, quantityValue, quantityUnit, notes }));
     if (isResponse(updated)) return updated;
     return c.redirect(`/plans/${planId}?tab=ingredients`, 303);
