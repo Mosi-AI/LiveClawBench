@@ -1,7 +1,7 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
-import { err, getAuthUserId } from "../helpers";
+import { ok, err, getAuthUserId } from "../helpers";
 import { UserSearchResponseSchema, ErrorResponseSchema } from "../schemas";
 import { z } from "zod";
 
@@ -36,7 +36,7 @@ export function registerUserRoutes(app: OpenAPIApp, db: Database): void {
     const query = (q ?? "").trim();
 
     if (!query) {
-      return c.json({ users: [] });
+      return c.json(ok({ users: [] }));
     }
 
     const escaped = query.replace(/[\\%_]/g, "\\$&");
@@ -54,6 +54,6 @@ export function registerUserRoutes(app: OpenAPIApp, db: Database): void {
       created_at: u.created_at,
     }));
 
-    return c.json({ users });
+    return c.json(ok({ users }));
   });
 }

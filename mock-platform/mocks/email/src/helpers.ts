@@ -1,26 +1,11 @@
 import type { Database } from "bun:sqlite";
 import type { Context } from "hono";
 import type { AppEnv } from "mock-lib";
-import { verify } from "mock-lib";
-import { formatDateTime } from "mock-lib";
+import { verify, formatDateTime, ok, err } from "mock-lib";
 
-export { formatDateTime };
+export { formatDateTime, ok, err };
 
 export const DEFAULT_USER_ID = 1;
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message?: string;
-  data?: T;
-}
-
-export function ok<T>(data: T, message?: string): ApiResponse<T> {
-  return { success: true, ...(message ? { message } : {}), data };
-}
-
-export function err(message: string): { error: string } {
-  return { error: message };
-}
 
 export function getUserById(db: Database, userId: number) {
   return db

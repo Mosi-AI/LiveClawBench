@@ -1,3 +1,6 @@
 {
-  "users": []
+  "data": {
+    "users": []
+  },
+  "success": true
 }

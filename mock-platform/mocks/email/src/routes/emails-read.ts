@@ -1,7 +1,7 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
-import { err, getAuthUserId } from "../helpers";
+import { ok, err, getAuthUserId } from "../helpers";
 import {
   EmailListResponseSchema,
   EmailDetailResponseSchema,
@@ -113,7 +113,7 @@ export function registerReadEmailRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const emails = rows.map((r) => emailToDict(r, getEmailAttachments(db, r.id as number)));
-    return c.json({ emails, count: emails.length });
+    return c.json(ok({ emails, count: emails.length }));
   });
 
   // GET /api/emails/:id
@@ -159,6 +159,6 @@ export function registerReadEmailRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Access denied"), 403);
     }
 
-    return c.json({ email });
+    return c.json(ok({ email }));
   });
 }

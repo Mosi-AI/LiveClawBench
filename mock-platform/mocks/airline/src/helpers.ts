@@ -1,23 +1,9 @@
 import type { Database } from "bun:sqlite";
 import { formatDateTime } from "mock-lib";
 
-export interface ApiResponse<T> {
-  success: boolean;
-  message?: string;
-  data?: T;
-}
-
 export { formatDateTime };
 
 export const DEFAULT_USER_ID = 1;
-
-export function ok<T>(data: T, message?: string): ApiResponse<T> {
-  return { success: true, ...(message ? { message } : {}), data };
-}
-
-export function err(message: string): ApiResponse<never> {
-  return { success: false, message };
-}
 
 export function paginate<T>(
   items: T[],

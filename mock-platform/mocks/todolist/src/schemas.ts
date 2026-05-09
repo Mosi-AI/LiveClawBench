@@ -1,5 +1,21 @@
 import { z } from "zod";
-import { ErrorResponseSchema } from "mock-lib";
+
+// ── Response wrappers ────────────────────────────────────────────────
+
+function OkSchema<T extends z.ZodTypeAny>(dataSchema: T) {
+  return z.object({
+    success: z.literal(true),
+    message: z.string().optional(),
+    data: dataSchema,
+  });
+}
+
+const ErrSchema = z.object({
+  success: z.literal(false),
+  message: z.string(),
+});
+
+// ── Todo schemas ─────────────────────────────────────────────────────
 
 export const TodoSchema = z.object({
   id: z.number(),
@@ -13,12 +29,15 @@ export const TodoSchema = z.object({
   updated_at: z.string(),
 });
 
-export const TodoListResponseSchema = z.array(TodoSchema);
+export const TodoListResponseSchema = OkSchema(z.array(TodoSchema));
 
-export const TodoSummaryResponseSchema = z.record(z.string(), z.number());
+export const TodoResponseSchema = OkSchema(TodoSchema);
+
+export const TodoSummaryResponseSchema = OkSchema(z.record(z.string(), z.number()));
 
 export const TodoDeleteResponseSchema = z.object({
-  message: z.string(),
+  success: z.literal(true),
+  message: z.string().optional(),
 });
 
 export const ListTodosQuerySchema = z.object({
@@ -57,4 +76,4 @@ export const UpdateTodoBodySchema = z.object({
   description: z.string().optional().nullable(),
 });
 
-export { ErrorResponseSchema };
+export const ErrorResponseSchema = ErrSchema;

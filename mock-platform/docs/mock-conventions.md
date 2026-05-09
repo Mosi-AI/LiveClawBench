@@ -53,7 +53,7 @@ Priority order for registering routes:
 
 3. **Legacy fallback** — raw `app.get()` / `app.post()`
    - Only acceptable for simple mocks or遗留 (legacy) Flask migrations
-   - Used by: airline, email, todolist
+   - Used by: (none — all services migrated to Zod schema-first)
 
 **New mocks must** use option 1 for all API routes.
 
@@ -81,10 +81,11 @@ interface ApiResponse<T> {
 ```
 
 Current state:
-- **airline**: uses `ok()`/`err()` consistently (local helpers; can migrate to `mock-lib` imports)
-- **email**: mixed — success responses vary by endpoint; `err()` returns `{ error: string }` instead of `{ success: false, message }` — **needs migration**
-- **todolist**: raw `{ error: string }` for errors, direct arrays/objects for success — **needs migration**
+- **airline**: uses `ok()`/`err()` from `mock-lib` (migrated)
+- **email**: uses `ok()`/`err()` from `mock-lib` via re-export (migrated)
+- **todolist**: uses `ok()`/`err()` from `mock-lib` (migrated)
 - **shop**: ad-hoc envelopes per route — **needs migration**
+- **doc-search**: no wrapper; returns raw objects or `{ error }` — **needs migration**
 
 **New mocks must** import `ok`/`err` from `mock-lib` and use them for all JSON responses.
 
@@ -113,6 +114,8 @@ const payload = await verify(token); // throws on invalid
   - Werkzeug-compatible PBKDF2: `generateWerkzeugHashSync()` / `verifyWerkzeugHash()` (from email helpers)
   - bcryptjs
 - **Forbidden**: plaintext storage or plaintext comparison
+
+> **Note**: `mock-lib` exports `authRequired` / `authOptional` middleware for services that need Bearer auth enforcement via `openApiRoute`'s auth option. Services without auth requirements (airline, todolist) or with custom auth logic (email's manual header parsing via `getAuthUserId()`) may skip it. This middleware is optional, not mandatory.
 
 > **Note**: `airline` intentionally deviates from this rule to match the original Python Flask implementation (plaintext passwords, fake JWT). Do NOT copy this pattern.
 

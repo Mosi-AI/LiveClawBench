@@ -2,7 +2,7 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
 import { sign, verify } from "mock-lib";
-import { err, getUserById, verifyWerkzeugHash, generateWerkzeugHashSync } from "../helpers";
+import { ok, err, getUserById, verifyWerkzeugHash, generateWerkzeugHashSync } from "../helpers";
 import {
   AuthRegisterBodySchema,
   AuthLoginBodySchema,
@@ -56,7 +56,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const user = getUserById(db, Number(userId));
     const accessToken = await sign({ userId: Number(userId) });
 
-    return c.json({ message: "User registered successfully", user, access_token: accessToken }, 201);
+    return c.json(ok({ message: "User registered successfully", user, access_token: accessToken }, "User registered successfully"), 201);
   });
 
   // POST /api/auth/login
@@ -106,7 +106,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const user = getUserById(db, row.id);
     const accessToken = await sign({ userId: row.id });
 
-    return c.json({ message: "Login successful", user, access_token: accessToken });
+    return c.json(ok({ message: "Login successful", user, access_token: accessToken }, "Login successful"));
   });
 
   // GET /api/auth/me
@@ -147,6 +147,6 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("User not found"), 404);
     }
 
-    return c.json({ user });
+    return c.json(ok({ user }));
   });
 }

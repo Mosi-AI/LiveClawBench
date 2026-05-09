@@ -1,7 +1,7 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
-import { err, getAuthUserId } from "../helpers";
+import { ok, err, getAuthUserId } from "../helpers";
 import {
   ReadEmailBodySchema,
   DeleteEmailResponseSchema,
@@ -59,12 +59,12 @@ export function registerActionEmailRoutes(app: OpenAPIApp, db: Database): void {
     if (email.folder !== "trash") {
       db.query("UPDATE emails SET folder = 'trash', updated_at = datetime('now') WHERE id = ?").run(emailId);
       const updated = getEmailById(db, emailId);
-      return c.json({ message: "Email moved to trash", email: updated });
+      return c.json(ok({ message: "Email moved to trash", email: updated }, "Email moved to trash"));
     }
 
     db.query("DELETE FROM attachments WHERE email_id = ?").run(emailId);
     db.query("DELETE FROM emails WHERE id = ?").run(emailId);
-    return c.json({ message: "Email deleted permanently" });
+    return c.json(ok({}, "Email deleted permanently"));
   });
 
   // PUT /api/emails/:id/read
@@ -119,7 +119,7 @@ export function registerActionEmailRoutes(app: OpenAPIApp, db: Database): void {
     db.query("UPDATE emails SET is_read = ?, updated_at = datetime('now') WHERE id = ?").run(isReadNum, emailId);
 
     const updated = getEmailById(db, emailId);
-    return c.json({ message: "Email status updated", email: updated });
+    return c.json(ok({ message: "Email status updated", email: updated }, "Email status updated"));
   });
 
   // PUT /api/emails/:id/send
@@ -197,6 +197,6 @@ export function registerActionEmailRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const updated = getEmailById(db, emailId);
-    return c.json({ message: "Email sent successfully", email: updated });
+    return c.json(ok({ message: "Email sent successfully", email: updated }, "Email sent successfully"));
   });
 }

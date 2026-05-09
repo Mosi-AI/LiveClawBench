@@ -78,12 +78,9 @@ export function createOpenAPIMockApp(
   };
 
   // openApiRoute(): register typed routes with auto-injected metadata
-  app.openApiRoute = <
-    R extends RouteConfig,
-    H extends RouteHandler<R, AppEnv>,
-  >(
+  app.openApiRoute = <R extends RouteConfig>(
     route: R,
-    handler: H,
+    handler: (c: any) => any,
     options?: RouteOptions,
   ) => {
     // Shallow-copy route to avoid mutating top-level properties
@@ -282,7 +279,7 @@ export function createOpenAPIMockApp(
       },
     },
   });
-  app.openApiRoute(healthRoute, ((c): any => {
+  app.openApiRoute(healthRoute, (c) => {
     return c.json(
       healthResponse ?? {
         ok: true,
@@ -290,7 +287,7 @@ export function createOpenAPIMockApp(
         service: resolvedConfig.name,
       },
     );
-  }) as RouteHandler<typeof healthRoute, AppEnv>);
+  });
 
   // Register /openapi.json and bearerAuth security scheme when enabled
   const resolvedInfo = openApi?.enabled

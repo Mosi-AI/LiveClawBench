@@ -37,14 +37,16 @@ describe("todolist mock", () => {
     const res = await app.request("/api/todos");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.length).toBeGreaterThan(0);
+    expect(body.success).toBe(true);
+    expect(body.data.length).toBeGreaterThan(0);
   });
 
   test("GET /api/todos?month= returns todos for month", async () => {
     const res = await app.request("/api/todos?month=2026-03");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.length).toBeGreaterThan(0);
+    expect(body.success).toBe(true);
+    expect(body.data.length).toBeGreaterThan(0);
   });
 
   test("GET /api/todos?month= with invalid format returns 400", async () => {
@@ -56,14 +58,16 @@ describe("todolist mock", () => {
     const res = await app.request("/api/todos?start_date=2026-03-01&end_date=2026-03-31");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.length).toBeGreaterThan(0);
+    expect(body.success).toBe(true);
+    expect(body.data.length).toBeGreaterThan(0);
   });
 
   test("GET /api/todos/:date returns todos for date", async () => {
     const res = await app.request("/api/todos/2026-03-10");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(Array.isArray(body)).toBe(true);
+    expect(body.success).toBe(true);
+    expect(Array.isArray(body.data)).toBe(true);
   });
 
   test("GET /api/todos/:date with invalid format returns 400", async () => {
@@ -73,13 +77,14 @@ describe("todolist mock", () => {
 
   test("GET /api/todos/item/:id returns single todo", async () => {
     const listRes = await app.request("/api/todos");
-    const todos = await listRes.json();
-    const firstId = todos[0].id;
+    const listBody = await listRes.json();
+    const firstId = listBody.data[0].id;
 
     const res = await app.request(`/api/todos/item/${firstId}`);
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.id).toBe(firstId);
+    expect(body.success).toBe(true);
+    expect(body.data.id).toBe(firstId);
   });
 
   test("GET /api/todos/item/:id with non-existent id returns 404", async () => {
@@ -102,9 +107,10 @@ describe("todolist mock", () => {
     });
     expect(res.status).toBe(201);
     const body = await res.json();
-    expect(body.title).toBe("New Todo");
-    expect(body.date).toBe("2026-05-01");
-    expect(body.time).toBe("14:00");
+    expect(body.success).toBe(true);
+    expect(body.data.title).toBe("New Todo");
+    expect(body.data.date).toBe("2026-05-01");
+    expect(body.data.time).toBe("14:00");
   });
 
   test("POST /api/todos with missing title returns 400", async () => {
@@ -136,8 +142,8 @@ describe("todolist mock", () => {
 
   test("PUT /api/todos/:id updates a todo", async () => {
     const listRes = await app.request("/api/todos");
-    const todos = await listRes.json();
-    const firstId = todos[0].id;
+    const listBody = await listRes.json();
+    const firstId = listBody.data[0].id;
 
     const res = await app.request(`/api/todos/${firstId}`, {
       method: "PUT",
@@ -146,13 +152,14 @@ describe("todolist mock", () => {
     });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.title).toBe("Updated Title");
+    expect(body.success).toBe(true);
+    expect(body.data.title).toBe("Updated Title");
   });
 
   test("PUT /api/todos/:id with empty title returns 400", async () => {
     const listRes = await app.request("/api/todos");
-    const todos = await listRes.json();
-    const firstId = todos[0].id;
+    const listBody = await listRes.json();
+    const firstId = listBody.data[0].id;
 
     const res = await app.request(`/api/todos/${firstId}`, {
       method: "PUT",
@@ -173,8 +180,8 @@ describe("todolist mock", () => {
 
   test("DELETE /api/todos/:id deletes a todo", async () => {
     const listRes = await app.request("/api/todos");
-    const todos = await listRes.json();
-    const firstId = todos[0].id;
+    const listBody = await listRes.json();
+    const firstId = listBody.data[0].id;
 
     const delRes = await app.request(`/api/todos/${firstId}`, { method: "DELETE" });
     expect(delRes.status).toBe(200);
@@ -194,8 +201,9 @@ describe("todolist mock", () => {
     const res = await app.request("/api/summary/2026-03");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(typeof body).toBe("object");
-    expect(Object.keys(body).length).toBeGreaterThan(0);
+    expect(body.success).toBe(true);
+    expect(typeof body.data).toBe("object");
+    expect(Object.keys(body.data).length).toBeGreaterThan(0);
   });
 
   test("GET /api/summary/:month with invalid format returns 400", async () => {
@@ -210,7 +218,8 @@ describe("todolist mock", () => {
     const taskApp = createTodolistApp({ dbPath: ":memory:", taskName: "schedule-change-request" }).app;
     const res = await taskApp.request("/api/todos");
     expect(res.status).toBe(200);
-    const todos = await res.json();
+    const body = await res.json();
+    const todos = body.data;
     const sundayTodos = todos.filter((t: Record<string, unknown>) =>
       String(t.title).includes("Game party") ||
       String(t.title).includes("Morning run") ||
@@ -225,7 +234,8 @@ describe("todolist mock", () => {
     const taskApp = createTodolistApp({ dbPath: ":memory:", taskName: "flight-info-change-notice" }).app;
     const res = await taskApp.request("/api/todos");
     expect(res.status).toBe(200);
-    const todos = await res.json();
+    const body = await res.json();
+    const todos = body.data;
     const partyTodos = todos.filter((t: Record<string, unknown>) =>
       String(t.title).includes("Game party")
     );

@@ -1,7 +1,7 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
-import { ok, err } from "../helpers";
+import { ok, err } from "mock-lib";
 import {
   OkSchema,
   ErrSchema,

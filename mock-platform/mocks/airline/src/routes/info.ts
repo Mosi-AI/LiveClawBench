@@ -1,7 +1,7 @@
 import type { OpenAPIApp } from "mock-lib";
 import { z } from "zod";
 import { createRoute } from "mock-lib";
-import { ok } from "../helpers";
+import { ok } from "mock-lib";
 import { OkSchema, RestaurantSchema, AirportInfoSchema } from "../schemas";
 
 const RESTAURANTS = [

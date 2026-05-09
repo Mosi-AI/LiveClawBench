@@ -1,7 +1,8 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
-import { ok, err, paginate, parsePageParams, DEFAULT_USER_ID, generateBookingReference } from "../helpers";
+import { ok, err } from "mock-lib";
+import { paginate, parsePageParams, DEFAULT_USER_ID, generateBookingReference } from "../helpers";
 import {
   OkSchema,
   ErrSchema,
@@ -205,10 +206,11 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
-    db.query("UPDATE seats SET is_available = 1 WHERE id IN (SELECT seat_id FROM passengers WHERE booking_id = ? AND seat_id IS NOT NULL)").run(Number(booking.id));
-    db.query("UPDATE passengers SET seat_id = NULL WHERE booking_id = ?").run(Number(booking.id));
-
-    db.query("UPDATE bookings SET booking_status = 'cancelled', updated_at = datetime('now') WHERE id = ?").run(Number(booking.id));
+    db.transaction(() => {
+      db.query("UPDATE seats SET is_available = 1 WHERE id IN (SELECT seat_id FROM passengers WHERE booking_id = ? AND seat_id IS NOT NULL)").run(Number(booking.id));
+      db.query("UPDATE passengers SET seat_id = NULL WHERE booking_id = ?").run(Number(booking.id));
+      db.query("UPDATE bookings SET booking_status = 'cancelled', updated_at = datetime('now') WHERE id = ?").run(Number(booking.id));
+    })();
 
     const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(Number(booking.id)) as Record<string, unknown>;
     return c.json(ok(updated, "Booking cancelled successfully"));

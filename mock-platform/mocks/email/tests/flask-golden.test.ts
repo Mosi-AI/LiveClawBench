@@ -96,7 +96,7 @@ describe("Flask golden response contract", () => {
       body: JSON.stringify({ username: "peter", password: "password123" }),
     });
     const loginBody = await loginRes.json();
-    token = loginBody.access_token;
+    token = loginBody.data.access_token;
   });
 
   async function loadGolden(name: string): Promise<unknown> {
@@ -139,8 +139,8 @@ describe("Flask golden response contract", () => {
     const listRes = await app.request("/api/emails?folder=inbox", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const { emails } = await listRes.json();
-    const firstId = emails[0].id;
+    const { data: listData } = await listRes.json();
+    const firstId = listData.emails[0].id;
 
     const res = await app.request(`/api/emails/${firstId}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -186,9 +186,9 @@ describe("Flask golden response contract", () => {
         send_now: false,
       }),
     });
-    const { email: draft } = await draftRes.json();
+    const { data: draftData } = await draftRes.json();
 
-    const res = await app.request(`/api/emails/${draft.id}/send`, {
+    const res = await app.request(`/api/emails/${draftData.email.id}/send`, {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}` },
     });

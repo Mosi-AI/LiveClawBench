@@ -112,40 +112,58 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
                     "message": {
                       "type": "string"
                     },
-                    "user": {
+                    "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "username": {
+                        "message": {
                           "type": "string"
                         },
-                        "email": {
-                          "type": "string"
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "username",
+                            "email",
+                            "created_at"
+                          ]
                         },
-                        "created_at": {
+                        "access_token": {
                           "type": "string"
                         }
                       },
                       "required": [
-                        "id",
-                        "username",
-                        "email",
-                        "created_at"
+                        "message",
+                        "user",
+                        "access_token"
                       ]
-                    },
-                    "access_token": {
-                      "type": "string"
                     }
                   },
                   "required": [
-                    "message",
-                    "user",
-                    "access_token"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -158,12 +176,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -225,40 +250,58 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
                     "message": {
                       "type": "string"
                     },
-                    "user": {
+                    "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "username": {
+                        "message": {
                           "type": "string"
                         },
-                        "email": {
-                          "type": "string"
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "username",
+                            "email",
+                            "created_at"
+                          ]
                         },
-                        "created_at": {
+                        "access_token": {
                           "type": "string"
                         }
                       },
                       "required": [
-                        "id",
-                        "username",
-                        "email",
-                        "created_at"
+                        "message",
+                        "user",
+                        "access_token"
                       ]
-                    },
-                    "access_token": {
-                      "type": "string"
                     }
                   },
                   "required": [
-                    "message",
-                    "user",
-                    "access_token"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -289,12 +332,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -332,32 +382,50 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "user": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "username": {
-                          "type": "string"
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "created_at": {
-                          "type": "string"
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "username",
+                            "email",
+                            "created_at"
+                          ]
                         }
                       },
                       "required": [
-                        "id",
-                        "username",
-                        "email",
-                        "created_at"
+                        "user"
                       ]
                     }
                   },
                   "required": [
-                    "user"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -370,12 +438,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -388,12 +463,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -429,109 +511,127 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "emails": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "number"
-                          },
-                          "sender_id": {
-                            "type": "number"
-                          },
-                          "sender_email": {
-                            "type": "string"
-                          },
-                          "sender_name": {
-                            "type": "string"
-                          },
-                          "recipient_id": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
-                          },
-                          "recipient_email": {
-                            "type": "string"
-                          },
-                          "recipient_name": {
-                            "type": "string"
-                          },
-                          "subject": {
-                            "type": "string"
-                          },
-                          "body": {
-                            "type": "string"
-                          },
-                          "folder": {
-                            "type": "string"
-                          },
-                          "is_read": {
-                            "type": "boolean"
-                          },
-                          "created_at": {
-                            "type": "string"
-                          },
-                          "updated_at": {
-                            "type": "string"
-                          },
-                          "attachments": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "number"
-                                },
-                                "original_filename": {
-                                  "type": "string"
-                                },
-                                "file_size": {
-                                  "type": "number"
-                                },
-                                "mime_type": {
-                                  "type": "string"
-                                },
-                                "created_at": {
-                                  "type": "string"
-                                }
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "emails": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "number"
                               },
-                              "required": [
-                                "id",
-                                "original_filename",
-                                "file_size",
-                                "mime_type",
-                                "created_at"
-                              ]
-                            }
+                              "sender_id": {
+                                "type": "number"
+                              },
+                              "sender_email": {
+                                "type": "string"
+                              },
+                              "sender_name": {
+                                "type": "string"
+                              },
+                              "recipient_id": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "recipient_email": {
+                                "type": "string"
+                              },
+                              "recipient_name": {
+                                "type": "string"
+                              },
+                              "subject": {
+                                "type": "string"
+                              },
+                              "body": {
+                                "type": "string"
+                              },
+                              "folder": {
+                                "type": "string"
+                              },
+                              "is_read": {
+                                "type": "boolean"
+                              },
+                              "created_at": {
+                                "type": "string"
+                              },
+                              "updated_at": {
+                                "type": "string"
+                              },
+                              "attachments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "number"
+                                    },
+                                    "original_filename": {
+                                      "type": "string"
+                                    },
+                                    "file_size": {
+                                      "type": "number"
+                                    },
+                                    "mime_type": {
+                                      "type": "string"
+                                    },
+                                    "created_at": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "original_filename",
+                                    "file_size",
+                                    "mime_type",
+                                    "created_at"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "sender_id",
+                              "sender_email",
+                              "sender_name",
+                              "recipient_id",
+                              "recipient_email",
+                              "recipient_name",
+                              "subject",
+                              "body",
+                              "folder",
+                              "is_read",
+                              "created_at",
+                              "updated_at",
+                              "attachments"
+                            ]
                           }
                         },
-                        "required": [
-                          "id",
-                          "sender_id",
-                          "sender_email",
-                          "sender_name",
-                          "recipient_id",
-                          "recipient_email",
-                          "recipient_name",
-                          "subject",
-                          "body",
-                          "folder",
-                          "is_read",
-                          "created_at",
-                          "updated_at",
-                          "attachments"
-                        ]
-                      }
-                    },
-                    "count": {
-                      "type": "number"
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "emails",
+                        "count"
+                      ]
                     }
                   },
                   "required": [
-                    "emails",
-                    "count"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -544,12 +644,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -562,12 +669,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -621,106 +735,124 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
                     "message": {
                       "type": "string"
                     },
-                    "email": {
+                    "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "sender_id": {
-                          "type": "number"
-                        },
-                        "sender_email": {
+                        "message": {
                           "type": "string"
                         },
-                        "sender_name": {
-                          "type": "string"
-                        },
-                        "recipient_id": {
-                          "type": [
-                            "number",
-                            "null"
-                          ]
-                        },
-                        "recipient_email": {
-                          "type": "string"
-                        },
-                        "recipient_name": {
-                          "type": "string"
-                        },
-                        "subject": {
-                          "type": "string"
-                        },
-                        "body": {
-                          "type": "string"
-                        },
-                        "folder": {
-                          "type": "string"
-                        },
-                        "is_read": {
-                          "type": "boolean"
-                        },
-                        "created_at": {
-                          "type": "string"
-                        },
-                        "updated_at": {
-                          "type": "string"
-                        },
-                        "attachments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "number"
-                              },
-                              "original_filename": {
-                                "type": "string"
-                              },
-                              "file_size": {
-                                "type": "number"
-                              },
-                              "mime_type": {
-                                "type": "string"
-                              },
-                              "created_at": {
-                                "type": "string"
-                              }
+                        "email": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number"
                             },
-                            "required": [
-                              "id",
-                              "original_filename",
-                              "file_size",
-                              "mime_type",
-                              "created_at"
-                            ]
-                          }
+                            "sender_id": {
+                              "type": "number"
+                            },
+                            "sender_email": {
+                              "type": "string"
+                            },
+                            "sender_name": {
+                              "type": "string"
+                            },
+                            "recipient_id": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "recipient_email": {
+                              "type": "string"
+                            },
+                            "recipient_name": {
+                              "type": "string"
+                            },
+                            "subject": {
+                              "type": "string"
+                            },
+                            "body": {
+                              "type": "string"
+                            },
+                            "folder": {
+                              "type": "string"
+                            },
+                            "is_read": {
+                              "type": "boolean"
+                            },
+                            "created_at": {
+                              "type": "string"
+                            },
+                            "updated_at": {
+                              "type": "string"
+                            },
+                            "attachments": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "number"
+                                  },
+                                  "original_filename": {
+                                    "type": "string"
+                                  },
+                                  "file_size": {
+                                    "type": "number"
+                                  },
+                                  "mime_type": {
+                                    "type": "string"
+                                  },
+                                  "created_at": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "original_filename",
+                                  "file_size",
+                                  "mime_type",
+                                  "created_at"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "sender_id",
+                            "sender_email",
+                            "sender_name",
+                            "recipient_id",
+                            "recipient_email",
+                            "recipient_name",
+                            "subject",
+                            "body",
+                            "folder",
+                            "is_read",
+                            "created_at",
+                            "updated_at",
+                            "attachments"
+                          ]
                         }
                       },
                       "required": [
-                        "id",
-                        "sender_id",
-                        "sender_email",
-                        "sender_name",
-                        "recipient_id",
-                        "recipient_email",
-                        "recipient_name",
-                        "subject",
-                        "body",
-                        "folder",
-                        "is_read",
-                        "created_at",
-                        "updated_at",
-                        "attachments"
+                        "message",
+                        "email"
                       ]
                     }
                   },
                   "required": [
-                    "message",
-                    "email"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -733,12 +865,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -751,12 +890,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -769,12 +915,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -823,102 +976,120 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "email": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "sender_id": {
-                          "type": "number"
-                        },
-                        "sender_email": {
-                          "type": "string"
-                        },
-                        "sender_name": {
-                          "type": "string"
-                        },
-                        "recipient_id": {
-                          "type": [
-                            "number",
-                            "null"
-                          ]
-                        },
-                        "recipient_email": {
-                          "type": "string"
-                        },
-                        "recipient_name": {
-                          "type": "string"
-                        },
-                        "subject": {
-                          "type": "string"
-                        },
-                        "body": {
-                          "type": "string"
-                        },
-                        "folder": {
-                          "type": "string"
-                        },
-                        "is_read": {
-                          "type": "boolean"
-                        },
-                        "created_at": {
-                          "type": "string"
-                        },
-                        "updated_at": {
-                          "type": "string"
-                        },
-                        "attachments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "number"
-                              },
-                              "original_filename": {
-                                "type": "string"
-                              },
-                              "file_size": {
-                                "type": "number"
-                              },
-                              "mime_type": {
-                                "type": "string"
-                              },
-                              "created_at": {
-                                "type": "string"
-                              }
+                        "email": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number"
                             },
-                            "required": [
-                              "id",
-                              "original_filename",
-                              "file_size",
-                              "mime_type",
-                              "created_at"
-                            ]
-                          }
+                            "sender_id": {
+                              "type": "number"
+                            },
+                            "sender_email": {
+                              "type": "string"
+                            },
+                            "sender_name": {
+                              "type": "string"
+                            },
+                            "recipient_id": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "recipient_email": {
+                              "type": "string"
+                            },
+                            "recipient_name": {
+                              "type": "string"
+                            },
+                            "subject": {
+                              "type": "string"
+                            },
+                            "body": {
+                              "type": "string"
+                            },
+                            "folder": {
+                              "type": "string"
+                            },
+                            "is_read": {
+                              "type": "boolean"
+                            },
+                            "created_at": {
+                              "type": "string"
+                            },
+                            "updated_at": {
+                              "type": "string"
+                            },
+                            "attachments": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "number"
+                                  },
+                                  "original_filename": {
+                                    "type": "string"
+                                  },
+                                  "file_size": {
+                                    "type": "number"
+                                  },
+                                  "mime_type": {
+                                    "type": "string"
+                                  },
+                                  "created_at": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "original_filename",
+                                  "file_size",
+                                  "mime_type",
+                                  "created_at"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "sender_id",
+                            "sender_email",
+                            "sender_name",
+                            "recipient_id",
+                            "recipient_email",
+                            "recipient_name",
+                            "subject",
+                            "body",
+                            "folder",
+                            "is_read",
+                            "created_at",
+                            "updated_at",
+                            "attachments"
+                          ]
                         }
                       },
                       "required": [
-                        "id",
-                        "sender_id",
-                        "sender_email",
-                        "sender_name",
-                        "recipient_id",
-                        "recipient_email",
-                        "recipient_name",
-                        "subject",
-                        "body",
-                        "folder",
-                        "is_read",
-                        "created_at",
-                        "updated_at",
-                        "attachments"
+                        "email"
                       ]
                     }
                   },
                   "required": [
-                    "email"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -931,12 +1102,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -949,12 +1127,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -967,12 +1152,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -985,12 +1177,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1047,106 +1246,124 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
                     "message": {
                       "type": "string"
                     },
-                    "email": {
+                    "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "sender_id": {
-                          "type": "number"
-                        },
-                        "sender_email": {
+                        "message": {
                           "type": "string"
                         },
-                        "sender_name": {
-                          "type": "string"
-                        },
-                        "recipient_id": {
-                          "type": [
-                            "number",
-                            "null"
-                          ]
-                        },
-                        "recipient_email": {
-                          "type": "string"
-                        },
-                        "recipient_name": {
-                          "type": "string"
-                        },
-                        "subject": {
-                          "type": "string"
-                        },
-                        "body": {
-                          "type": "string"
-                        },
-                        "folder": {
-                          "type": "string"
-                        },
-                        "is_read": {
-                          "type": "boolean"
-                        },
-                        "created_at": {
-                          "type": "string"
-                        },
-                        "updated_at": {
-                          "type": "string"
-                        },
-                        "attachments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "number"
-                              },
-                              "original_filename": {
-                                "type": "string"
-                              },
-                              "file_size": {
-                                "type": "number"
-                              },
-                              "mime_type": {
-                                "type": "string"
-                              },
-                              "created_at": {
-                                "type": "string"
-                              }
+                        "email": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number"
                             },
-                            "required": [
-                              "id",
-                              "original_filename",
-                              "file_size",
-                              "mime_type",
-                              "created_at"
-                            ]
-                          }
+                            "sender_id": {
+                              "type": "number"
+                            },
+                            "sender_email": {
+                              "type": "string"
+                            },
+                            "sender_name": {
+                              "type": "string"
+                            },
+                            "recipient_id": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "recipient_email": {
+                              "type": "string"
+                            },
+                            "recipient_name": {
+                              "type": "string"
+                            },
+                            "subject": {
+                              "type": "string"
+                            },
+                            "body": {
+                              "type": "string"
+                            },
+                            "folder": {
+                              "type": "string"
+                            },
+                            "is_read": {
+                              "type": "boolean"
+                            },
+                            "created_at": {
+                              "type": "string"
+                            },
+                            "updated_at": {
+                              "type": "string"
+                            },
+                            "attachments": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "number"
+                                  },
+                                  "original_filename": {
+                                    "type": "string"
+                                  },
+                                  "file_size": {
+                                    "type": "number"
+                                  },
+                                  "mime_type": {
+                                    "type": "string"
+                                  },
+                                  "created_at": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "original_filename",
+                                  "file_size",
+                                  "mime_type",
+                                  "created_at"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "sender_id",
+                            "sender_email",
+                            "sender_name",
+                            "recipient_id",
+                            "recipient_email",
+                            "recipient_name",
+                            "subject",
+                            "body",
+                            "folder",
+                            "is_read",
+                            "created_at",
+                            "updated_at",
+                            "attachments"
+                          ]
                         }
                       },
                       "required": [
-                        "id",
-                        "sender_id",
-                        "sender_email",
-                        "sender_name",
-                        "recipient_id",
-                        "recipient_email",
-                        "recipient_name",
-                        "subject",
-                        "body",
-                        "folder",
-                        "is_read",
-                        "created_at",
-                        "updated_at",
-                        "attachments"
+                        "message",
+                        "email"
                       ]
                     }
                   },
                   "required": [
-                    "message",
-                    "email"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -1159,12 +1376,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1177,12 +1401,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1195,12 +1426,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1213,12 +1451,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1265,105 +1510,123 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
                     "message": {
                       "type": "string"
                     },
-                    "email": {
+                    "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "sender_id": {
-                          "type": "number"
-                        },
-                        "sender_email": {
+                        "message": {
                           "type": "string"
                         },
-                        "sender_name": {
-                          "type": "string"
-                        },
-                        "recipient_id": {
-                          "type": [
-                            "number",
-                            "null"
-                          ]
-                        },
-                        "recipient_email": {
-                          "type": "string"
-                        },
-                        "recipient_name": {
-                          "type": "string"
-                        },
-                        "subject": {
-                          "type": "string"
-                        },
-                        "body": {
-                          "type": "string"
-                        },
-                        "folder": {
-                          "type": "string"
-                        },
-                        "is_read": {
-                          "type": "boolean"
-                        },
-                        "created_at": {
-                          "type": "string"
-                        },
-                        "updated_at": {
-                          "type": "string"
-                        },
-                        "attachments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "number"
-                              },
-                              "original_filename": {
-                                "type": "string"
-                              },
-                              "file_size": {
-                                "type": "number"
-                              },
-                              "mime_type": {
-                                "type": "string"
-                              },
-                              "created_at": {
-                                "type": "string"
-                              }
+                        "email": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number"
                             },
-                            "required": [
-                              "id",
-                              "original_filename",
-                              "file_size",
-                              "mime_type",
-                              "created_at"
-                            ]
-                          }
+                            "sender_id": {
+                              "type": "number"
+                            },
+                            "sender_email": {
+                              "type": "string"
+                            },
+                            "sender_name": {
+                              "type": "string"
+                            },
+                            "recipient_id": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "recipient_email": {
+                              "type": "string"
+                            },
+                            "recipient_name": {
+                              "type": "string"
+                            },
+                            "subject": {
+                              "type": "string"
+                            },
+                            "body": {
+                              "type": "string"
+                            },
+                            "folder": {
+                              "type": "string"
+                            },
+                            "is_read": {
+                              "type": "boolean"
+                            },
+                            "created_at": {
+                              "type": "string"
+                            },
+                            "updated_at": {
+                              "type": "string"
+                            },
+                            "attachments": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "number"
+                                  },
+                                  "original_filename": {
+                                    "type": "string"
+                                  },
+                                  "file_size": {
+                                    "type": "number"
+                                  },
+                                  "mime_type": {
+                                    "type": "string"
+                                  },
+                                  "created_at": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "original_filename",
+                                  "file_size",
+                                  "mime_type",
+                                  "created_at"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "sender_id",
+                            "sender_email",
+                            "sender_name",
+                            "recipient_id",
+                            "recipient_email",
+                            "recipient_name",
+                            "subject",
+                            "body",
+                            "folder",
+                            "is_read",
+                            "created_at",
+                            "updated_at",
+                            "attachments"
+                          ]
                         }
                       },
                       "required": [
-                        "id",
-                        "sender_id",
-                        "sender_email",
-                        "sender_name",
-                        "recipient_id",
-                        "recipient_email",
-                        "recipient_name",
-                        "subject",
-                        "body",
-                        "folder",
-                        "is_read",
-                        "created_at",
-                        "updated_at",
-                        "attachments"
+                        "message"
                       ]
                     }
                   },
                   "required": [
-                    "message"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -1376,12 +1639,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1394,12 +1664,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1412,12 +1689,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1430,12 +1714,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1484,106 +1775,124 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
                     "message": {
                       "type": "string"
                     },
-                    "email": {
+                    "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "sender_id": {
-                          "type": "number"
-                        },
-                        "sender_email": {
+                        "message": {
                           "type": "string"
                         },
-                        "sender_name": {
-                          "type": "string"
-                        },
-                        "recipient_id": {
-                          "type": [
-                            "number",
-                            "null"
-                          ]
-                        },
-                        "recipient_email": {
-                          "type": "string"
-                        },
-                        "recipient_name": {
-                          "type": "string"
-                        },
-                        "subject": {
-                          "type": "string"
-                        },
-                        "body": {
-                          "type": "string"
-                        },
-                        "folder": {
-                          "type": "string"
-                        },
-                        "is_read": {
-                          "type": "boolean"
-                        },
-                        "created_at": {
-                          "type": "string"
-                        },
-                        "updated_at": {
-                          "type": "string"
-                        },
-                        "attachments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "number"
-                              },
-                              "original_filename": {
-                                "type": "string"
-                              },
-                              "file_size": {
-                                "type": "number"
-                              },
-                              "mime_type": {
-                                "type": "string"
-                              },
-                              "created_at": {
-                                "type": "string"
-                              }
+                        "email": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number"
                             },
-                            "required": [
-                              "id",
-                              "original_filename",
-                              "file_size",
-                              "mime_type",
-                              "created_at"
-                            ]
-                          }
+                            "sender_id": {
+                              "type": "number"
+                            },
+                            "sender_email": {
+                              "type": "string"
+                            },
+                            "sender_name": {
+                              "type": "string"
+                            },
+                            "recipient_id": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "recipient_email": {
+                              "type": "string"
+                            },
+                            "recipient_name": {
+                              "type": "string"
+                            },
+                            "subject": {
+                              "type": "string"
+                            },
+                            "body": {
+                              "type": "string"
+                            },
+                            "folder": {
+                              "type": "string"
+                            },
+                            "is_read": {
+                              "type": "boolean"
+                            },
+                            "created_at": {
+                              "type": "string"
+                            },
+                            "updated_at": {
+                              "type": "string"
+                            },
+                            "attachments": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "number"
+                                  },
+                                  "original_filename": {
+                                    "type": "string"
+                                  },
+                                  "file_size": {
+                                    "type": "number"
+                                  },
+                                  "mime_type": {
+                                    "type": "string"
+                                  },
+                                  "created_at": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "original_filename",
+                                  "file_size",
+                                  "mime_type",
+                                  "created_at"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "sender_id",
+                            "sender_email",
+                            "sender_name",
+                            "recipient_id",
+                            "recipient_email",
+                            "recipient_name",
+                            "subject",
+                            "body",
+                            "folder",
+                            "is_read",
+                            "created_at",
+                            "updated_at",
+                            "attachments"
+                          ]
                         }
                       },
                       "required": [
-                        "id",
-                        "sender_id",
-                        "sender_email",
-                        "sender_name",
-                        "recipient_id",
-                        "recipient_email",
-                        "recipient_name",
-                        "subject",
-                        "body",
-                        "folder",
-                        "is_read",
-                        "created_at",
-                        "updated_at",
-                        "attachments"
+                        "message",
+                        "email"
                       ]
                     }
                   },
                   "required": [
-                    "message",
-                    "email"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -1596,12 +1905,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1614,12 +1930,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1632,12 +1955,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1650,12 +1980,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1704,52 +2041,256 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
                     "message": {
                       "type": "string"
                     },
-                    "email": {
+                    "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "sender_id": {
-                          "type": "number"
-                        },
-                        "sender_email": {
+                        "message": {
                           "type": "string"
                         },
-                        "sender_name": {
-                          "type": "string"
-                        },
-                        "recipient_id": {
-                          "type": [
-                            "number",
-                            "null"
+                        "email": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number"
+                            },
+                            "sender_id": {
+                              "type": "number"
+                            },
+                            "sender_email": {
+                              "type": "string"
+                            },
+                            "sender_name": {
+                              "type": "string"
+                            },
+                            "recipient_id": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "recipient_email": {
+                              "type": "string"
+                            },
+                            "recipient_name": {
+                              "type": "string"
+                            },
+                            "subject": {
+                              "type": "string"
+                            },
+                            "body": {
+                              "type": "string"
+                            },
+                            "folder": {
+                              "type": "string"
+                            },
+                            "is_read": {
+                              "type": "boolean"
+                            },
+                            "created_at": {
+                              "type": "string"
+                            },
+                            "updated_at": {
+                              "type": "string"
+                            },
+                            "attachments": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "number"
+                                  },
+                                  "original_filename": {
+                                    "type": "string"
+                                  },
+                                  "file_size": {
+                                    "type": "number"
+                                  },
+                                  "mime_type": {
+                                    "type": "string"
+                                  },
+                                  "created_at": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "original_filename",
+                                  "file_size",
+                                  "mime_type",
+                                  "created_at"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "sender_id",
+                            "sender_email",
+                            "sender_name",
+                            "recipient_id",
+                            "recipient_email",
+                            "recipient_name",
+                            "subject",
+                            "body",
+                            "folder",
+                            "is_read",
+                            "created_at",
+                            "updated_at",
+                            "attachments"
                           ]
-                        },
-                        "recipient_email": {
-                          "type": "string"
-                        },
-                        "recipient_name": {
-                          "type": "string"
-                        },
-                        "subject": {
-                          "type": "string"
-                        },
-                        "body": {
-                          "type": "string"
-                        },
-                        "folder": {
-                          "type": "string"
-                        },
-                        "is_read": {
-                          "type": "boolean"
-                        },
-                        "created_at": {
-                          "type": "string"
-                        },
-                        "updated_at": {
+                        }
+                      },
+                      "required": [
+                        "message",
+                        "email"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/attachments/upload": {
+      "post": {
+        "summary": "Upload attachments",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
                           "type": "string"
                         },
                         "attachments": {
@@ -1784,26 +2325,14 @@
                         }
                       },
                       "required": [
-                        "id",
-                        "sender_id",
-                        "sender_email",
-                        "sender_name",
-                        "recipient_id",
-                        "recipient_email",
-                        "recipient_name",
-                        "subject",
-                        "body",
-                        "folder",
-                        "is_read",
-                        "created_at",
-                        "updated_at",
+                        "message",
                         "attachments"
                       ]
                     }
                   },
                   "required": [
-                    "message",
-                    "email"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -1816,140 +2345,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/attachments/upload": {
-      "post": {
-        "summary": "Upload attachments",
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
                     "message": {
                       "type": "string"
-                    },
-                    "attachments": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "number"
-                          },
-                          "original_filename": {
-                            "type": "string"
-                          },
-                          "file_size": {
-                            "type": "number"
-                          },
-                          "mime_type": {
-                            "type": "string"
-                          },
-                          "created_at": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "original_filename",
-                          "file_size",
-                          "mime_type",
-                          "created_at"
-                        ]
-                      }
                     }
                   },
                   "required": [
-                    "message",
-                    "attachments"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1962,12 +2370,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1980,12 +2395,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -2037,12 +2459,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -2055,12 +2484,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -2073,12 +2509,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -2109,12 +2552,30 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
                     "message": {
                       "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ]
                     }
                   },
                   "required": [
-                    "message"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -2145,12 +2606,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -2163,12 +2631,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -2181,12 +2656,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -2216,35 +2698,53 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "users": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "number"
-                          },
-                          "username": {
-                            "type": "string"
-                          },
-                          "email": {
-                            "type": "string"
-                          },
-                          "created_at": {
-                            "type": "string"
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "users": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "number"
+                              },
+                              "username": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "created_at": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "username",
+                              "email",
+                              "created_at"
+                            ]
                           }
-                        },
-                        "required": [
-                          "id",
-                          "username",
-                          "email",
-                          "created_at"
-                        ]
-                      }
+                        }
+                      },
+                      "required": [
+                        "users"
+                      ]
                     }
                   },
                   "required": [
-                    "users"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -2275,12 +2775,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }

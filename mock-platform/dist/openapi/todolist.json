@@ -110,62 +110,80 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "number"
-                      },
-                      "title": {
-                        "type": "string"
-                      },
-                      "date": {
-                        "type": "string"
-                      },
-                      "time": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "location": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "person": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "description": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "created_at": {
-                        "type": "string"
-                      },
-                      "updated_at": {
-                        "type": "string"
-                      }
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
                     },
-                    "required": [
-                      "id",
-                      "title",
-                      "date",
-                      "time",
-                      "location",
-                      "person",
-                      "description",
-                      "created_at",
-                      "updated_at"
-                    ]
-                  }
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "date": {
+                            "type": "string"
+                          },
+                          "time": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "location": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "person": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "description": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "title",
+                          "date",
+                          "time",
+                          "location",
+                          "person",
+                          "description",
+                          "created_at",
+                          "updated_at"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
                 }
               }
             }
@@ -249,56 +267,74 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "type": "number"
-                    },
-                    "title": {
-                      "type": "string"
-                    },
-                    "date": {
-                      "type": "string"
-                    },
-                    "time": {
-                      "type": [
-                        "string",
-                        "null"
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
                       ]
                     },
-                    "location": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "person": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "description": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "created_at": {
+                    "message": {
                       "type": "string"
                     },
-                    "updated_at": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string"
+                        },
+                        "time": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "location": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "person": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "date",
+                        "time",
+                        "location",
+                        "person",
+                        "description",
+                        "created_at",
+                        "updated_at"
+                      ]
                     }
                   },
                   "required": [
-                    "id",
-                    "title",
-                    "date",
-                    "time",
-                    "location",
-                    "person",
-                    "description",
-                    "created_at",
-                    "updated_at"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -363,62 +399,80 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "number"
-                      },
-                      "title": {
-                        "type": "string"
-                      },
-                      "date": {
-                        "type": "string"
-                      },
-                      "time": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "location": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "person": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "description": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "created_at": {
-                        "type": "string"
-                      },
-                      "updated_at": {
-                        "type": "string"
-                      }
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
                     },
-                    "required": [
-                      "id",
-                      "title",
-                      "date",
-                      "time",
-                      "location",
-                      "person",
-                      "description",
-                      "created_at",
-                      "updated_at"
-                    ]
-                  }
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "date": {
+                            "type": "string"
+                          },
+                          "time": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "location": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "person": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "description": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "title",
+                          "date",
+                          "time",
+                          "location",
+                          "person",
+                          "description",
+                          "created_at",
+                          "updated_at"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
                 }
               }
             }
@@ -466,56 +520,74 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "type": "number"
-                    },
-                    "title": {
-                      "type": "string"
-                    },
-                    "date": {
-                      "type": "string"
-                    },
-                    "time": {
-                      "type": [
-                        "string",
-                        "null"
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
                       ]
                     },
-                    "location": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "person": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "description": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "created_at": {
+                    "message": {
                       "type": "string"
                     },
-                    "updated_at": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string"
+                        },
+                        "time": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "location": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "person": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "date",
+                        "time",
+                        "location",
+                        "person",
+                        "description",
+                        "created_at",
+                        "updated_at"
+                      ]
                     }
                   },
                   "required": [
-                    "id",
-                    "title",
-                    "date",
-                    "time",
-                    "location",
-                    "person",
-                    "description",
-                    "created_at",
-                    "updated_at"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -546,12 +618,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -627,56 +706,74 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "type": "number"
-                    },
-                    "title": {
-                      "type": "string"
-                    },
-                    "date": {
-                      "type": "string"
-                    },
-                    "time": {
-                      "type": [
-                        "string",
-                        "null"
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
                       ]
                     },
-                    "location": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "person": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "description": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "created_at": {
+                    "message": {
                       "type": "string"
                     },
-                    "updated_at": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string"
+                        },
+                        "time": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "location": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "person": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "date",
+                        "time",
+                        "location",
+                        "person",
+                        "description",
+                        "created_at",
+                        "updated_at"
+                      ]
                     }
                   },
                   "required": [
-                    "id",
-                    "title",
-                    "date",
-                    "time",
-                    "location",
-                    "person",
-                    "description",
-                    "created_at",
-                    "updated_at"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -707,12 +804,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -759,12 +863,18 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
                     "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "message"
+                    "success"
                   ]
                 }
               }
@@ -795,12 +905,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -830,9 +947,27 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": {
-                    "type": "number"
-                  }
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
                 }
               }
             }

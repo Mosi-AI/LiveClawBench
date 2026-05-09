@@ -1,9 +1,9 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { createRoute } from "mock-lib";
+import { createRoute, ok, err } from "mock-lib";
 import { z } from "zod";
 import {
-  TodoSchema,
+  TodoResponseSchema,
   TodoListResponseSchema,
   TodoSummaryResponseSchema,
   TodoDeleteResponseSchema,
@@ -59,22 +59,22 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
         const rows = db.query(
           `SELECT * FROM todos WHERE date >= ? AND date < ? ORDER BY date ASC, time ASC, created_at ASC`
         ).all(startDate, endDate) as Record<string, unknown>[];
-        return c.json(rows.map(rowToTodo));
+        return c.json(ok(rows.map(rowToTodo)));
       }
 
       if (start_date && end_date) {
         const rows = db.query(
           `SELECT * FROM todos WHERE date >= ? AND date <= ? ORDER BY date ASC, time ASC, created_at ASC`
         ).all(start_date, end_date) as Record<string, unknown>[];
-        return c.json(rows.map(rowToTodo));
+        return c.json(ok(rows.map(rowToTodo)));
       }
 
       const rows = db.query(
         `SELECT * FROM todos ORDER BY date ASC, time ASC, created_at ASC`
       ).all() as Record<string, unknown>[];
-      return c.json(rows.map(rowToTodo));
+      return c.json(ok(rows.map(rowToTodo)));
     } catch (e) {
-      return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
+      return c.json(err(e instanceof Error ? e.message : String(e)), 500);
     }
   });
 
@@ -99,9 +99,9 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
       const rows = db.query(
         `SELECT * FROM todos WHERE date = ? ORDER BY time ASC, created_at ASC`
       ).all(date) as Record<string, unknown>[];
-      return c.json(rows.map(rowToTodo));
+      return c.json(ok(rows.map(rowToTodo)));
     } catch (e) {
-      return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
+      return c.json(err(e instanceof Error ? e.message : String(e)), 500);
     }
   });
 
@@ -113,7 +113,7 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
     request: { params: IdParamSchema },
     responses: {
       200: {
-        content: { "application/json": { schema: TodoSchema } },
+        content: { "application/json": { schema: TodoResponseSchema } },
         description: "OK",
       },
       404: {
@@ -130,11 +130,11 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
     try {
       const row = db.query("SELECT * FROM todos WHERE id = ?").get(todoId) as Record<string, unknown> | null;
       if (!row) {
-        return c.json({ error: "Todo not found" }, 404);
+        return c.json(err("Todo not found"), 404);
       }
-      return c.json(rowToTodo(row));
+      return c.json(ok(rowToTodo(row)));
     } catch (e) {
-      return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
+      return c.json(err(e instanceof Error ? e.message : String(e)), 500);
     }
   });
 
@@ -146,7 +146,7 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
     request: { body: { content: { "application/json": { schema: CreateTodoBodySchema } }, description: "Todo data" } },
     responses: {
       201: {
-        content: { "application/json": { schema: TodoSchema } },
+        content: { "application/json": { schema: TodoResponseSchema } },
         description: "Created",
       },
     },
@@ -169,9 +169,9 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
       );
 
       const row = db.query("SELECT * FROM todos WHERE id = ?").get(Number(todoId)) as Record<string, unknown>;
-      return c.json(rowToTodo(row), 201);
+      return c.json(ok(rowToTodo(row)), 201);
     } catch (e) {
-      return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
+      return c.json(err(e instanceof Error ? e.message : String(e)), 500);
     }
   });
 
@@ -186,7 +186,7 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
     },
     responses: {
       200: {
-        content: { "application/json": { schema: TodoSchema } },
+        content: { "application/json": { schema: TodoResponseSchema } },
         description: "OK",
       },
       404: {
@@ -204,7 +204,7 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
     try {
       const existing = db.query("SELECT * FROM todos WHERE id = ?").get(todoId) as Record<string, unknown> | null;
       if (!existing) {
-        return c.json({ error: "Todo not found" }, 404);
+        return c.json(err("Todo not found"), 404);
       }
 
       const validFields = ["title", "date", "time", "location", "person", "description"] as const;
@@ -220,16 +220,16 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
       }
 
       if (updates.length === 0) {
-        return c.json(rowToTodo(existing));
+        return c.json(ok(rowToTodo(existing)));
       }
 
       updates.push("updated_at = datetime('now')");
       db.query(`UPDATE todos SET ${updates.join(", ")} WHERE id = ?`).run(...values, todoId);
 
       const row = db.query("SELECT * FROM todos WHERE id = ?").get(todoId) as Record<string, unknown>;
-      return c.json(rowToTodo(row));
+      return c.json(ok(rowToTodo(row)));
     } catch (e) {
-      return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
+      return c.json(err(e instanceof Error ? e.message : String(e)), 500);
     }
   });
 
@@ -258,11 +258,11 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
     try {
       const result = db.query("DELETE FROM todos WHERE id = ?").run(todoId);
       if (result.changes === 0) {
-        return c.json({ error: "Todo not found" }, 404);
+        return c.json(err("Todo not found"), 404);
       }
-      return c.json({ message: "Todo deleted successfully" });
+      return c.json(ok(undefined, "Todo deleted successfully"));
     } catch (e) {
-      return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
+      return c.json(err(e instanceof Error ? e.message : String(e)), 500);
     }
   });
 
@@ -298,9 +298,9 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
       for (const row of rows) {
         summary[row.date] = row.count;
       }
-      return c.json(summary);
+      return c.json(ok(summary));
     } catch (e) {
-      return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
+      return c.json(err(e instanceof Error ? e.message : String(e)), 500);
     }
   });
 }

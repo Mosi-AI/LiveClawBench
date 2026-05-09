@@ -1,6 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { generateBookingReference } from "../helpers";
-import { fmt, AIRPORTS, FLIGHT_CONFIGS } from "./data";
+import { fmt, AIRPORTS, FLIGHT_CONFIGS, calculateNextMonday } from "./data";
+import { generateSeats } from "../db/seat-generation";
 
 export function createTaskSpecificData(db: Database, taskName: string, userIds: number[], now: Date): void {
   const peterId = userIds[0];

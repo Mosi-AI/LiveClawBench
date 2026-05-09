@@ -1,7 +1,8 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
-import { ok, DEFAULT_USER_ID } from "../helpers";
+import { ok } from "mock-lib";
+import { DEFAULT_USER_ID } from "../helpers";
 import { OkSchema, CalendarEventSchema } from "../schemas";
 import { z } from "zod";
 

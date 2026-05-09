@@ -1,7 +1,7 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
-import { err, getAuthUserId } from "../helpers";
+import { ok, err, getAuthUserId } from "../helpers";
 import {
   CreateEmailBodySchema,
   UpdateEmailBodySchema,
@@ -112,7 +112,7 @@ export function registerComposeEmailRoutes(app: OpenAPIApp, db: Database): void 
 
     const email = getEmailById(db, emailId);
     const message = sendNow ? "Email sent successfully" : "Email saved successfully";
-    return c.json({ message, email }, 201);
+    return c.json(ok({ message, email }, message), 201);
   });
 
   // PUT /api/emails/:id
@@ -197,6 +197,6 @@ export function registerComposeEmailRoutes(app: OpenAPIApp, db: Database): void 
     }
 
     const updated = getEmailById(db, emailId);
-    return c.json({ message: "Email updated successfully", email: updated });
+    return c.json(ok({ message: "Email updated successfully", email: updated }, "Email updated successfully"));
   });
 }

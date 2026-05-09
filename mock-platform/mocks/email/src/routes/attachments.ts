@@ -1,7 +1,7 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
-import { err, getAuthUserId } from "../helpers";
+import { ok, err, getAuthUserId } from "../helpers";
 import { AttachmentUploadResponseSchema, AttachmentDeleteResponseSchema, IdParamSchema, ErrorResponseSchema } from "../schemas";
 import { mkdirSync } from "node:fs";
 import { join, extname } from "node:path";
@@ -120,7 +120,7 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
       uploadedAttachments.push(attachmentToDict(att));
     }
 
-    return c.json({ message: "Attachments uploaded successfully", attachments: uploadedAttachments }, 201);
+    return c.json(ok({ message: "Attachments uploaded successfully", attachments: uploadedAttachments }, "Attachments uploaded successfully"), 201);
   });
 
   // GET /api/attachments/:id/download
@@ -233,6 +233,6 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     db.query("DELETE FROM attachments WHERE id = ?").run(attachmentId);
-    return c.json({ message: "Attachment deleted" });
+    return c.json(ok({}, "Attachment deleted"));
   });
 }
