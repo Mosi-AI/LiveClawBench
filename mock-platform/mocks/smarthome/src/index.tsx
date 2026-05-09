@@ -401,7 +401,11 @@ function isValidWorkoutType(type: string): type is WorkoutType {
 function getBenchmarkTime(): string {
   const database = assertDb();
   const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string } | null;
-  return clock?.clock_time || "2026-05-06T08:00:00Z";
+  if (!clock) {
+    console.error("mock-smarthome: WARNING: benchmark_clock row missing, falling back to default time 2026-05-06T08:00:00Z");
+    return "2026-05-06T08:00:00Z";
+  }
+  return clock.clock_time;
 }
 
 // Derive coffee status from start_time and benchmark_clock in a timezone-stable way
@@ -414,6 +418,7 @@ function deriveCoffeeStatus(startTime: string, currentTime: string): string {
   // Format: 2026-05-06T06:45:00Z
   const timeMatch = currentTime.match(/T(\d{2}):(\d{2}):/);
   if (!timeMatch) {
+    console.warn(`mock-smarthome: WARNING: invalid time format "${currentTime}", falling back to "scheduled"`);
     return "scheduled"; // Fallback if time format is invalid
   }
   const currentHour = parseInt(timeMatch[1], 10);
@@ -443,7 +448,12 @@ function generateOrderId(): string {
   let nextSuffix = 1;
   if (existing.length > 0) {
     const lastSuffix = existing[0].order_id.substring(prefix.length);
-    nextSuffix = parseInt(lastSuffix, 36) + 1;
+    const parsed = parseInt(lastSuffix, 36);
+    if (isNaN(parsed)) {
+      console.error(`mock-smarthome: WARNING: malformed order_id "${existing[0].order_id}", resetting suffix to 1`);
+    } else {
+      nextSuffix = parsed + 1;
+    }
   }
 
   return `ORD${timestamp}-${nextSuffix.toString(36).toUpperCase().padStart(3, "0")}`;
@@ -461,7 +471,12 @@ function generatePlanId(): string {
   let nextSuffix = 1;
   if (existing.length > 0) {
     const lastSuffix = existing[0].plan_id.substring(prefix.length);
-    nextSuffix = parseInt(lastSuffix, 36) + 1;
+    const parsed = parseInt(lastSuffix, 36);
+    if (isNaN(parsed)) {
+      console.error(`mock-smarthome: WARNING: malformed plan_id "${existing[0].plan_id}", resetting suffix to 1`);
+    } else {
+      nextSuffix = parsed + 1;
+    }
   }
 
   return `PLAN${timestamp}-${nextSuffix.toString(36).toUpperCase().padStart(3, "0")}`;
@@ -1038,9 +1053,13 @@ function registerRoutes(app: OpenAPIApp): void {
   });
 
   app.delete("/api/inventory/:id", (c) => {
-    const id = c.req.param("id");
-    const database = assertDb();
+    const idParam = c.req.param("id");
+    const id = Number(idParam);
+    if (isNaN(id) || !Number.isInteger(id) || id <= 0) {
+      return c.json({ error: "Invalid id: must be a positive integer" }, 400);
+    }
 
+    const database = assertDb();
     const existing = database.query("SELECT id FROM inventory_item WHERE id = ?").get(id);
     if (!existing) {
       return c.json({ error: "Item not found" }, 404);

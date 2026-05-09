@@ -38,8 +38,12 @@ def http_request(method, path, data=None):
             return json.loads(response.read().decode("utf-8")), response.status
     except urllib.error.HTTPError as e:
         return json.loads(e.read().decode("utf-8")), e.code
+    except urllib.error.URLError as e:
+        return {"error": f"Connection failed: {e.reason}"}, 503
+    except json.JSONDecodeError as e:
+        return {"error": f"Invalid JSON response: {e}"}, 502
     except Exception as e:
-        return {"error": str(e)}, 0
+        return {"error": f"Unexpected error: {type(e).__name__}: {e}"}, 500
 
 
 def check_thermostat():

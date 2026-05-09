@@ -53,7 +53,6 @@ const ALL_TASK_NAMES = new Set([
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination",
   // "smart-home-thermostat", "grocery-reorder", "smart-home-morning-recovery", "grocery-budget-plan",
-  "smarthome-testold",
   "smarthome-test",
 ]);
 
