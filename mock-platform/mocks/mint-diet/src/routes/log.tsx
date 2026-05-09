@@ -180,34 +180,20 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
     const { date } = c.req.valid("param");
     const body = c.req.valid("form");
     const mealSlot = body.slot;
-    const foodCatalogIdRaw = body.food_catalog_id ? String(body.food_catalog_id) : null;
-    const foodCatalogId = foodCatalogIdRaw ? parsePositiveInt(foodCatalogIdRaw) : null;
-    const foodName = body.food_name.trim();
-    const quantityValue = parseNonNegFloat(body.quantity_value);
+    const foodCatalogId = body.food_catalog_id;
+    const foodName = body.food_name;
+    const quantityValue = body.quantity_value;
     const quantityUnit = body.quantity_unit;
 
     const makePrefill = () => ({
       food_name: body.food_name,
-      quantity_value: body.quantity_value,
+      quantity_value: String(body.quantity_value),
       quantity_unit: quantityUnit,
-      calories_kcal: body.calories_kcal || "0",
-      protein_g: body.protein_g || "0",
-      carbs_g: body.carbs_g || "0",
-      fat_g: body.fat_g || "0",
+      calories_kcal: String(body.calories_kcal),
+      protein_g: String(body.protein_g),
+      carbs_g: String(body.carbs_g),
+      fat_g: String(body.fat_g),
     });
-
-    if (!foodName) return c.html(
-      <EntryForm date={date} slot={mealSlot} error="Food name is required" prefill={makePrefill()} />, 422
-    );
-    if (foodName.length > 200) return c.html(
-      <EntryForm date={date} slot={mealSlot} error="Food name must be 200 characters or fewer" prefill={makePrefill()} />, 422
-    );
-    if (quantityValue === null || quantityValue < 0) return c.html(
-      <EntryForm date={date} slot={mealSlot} error="Invalid quantity" prefill={makePrefill()} />, 422
-    );
-    if (foodCatalogIdRaw && !foodCatalogId) return c.html(
-      <EntryForm date={date} slot={mealSlot} error="Invalid selected food" prefill={makePrefill()} />, 422
-    );
 
     let caloriesKcal = 0, proteinG = 0, carbsG = 0, fatG = 0;
 
@@ -231,14 +217,10 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
         return c.html(<EntryForm date={date} slot={mealSlot} error="Selected food has invalid catalog nutrition data" prefill={makePrefill()} />, 422);
       }
     } else {
-      const macros = parseManualMacros(body as Record<string, unknown>);
-      if ("error" in macros) {
-        return c.html(<EntryForm date={date} slot={mealSlot} error={macros.error} prefill={makePrefill()} />, 422);
-      }
-      caloriesKcal = macros.values.caloriesKcal;
-      proteinG = macros.values.proteinG;
-      carbsG = macros.values.carbsG;
-      fatG = macros.values.fatG;
+      caloriesKcal = body.calories_kcal;
+      proteinG = body.protein_g;
+      carbsG = body.carbs_g;
+      fatG = body.fat_g;
     }
 
     if (caloriesKcal > 100000) return c.html(
@@ -283,29 +265,19 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
     if (entry.food_catalog_id) food = getFoodById(d, entry.food_catalog_id);
 
     const body = c.req.valid("form");
-    const foodName = body.food_name.trim();
-    const quantityValue = parseNonNegFloat(body.quantity_value);
+    const foodName = body.food_name;
+    const quantityValue = body.quantity_value;
     const quantityUnit = body.quantity_unit;
 
     const makePrefill = () => ({
       food_name: body.food_name,
-      quantity_value: body.quantity_value,
+      quantity_value: String(body.quantity_value),
       quantity_unit: quantityUnit,
-      calories_kcal: body.calories_kcal || "0",
-      protein_g: body.protein_g || "0",
-      carbs_g: body.carbs_g || "0",
-      fat_g: body.fat_g || "0",
+      calories_kcal: String(body.calories_kcal),
+      protein_g: String(body.protein_g),
+      carbs_g: String(body.carbs_g),
+      fat_g: String(body.fat_g),
     });
-
-    if (!foodName) return c.html(
-      <EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Food name is required" prefill={makePrefill()} />, 422
-    );
-    if (foodName.length > 200) return c.html(
-      <EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Food name must be 200 characters or fewer" prefill={makePrefill()} />, 422
-    );
-    if (quantityValue === null || quantityValue < 0) return c.html(
-      <EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Invalid quantity" prefill={makePrefill()} />, 422
-    );
 
     let caloriesKcal = entry.calories_kcal, proteinG = entry.protein_g, carbsG = entry.carbs_g, fatG = entry.fat_g;
 
@@ -328,14 +300,10 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
         return c.html(<EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error="Selected food has invalid catalog nutrition data" prefill={makePrefill()} />, 422);
       }
     } else {
-      const macros = parseManualMacros(body as Record<string, unknown>);
-      if ("error" in macros) {
-        return c.html(<EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} error={macros.error} prefill={makePrefill()} />, 422);
-      }
-      caloriesKcal = macros.values.caloriesKcal;
-      proteinG = macros.values.proteinG;
-      carbsG = macros.values.carbsG;
-      fatG = macros.values.fatG;
+      caloriesKcal = body.calories_kcal;
+      proteinG = body.protein_g;
+      carbsG = body.carbs_g;
+      fatG = body.fat_g;
     }
 
     if (caloriesKcal > 100000) return c.html(

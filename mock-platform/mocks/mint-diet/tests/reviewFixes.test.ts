@@ -6,6 +6,12 @@ import { resolveEffectiveBudget } from "../src/queries.js";
 import type { FoodCatalog } from "../src/queries.js";
 import { resetMutableTables } from "../src/routes/admin.js";
 import { isCatalogQuantityUnit, parseManualMacros } from "../src/routes/log.js";
+import {
+  CreateFoodEntryFormSchema,
+  IngredientFormSchema,
+  MealPlanItemFormSchema,
+  PlanFormSchema,
+} from "../src/routes/schemas.js";
 
 const makeCatalog = (overrides: Partial<FoodCatalog> = {}): FoodCatalog => ({
   id: 1,
@@ -82,6 +88,88 @@ describe("parseManualMacros", () => {
     assert.deepEqual(parseManualMacros({ calories_kcal: "abc" }), {
       error: "Invalid calories value",
     });
+  });
+});
+
+describe("form schemas", () => {
+  it("validates and coerces food entry form values", () => {
+    const parsed = CreateFoodEntryFormSchema.parse({
+      slot: "breakfast",
+      food_name: "  Apple  ",
+      quantity_value: "1.5",
+      quantity_unit: "g",
+      calories_kcal: "",
+      protein_g: "0.3",
+      carbs_g: "20",
+      fat_g: "0.1",
+    });
+
+    assert.equal(parsed.food_name, "Apple");
+    assert.equal(parsed.quantity_value, 1.5);
+    assert.equal(parsed.calories_kcal, 0);
+    assert.equal(parsed.protein_g, 0.3);
+    assert.equal(CreateFoodEntryFormSchema.safeParse({
+      slot: "breakfast",
+      food_name: "",
+      quantity_value: "1",
+      quantity_unit: "g",
+    }).success, false);
+    assert.equal(CreateFoodEntryFormSchema.safeParse({
+      slot: "breakfast",
+      food_name: "Apple",
+      quantity_value: "1",
+      quantity_unit: "g",
+      calories_kcal: "abc",
+    }).success, false);
+  });
+
+  it("validates plan forms including cross-field date rules", () => {
+    const parsed = PlanFormSchema.parse({
+      title: "  Cutting week  ",
+      start_date: "2026-04-20",
+      end_date: "2026-04-25",
+      status: "active",
+      target_calories_kcal: "1800",
+      notes: "  ",
+    });
+
+    assert.equal(parsed.title, "Cutting week");
+    assert.equal(parsed.target_calories_kcal, 1800);
+    assert.equal(parsed.notes, null);
+    assert.equal(PlanFormSchema.safeParse({
+      title: "Backwards",
+      start_date: "2026-04-25",
+      end_date: "2026-04-20",
+    }).success, false);
+    assert.equal(PlanFormSchema.safeParse({
+      title: "Bad target",
+      start_date: "2026-04-20",
+      end_date: "2026-04-25",
+      target_calories_kcal: "-1",
+    }).success, false);
+  });
+
+  it("requires plan items and ingredients to carry usable values", () => {
+    assert.equal(MealPlanItemFormSchema.safeParse({
+      plan_date: "2026-04-20",
+      meal_slot: "lunch",
+      dish_name: "  ",
+    }).success, false);
+
+    const ingredient = IngredientFormSchema.parse({
+      name: "  Oats ",
+      quantity_value: "80",
+      notes: "",
+    });
+
+    assert.equal(ingredient.name, "Oats");
+    assert.equal(ingredient.quantity_value, 80);
+    assert.equal(ingredient.quantity_unit, "g");
+    assert.equal(ingredient.notes, null);
+    assert.equal(IngredientFormSchema.safeParse({
+      name: "Oats",
+      quantity_value: "-1",
+    }).success, false);
   });
 });
 
