@@ -13,6 +13,9 @@
     "mocks/email/tests/**/*.ts",
     "mocks/todolist/src/**/*.ts",
     "mocks/todolist/tests/**/*.ts",
+    "mocks/mint-diet/src/**/*.ts",
+    "mocks/mint-diet/src/**/*.tsx",
+    "mocks/mint-diet/tests/**/*.ts",
     "scripts/**/*.ts",
     "tools/**/*.ts"
   ],

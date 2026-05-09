@@ -1,10 +1,8 @@
 import type { AppEnv } from "mock-lib";
 import type { Context } from "hono";
-import { LOG_SLOTS, PLAN_SLOTS, PLAN_STATUSES } from "../constants";
+import { LOG_SLOTS, PLAN_SLOTS } from "../constants";
 import { Layout } from "../components";
-import type { MealSlot, PlanMealSlot, PlanStatus } from "../queries";
-
-type ParsedBody = Awaited<ReturnType<Context<AppEnv>["req"]["parseBody"]>>;
+import type { MealSlot, PlanMealSlot } from "../queries";
 
 export function isResponse(value: unknown): value is Response {
   return value instanceof Response;
@@ -12,15 +10,6 @@ export function isResponse(value: unknown): value is Response {
 
 export function renderMessage(c: Context<AppEnv>, title: string, message: string, status: 400 | 500) {
   return c.html(<Layout title={title}><p>{message}</p></Layout>, status) as Response;
-}
-
-export async function parseBodyOrBadRequest(c: Context<AppEnv>): Promise<ParsedBody | Response> {
-  try {
-    return await c.req.parseBody();
-  } catch (err) {
-    console.error("Failed to parse request body", err);
-    return renderMessage(c, "Bad Request", "Malformed request body", 400);
-  }
 }
 
 export function runDbMutation<T>(c: Context<AppEnv>, action: () => T): T | Response {
@@ -38,10 +27,6 @@ export function isMealSlot(value: string): value is MealSlot {
 
 export function isPlanMealSlot(value: string): value is PlanMealSlot {
   return (PLAN_SLOTS as readonly string[]).includes(value);
-}
-
-export function isPlanStatus(value: string): value is PlanStatus {
-  return (PLAN_STATUSES as readonly string[]).includes(value);
 }
 
 export function parsePositiveInt(s: string | undefined): number | null {

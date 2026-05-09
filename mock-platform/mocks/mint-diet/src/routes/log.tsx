@@ -1,3 +1,4 @@
+import { createRoute } from "mock-lib";
 import { CATALOG_MISSING_ERROR, LOG_SLOTS } from "../constants";
 import { Layout, DayNav, EntryForm, MealSlotCard, SummaryPanel } from "../components";
 import { todayLocal } from "../date";
@@ -19,11 +20,18 @@ import type { FoodCatalog, MealSlot } from "../queries";
 import {
   isMealSlot,
   isResponse,
-  parseBodyOrBadRequest,
   parseNonNegFloat,
   parsePositiveInt,
   runDbMutation,
 } from "./helpers";
+import {
+  CreateFoodEntryFormSchema,
+  EntryIdParamSchema,
+  HtmlResponse,
+  LogDateParamSchema,
+  RedirectResponse,
+  UpdateFoodEntryFormSchema,
+} from "./schemas";
 import type { MintDietApp, RouteDeps } from "./types";
 
 export interface ManualMacroValues {
@@ -60,9 +68,68 @@ export function parseManualMacros(body: Record<string, unknown>): { values: Manu
 }
 
 export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) {
-  app.get("/log", (c) => c.redirect(`/log/${todayLocal()}`, 302));
+  const createFoodEntryRoute = createRoute({
+    method: "post",
+    path: "/log/{date}/entries",
+    summary: "Create a food log entry",
+    request: {
+      params: LogDateParamSchema,
+      body: {
+        required: true,
+        content: {
+          "application/x-www-form-urlencoded": {
+            schema: CreateFoodEntryFormSchema,
+          },
+        },
+      },
+    },
+    responses: {
+      303: RedirectResponse,
+      422: HtmlResponse,
+      500: HtmlResponse,
+    },
+  });
 
-  app.get("/log/:date", async (c) => {
+  const updateFoodEntryRoute = createRoute({
+    method: "post",
+    path: "/log/entries/{entryId}",
+    summary: "Update a food log entry",
+    request: {
+      params: EntryIdParamSchema,
+      body: {
+        required: true,
+        content: {
+          "application/x-www-form-urlencoded": {
+            schema: UpdateFoodEntryFormSchema,
+          },
+        },
+      },
+    },
+    responses: {
+      303: RedirectResponse,
+      404: HtmlResponse,
+      422: HtmlResponse,
+      500: HtmlResponse,
+    },
+  });
+
+  const deleteFoodEntryRoute = createRoute({
+    method: "post",
+    path: "/log/entries/{entryId}/delete",
+    summary: "Delete a food log entry",
+    request: {
+      params: EntryIdParamSchema,
+    },
+    responses: {
+      303: RedirectResponse,
+      404: HtmlResponse,
+      500: HtmlResponse,
+    },
+  });
+
+  app.page("/log", (c) => c.redirect(`/log/${todayLocal()}`, 302));
+
+  app.page("/log/:date", async (c) => {
     const { date } = c.req.param();
     if (!isValidLocalDate(date)) return c.html(<Layout title="Bad Request"><p>Invalid date: {date}</p></Layout>, 400);
 
@@ -87,7 +154,7 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
     );
   });
 
-  app.get("/log/:date/add/:slot", async (c) => {
+  app.page("/log/:date/add/:slot", async (c) => {
     const { date, slot } = c.req.param();
     if (!isValidLocalDate(date)) return c.html(<Layout title="Bad Request"><p>Invalid date</p></Layout>, 400);
     if (!isMealSlot(slot)) return c.html(<Layout title="Bad Request"><p>Invalid slot</p></Layout>, 400);
@@ -109,31 +176,24 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
     return c.html(<EntryForm date={date} slot={slot} food={food} searchResults={searchResults} query={q} />);
   });
 
-  app.post("/log/:date/entries", async (c) => {
-    const { date } = c.req.param();
-    if (!isValidLocalDate(date)) return c.html(<Layout title="Bad Request"><p>Invalid date</p></Layout>, 400);
-
-    const body = await parseBodyOrBadRequest(c);
-    if (isResponse(body)) return body;
-    const mealSlot = String(body.slot ?? "");
-    if (!isMealSlot(mealSlot)) {
-      return c.html(<Layout title="Bad Request"><p>Invalid slot</p></Layout>, 400);
-    }
-
+  app.openApiRoute(createFoodEntryRoute, async (c) => {
+    const { date } = c.req.valid("param");
+    const body = c.req.valid("form");
+    const mealSlot = body.slot;
     const foodCatalogIdRaw = body.food_catalog_id ? String(body.food_catalog_id) : null;
     const foodCatalogId = foodCatalogIdRaw ? parsePositiveInt(foodCatalogIdRaw) : null;
-    const foodName = String(body.food_name ?? "").trim();
-    const quantityValue = parseNonNegFloat(String(body.quantity_value ?? ""));
-    const quantityUnit = String(body.quantity_unit ?? "");
+    const foodName = body.food_name.trim();
+    const quantityValue = parseNonNegFloat(body.quantity_value);
+    const quantityUnit = body.quantity_unit;
 
     const makePrefill = () => ({
-      food_name: String(body.food_name ?? ""),
-      quantity_value: String(body.quantity_value ?? ""),
+      food_name: body.food_name,
+      quantity_value: body.quantity_value,
       quantity_unit: quantityUnit,
-      calories_kcal: String(body.calories_kcal ?? "0"),
-      protein_g: String(body.protein_g ?? "0"),
-      carbs_g: String(body.carbs_g ?? "0"),
-      fat_g: String(body.fat_g ?? "0"),
+      calories_kcal: body.calories_kcal || "0",
+      protein_g: body.protein_g || "0",
+      carbs_g: body.carbs_g || "0",
+      fat_g: body.fat_g || "0",
     });
 
     if (!foodName) return c.html(
@@ -193,7 +253,7 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
     return c.redirect(`/log/${date}`, 303);
   });
 
-  app.get("/log/entry/:entryId/edit", async (c) => {
+  app.page("/log/entry/:entryId/edit", async (c) => {
     const entryId = parsePositiveInt(c.req.param("entryId"));
     if (!entryId) return c.html(<Layout title="Bad Request"><p>Invalid entry ID</p></Layout>, 400);
 
@@ -210,10 +270,8 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
     return c.html(<EntryForm date={date} slot={entry.meal_slot} food={food} entry={entry} />);
   });
 
-  app.post("/log/entries/:entryId", async (c) => {
-    const entryId = parsePositiveInt(c.req.param("entryId"));
-    if (!entryId) return c.html(<Layout title="Bad Request"><p>Invalid entry ID</p></Layout>, 400);
-
+  app.openApiRoute(updateFoodEntryRoute, async (c) => {
+    const { entryId } = c.req.valid("param");
     const d = getDatabase();
     const entry = getFoodEntry(d, entryId);
     if (!entry) return c.html(<Layout title="Not Found"><p>Entry not found</p></Layout>, 404);
@@ -224,20 +282,19 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
     let food: FoodCatalog | null = null;
     if (entry.food_catalog_id) food = getFoodById(d, entry.food_catalog_id);
 
-    const body = await parseBodyOrBadRequest(c);
-    if (isResponse(body)) return body;
-    const foodName = String(body.food_name ?? "").trim();
-    const quantityValue = parseNonNegFloat(String(body.quantity_value ?? ""));
-    const quantityUnit = String(body.quantity_unit ?? "");
+    const body = c.req.valid("form");
+    const foodName = body.food_name.trim();
+    const quantityValue = parseNonNegFloat(body.quantity_value);
+    const quantityUnit = body.quantity_unit;
 
     const makePrefill = () => ({
-      food_name: String(body.food_name ?? ""),
-      quantity_value: String(body.quantity_value ?? ""),
+      food_name: body.food_name,
+      quantity_value: body.quantity_value,
       quantity_unit: quantityUnit,
-      calories_kcal: String(body.calories_kcal ?? "0"),
-      protein_g: String(body.protein_g ?? "0"),
-      carbs_g: String(body.carbs_g ?? "0"),
-      fat_g: String(body.fat_g ?? "0"),
+      calories_kcal: body.calories_kcal || "0",
+      protein_g: body.protein_g || "0",
+      carbs_g: body.carbs_g || "0",
+      fat_g: body.fat_g || "0",
     });
 
     if (!foodName) return c.html(
@@ -290,10 +347,8 @@ export function registerLogRoutes(app: MintDietApp, { getDatabase }: RouteDeps) 
     return c.redirect(`/log/${date}`, 303);
   });
 
-  app.post("/log/entries/:entryId/delete", async (c) => {
-    const entryId = parsePositiveInt(c.req.param("entryId"));
-    if (!entryId) return c.html(<Layout title="Bad Request"><p>Invalid entry ID</p></Layout>, 400);
-
+  app.openApiRoute(deleteFoodEntryRoute, async (c) => {
+    const { entryId } = c.req.valid("param");
     const d = getDatabase();
     const entry = getFoodEntry(d, entryId);
     if (!entry) return c.html(<Layout title="Not Found"><p>Entry not found</p></Layout>, 404);
