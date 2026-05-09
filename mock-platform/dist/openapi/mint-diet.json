@@ -1,0 +1,998 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Mint Diet Mock API",
+    "version": "1.0.0"
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {},
+    "parameters": {}
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "service": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/__mock_sentinel__/mint-diet": {
+      "get": {
+        "summary": "Binary isolation probe",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mock": {
+                      "type": "string",
+                      "enum": [
+                        "mint-diet"
+                      ]
+                    },
+                    "sentinel": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "mock",
+                    "sentinel"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/log/{date}/entries": {
+      "post": {
+        "summary": "Create a food log entry",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "date",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "slot": {
+                    "type": "string",
+                    "enum": [
+                      "breakfast",
+                      "lunch",
+                      "dinner",
+                      "snacks"
+                    ]
+                  },
+                  "food_catalog_id": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "food_name": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "quantity_value": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "quantity_unit": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "calories_kcal": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "protein_g": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "carbs_g": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "fat_g": {
+                    "type": "string",
+                    "default": ""
+                  }
+                },
+                "required": [
+                  "slot"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/log/entries/{entryId}": {
+      "post": {
+        "summary": "Update a food log entry",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "entryId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "food_catalog_id": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "food_name": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "quantity_value": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "quantity_unit": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "calories_kcal": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "protein_g": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "carbs_g": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "fat_g": {
+                    "type": "string",
+                    "default": ""
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "422": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/log/entries/{entryId}/delete": {
+      "post": {
+        "summary": "Delete a food log entry",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "entryId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/plans": {
+      "post": {
+        "summary": "Create a meal plan",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "start_date": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "end_date": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "active",
+                      "archived"
+                    ],
+                    "default": "draft"
+                  },
+                  "target_calories_kcal": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "notes": {
+                    "type": "string",
+                    "default": ""
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/plans/{planId}": {
+      "post": {
+        "summary": "Update a meal plan",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "planId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "start_date": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "end_date": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "active",
+                      "archived"
+                    ],
+                    "default": "draft"
+                  },
+                  "target_calories_kcal": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "notes": {
+                    "type": "string",
+                    "default": ""
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "422": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/plans/{planId}/delete": {
+      "post": {
+        "summary": "Delete a meal plan",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "planId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/plans/{planId}/items": {
+      "post": {
+        "summary": "Add a meal plan item",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "planId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan_date": {
+                    "type": "string"
+                  },
+                  "meal_slot": {
+                    "type": "string",
+                    "enum": [
+                      "breakfast",
+                      "lunch",
+                      "dinner"
+                    ]
+                  },
+                  "dish_name": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "notes": {
+                    "type": "string",
+                    "default": ""
+                  }
+                },
+                "required": [
+                  "plan_date",
+                  "meal_slot"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "422": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/plans/{planId}/items/{itemId}": {
+      "post": {
+        "summary": "Update a meal plan item",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "planId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "itemId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "meal_slot": {
+                    "type": "string",
+                    "enum": [
+                      "breakfast",
+                      "lunch",
+                      "dinner"
+                    ]
+                  },
+                  "dish_name": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "notes": {
+                    "type": "string",
+                    "default": ""
+                  }
+                },
+                "required": [
+                  "meal_slot"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "422": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/plans/{planId}/items/{itemId}/delete": {
+      "post": {
+        "summary": "Delete a meal plan item",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "planId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "itemId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/plans/{planId}/ingredients": {
+      "post": {
+        "summary": "Add a plan ingredient",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "planId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "quantity_value": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "quantity_unit": {
+                    "type": "string",
+                    "enum": [
+                      "g",
+                      "ml",
+                      "包",
+                      "个"
+                    ],
+                    "default": "g"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "default": ""
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "422": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/plans/{planId}/ingredients/{ingId}": {
+      "post": {
+        "summary": "Update a plan ingredient",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "planId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "ingId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "quantity_value": {
+                    "type": "string",
+                    "default": ""
+                  },
+                  "quantity_unit": {
+                    "type": "string",
+                    "enum": [
+                      "g",
+                      "ml",
+                      "包",
+                      "个"
+                    ],
+                    "default": "g"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "default": ""
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "422": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/plans/{planId}/ingredients/{ingId}/delete": {
+      "post": {
+        "summary": "Delete a plan ingredient",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "planId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "required": true,
+            "name": "ingId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    },
+    "/admin/reset": {
+      "post": {
+        "summary": "Reset mutable diet data",
+        "responses": {
+          "303": {
+            "description": "Redirect"
+          },
+          "404": {
+            "description": "HTML response"
+          },
+          "500": {
+            "description": "HTML response"
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}
