@@ -1,22 +1,43 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
+import { createRoute } from "mock-lib";
 import { sign, verify } from "mock-lib";
 import { err, getUserById, verifyWerkzeugHash, generateWerkzeugHashSync } from "../helpers";
+import {
+  AuthRegisterBodySchema,
+  AuthLoginBodySchema,
+  AuthRegisterResponseSchema,
+  AuthLoginResponseSchema,
+  AuthMeResponseSchema,
+  ErrorResponseSchema,
+} from "../schemas";
 
 export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   // POST /api/auth/register
-  app.post("/api/auth/register", async (c) => {
-    const body = (await c.req.json()) as Record<string, unknown>;
-    const username = String(body.username ?? "");
-    const email = String(body.email ?? "");
-    const password = String(body.password ?? "");
+  const registerRoute = createRoute({
+    method: "post",
+    path: "/api/auth/register",
+    summary: "Register a new user",
+    request: {
+      body: {
+        content: { "application/json": { schema: AuthRegisterBodySchema } },
+        description: "Registration data",
+      },
+    },
+    responses: {
+      201: {
+        content: { "application/json": { schema: AuthRegisterResponseSchema } },
+        description: "Created",
+      },
+      400: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Bad request",
+      },
+    },
+  });
 
-    if (!username || !email || !password) {
-      return c.json(err("Missing required fields"), 400);
-    }
-    if (password.length < 6) {
-      return c.json(err("Password must be at least 6 characters"), 400);
-    }
+  app.openApiRoute(registerRoute, async (c) => {
+    const { username, email, password } = c.req.valid("json");
 
     const existingUsername = db.query("SELECT id FROM users WHERE username = ?").get(username) as { id: number } | null;
     if (existingUsername) {
@@ -39,14 +60,30 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // POST /api/auth/login
-  app.post("/api/auth/login", async (c) => {
-    const body = (await c.req.json()) as Record<string, unknown>;
-    const username = String(body.username ?? "");
-    const password = String(body.password ?? "");
+  const loginRoute = createRoute({
+    method: "post",
+    path: "/api/auth/login",
+    summary: "User login",
+    request: {
+      body: {
+        content: { "application/json": { schema: AuthLoginBodySchema } },
+        description: "Login credentials",
+      },
+    },
+    responses: {
+      200: {
+        content: { "application/json": { schema: AuthLoginResponseSchema } },
+        description: "OK",
+      },
+      401: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Unauthorized",
+      },
+    },
+  });
 
-    if (!username || !password) {
-      return c.json(err("Missing credentials"), 400);
-    }
+  app.openApiRoute(loginRoute, async (c) => {
+    const { username, password } = c.req.valid("json");
 
     const row = db.query("SELECT id, password_hash FROM users WHERE username = ?").get(username) as
       | { id: number; password_hash: string }
@@ -55,8 +92,6 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Invalid username or password"), 401);
     }
 
-    // Intentional dual-path: Werkzeug hash for production, plaintext fallback
-    // for sandbox/test scenarios where seeds may use non-hashed passwords.
     let valid = false;
     if (row.password_hash.startsWith("pbkdf2:")) {
       valid = await verifyWerkzeugHash(row.password_hash, password);
@@ -75,7 +110,27 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/auth/me
-  app.get("/api/auth/me", async (c) => {
+  const meRoute = createRoute({
+    method: "get",
+    path: "/api/auth/me",
+    summary: "Get current user",
+    responses: {
+      200: {
+        content: { "application/json": { schema: AuthMeResponseSchema } },
+        description: "OK",
+      },
+      401: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Unauthorized",
+      },
+      404: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(meRoute, async (c) => {
     const authHeader = c.req.header("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return c.json(err("Authentication required"), 401);

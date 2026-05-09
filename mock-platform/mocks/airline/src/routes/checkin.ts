@@ -1,24 +1,68 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
+import { createRoute } from "mock-lib";
 import { ok, err, DEFAULT_USER_ID } from "../helpers";
+import {
+  OkSchema,
+  ErrSchema,
+  BookingSchema,
+  BoardingPassSchema,
+  SeatSchema,
+  BookingRefParamSchema,
+} from "../schemas";
+import { z } from "zod";
 
 export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
+  const checkinResponse = OkSchema(BookingSchema);
+  const boardingPassResponse = OkSchema(z.object({
+    booking_reference: z.string(),
+    boarding_passes: z.array(BoardingPassSchema),
+  }));
+  const eligibleResponse = OkSchema(z.object({
+    eligible_checkins: z.array(BookingSchema),
+  }));
+  const seatChartResponse = OkSchema(z.object({
+    booking_reference: z.string(),
+    flight_number: z.string(),
+    cabin_class: z.string(),
+    seat_chart: z.record(z.string(), z.array(SeatSchema)),
+  }));
+
   // POST /api/checkin/:booking_reference
-  app.post("/api/checkin/:booking_reference", (c) => {
-    const ref = c.req.param("booking_reference");
+  const checkinRoute = createRoute({
+    method: "post",
+    path: "/api/checkin/{booking_reference}",
+    summary: "Check in for a booking",
+    request: { params: BookingRefParamSchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: checkinResponse } },
+        description: "OK",
+      },
+      400: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Bad request",
+      },
+      404: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(checkinRoute, (c) => {
+    const { booking_reference } = c.req.valid("param");
+    const ref = booking_reference;
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
-    // Check payment completed
     const payment = db.query("SELECT * FROM payments WHERE booking_id = ?").get(Number(booking.id)) as Record<string, unknown> | null;
     if (!payment || payment.payment_status !== "completed") {
       return c.json(err("Payment must be completed before check-in"), 400);
     }
 
-    // Check all passengers have seats
     const unseated = db.query("SELECT COUNT(*) as count FROM passengers WHERE booking_id = ? AND seat_id IS NULL").get(Number(booking.id)) as { count: number };
     if (unseated.count > 0) {
-      // Check if there are no economy window seats available — mention upgrade fee
       const flightId = Number(booking.flight_id);
       const cabinClass = String(booking.cabin_class ?? "economy");
       if (cabinClass === "economy") {
@@ -37,7 +81,6 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("All passengers must have seat assignments before check-in"), 400);
     }
 
-    // Check within 24h of departure
     const flight = db.query("SELECT departure_time FROM flights WHERE id = ?").get(Number(booking.flight_id)) as { departure_time: string } | null;
     if (flight) {
       const departure = new Date(flight.departure_time.replace(" ", "T"));
@@ -58,8 +101,30 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/checkin/:booking_reference/boarding-pass
-  app.get("/api/checkin/:booking_reference/boarding-pass", (c) => {
-    const ref = c.req.param("booking_reference");
+  const boardingPassRoute = createRoute({
+    method: "get",
+    path: "/api/checkin/{booking_reference}/boarding-pass",
+    summary: "Get boarding pass",
+    request: { params: BookingRefParamSchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: boardingPassResponse } },
+        description: "OK",
+      },
+      400: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Bad request",
+      },
+      404: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(boardingPassRoute, (c) => {
+    const { booking_reference } = c.req.valid("param");
+    const ref = booking_reference;
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
@@ -89,7 +154,19 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/checkin/eligible
-  app.get("/api/checkin/eligible", (c) => {
+  const eligibleRoute = createRoute({
+    method: "get",
+    path: "/api/checkin/eligible",
+    summary: "List eligible check-ins",
+    responses: {
+      200: {
+        content: { "application/json": { schema: eligibleResponse } },
+        description: "OK",
+      },
+    },
+  });
+
+  app.openApiRoute(eligibleRoute, (c) => {
     const now = new Date().toISOString().replace("T", " ").slice(0, 19);
     const future24h = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().replace("T", " ").slice(0, 19);
 
@@ -105,15 +182,32 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/checkin/:booking_reference/seats
-  app.get("/api/checkin/:booking_reference/seats", (c) => {
-    const ref = c.req.param("booking_reference");
+  const seatsRoute = createRoute({
+    method: "get",
+    path: "/api/checkin/{booking_reference}/seats",
+    summary: "Get seat chart for check-in",
+    request: { params: BookingRefParamSchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: seatChartResponse } },
+        description: "OK",
+      },
+      404: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(seatsRoute, (c) => {
+    const { booking_reference } = c.req.valid("param");
+    const ref = booking_reference;
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
     const flightId = Number(booking.flight_id);
     const cabinClass = String(booking.cabin_class ?? "economy");
 
-    // Filter seats to the booking's cabin class
     const seats = db.query("SELECT * FROM seats WHERE flight_id = ? AND cabin_class = ? ORDER BY row_number, seat_letter").all(flightId, cabinClass) as Record<string, unknown>[];
 
     const chart: Record<number, Record<string, unknown>[]> = {};

@@ -33,7 +33,7 @@ describe("airline routes", () => {
       const res = await app.request("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "peter.griffin@work.mosi.inc", password: "$2b$12$placeholder_hash_for_peter" }),
+        body: JSON.stringify({ email: "peter.griffin@work.mosi.inc", password: "password123" }),
       });
       expect(res.status).toBe(200);
       const body = await res.json();

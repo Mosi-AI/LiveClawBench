@@ -1,11 +1,49 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
+import { createRoute } from "mock-lib";
 import { ok, err, paginate, parsePageParams, DEFAULT_USER_ID } from "../helpers";
+import {
+  OkSchema,
+  ErrSchema,
+  ClaimSchema,
+  CreateClaimBodySchema,
+  UpdateClaimBodySchema,
+  CalculateRefundBodySchema,
+  ClaimIdParamSchema,
+  BookingRefParamSchema,
+  PaginatedSchema,
+  PageQuerySchema,
+} from "../schemas";
+import { z } from "zod";
 
 export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
+  const claimListResponse = OkSchema(PaginatedSchema(ClaimSchema, "claims"));
+  const claimDetailResponse = OkSchema(ClaimSchema);
+  const refundCalcResponse = OkSchema(z.object({
+    booking_reference: z.string(),
+    claim_type: z.string(),
+    refund_amount: z.number(),
+    reason: z.string(),
+    flight_status: z.string(),
+    delay_minutes: z.number(),
+  }));
+
   // GET /api/claims
-  app.get("/api/claims", (c) => {
-    const query = c.req.query();
+  const listRoute = createRoute({
+    method: "get",
+    path: "/api/claims",
+    summary: "List claims",
+    request: { query: PageQuerySchema.extend({ status: z.string().optional() }) },
+    responses: {
+      200: {
+        content: { "application/json": { schema: claimListResponse } },
+        description: "OK",
+      },
+    },
+  });
+
+  app.openApiRoute(listRoute, (c) => {
+    const query = c.req.valid("query");
     const { page, perPage, offset } = parsePageParams(query.page, query.per_page);
     const status = query.status;
 
@@ -24,31 +62,67 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/claims/:claim_id
-  app.get("/api/claims/:claim_id", (c) => {
-    const id = parseInt(c.req.param("claim_id"), 10);
+  const detailRoute = createRoute({
+    method: "get",
+    path: "/api/claims/{claim_id}",
+    summary: "Get claim by ID",
+    request: { params: ClaimIdParamSchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: claimDetailResponse } },
+        description: "OK",
+      },
+      404: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(detailRoute, (c) => {
+    const { claim_id } = c.req.valid("param");
+    const id = parseInt(claim_id, 10);
     const item = db.query("SELECT * FROM claims WHERE id = ?").get(id) as Record<string, unknown> | null;
     if (!item) return c.json(err("Claim not found"), 404);
     return c.json(ok(item));
   });
 
   // POST /api/claims
-  app.post("/api/claims", async (c) => {
-    const body = (await c.req.json()) as Record<string, unknown>;
-    const bookingReference = String(body.booking_reference ?? "");
-    const claimType = String(body.claim_type ?? "");
-    const claimAmount = parseFloat(String(body.claim_amount ?? "0"));
-    const claimReason = String(body.claim_reason ?? "");
+  const createClaimRoute = createRoute({
+    method: "post",
+    path: "/api/claims",
+    summary: "Submit a claim",
+    request: {
+      body: {
+        content: { "application/json": { schema: CreateClaimBodySchema } },
+        description: "Claim data",
+      },
+    },
+    responses: {
+      201: {
+        content: { "application/json": { schema: claimDetailResponse } },
+        description: "Created",
+      },
+      400: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Bad request",
+      },
+      404: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Not found",
+      },
+    },
+  });
 
-    if (!bookingReference || !claimType || !claimReason || body.claim_amount === undefined || body.claim_amount === null) {
-      return c.json(err("booking_reference, claim_type, claim_amount and claim_reason are required"), 400);
-    }
+  app.openApiRoute(createClaimRoute, async (c) => {
+    const body = c.req.valid("json");
 
-    const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(bookingReference) as Record<string, unknown> | null;
+    const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(body.booking_reference) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
     const result = db.query(
       "INSERT INTO claims (booking_id, claim_type, claim_amount, claim_reason, claim_status) VALUES (?, ?, ?, ?, 'pending')"
-    ).run(Number(booking.id), claimType, claimAmount, claimReason);
+    ).run(Number(booking.id), body.claim_type, body.claim_amount, body.claim_reason);
 
     const claimId = Number(result.lastInsertRowid);
     const claim = db.query("SELECT * FROM claims WHERE id = ?").get(claimId) as Record<string, unknown>;
@@ -56,8 +130,36 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // PUT /api/claims/:claim_id
-  app.put("/api/claims/:claim_id", async (c) => {
-    const id = parseInt(c.req.param("claim_id"), 10);
+  const updateRoute = createRoute({
+    method: "put",
+    path: "/api/claims/{claim_id}",
+    summary: "Update a pending claim",
+    request: {
+      params: ClaimIdParamSchema,
+      body: {
+        content: { "application/json": { schema: UpdateClaimBodySchema } },
+        description: "Claim updates",
+      },
+    },
+    responses: {
+      200: {
+        content: { "application/json": { schema: claimDetailResponse } },
+        description: "OK",
+      },
+      400: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Bad request",
+      },
+      404: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(updateRoute, async (c) => {
+    const { claim_id } = c.req.valid("param");
+    const id = parseInt(claim_id, 10);
     const claim = db.query("SELECT * FROM claims WHERE id = ?").get(id) as Record<string, unknown> | null;
     if (!claim) return c.json(err("Claim not found"), 404);
 
@@ -65,12 +167,12 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Claim not found or cannot be updated"), 404);
     }
 
-    const body = (await c.req.json()) as Record<string, unknown>;
+    const data = c.req.valid("json");
     const fields: string[] = [];
     const values: (string | number | null)[] = [];
 
-    if (body.claim_reason !== undefined) { fields.push("claim_reason = ?"); values.push(String(body.claim_reason)); }
-    if (body.claim_amount !== undefined) { fields.push("claim_amount = ?"); values.push(parseFloat(String(body.claim_amount))); }
+    if (data.claim_reason !== undefined) { fields.push("claim_reason = ?"); values.push(String(data.claim_reason)); }
+    if (data.claim_amount !== undefined) { fields.push("claim_amount = ?"); values.push(data.claim_amount); }
 
     if (fields.length === 0) {
       return c.json(err("No fields to update"), 400);
@@ -82,10 +184,34 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // POST /api/claims/calculate-refund/:booking_reference
-  app.post("/api/claims/calculate-refund/:booking_reference", async (c) => {
-    const ref = c.req.param("booking_reference");
-    const body = (await c.req.json()) as Record<string, unknown>;
-    const claimType = String(body.claim_type ?? "");
+  const refundRoute = createRoute({
+    method: "post",
+    path: "/api/claims/calculate-refund/{booking_reference}",
+    summary: "Calculate refund amount",
+    request: {
+      params: BookingRefParamSchema,
+      body: {
+        content: { "application/json": { schema: CalculateRefundBodySchema } },
+        description: "Refund calculation request",
+      },
+    },
+    responses: {
+      200: {
+        content: { "application/json": { schema: refundCalcResponse } },
+        description: "OK",
+      },
+      404: {
+        content: { "application/json": { schema: ErrSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(refundRoute, async (c) => {
+    const { booking_reference } = c.req.valid("param");
+    const ref = booking_reference;
+    const body = c.req.valid("json");
+    const claimType = body.claim_type;
 
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);

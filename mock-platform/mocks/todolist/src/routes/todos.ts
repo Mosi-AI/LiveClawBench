@@ -1,24 +1,20 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-
-// NOTE: Intentionally no auth middleware — matches original Flask
-// implementation. All CRUD endpoints are open in this mock.
-
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const MONTH_PATTERN = /^\d{4}-\d{2}$/;
-const TIME_PATTERN = /^\d{2}:\d{2}$/;
-
-function validateDate(date: string): boolean {
-  return DATE_PATTERN.test(date);
-}
-
-function validateMonth(month: string): boolean {
-  return MONTH_PATTERN.test(month);
-}
-
-function validateTime(time: string): boolean {
-  return TIME_PATTERN.test(time);
-}
+import { createRoute } from "mock-lib";
+import { z } from "zod";
+import {
+  TodoSchema,
+  TodoListResponseSchema,
+  TodoSummaryResponseSchema,
+  TodoDeleteResponseSchema,
+  ListTodosQuerySchema,
+  DateParamSchema,
+  MonthParamSchema,
+  IdParamSchema,
+  CreateTodoBodySchema,
+  UpdateTodoBodySchema,
+  ErrorResponseSchema,
+} from "../schemas";
 
 function rowToTodo(row: Record<string, unknown>): Record<string, unknown> {
   return {
@@ -35,15 +31,25 @@ function rowToTodo(row: Record<string, unknown>): Record<string, unknown> {
 }
 
 export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
-  // GET /api/todos?start_date=&end_date= OR ?month=
-  app.get("/api/todos", (c) => {
-    const { start_date, end_date, month } = c.req.query();
+  // GET /api/todos?start_date=&end_date=&month=
+  const listTodosRoute = createRoute({
+    method: "get",
+    path: "/api/todos",
+    summary: "List todos",
+    request: { query: ListTodosQuerySchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: TodoListResponseSchema } },
+        description: "OK",
+      },
+    },
+  });
+
+  app.openApiRoute(listTodosRoute, (c) => {
+    const { start_date, end_date, month } = c.req.valid("query");
 
     try {
       if (month) {
-        if (!validateMonth(month)) {
-          return c.json({ error: "Invalid month format. Use YYYY-MM" }, 400);
-        }
         const [year, monthNum] = month.split("-").map(Number);
         const startDate = `${month}-01`;
         const endDate = monthNum === 12
@@ -57,9 +63,6 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
       }
 
       if (start_date && end_date) {
-        if (!validateDate(start_date) || !validateDate(end_date)) {
-          return c.json({ error: "Invalid date format. Use YYYY-MM-DD" }, 400);
-        }
         const rows = db.query(
           `SELECT * FROM todos WHERE date >= ? AND date <= ? ORDER BY date ASC, time ASC, created_at ASC`
         ).all(start_date, end_date) as Record<string, unknown>[];
@@ -76,11 +79,21 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/todos/:date
-  app.get("/api/todos/:date", (c) => {
-    const date = c.req.param("date");
-    if (!validateDate(date)) {
-      return c.json({ error: "Invalid date format. Use YYYY-MM-DD" }, 400);
-    }
+  const getTodosByDateRoute = createRoute({
+    method: "get",
+    path: "/api/todos/{date}",
+    summary: "Get todos by date",
+    request: { params: DateParamSchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: TodoListResponseSchema } },
+        description: "OK",
+      },
+    },
+  });
+
+  app.openApiRoute(getTodosByDateRoute, (c) => {
+    const { date } = c.req.valid("param");
 
     try {
       const rows = db.query(
@@ -93,14 +106,29 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/todos/item/:id
-  app.get("/api/todos/item/:id", (c) => {
-    const id = parseInt(c.req.param("id"), 10);
-    if (isNaN(id)) {
-      return c.json({ error: "Invalid todo ID" }, 400);
-    }
+  const getTodoByIdRoute = createRoute({
+    method: "get",
+    path: "/api/todos/item/{id}",
+    summary: "Get a single todo",
+    request: { params: IdParamSchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: TodoSchema } },
+        description: "OK",
+      },
+      404: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(getTodoByIdRoute, (c) => {
+    const { id } = c.req.valid("param");
+    const todoId = parseInt(id, 10);
 
     try {
-      const row = db.query("SELECT * FROM todos WHERE id = ?").get(id) as Record<string, unknown> | null;
+      const row = db.query("SELECT * FROM todos WHERE id = ?").get(todoId) as Record<string, unknown> | null;
       if (!row) {
         return c.json({ error: "Todo not found" }, 404);
       }
@@ -111,39 +139,33 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // POST /api/todos
-  app.post("/api/todos", async (c) => {
-    const data = await c.req.json() as Record<string, unknown>;
+  const createTodoRoute = createRoute({
+    method: "post",
+    path: "/api/todos",
+    summary: "Create a todo",
+    request: { body: { content: { "application/json": { schema: CreateTodoBodySchema } }, description: "Todo data" } },
+    responses: {
+      201: {
+        content: { "application/json": { schema: TodoSchema } },
+        description: "Created",
+      },
+    },
+  });
 
-    if (!data) {
-      return c.json({ error: "No data provided" }, 400);
-    }
-
-    const title = String(data.title ?? "").trim();
-    const date = String(data.date ?? "");
-
-    if (!title) {
-      return c.json({ error: "Title is required" }, 400);
-    }
-    if (!date || !validateDate(date)) {
-      return c.json({ error: "Valid date (YYYY-MM-DD) is required" }, 400);
-    }
-
-    const time = data.time ? String(data.time) : null;
-    if (time && !validateTime(time)) {
-      return c.json({ error: "Invalid time format. Use HH:MM" }, 400);
-    }
+  app.openApiRoute(createTodoRoute, (c) => {
+    const data = c.req.valid("json");
 
     try {
       const { lastInsertRowid: todoId } = db.query(
         `INSERT INTO todos (title, date, time, location, person, description)
          VALUES (?, ?, ?, ?, ?, ?)`
       ).run(
-        title,
-        date,
-        time,
-        data.location != null ? String(data.location) : null,
-        data.person != null ? String(data.person) : null,
-        data.description != null ? String(data.description) : null,
+        data.title,
+        data.date,
+        data.time ?? null,
+        data.location ?? null,
+        data.person ?? null,
+        data.description ?? null,
       );
 
       const row = db.query("SELECT * FROM todos WHERE id = ?").get(Number(todoId)) as Record<string, unknown>;
@@ -154,29 +176,33 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // PUT /api/todos/:id
-  app.put("/api/todos/:id", async (c) => {
-    const id = parseInt(c.req.param("id"), 10);
-    if (isNaN(id)) {
-      return c.json({ error: "Invalid todo ID" }, 400);
-    }
+  const updateTodoRoute = createRoute({
+    method: "put",
+    path: "/api/todos/{id}",
+    summary: "Update a todo",
+    request: {
+      params: IdParamSchema,
+      body: { content: { "application/json": { schema: UpdateTodoBodySchema } }, description: "Todo updates" },
+    },
+    responses: {
+      200: {
+        content: { "application/json": { schema: TodoSchema } },
+        description: "OK",
+      },
+      404: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Not found",
+      },
+    },
+  });
 
-    const data = await c.req.json() as Record<string, unknown>;
-    if (!data) {
-      return c.json({ error: "No data provided" }, 400);
-    }
-
-    if ("date" in data && !validateDate(String(data.date))) {
-      return c.json({ error: "Invalid date format. Use YYYY-MM-DD" }, 400);
-    }
-    if ("time" in data && data.time && !validateTime(String(data.time))) {
-      return c.json({ error: "Invalid time format. Use HH:MM" }, 400);
-    }
-    if ("title" in data && !String(data.title).trim()) {
-      return c.json({ error: "Title cannot be empty" }, 400);
-    }
+  app.openApiRoute(updateTodoRoute, (c) => {
+    const { id } = c.req.valid("param");
+    const todoId = parseInt(id, 10);
+    const data = c.req.valid("json");
 
     try {
-      const existing = db.query("SELECT * FROM todos WHERE id = ?").get(id) as Record<string, unknown> | null;
+      const existing = db.query("SELECT * FROM todos WHERE id = ?").get(todoId) as Record<string, unknown> | null;
       if (!existing) {
         return c.json({ error: "Todo not found" }, 404);
       }
@@ -187,7 +213,7 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
 
       for (const field of validFields) {
         if (field in data) {
-          const val = data[field];
+          const val = data[field as keyof typeof data];
           updates.push(`${field} = ?`);
           values.push(val === null ? null : String(val).trim());
         }
@@ -198,9 +224,9 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
       }
 
       updates.push("updated_at = datetime('now')");
-      db.query(`UPDATE todos SET ${updates.join(", ")} WHERE id = ?`).run(...values, id);
+      db.query(`UPDATE todos SET ${updates.join(", ")} WHERE id = ?`).run(...values, todoId);
 
-      const row = db.query("SELECT * FROM todos WHERE id = ?").get(id) as Record<string, unknown>;
+      const row = db.query("SELECT * FROM todos WHERE id = ?").get(todoId) as Record<string, unknown>;
       return c.json(rowToTodo(row));
     } catch (e) {
       return c.json({ error: e instanceof Error ? e.message : String(e) }, 500);
@@ -208,14 +234,29 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // DELETE /api/todos/:id
-  app.delete("/api/todos/:id", (c) => {
-    const id = parseInt(c.req.param("id"), 10);
-    if (isNaN(id)) {
-      return c.json({ error: "Invalid todo ID" }, 400);
-    }
+  const deleteTodoRoute = createRoute({
+    method: "delete",
+    path: "/api/todos/{id}",
+    summary: "Delete a todo",
+    request: { params: IdParamSchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: TodoDeleteResponseSchema } },
+        description: "OK",
+      },
+      404: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(deleteTodoRoute, (c) => {
+    const { id } = c.req.valid("param");
+    const todoId = parseInt(id, 10);
 
     try {
-      const result = db.query("DELETE FROM todos WHERE id = ?").run(id);
+      const result = db.query("DELETE FROM todos WHERE id = ?").run(todoId);
       if (result.changes === 0) {
         return c.json({ error: "Todo not found" }, 404);
       }
@@ -226,11 +267,21 @@ export function registerTodoRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/summary/:month
-  app.get("/api/summary/:month", (c) => {
-    const month = c.req.param("month");
-    if (!validateMonth(month)) {
-      return c.json({ error: "Invalid month format. Use YYYY-MM" }, 400);
-    }
+  const getSummaryRoute = createRoute({
+    method: "get",
+    path: "/api/summary/{month}",
+    summary: "Get monthly summary",
+    request: { params: MonthParamSchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: TodoSummaryResponseSchema } },
+        description: "OK",
+      },
+    },
+  });
+
+  app.openApiRoute(getSummaryRoute, (c) => {
+    const { month } = c.req.valid("param");
 
     try {
       const [year, monthNum] = month.split("-").map(Number);

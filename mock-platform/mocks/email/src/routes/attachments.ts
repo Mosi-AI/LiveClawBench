@@ -1,6 +1,8 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
+import { createRoute } from "mock-lib";
 import { err, getAuthUserId } from "../helpers";
+import { AttachmentUploadResponseSchema, AttachmentDeleteResponseSchema, IdParamSchema, ErrorResponseSchema } from "../schemas";
 import { mkdirSync } from "node:fs";
 import { join, extname } from "node:path";
 
@@ -31,7 +33,32 @@ function attachmentToDict(row: Record<string, unknown>) {
 }
 
 export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
-  app.post("/api/attachments/upload", async (c) => {
+  // POST /api/attachments/upload
+  const uploadRoute = createRoute({
+    method: "post",
+    path: "/api/attachments/upload",
+    summary: "Upload attachments",
+    responses: {
+      201: {
+        content: { "application/json": { schema: AttachmentUploadResponseSchema } },
+        description: "Created",
+      },
+      400: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Bad request",
+      },
+      401: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Unauthorized",
+      },
+      413: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Payload too large",
+      },
+    },
+  });
+
+  app.openApiRoute(uploadRoute, async (c) => {
     const userId = await getAuthUserId(c);
     if (!userId) return c.json(err("Authentication required"), 401);
 
@@ -96,11 +123,37 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
     return c.json({ message: "Attachments uploaded successfully", attachments: uploadedAttachments }, 201);
   });
 
-  app.get("/api/attachments/:id/download", async (c) => {
+  // GET /api/attachments/:id/download
+  const downloadRoute = createRoute({
+    method: "get",
+    path: "/api/attachments/{id}/download",
+    summary: "Download attachment",
+    request: { params: IdParamSchema },
+    responses: {
+      200: {
+        description: "File download",
+      },
+      401: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Unauthorized",
+      },
+      403: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Forbidden",
+      },
+      404: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(downloadRoute, async (c) => {
     const userId = await getAuthUserId(c);
     if (!userId) return c.json(err("Authentication required"), 401);
-    const attachmentId = parseInt(c.req.param("id"), 10);
-    if (isNaN(attachmentId)) return c.json(err("Invalid attachment ID"), 400);
+
+    const { id } = c.req.valid("param");
+    const attachmentId = parseInt(id, 10);
 
     const att = db.query("SELECT * FROM attachments WHERE id = ?").get(attachmentId) as Record<string, unknown> | null;
     if (!att) return c.json(err("Attachment not found"), 404);
@@ -127,11 +180,38 @@ export function registerAttachmentRoutes(app: OpenAPIApp, db: Database): void {
     return c.body(await file.arrayBuffer());
   });
 
-  app.delete("/api/attachments/:id", async (c) => {
+  // DELETE /api/attachments/:id
+  const deleteRoute = createRoute({
+    method: "delete",
+    path: "/api/attachments/{id}",
+    summary: "Delete attachment",
+    request: { params: IdParamSchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: AttachmentDeleteResponseSchema } },
+        description: "OK",
+      },
+      401: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Unauthorized",
+      },
+      403: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Forbidden",
+      },
+      404: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Not found",
+      },
+    },
+  });
+
+  app.openApiRoute(deleteRoute, async (c) => {
     const userId = await getAuthUserId(c);
     if (!userId) return c.json(err("Authentication required"), 401);
-    const attachmentId = parseInt(c.req.param("id"), 10);
-    if (isNaN(attachmentId)) return c.json(err("Invalid attachment ID"), 400);
+
+    const { id } = c.req.valid("param");
+    const attachmentId = parseInt(id, 10);
 
     const att = db.query("SELECT * FROM attachments WHERE id = ?").get(attachmentId) as Record<string, unknown> | null;
     if (!att) return c.json(err("Attachment not found"), 404);

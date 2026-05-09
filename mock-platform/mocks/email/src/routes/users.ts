@@ -1,19 +1,44 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
+import { createRoute } from "mock-lib";
 import { err, getAuthUserId } from "../helpers";
+import { UserSearchResponseSchema, ErrorResponseSchema } from "../schemas";
+import { z } from "zod";
 
 export function registerUserRoutes(app: OpenAPIApp, db: Database): void {
-  app.get("/api/users/search", async (c) => {
+  const searchQuerySchema = z.object({
+    q: z.string().optional(),
+  });
+
+  // GET /api/users/search
+  const searchRoute = createRoute({
+    method: "get",
+    path: "/api/users/search",
+    summary: "Search users",
+    request: { query: searchQuerySchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: UserSearchResponseSchema } },
+        description: "OK",
+      },
+      401: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Unauthorized",
+      },
+    },
+  });
+
+  app.openApiRoute(searchRoute, async (c) => {
     const userId = await getAuthUserId(c);
     if (!userId) return c.json(err("Authentication required"), 401);
 
-    const query = (c.req.query("q") ?? "").trim();
+    const { q } = c.req.valid("query");
+    const query = (q ?? "").trim();
 
     if (!query) {
       return c.json({ users: [] });
     }
 
-    // Escape LIKE wildcards (% _ \) so the user's literal query is matched
     const escaped = query.replace(/[\\%_]/g, "\\$&");
     const pattern = `%${escaped}%`;
     const rows = db.query(

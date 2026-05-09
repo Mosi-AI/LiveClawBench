@@ -226,10 +226,7 @@ PR #41 migrated Email, TodoList, and Airline from Python Flask to Bun+TypeScript
 
 | Issue | Location | Reason |
 |-------|----------|--------|
-| Plaintext passwords in seed | airline `seed.ts:67-71` | Breaking change — task tests rely on known credentials |
-| Plaintext password comparison | airline `routes/auth.ts:50-51` | Breaking change — matches legacy Flask behavior |
-| Fake JWT (`mock-signature`) | airline `routes/auth.ts:5-13` | Breaking change — matches legacy Flask behavior |
-| File size exceeds soft limits | airline `seed.ts` (~901), email `emails.ts` (~339) | Deferred — low priority |
+| File size exceeds soft limits | airline `seed.ts` (~901), email `emails.ts` (~339) | In progress — see Phase 3 |
 
 ### Fixed in This Pass
 

@@ -7,6 +7,7 @@ import { registerAuthRoutes } from "./routes/auth";
 import { registerProfileRoutes } from "./routes/profile";
 import { registerFlightRoutes } from "./routes/flights";
 import { registerBookingRoutes } from "./routes/bookings";
+import { registerSeatRoutes } from "./routes/seats";
 import { registerCheckinRoutes } from "./routes/checkin";
 import { registerClaimRoutes } from "./routes/claims";
 import { registerBaggageRoutes } from "./routes/baggage";
@@ -60,6 +61,7 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
   registerProfileRoutes(app, db);
   registerFlightRoutes(app, db);
   registerBookingRoutes(app, db);
+  registerSeatRoutes(app, db);
   registerCheckinRoutes(app, db);
   registerClaimRoutes(app, db);
   registerBaggageRoutes(app, db);
