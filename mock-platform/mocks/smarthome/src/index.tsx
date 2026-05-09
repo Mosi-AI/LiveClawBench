@@ -162,7 +162,8 @@ function hasRequiredSeedData(): boolean {
     const coffee = db.query("SELECT id FROM coffee_schedule WHERE id = 1").get();
     const clock = db.query("SELECT id FROM benchmark_clock WHERE id = 1").get();
     return thermostat !== null && coffee !== null && clock !== null;
-  } catch {
+  } catch (err) {
+    console.error("mock-smarthome: WARNING: database error checking seed data, will re-seed:", err);
     return false;
   }
 }
@@ -931,8 +932,12 @@ function registerRoutes(app: OpenAPIApp): void {
     let body: { mode?: string; temperature?: number };
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
     }
 
     const mode = body.mode?.toLowerCase();
@@ -978,8 +983,12 @@ function registerRoutes(app: OpenAPIApp): void {
     let body: { start_time?: string };
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
     }
 
     const startTime = body.start_time;
@@ -1028,8 +1037,12 @@ function registerRoutes(app: OpenAPIApp): void {
     let body: Partial<InventoryItem>;
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
     }
 
     if (!body.item_name || typeof body.quantity !== "number" || !body.unit || !body.location) {
@@ -1080,8 +1093,12 @@ function registerRoutes(app: OpenAPIApp): void {
     let body: { items?: Array<{ product_id: string; quantity: number; substitute_for?: string }> };
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
     }
 
     const items = body.items;
@@ -1182,8 +1199,12 @@ function registerRoutes(app: OpenAPIApp): void {
     let body: { title?: string; start_time?: string; event_type?: string; workout_type?: string };
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
     }
 
     const database = assertDb();
@@ -1243,8 +1264,12 @@ function registerRoutes(app: OpenAPIApp): void {
     let body: { days?: Array<{ date: string; meals: Array<{ meal_type: string; meal_id: number }> }> };
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: Unexpected error parsing meal-plan body:", e);
+      throw e;
     }
 
     const days = body.days;
