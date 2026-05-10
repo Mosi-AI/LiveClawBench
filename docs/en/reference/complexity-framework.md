@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 30-case annotation table (30 implemented),
+It covers factor definitions, the full 33-case annotation table (33 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 30-Case Factor Annotation Table
+## 1. 32-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -59,6 +59,8 @@ single, clean environment without structural complexity.
 |      27 | conflict-repair-acb               |     E      | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |      28 | mixed-tool-memory                 |     E      | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |     M      | ✓  |    |    | ✓  | Deep Research & Report     |
+|      31 | social-media-posting             |     E      |    |    |    |    | Social Media             |
+|      33 | social-unlike-post               |     E      |    |    |    |    | Social Media             |
 
 ---
 
@@ -66,20 +68,20 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    10 |      33.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb  |
-| A2     | Contaminated Initial State     |     6 |      20.0% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
-| B1     | Implicit Goal Resolution       |     4 |      13.3% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application |
-| B2     | Knowledge System Maintenance   |    11 |      36.7% | skill-creation, skill-dependency-fix, noise-filtering         |
+| A1     | Cross-Service Dependency       |    10 |      30.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb  |
+| A2     | Contaminated Initial State     |     6 |      18.2% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
+| B1     | Implicit Goal Resolution       |     4 |      12.1% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application |
+| B2     | Knowledge System Maintenance   |    11 |      33.3% | skill-creation, skill-dependency-fix, noise-filtering         |
 
-> Percentages are relative to 30 implemented cases.
+> Percentages are relative to 32 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 8 cases (26.7%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change
-- Single factor: 14 cases (46.7%)
-- Dual factor: 7 cases (23.3%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2)
-- Triple factor: 1 case (3.3%) — conflict-repair-acb (A1+A2+B2)
-- **Multi-factor (≥2 factors): 8 cases (26.7%)**
+- No factors (baseline): 10 cases (31.3%) — blog-site-from-scratch, email-reply, email-writing, flight-booking, info-change, social-media-posting, social-unlike-post, washer-change, washer-shop, watch-shop
+- Single factor: 14 cases (42.4%)
+- Dual factor: 7 cases (21.2%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2)
+- Triple factor: 1 case (3.0%) — conflict-repair-acb (A1+A2+B2)
+- **Multi-factor (≥2 factors): 8 cases (24.2%)**
 
 ---
 
@@ -89,16 +91,18 @@ Factor occurrence frequency per primary domain:
 
 | Primary Domain             | A1 | A2 | B1 | B2 | Total Factor Instances |
 |----------------------------|----|----|----|----|-----------------------:|
-| Documents & Knowledge      |  2 |  2 |  0 | 10 |                     14 |
+| Documents & Knowledge      |  2 |  2 |  0 |  9 |                     13 |
 | Communication & Email      |  0 |  0 |  0 |  0 |                      0 |
-| E-commerce & Daily Svcs    |  5 |  0 |  2 |  0 |                      7 |
+| E-commerce & Daily Svcs    |  5 |  0 |  3 |  0 |                      8 |
 | Calendar & Task Mgmt       |  2 |  0 |  1 |  0 |                      3 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |                      1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |                      2 |
 | Deep Research & Report     |  1 |  1 |  0 |  2 |                      4 |
+| Social Media               |  0 |  0 |  0 |  0 |                      0 |
+| Finance & Data Analytics   |  0 |  0 |  0 |  0 |                      0 |
 
 Key observations:
-- **B2 is highly concentrated in Documents & Knowledge** (10/11), reflecting the nature of knowledge management tasks
+- **B2 is highly concentrated in Documents & Knowledge** (9/11), reflecting the nature of knowledge management tasks
 - **A1 is the most broadly distributed**, spanning 4 domains — cross-service coordination is a universal complexity source
 - **B1 only appears in E-commerce and Calendar**, where tasks most naturally produce implicit goals
 - **Communication & Email has no factors** — these cases serve as pure baselines
@@ -134,15 +138,15 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    18 |      60.0% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory |
-| Medium     |     7 |      23.3% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5 |
-| Hard       |     5 |      16.7% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain |
+| Easy       |    20 |      62.5% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, social-media-posting, social-unlike-post |
+| Medium     |     7 |      21.2% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5 |
+| Hard       |     5 |      15.2% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain |
 
 Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
-| Easy       |             0.89 |          7           |       7       |       4      |
+| Easy       |             0.76 |         10           |       8       |       3      |
 | Medium     |             1.14 |          1           |       4       |       2      |
 | Hard       |             1.40 |          0           |       3       |       2      |
 

@@ -3,7 +3,7 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search"],
+  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "social"],
   "tasks": {
     "watch-shop": {
       "binaries": ["shop"],
@@ -209,6 +209,8 @@
         { "src": "tasks/conflict-repair-acb/environment/documents.sql", "dest": "/opt/mock/data/documents.sql" }
       ]
     },
-    "skill-combination": { "binaries": [] }
+    "skill-combination": { "binaries": [] },
+    "social-media-posting": { "binaries": ["social"] },
+    "social-unlike-post": { "binaries": ["social"] }
   }
 }
