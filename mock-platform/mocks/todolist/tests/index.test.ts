@@ -24,11 +24,12 @@ describe("todolist mock", () => {
     expect(await res.json()).toEqual({ ok: true });
   });
 
-  test("GET /api/health returns healthy", async () => {
-    const res = await app.request("/api/health");
+  test("GET /health returns healthy", async () => {
+    const res = await app.request("/health");
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.status).toBe("healthy");
+    expect(body.service).toBe("todolist");
   });
 
   // --- Todos CRUD ---

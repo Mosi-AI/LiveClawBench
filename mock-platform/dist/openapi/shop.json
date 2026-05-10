@@ -154,83 +154,101 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "products": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "price": {
-                            "type": "number"
-                          },
-                          "rating": {
-                            "type": "number"
-                          },
-                          "rating_count": {
-                            "type": "string"
-                          },
-                          "image_url": {
-                            "type": "string"
-                          },
-                          "sponsored": {
-                            "type": "boolean"
-                          },
-                          "best_seller": {
-                            "type": "boolean"
-                          },
-                          "overall_pick": {
-                            "type": "boolean"
-                          },
-                          "limited_time": {
-                            "type": "boolean"
-                          },
-                          "discounted": {
-                            "type": "boolean"
-                          },
-                          "low_stock": {
-                            "type": "boolean"
-                          },
-                          "stock_quantity": {
-                            "type": [
-                              "number",
-                              "null"
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "products": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "price": {
+                                "type": "number"
+                              },
+                              "rating": {
+                                "type": "number"
+                              },
+                              "rating_count": {
+                                "type": "string"
+                              },
+                              "image_url": {
+                                "type": "string"
+                              },
+                              "sponsored": {
+                                "type": "boolean"
+                              },
+                              "best_seller": {
+                                "type": "boolean"
+                              },
+                              "overall_pick": {
+                                "type": "boolean"
+                              },
+                              "limited_time": {
+                                "type": "boolean"
+                              },
+                              "discounted": {
+                                "type": "boolean"
+                              },
+                              "low_stock": {
+                                "type": "boolean"
+                              },
+                              "stock_quantity": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "title",
+                              "price",
+                              "rating",
+                              "rating_count",
+                              "image_url"
                             ]
                           }
                         },
-                        "required": [
-                          "id",
-                          "title",
-                          "price",
-                          "rating",
-                          "rating_count",
-                          "image_url"
-                        ]
-                      }
-                    },
-                    "total_products": {
-                      "type": "number"
-                    },
-                    "total_pages": {
-                      "type": "number"
-                    },
-                    "current_page": {
-                      "type": "number"
-                    },
-                    "products_per_page": {
-                      "type": "number"
+                        "total_products": {
+                          "type": "number"
+                        },
+                        "total_pages": {
+                          "type": "number"
+                        },
+                        "current_page": {
+                          "type": "number"
+                        },
+                        "products_per_page": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "products",
+                        "total_products",
+                        "total_pages",
+                        "current_page",
+                        "products_per_page"
+                      ]
                     }
                   },
                   "required": [
-                    "products",
-                    "total_products",
-                    "total_pages",
-                    "current_page",
-                    "products_per_page"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -243,12 +261,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -278,56 +303,74 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     },
-                    "title": {
-                      "type": "string"
-                    },
-                    "price": {
-                      "type": "number"
-                    },
-                    "rating": {
-                      "type": "number"
-                    },
-                    "rating_count": {
-                      "type": "string"
-                    },
-                    "image_url": {
-                      "type": "string"
-                    },
-                    "sponsored": {
-                      "type": "boolean"
-                    },
-                    "best_seller": {
-                      "type": "boolean"
-                    },
-                    "overall_pick": {
-                      "type": "boolean"
-                    },
-                    "limited_time": {
-                      "type": "boolean"
-                    },
-                    "discounted": {
-                      "type": "boolean"
-                    },
-                    "low_stock": {
-                      "type": "boolean"
-                    },
-                    "stock_quantity": {
-                      "type": [
-                        "number",
-                        "null"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "price": {
+                          "type": "number"
+                        },
+                        "rating": {
+                          "type": "number"
+                        },
+                        "rating_count": {
+                          "type": "string"
+                        },
+                        "image_url": {
+                          "type": "string"
+                        },
+                        "sponsored": {
+                          "type": "boolean"
+                        },
+                        "best_seller": {
+                          "type": "boolean"
+                        },
+                        "overall_pick": {
+                          "type": "boolean"
+                        },
+                        "limited_time": {
+                          "type": "boolean"
+                        },
+                        "discounted": {
+                          "type": "boolean"
+                        },
+                        "low_stock": {
+                          "type": "boolean"
+                        },
+                        "stock_quantity": {
+                          "type": [
+                            "number",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "price",
+                        "rating",
+                        "rating_count",
+                        "image_url"
                       ]
                     }
                   },
                   "required": [
-                    "id",
-                    "title",
-                    "price",
-                    "rating",
-                    "rating_count",
-                    "image_url"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -340,12 +383,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -358,12 +408,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -402,17 +459,26 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
                     },
                     "message": {
                       "type": "string"
                     },
-                    "cart_count": {
-                      "type": "number"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "cart_count": {
+                          "type": "number"
+                        }
+                      }
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -425,12 +491,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -443,12 +516,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -461,12 +541,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -479,12 +566,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -504,52 +598,70 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "items": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "price": {
-                            "type": "number"
-                          },
-                          "rating": {
-                            "type": "number"
-                          },
-                          "image_url": {
-                            "type": "string"
-                          },
-                          "quantity": {
-                            "type": "integer",
-                            "minimum": 1
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "price": {
+                                "type": "number"
+                              },
+                              "rating": {
+                                "type": "number"
+                              },
+                              "image_url": {
+                                "type": "string"
+                              },
+                              "quantity": {
+                                "type": "integer",
+                                "minimum": 1
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "title",
+                              "price",
+                              "rating",
+                              "image_url",
+                              "quantity"
+                            ]
                           }
                         },
-                        "required": [
-                          "id",
-                          "title",
-                          "price",
-                          "rating",
-                          "image_url",
-                          "quantity"
-                        ]
-                      }
-                    },
-                    "total": {
-                      "type": "number"
-                    },
-                    "count": {
-                      "type": "number"
+                        "total": {
+                          "type": "number"
+                        },
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "total",
+                        "count"
+                      ]
                     }
                   },
                   "required": [
-                    "items",
-                    "total",
-                    "count"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -580,17 +692,26 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
                     },
                     "message": {
                       "type": "string"
                     },
-                    "cart_count": {
-                      "type": "number"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "cart_count": {
+                          "type": "number"
+                        }
+                      }
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -603,12 +724,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -621,12 +749,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -639,12 +774,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -687,17 +829,26 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
                     },
                     "message": {
                       "type": "string"
                     },
-                    "cart_count": {
-                      "type": "number"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "cart_count": {
+                          "type": "number"
+                        }
+                      }
                     }
                   },
                   "required": [
-                    "success"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -710,12 +861,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -728,12 +886,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -746,12 +911,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -764,12 +936,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -790,15 +969,21 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
                     },
                     "message": {
                       "type": "string"
+                    },
+                    "data": {
+                      "type": "null"
                     }
                   },
                   "required": [
                     "success",
-                    "message"
+                    "data"
                   ]
                 }
               }
@@ -811,12 +996,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -837,18 +1029,26 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
                     },
                     "message": {
                       "type": "string"
                     },
-                    "order_id": {
-                      "type": "string"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "order_id": {
+                          "type": "string"
+                        }
+                      }
                     }
                   },
                   "required": [
                     "success",
-                    "message"
+                    "data"
                   ]
                 }
               }
@@ -861,12 +1061,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -879,12 +1086,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -904,81 +1118,99 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "orders": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "order_id": {
-                            "type": "string"
-                          },
-                          "user_id": {
-                            "type": "string"
-                          },
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "orders": {
+                          "type": "array",
                           "items": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "product_id": {
-                                  "type": "string"
-                                },
-                                "id": {
-                                  "type": "string"
-                                },
-                                "title": {
-                                  "type": "string"
-                                },
-                                "price": {
-                                  "type": "number"
-                                },
-                                "quantity": {
-                                  "type": "number"
-                                },
-                                "image_url": {
-                                  "type": "string"
+                            "type": "object",
+                            "properties": {
+                              "order_id": {
+                                "type": "string"
+                              },
+                              "user_id": {
+                                "type": "string"
+                              },
+                              "items": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "product_id": {
+                                      "type": "string"
+                                    },
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "title": {
+                                      "type": "string"
+                                    },
+                                    "price": {
+                                      "type": "number"
+                                    },
+                                    "quantity": {
+                                      "type": "number"
+                                    },
+                                    "image_url": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "product_id",
+                                    "title",
+                                    "price",
+                                    "quantity",
+                                    "image_url"
+                                  ]
                                 }
                               },
-                              "required": [
-                                "product_id",
-                                "title",
-                                "price",
-                                "quantity",
-                                "image_url"
-                              ]
-                            }
-                          },
-                          "total_amount": {
-                            "type": "number"
-                          },
-                          "status": {
-                            "type": "string"
-                          },
-                          "create_time": {
-                            "type": "string"
-                          },
-                          "shipping_address": {
-                            "type": "string"
+                              "total_amount": {
+                                "type": "number"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "create_time": {
+                                "type": "string"
+                              },
+                              "shipping_address": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "order_id",
+                              "user_id",
+                              "items",
+                              "total_amount",
+                              "status",
+                              "create_time",
+                              "shipping_address"
+                            ]
                           }
                         },
-                        "required": [
-                          "order_id",
-                          "user_id",
-                          "items",
-                          "total_amount",
-                          "status",
-                          "create_time",
-                          "shipping_address"
-                        ]
-                      }
-                    },
-                    "total": {
-                      "type": "number"
+                        "total": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "orders",
+                        "total"
+                      ]
                     }
                   },
                   "required": [
-                    "orders",
-                    "total"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -1009,7 +1241,38 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot return this order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
                     },
                     "message": {
                       "type": "string"
@@ -1023,24 +1286,6 @@
               }
             }
           },
-          "400": {
-            "description": "Cannot return this order",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          },
           "404": {
             "description": "Order not found",
             "content": {
@@ -1048,12 +1293,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1066,12 +1318,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1102,7 +1361,38 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Only delivered orders can be confirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
                     },
                     "message": {
                       "type": "string"
@@ -1116,24 +1406,6 @@
               }
             }
           },
-          "400": {
-            "description": "Only delivered orders can be confirmed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          },
           "404": {
             "description": "Order not found",
             "content": {
@@ -1141,12 +1413,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1159,12 +1438,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1184,49 +1470,67 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "username": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     },
-                    "gender": {
-                      "type": "string"
-                    },
-                    "address": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": "string"
-                    },
-                    "phone": {
-                      "type": "string"
-                    },
-                    "payment_methods": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string"
-                          },
-                          "account": {
-                            "type": "string"
-                          },
-                          "balance": {
-                            "type": "string"
-                          }
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "username": {
+                          "type": "string"
                         },
-                        "required": [
-                          "type",
-                          "account"
-                        ]
-                      }
+                        "gender": {
+                          "type": "string"
+                        },
+                        "address": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "payment_methods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string"
+                              },
+                              "account": {
+                                "type": "string"
+                              },
+                              "balance": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "account"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "username",
+                        "gender",
+                        "address",
+                        "email",
+                        "phone"
+                      ]
                     }
                   },
                   "required": [
-                    "username",
-                    "gender",
-                    "address",
-                    "email",
-                    "phone"
+                    "success",
+                    "data"
                   ]
                 }
               }
@@ -1276,7 +1580,38 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
                     },
                     "message": {
                       "type": "string"
@@ -1290,24 +1625,6 @@
               }
             }
           },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ]
-                }
-              }
-            }
-          },
           "415": {
             "description": "Unsupported Media Type",
             "content": {
@@ -1315,12 +1632,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }
@@ -1333,12 +1657,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "message": {
                       "type": "string"
                     }
                   },
                   "required": [
-                    "error"
+                    "success",
+                    "message"
                   ]
                 }
               }

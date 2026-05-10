@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createRoute } from "mock-lib";
+import { createRoute, ok, err } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import {
   AddToCartBodySchema,
@@ -7,6 +7,7 @@ import {
   CartResponseSchema,
   CartMutationResponseSchema,
   GenericSuccessResponseSchema,
+  ErrSchema,
 } from "../schemas.js";
 import { loadCart, saveCart, clearCart } from "../data/store.js";
 import type { Product } from "../types.js";
@@ -37,7 +38,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
       404: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Product not found",
@@ -45,7 +46,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
       500: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Internal server error",
@@ -57,7 +58,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
     const { product_id } = c.req.valid("json");
 
     const product = getProducts().find((p) => p.id === product_id);
-    if (!product) return c.json({ error: "Product not found" }, 404);
+    if (!product) return c.json(err("Product not found"), 404);
 
     const cart = loadCart();
     const existing = cart.find((item) => item.id === product_id);
@@ -75,16 +76,14 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
     }
     try {
       saveCart(cart);
-    } catch (err) {
-      console.error("mock-shop: failed to save cart", err);
-      return c.json({ error: "Failed to save cart" }, 500);
+    } catch (e) {
+      console.error("mock-shop: failed to save cart", e);
+      return c.json(err("Failed to save cart"), 500);
     }
 
-    return c.json({
-      success: true,
-      message: `Added ${product.title.slice(0, 50)}... to cart`,
+    return c.json(ok({
       cart_count: cart.reduce((s, i) => s + i.quantity, 0),
-    }, 200);
+    }, `Added ${product.title.slice(0, 50)}... to cart`), 200);
   });
 
   // GET /api/cart
@@ -107,11 +106,11 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
   app.openApiRoute(getCartRoute, (c) => {
     const cart = loadCart();
     const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    return c.json({
+    return c.json(ok({
       items: cart,
       total,
       count: cart.reduce((s, i) => s + i.quantity, 0),
-    });
+    }));
   });
 
   // DELETE /api/cart/remove/:product_id
@@ -134,7 +133,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
       404: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Item not found",
@@ -142,7 +141,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
       500: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Internal server error",
@@ -154,19 +153,17 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
     const { product_id } = c.req.valid("param");
     const cart = loadCart();
     const itemExists = cart.some((item) => item.id === product_id);
-    if (!itemExists) return c.json({ error: "Item not found in cart" }, 404);
+    if (!itemExists) return c.json(err("Item not found in cart"), 404);
     const updatedCart = cart.filter((item) => item.id !== product_id);
     try {
       saveCart(updatedCart);
-    } catch (err) {
-      console.error("mock-shop: failed to save cart", err);
-      return c.json({ error: "Failed to save cart" }, 500);
+    } catch (e) {
+      console.error("mock-shop: failed to save cart", e);
+      return c.json(err("Failed to save cart"), 500);
     }
-    return c.json({
-      success: true,
-      message: "Item removed from cart",
+    return c.json(ok({
       cart_count: updatedCart.reduce((s, i) => s + i.quantity, 0),
-    }, 200);
+    }, "Item removed from cart"), 200);
   });
 
   // PUT /api/cart/update
@@ -195,7 +192,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
       404: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Item not found",
@@ -203,7 +200,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
       500: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Internal server error",
@@ -216,7 +213,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
 
     const cart = loadCart();
     const item = cart.find((i) => i.id === product_id);
-    if (!item) return c.json({ error: "Item not found in cart" }, 404);
+    if (!item) return c.json(err("Item not found in cart"), 404);
     if (quantity <= 0) {
       const idx = cart.indexOf(item);
       if (idx >= 0) cart.splice(idx, 1);
@@ -225,16 +222,14 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
     }
     try {
       saveCart(cart);
-    } catch (err) {
-      console.error("mock-shop: failed to save cart", err);
-      return c.json({ error: "Failed to save cart" }, 500);
+    } catch (e) {
+      console.error("mock-shop: failed to save cart", e);
+      return c.json(err("Failed to save cart"), 500);
     }
 
-    return c.json({
-      success: true,
-      message: "Cart updated",
+    return c.json(ok({
       cart_count: cart.reduce((s, i) => s + i.quantity, 0),
-    }, 200);
+    }, "Cart updated"), 200);
   });
 
   // POST /api/cart/clear
@@ -254,7 +249,7 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
       500: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Internal server error",
@@ -265,10 +260,10 @@ export function registerCartRoutes(app: OpenAPIApp, getProducts: () => Product[]
   app.openApiRoute(clearCartRoute, (c) => {
     try {
       clearCart();
-    } catch (err) {
-      console.error("mock-shop: failed to clear cart", err);
-      return c.json({ error: "Failed to clear cart" }, 500);
+    } catch (e) {
+      console.error("mock-shop: failed to clear cart", e);
+      return c.json(err("Failed to clear cart"), 500);
     }
-    return c.json({ success: true, message: "Cart cleared" }, 200);
+    return c.json(ok(null, "Cart cleared"), 200);
   });
 }

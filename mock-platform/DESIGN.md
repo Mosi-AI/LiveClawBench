@@ -102,17 +102,16 @@ Pass `healthResponse` to `createMockApp()` for a custom payload (e.g., `{ status
 
 **Do NOT manually register `/health` or `/api/health`** in individual mocks — it creates duplicate endpoints.
 
-Current violators: email (`/health`, `/api/health`), todolist (`/health`, `/api/health`).
-
 ## Historical Pattern Violations
 
 All known pattern violations from the PR #41 migration (email, todolist, airline → Bun+TypeScript) have been resolved. Key fixes:
 
 - In-factory seeding → all mocks now return a `seed` callback in `MockAppV2`
-- Duplicate `/health` endpoints → auto-registered by `createMockApp()`; legacy `/api/health` retained only for test compatibility
+- Duplicate `/health` endpoints → removed manual `/api/health`; all mocks rely on auto-registered `/health`
 - Missing `healthResponse` → all mocks pass a custom health payload to `createMockApp()`
 - Plaintext passwords + fake JWT → migrated to `mock-lib` `sign/verify` + Werkzeug PBKDF2 (commit `33615d9`)
 - File size violations → split into smaller modules (commit `33615d9`)
+- Dual error shapes → framework-injected errors unified to `err()` shape `{ success: false, message }`
 
 See commits `2606119`, `3881fe5`, `6cca7aa`, `7db3dcd`, `33615d9` for the full history.
 

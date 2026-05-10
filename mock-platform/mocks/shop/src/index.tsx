@@ -12,7 +12,7 @@
  * Products are loaded from sample_products.json at startup.
  */
 
-import { createMockApp, createRoute, startServer, registerStaticAssets } from "mock-lib";
+import { createMockApp, createRoute, startServer, registerStaticAssets, err } from "mock-lib";
 import type { MockAppV2 } from "mock-lib";
 import { z } from "zod";
 import {
@@ -98,7 +98,7 @@ export function createShopApp(): MockAppV2 {
       const message = parsed.error.issues
         .map((i) => `${i.path.join(".")}: ${i.message}`)
         .join("; ");
-      return c.json({ error: message }, 400);
+      return c.json(err(message), 400);
     }
     const { q = "", sort, page, min_price, max_price, min_rating } = parsed.data;
 

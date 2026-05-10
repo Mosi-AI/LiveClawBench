@@ -84,10 +84,24 @@ Current state:
 - **airline**: uses `ok()`/`err()` from `mock-lib` (migrated)
 - **email**: uses `ok()`/`err()` from `mock-lib` via re-export (migrated)
 - **todolist**: uses `ok()`/`err()` from `mock-lib` (migrated)
-- **shop**: ad-hoc envelopes per route — **needs migration**
-- **doc-search**: no wrapper; returns raw objects or `{ error }` — **needs migration**
+- **shop**: uses `ok()`/`err()` from `mock-lib` (migrated)
+- **doc-search**: uses `err()` from `mock-lib` for error responses (migrated)
 
 **New mocks must** import `ok`/`err` from `mock-lib` and use them for all JSON responses.
+
+### Error Response Shapes
+
+All error responses — whether from business logic, Zod validation failures, auth middleware, or global error handling — use the same `err()` shape:
+
+```typescript
+{ success: false, message: string }
+```
+
+This is enforced at two levels:
+1. **Framework level**: `mock-lib`'s `openApiRoute()` auto-injects validation errors (400), auth errors (401), and content-type errors (415) using `err()`. The global error handler also uses `err()`.
+2. **Business logic level**: Route handlers use `err()` for application errors.
+
+The `ErrorResponseSchema` (used in OpenAPI specs for auto-injected 400/401/415) and `ErrSchema` (used in route-specific error responses) both define `{ success: false, message: string }`.
 
 ---
 
@@ -117,7 +131,7 @@ const payload = await verify(token); // throws on invalid
 
 > **Note**: `mock-lib` exports `authRequired` / `authOptional` middleware for services that need Bearer auth enforcement via `openApiRoute`'s auth option. Services without auth requirements (airline, todolist) or with custom auth logic (email's manual header parsing via `getAuthUserId()`) may skip it. This middleware is optional, not mandatory.
 
-> **Note**: `airline` intentionally deviates from this rule to match the original Python Flask implementation (plaintext passwords, fake JWT). Do NOT copy this pattern.
+> **Note**: `airline` has a backward-compatible plaintext fallback (`password_hash === password`) for legacy seed data that predates the Werkzeug migration. New registrations and password changes use PBKDF2. This fallback must NOT be extended to new mocks.
 
 ---
 
@@ -240,5 +254,5 @@ None. All issues from PR #41 have been resolved.
 | Issue | Location | Fix |
 |-------|----------|-----|
 | No `seed` callback | airline/email/todolist `index.ts` | Added `seed` property while retaining sync call for backward compatibility |
-| Duplicate `/health` | email/todolist `index.ts` | Removed manual `/health`; `/api/health` kept for test compatibility |
+| Duplicate `/health` | email/todolist `index.ts` | Removed manual `/api/health`; tests use auto-registered `/health` |
 | Missing `healthResponse` | airline/email/todolist `index.ts` | Added `{ ok: true, status, service }` to `createMockApp()` |

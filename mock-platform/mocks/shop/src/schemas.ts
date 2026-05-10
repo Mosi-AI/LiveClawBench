@@ -9,6 +9,20 @@ import { z } from "zod";
 import { ErrorResponseSchema } from "mock-lib";
 
 // ---------------------------------------------------------------------------
+// Generic response envelope schemas (match ok()/err() from mock-lib)
+// ---------------------------------------------------------------------------
+
+export function OkSchema<T extends z.ZodTypeAny>(dataSchema: T) {
+  return z.object({
+    success: z.literal(true),
+    message: z.string().optional(),
+    data: dataSchema,
+  });
+}
+
+export const ErrSchema = ErrorResponseSchema;
+
+// ---------------------------------------------------------------------------
 // Entity schemas
 // ---------------------------------------------------------------------------
 
@@ -155,39 +169,32 @@ export const UpdateUserBodySchema = z.object({
 // Response schemas
 // ---------------------------------------------------------------------------
 
-export const ListProductsResponseSchema = z.object({
+export const ListProductsResponseSchema = OkSchema(z.object({
   products: z.array(ProductSchema),
   total_products: z.number(),
   total_pages: z.number(),
   current_page: z.number(),
   products_per_page: z.number(),
-});
+}));
 
-export const CartResponseSchema = z.object({
+export const CartResponseSchema = OkSchema(z.object({
   items: z.array(CartItemSchema),
   total: z.number(),
   count: z.number(),
-});
+}));
 
-export const CartMutationResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string().optional(),
+export const CartMutationResponseSchema = OkSchema(z.object({
   cart_count: z.number().optional(),
-});
+}));
 
-export const CheckoutResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
+export const CheckoutResponseSchema = OkSchema(z.object({
   order_id: z.string().optional(),
-});
+}));
 
-export const ListOrdersResponseSchema = z.object({
+export const ListOrdersResponseSchema = OkSchema(z.object({
   orders: z.array(OrderSchema),
   total: z.number(),
-});
+}));
 
-export const GenericSuccessResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-});
+export const GenericSuccessResponseSchema = OkSchema(z.null());
 

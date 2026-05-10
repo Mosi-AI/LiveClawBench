@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { createRoute } from "mock-lib";
+import { createRoute, ok, err } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
-import { CheckoutResponseSchema } from "../schemas.js";
+import { CheckoutResponseSchema, ErrSchema } from "../schemas.js";
 import { loadCart, clearCart, loadOrders, saveOrders, loadUser } from "../data/store.js";
 import { DEFAULT_USER } from "../data/defaults.js";
 import type { Order } from "../types.js";
@@ -24,7 +24,7 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
       400: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Cart is empty",
@@ -32,7 +32,7 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
       500: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Internal server error",
@@ -42,7 +42,7 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
 
   app.openApiRoute(checkoutRoute, (c) => {
     const cart = loadCart();
-    if (!cart.length) return c.json({ error: "Cart is empty" }, 400);
+    if (!cart.length) return c.json(err("Cart is empty"), 400);
 
     const orders = loadOrders();
     const user = loadUser();
@@ -77,22 +77,18 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
     orders.sort((a, b) => b.order_id.localeCompare(a.order_id));
     try {
       saveOrders(orders);
-    } catch (err) {
-      console.error("mock-shop: failed to save orders", err);
-      return c.json({ error: "Failed to save order" }, 500);
+    } catch (e) {
+      console.error("mock-shop: failed to save orders", e);
+      return c.json(err("Failed to save order"), 500);
     }
     try {
       clearCart();
-    } catch (err) {
-      console.error("mock-shop: order saved but cart clear failed", err);
+    } catch (e) {
+      console.error("mock-shop: order saved but cart clear failed", e);
       // Order is already persisted; returning 500 per write-failure contract
-      return c.json({ error: "Order saved but cart clear failed" }, 500);
+      return c.json(err("Order saved but cart clear failed"), 500);
     }
 
-    return c.json({
-      success: true,
-      message: "Order placed successfully!",
-      order_id: orderId,
-    }, 200);
+    return c.json(ok({ order_id: orderId }, "Order placed successfully!"), 200);
   });
 }

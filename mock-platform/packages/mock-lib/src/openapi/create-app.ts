@@ -7,6 +7,7 @@ import type { AppEnv, MockConfig, OpenApiConfig } from "../types";
 import type { OpenAPIApp, MockAppV2, RouteOptions } from "./types";
 import { FactoryValidationSchema } from "./schemas";
 import { authRequired } from "../auth/middleware";
+import { err } from "../response";
 
 const DEFAULT_PORT = 3000;
 
@@ -64,7 +65,7 @@ export function createOpenAPIMockApp(
         const message = result.error.issues
           .map((i) => `${i.path.join(".")}: ${i.message}`)
           .join("; ");
-        return c.json({ error: message }, 400);
+        return c.json(err(message), 400);
       }
     },
   });
@@ -211,7 +212,7 @@ export function createOpenAPIMockApp(
           const ct = c.req.header("content-type") ?? "";
           const mediaType = ct.split(";")[0].trim().toLowerCase();
           if (mediaType !== "application/json") {
-            return c.json({ error: "Content-Type must be application/json" }, 415);
+            return c.json(err("Content-Type must be application/json"), 415);
           }
         });
       } else {
@@ -224,7 +225,7 @@ export function createOpenAPIMockApp(
           // like "application/jsonp" that would match includes("application/json").
           const mediaType = ct.split(";")[0].trim().toLowerCase();
           if (mediaType !== "application/json") {
-            return c.json({ error: "Content-Type must be application/json" }, 415);
+            return c.json(err("Content-Type must be application/json"), 415);
           }
           await next();
         });
@@ -238,18 +239,18 @@ export function createOpenAPIMockApp(
   };
 
   // Catch JSON parse errors from invalid request bodies; return 500 for everything else
-  app.onError((err, c) => {
-    if (err instanceof SyntaxError) {
-      return c.json({ error: "Invalid JSON body" }, 400);
+  app.onError((error, c) => {
+    if (error instanceof SyntaxError) {
+      return c.json(err("Invalid JSON body"), 400);
     }
     if (
-      err instanceof HTTPException &&
-      err.status === 400 &&
-      err.message.includes("Malformed JSON")
+      error instanceof HTTPException &&
+      error.status === 400 &&
+      error.message.includes("Malformed JSON")
     ) {
-      return c.json({ error: "Invalid JSON body" }, 400);
+      return c.json(err("Invalid JSON body"), 400);
     }
-    return c.json({ error: "Internal server error" }, 500);
+    return c.json(err("Internal server error"), 500);
   });
 
   // Built-in health check endpoint. Registered via openApiRoute so the route

@@ -23,9 +23,6 @@ export function createTodolistApp(options?: { dbPath?: string; taskName?: string
 
   const { app } = mockApp;
 
-  // Legacy /api/health endpoint (kept for backward compatibility)
-  app.get("/api/health", (c) => c.json({ status: "healthy", message: "Todolist API is running" }));
-
   // Sentinel route for binary isolation verification
   const sentinelRoute = createRoute({
     method: "get",
