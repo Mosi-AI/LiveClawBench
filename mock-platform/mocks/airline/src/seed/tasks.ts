@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { generateBookingReference } from "../helpers";
+import { generateBookingReference, generateWerkzeugHashSync } from "../helpers";
 import { fmt, AIRPORTS, FLIGHT_CONFIGS, calculateNextMonday } from "./data";
 import { generateSeats } from "../db/seat-generation";
 
@@ -247,11 +247,14 @@ function createFlightSeatSelectionFailedData(db: Database, peterId: number, now:
     "SELECT id FROM seats WHERE flight_id = ? AND cabin_class = 'economy' AND is_window = 1 AND is_available = 1"
   ).all(flightId) as { id: number }[];
 
+  // All filler accounts share the same password; hash once outside the loop.
+  const fillerPasswordHash = generateWerkzeugHashSync("password123");
+
   for (let i = 0; i < windowSeats.length; i++) {
     const userEmail = `windowseat.user${i + 1}@test.com`;
     const userId = Number(db.query(
-      "INSERT INTO users (email, password_hash, first_name, last_name, is_verified, is_active) VALUES (?, 'password123', ?, ?, 1, 1)"
-    ).run(userEmail, `Window${i + 1}`, `Passenger${i + 1}`).lastInsertRowid);
+      "INSERT INTO users (email, password_hash, first_name, last_name, is_verified, is_active) VALUES (?, ?, ?, ?, 1, 1)"
+    ).run(userEmail, fillerPasswordHash, `Window${i + 1}`, `Passenger${i + 1}`).lastInsertRowid);
 
     const bookingRef = generateBookingReference();
     const bsBookingId = Number(db.query(
