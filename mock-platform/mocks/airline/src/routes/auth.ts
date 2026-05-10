@@ -96,12 +96,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Invalid email or password"), 401);
     }
 
-    let valid = false;
-    if (row.password_hash.startsWith("pbkdf2:")) {
-      valid = await verifyWerkzeugHash(row.password_hash, password);
-    } else {
-      valid = row.password_hash === password;
-    }
+    const valid = await verifyWerkzeugHash(row.password_hash, password);
 
     if (!valid) {
       return c.json(err("Invalid email or password"), 401);
@@ -233,12 +228,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("User not found"), 404);
     }
 
-    let valid = false;
-    if (row.password_hash.startsWith("pbkdf2:")) {
-      valid = await verifyWerkzeugHash(row.password_hash, old_password);
-    } else {
-      valid = row.password_hash === old_password;
-    }
+    const valid = await verifyWerkzeugHash(row.password_hash, old_password);
 
     if (!valid) {
       return c.json(err("Current password is incorrect"), 401);

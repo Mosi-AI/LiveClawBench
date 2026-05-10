@@ -165,7 +165,7 @@ function createFlightSeatSelectionData(db: Database, peterId: number, now: Date)
 
   // Create passenger (no seat assigned)
   db.query(
-    "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth, nationality) VALUES (?, 'Peter', 'Griffin', '1985-06-15', 'US')"
+    "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth, nationality) VALUES (?, 'Peter', 'Griffin', '1975-04-12', 'US')"
   ).run(bookingId);
 
   // Create payment
@@ -298,6 +298,8 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
       db.query(`DELETE FROM payments WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM baggage_tracking WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM claims WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM email_notifications WHERE booking_id IN (${bookingList})`).run();
+      db.query(`DELETE FROM calendar_events WHERE booking_id IN (${bookingList})`).run();
       db.query(`DELETE FROM bookings WHERE id IN (${bookingList})`).run();
     }
 
@@ -462,7 +464,7 @@ function createFlightInfoChangeNoticeData(db: Database, peterId: number, now: Da
   ).run(ref, peterId, flightId, "economy", 349.99).lastInsertRowid);
 
   db.query(
-    "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth, nationality) VALUES (?, 'Peter', 'Griffin', '1985-06-15', 'US')"
+    "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth, nationality) VALUES (?, 'Peter', 'Griffin', '1975-04-12', 'US')"
   ).run(bookingId);
 
   // Create payment
@@ -612,7 +614,7 @@ function createBaggageTrackingData(db: Database, peterId: number, now: Date): vo
   ).run(ref, peterId, flightId, "economy", 349.99).lastInsertRowid);
 
   db.query(
-    "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth, nationality) VALUES (?, 'Peter', 'Griffin', '1985-06-15', 'US')"
+    "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth, nationality) VALUES (?, 'Peter', 'Griffin', '1975-04-12', 'US')"
   ).run(bookingId);
 
   db.query(

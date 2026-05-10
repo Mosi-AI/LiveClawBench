@@ -92,12 +92,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Invalid username or password"), 401);
     }
 
-    let valid = false;
-    if (row.password_hash.startsWith("pbkdf2:")) {
-      valid = await verifyWerkzeugHash(row.password_hash, password);
-    } else {
-      valid = row.password_hash === password;
-    }
+    const valid = await verifyWerkzeugHash(row.password_hash, password);
 
     if (!valid) {
       return c.json(err("Invalid username or password"), 401);

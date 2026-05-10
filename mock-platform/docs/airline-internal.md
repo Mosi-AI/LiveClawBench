@@ -237,7 +237,3 @@ This mirrors how a Python verifier must clean up when modifying the same SQLite 
 ### Default User
 
 `DEFAULT_USER_ID = 1` (Peter Griffin) is hardcoded. Most routes assume the current user is ID 1.
-
-### Dual Route Prefixes
-
-Mock service routes (payment, emails, calendar, chat) are registered at **both** `/api/mock/*` and `/api/*` for backward compatibility (`src/routes/mock-services.ts`).
