@@ -40,7 +40,7 @@ const BINARY_PORTS: Record<string, number> = {
   expense: 5004,
 };
 
-// All 30 benchmark task names (canonical source of truth)
+// All 31 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -51,7 +51,7 @@ const ALL_TASK_NAMES = new Set([
   "skill-creation", "skill-repository-curation", "skill-supplementation",
   "skill-conflict-resolution", "skill-dependency-fix", "noise-filtering",
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
-  "conflict-repair-acb", "skill-combination",
+  "conflict-repair-acb", "skill-combination", "expense-draft-delete",
 ]);
 
 interface AssetMapping {

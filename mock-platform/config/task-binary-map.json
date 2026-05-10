@@ -84,6 +84,7 @@
         { "src": "tasks/conflict-repair-acb/environment/documents.sql", "dest": "/opt/mock/data/documents.sql" }
       ]
     },
-    "skill-combination": { "binaries": [] }
+    "skill-combination": { "binaries": [] },
+    "expense-draft-delete": { "binaries": ["expense"] }
   }
 }
