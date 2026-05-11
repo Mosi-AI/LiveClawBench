@@ -26,25 +26,103 @@ import sys
 from pathlib import Path
 from statistics import mean
 
+# 30 tasks — full LiveClawBench dataset (registry: liveclawbench@0.1.0)
 TASKS = [
+    # mock-affected cohort (17): tasks whose mock binary or task Dockerfile changed
+    # between main and plan3-spec-refine. Cohort rule (≤1 fail) applies here.
+    "baggage-tracking-application",
+    "conflict-repair-acb",
     "email-reply",
-    "email-watch-shop",
     "email-washer-change",
+    "email-watch-shop",
     "email-writing",
-    "schedule-change-request",
+    "flight-booking",
+    "flight-cancel-claim",
     "flight-info-change-notice",
     "flight-seat-selection",
     "flight-seat-selection-failed",
-    "flight-cancel-claim",
+    "info-change",
+    "mixed-tool-memory",
+    "schedule-change-request",
+    "washer-change",
+    "washer-shop",
+    "watch-shop",
+    # mock-independent cohort (13): zero diff in tasks/<name>/ and no mock binaries.
+    # Used as noise floor calibration; not gating for the verdict.
+    "blog-site-completion-from-starter",
+    "blog-site-from-scratch",
+    "incremental-update-ctp",
+    "live-web-research-sqlite-fts5",
+    "noise-filtering",
+    "skill-combination",
+    "skill-conflict-resolution",
+    "skill-creation",
+    "skill-dependency-fix",
+    "skill-repository-curation",
+    "skill-supplementation",
+    "vue-build-fix-chain",
+    "vue-build-fix-single",
 ]
+
+MOCK_AFFECTED = {
+    "baggage-tracking-application",
+    "conflict-repair-acb",
+    "email-reply",
+    "email-washer-change",
+    "email-watch-shop",
+    "email-writing",
+    "flight-booking",
+    "flight-cancel-claim",
+    "flight-info-change-notice",
+    "flight-seat-selection",
+    "flight-seat-selection-failed",
+    "info-change",
+    "mixed-tool-memory",
+    "schedule-change-request",
+    "washer-change",
+    "washer-shop",
+    "watch-shop",
+}
+
+MOCK_INDEPENDENT = {
+    "blog-site-completion-from-starter",
+    "blog-site-from-scratch",
+    "incremental-update-ctp",
+    "live-web-research-sqlite-fts5",
+    "noise-filtering",
+    "skill-combination",
+    "skill-conflict-resolution",
+    "skill-creation",
+    "skill-dependency-fix",
+    "skill-repository-curation",
+    "skill-supplementation",
+    "vue-build-fix-chain",
+    "vue-build-fix-single",
+}
+
+MEAN_DELTA_THRESH = 0.10
+MAX_DELTA_THRESH = 0.50
+NOISE_FLOOR_P75_THRESH = 0.10
+COHORT_FAIL_LIMIT = 1
 
 
 def parse_task_from_dirname(name: str) -> str | None:
-    """Extract task name from directory like 'email-reply__abc123'."""
+    """Extract task name from directory like 'email-reply__abc123'.
+
+    Harbor truncates dir prefixes to 32 chars, so 'blog-site-completion-from-starter'
+    appears on disk as 'blog-site-completion-from-starte'. Match by exact name first,
+    then fall back to a unique 32-char prefix match against TASKS.
+    """
     if "__" not in name:
         return None
-    task = name.split("__", 1)[0]
-    return task if task in TASKS else None
+    task_prefix = name.split("__", 1)[0]
+    if task_prefix in TASKS:
+        return task_prefix
+    if len(task_prefix) == 32:
+        candidates = [t for t in TASKS if t.startswith(task_prefix)]
+        if len(candidates) == 1:
+            return candidates[0]
+    return None
 
 
 def collect_trials(evidence_root: str, side: str):
@@ -178,74 +256,155 @@ def main():
         else:
             migrated_by_task[t["task"]].append(t["reward"])
 
-    # Per-task summary
-    print("## Per-Task Threshold Evaluation")
-    print("")
-    print(
-        "| Task | B Count | M Count | B Mean | M Mean | B Max | M Max | Mean Delta | Max Delta | Mean Pass | Max Pass |"
-    )
-    print(
-        "|------|---------|---------|--------|--------|-------|-------|------------|-----------|-----------|----------|"
-    )
+    def percentile(xs: list[float], p: float) -> float:
+        if not xs:
+            return float("nan")
+        s = sorted(xs)
+        if len(s) == 1:
+            return s[0]
+        k = (len(s) - 1) * p
+        lo, hi = int(k), min(int(k) + 1, len(s) - 1)
+        return s[lo] + (s[hi] - s[lo]) * (k - lo)
 
-    all_mean_pass = True
-    all_max_pass = True
-    failed_tasks = []
-
-    for task in TASKS:
-        bs = baseline_by_task[task]
-        ms = migrated_by_task[task]
-
-        b_mean = round(mean(bs), 3) if bs else "N/A"
-        m_mean = round(mean(ms), 3) if ms else "N/A"
-        b_max = round(max(bs), 3) if bs else "N/A"
-        m_max = round(max(ms), 3) if ms else "N/A"
-
-        if bs and ms:
-            mean_delta = round(float(m_mean) - float(b_mean), 3)
-            max_delta = round(float(m_max) - float(b_max), 3)
-            mean_pass = "PASS" if float(m_mean) >= float(b_mean) - 0.1 else "FAIL"
-            max_pass = "PASS" if float(m_max) >= float(b_max) - 0.5 else "FAIL"
-            if mean_pass == "FAIL" or max_pass == "FAIL":
-                failed_tasks.append(task)
-            if mean_pass == "FAIL":
-                all_mean_pass = False
-            if max_pass == "FAIL":
-                all_max_pass = False
-        else:
-            mean_delta = "N/A"
-            max_delta = "N/A"
-            mean_pass = "N/A"
-            max_pass = "N/A"
-            all_mean_pass = False
-            all_max_pass = False
-            failed_tasks.append(task)
-
+    def render_cohort(
+        cohort_name: str,
+        cohort_tasks: list[str],
+        apply_cohort_rule: bool,
+    ) -> tuple[list[str], list[dict]]:
+        """Render a cohort section. Returns (failed_tasks, per_task_rows)."""
+        print(f"## Cohort: {cohort_name}")
+        print("")
         print(
-            f"| {task} | {len(bs)} | {len(ms)} | {b_mean} | {m_mean} | {b_max} | {m_max} | {mean_delta} | {max_delta} | {mean_pass} | {max_pass} |"
+            "| Task | B n | M n | B avg | M avg | B max | M max | Mean Δ | Max Δ | Mean Pass | Max Pass |"
+        )
+        print(
+            "|------|-----|-----|-------|-------|-------|-------|--------|-------|-----------|----------|"
         )
 
-    print("")
-    print(
-        f"**Mean threshold pass (mean(Migrated) >= mean(Baseline) - 0.1):** {'ALL PASS' if all_mean_pass else 'PENDING/FAIL'}"
-    )
-    print(
-        f"**Max threshold pass (max(Migrated) >= max(Baseline) - 0.5):** {'ALL PASS' if all_max_pass else 'PENDING/FAIL'}"
-    )
-    print(
-        f"**Failed or incomplete tasks:** {', '.join(failed_tasks) if failed_tasks else 'None'}"
-    )
-    print("")
+        failed: list[str] = []
+        rows: list[dict] = []
 
-    # Cohort rule
-    if len(failed_tasks) <= 1:
+        for task in cohort_tasks:
+            bs = baseline_by_task[task]
+            ms = migrated_by_task[task]
+
+            b_avg = round(mean(bs), 3) if bs else None
+            m_avg = round(mean(ms), 3) if ms else None
+            b_max_v = round(max(bs), 3) if bs else None
+            m_max_v = round(max(ms), 3) if ms else None
+
+            if bs and ms:
+                mean_delta = round(m_avg - b_avg, 3)
+                max_delta = round(m_max_v - b_max_v, 3)
+                mean_pass = m_avg >= b_avg - MEAN_DELTA_THRESH
+                max_pass = m_max_v >= b_max_v - MAX_DELTA_THRESH
+                if not (mean_pass and max_pass):
+                    failed.append(task)
+                rows.append(
+                    {
+                        "task": task,
+                        "b_avg": b_avg,
+                        "m_avg": m_avg,
+                        "mean_delta": mean_delta,
+                    }
+                )
+                cells = [
+                    task,
+                    str(len(bs)),
+                    str(len(ms)),
+                    f"{b_avg}",
+                    f"{m_avg}",
+                    f"{b_max_v}",
+                    f"{m_max_v}",
+                    f"{mean_delta:+.3f}",
+                    f"{max_delta:+.3f}",
+                    "PASS" if mean_pass else "FAIL",
+                    "PASS" if max_pass else "FAIL",
+                ]
+            else:
+                failed.append(task)
+                cells = [
+                    task,
+                    str(len(bs)),
+                    str(len(ms)),
+                    str(b_avg) if b_avg is not None else "N/A",
+                    str(m_avg) if m_avg is not None else "N/A",
+                    str(b_max_v) if b_max_v is not None else "N/A",
+                    str(m_max_v) if m_max_v is not None else "N/A",
+                    "N/A",
+                    "N/A",
+                    "N/A",
+                    "N/A",
+                ]
+            print("| " + " | ".join(cells) + " |")
+
+        print("")
+
+        if apply_cohort_rule:
+            verdict = "PASS" if len(failed) <= COHORT_FAIL_LIMIT else "FAIL"
+            print(
+                f"**Cohort rule (≤{COHORT_FAIL_LIMIT} task may fail among {len(cohort_tasks)}):** "
+                f"**{verdict}** ({len(failed)} failed: {', '.join(failed) if failed else 'none'})"
+            )
+        else:
+            print(
+                f"**Failed/incomplete tasks ({len(failed)}/{len(cohort_tasks)}):** "
+                f"{', '.join(failed) if failed else 'none'}"
+            )
+        print("")
+        return failed, rows
+
+    # ----- Mock-Independent (noise floor) FIRST -----
+    indep_tasks = [t for t in TASKS if t in MOCK_INDEPENDENT]
+    indep_failed, indep_rows = render_cohort(
+        "Mock-Independent (Noise Floor Calibration)",
+        indep_tasks,
+        apply_cohort_rule=False,
+    )
+
+    # Compute noise floor stats on |Δ mean| of mock-independent tasks with data
+    abs_deltas = [abs(r["mean_delta"]) for r in indep_rows]
+    if abs_deltas:
+        nf_p50 = round(percentile(abs_deltas, 0.50), 3)
+        nf_p75 = round(percentile(abs_deltas, 0.75), 3)
+        nf_max = round(max(abs_deltas), 3)
+        nf_pass = nf_p75 <= NOISE_FLOOR_P75_THRESH
         print(
-            f"**Cohort rule (≤1 task may fail):** PASS ({len(failed_tasks)} task(s) failed/incomplete)"
+            f"**Noise floor (mock-independent |Δ mean|):** "
+            f"P50={nf_p50}, P75={nf_p75}, max={nf_max} — "
+            f"P75 threshold ≤{NOISE_FLOOR_P75_THRESH}: **{'PASS' if nf_pass else 'FAIL — increase n_attempts before judging mock-affected'}**"
         )
     else:
+        print("**Noise floor:** N/A (no mock-independent trials with both sides).")
+    print("")
+
+    # ----- Mock-Affected (regression signal) -----
+    affected_tasks = [t for t in TASKS if t in MOCK_AFFECTED]
+    affected_failed, _ = render_cohort(
+        "Mock-Affected (Regression Signal)",
+        affected_tasks,
+        apply_cohort_rule=True,
+    )
+
+    # ----- Final verdict -----
+    print("## Final Verdict")
+    print("")
+    if not abs_deltas:
+        print("- Noise floor: **N/A** (insufficient data)")
+        final_pass = False
+    else:
+        final_pass_nf = percentile(abs_deltas, 0.75) <= NOISE_FLOOR_P75_THRESH
         print(
-            f"**Cohort rule (≤1 task may fail):** FAIL ({len(failed_tasks)} tasks failed/incomplete)"
+            f"- Noise floor (mock-independent P75 |Δ mean| ≤{NOISE_FLOOR_P75_THRESH}): **{'PASS' if final_pass_nf else 'FAIL'}**"
         )
+        final_pass_cohort = len(affected_failed) <= COHORT_FAIL_LIMIT
+        print(
+            f"- Mock-affected cohort rule (≤{COHORT_FAIL_LIMIT} fail among {len(affected_tasks)}): **{'PASS' if final_pass_cohort else 'FAIL'}**"
+        )
+        final_pass = final_pass_nf and final_pass_cohort
+
+    print("")
+    print(f"**Migration {'PASSES' if final_pass else 'FAILS'} regression check.**")
 
 
 if __name__ == "__main__":
