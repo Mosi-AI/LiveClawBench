@@ -12,10 +12,16 @@ jobs-baseline/
 jobs-migrated-round6/
 jobs-baseline-round6/
 jobs-migrated-round7/
+jobs-*-round*/
+jobs-round11-*/
 logs/
+*.log
 
 # Harbor parity comparison tables (generated verification artifacts)
 harbor-parity-comparison.md
+
+# Evidence directories (generated verification artifacts)
+evidence-round*/
 
 # Local run scripts (not tracked)
 run_*.sh
