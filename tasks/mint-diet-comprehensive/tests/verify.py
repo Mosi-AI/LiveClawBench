@@ -12,6 +12,36 @@ from pathlib import Path
 
 DB_PATH = Path("/var/lib/mock-data/mint-diet/mint-diet.sqlite")
 
+# Expected meal specifications from instruction.md
+MEAL_SPECS = {
+    "breakfast": [
+        {"names": ["oatmeal", "燕麦"], "quantity": 250, "unit": "g", "calories": 950},
+        {"names": ["banana", "香蕉"], "quantity": 120, "unit": "g", "calories": 107},
+    ],
+    "lunch": [
+        {"names": ["chicken breast", "鸡胸肉"], "quantity": 200, "unit": "g", "calories": 260},
+        {"names": ["white rice", "白米饭", "rice"], "quantity": 300, "unit": "g", "calories": 390},
+    ],
+    "dinner": [
+        {"names": ["salmon", "三文鱼"], "quantity": 150, "unit": "g", "calories": 312},
+        {"names": ["broccoli"], "quantity": 100, "unit": "g", "calories": 34},
+    ],
+    "snacks": [
+        {"names": ["milk", "牛奶"], "quantity": 240, "unit": "ml", "calories": 149},
+    ],
+}
+
+# Tolerance for quantity and calorie matching (±10%)
+QUANTITY_TOLERANCE = 0.10
+CALORIE_TOLERANCE = 0.10
+
+
+def nearly_equal(value: float | None, expected: float, tolerance: float) -> bool:
+    """Check if value is within tolerance of expected."""
+    if value is None:
+        return False
+    return abs(value - expected) <= expected * tolerance
+
 
 def compute_dates() -> tuple[str, str, str]:
     """Compute today, next Monday, and next Sunday."""
@@ -32,7 +62,8 @@ def compute_dates() -> tuple[str, str, str]:
 def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict]:
     """
     Dimension 1 (0.25): Check daily_log has food_entry rows for all 4 slots
-    with expected food name substrings (case-insensitive, EN+ZH).
+    with expected foods matching quantity, unit, and calories.
+    Also tracks catalog usage bonus.
     """
     score = 0.0
     details = {}
@@ -49,10 +80,11 @@ def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict]:
 
     daily_log_id = row[0]
 
-    # Get all food entries for today, grouped by meal_slot
+    # Get all food entries for today with full details
     entries = conn.execute(
         """
-        SELECT meal_slot, food_name, quantity_value, quantity_unit
+        SELECT meal_slot, food_name, quantity_value, quantity_unit,
+               calories_kcal, protein_g, carbs_g, fat_g, food_catalog_id
         FROM food_entry
         WHERE daily_log_id = ?
         """,
@@ -60,77 +92,97 @@ def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict]:
     ).fetchall()
 
     # Group entries by slot
-    slot_foods: dict[str, list[dict]] = {
+    slot_entries: dict[str, list[dict]] = {
         "breakfast": [],
         "lunch": [],
         "dinner": [],
         "snacks": [],
     }
-    for meal_slot, food_name, quantity_value, quantity_unit in entries:
-        if meal_slot in slot_foods:
-            slot_foods[meal_slot].append({
-                "food_name": food_name,
-                "quantity_value": quantity_value,
-                "quantity_unit": quantity_unit,
+    for entry in entries:
+        meal_slot = entry[0]
+        if meal_slot in slot_entries:
+            slot_entries[meal_slot].append({
+                "food_name": entry[1],
+                "quantity_value": entry[2],
+                "quantity_unit": entry[3],
+                "calories_kcal": entry[4],
+                "protein_g": entry[5],
+                "carbs_g": entry[6],
+                "fat_g": entry[7],
+                "food_catalog_id": entry[8],
             })
 
-    # Check each slot for expected foods (case-insensitive substring match)
+    # Check each slot against expected meal specs
     slot_score = 0.0
+    total_catalog_entries = 0
+    total_expected_foods = sum(len(specs) for specs in MEAL_SPECS.values())
 
-    # Breakfast: oatmeal/燕麦 AND banana/香蕉
-    breakfast_foods = [e["food_name"].lower() for e in slot_foods["breakfast"]]
-    has_oatmeal = any("oatmeal" in f or "燕麦" in f for f in breakfast_foods)
-    has_banana = any("banana" in f or "香蕉" in f for f in breakfast_foods)
-    if has_oatmeal:
-        slot_score += 0.03125
-    if has_banana:
-        slot_score += 0.03125
-    details["breakfast"] = {
-        "has_oatmeal": has_oatmeal,
-        "has_banana": has_banana,
-        "foods": breakfast_foods,
+    for slot, expected_foods in MEAL_SPECS.items():
+        slot_details = {"entries_found": len(slot_entries[slot]), "items": []}
+        slot_items_matched = 0
+
+        for spec in expected_foods:
+            # Check if any entry in this slot matches this expected food
+            matched = False
+            catalog_matched = False
+            matched_entry = None
+
+            for entry in slot_entries[slot]:
+                food_name_lower = entry["food_name"].lower()
+
+                # Check if food name matches any of the expected names
+                name_match = any(name.lower() in food_name_lower for name in spec["names"])
+
+                if name_match:
+                    # Check quantity with tolerance
+                    qty_match = nearly_equal(
+                        entry["quantity_value"], spec["quantity"], QUANTITY_TOLERANCE
+                    )
+                    # Check unit matches
+                    unit_match = entry["quantity_unit"] == spec["unit"]
+                    # Check calories with tolerance
+                    cal_match = nearly_equal(
+                        entry["calories_kcal"], spec["calories"], CALORIE_TOLERANCE
+                    )
+
+                    if qty_match and unit_match and cal_match:
+                        matched = True
+                        matched_entry = entry
+                        # Check if this entry used a catalog item (not manual entry)
+                        if entry["food_catalog_id"] is not None:
+                            catalog_matched = True
+                            total_catalog_entries += 1
+                        break
+
+            if matched:
+                slot_items_matched += 1
+                slot_score += 0.25 / total_expected_foods  # Equal weight per food item
+
+            slot_details["items"].append({
+                "expected_names": spec["names"],
+                "expected_qty": spec["quantity"],
+                "expected_unit": spec["unit"],
+                "expected_cal": spec["calories"],
+                "matched": matched,
+                "catalog_matched": catalog_matched,
+                "actual_entry": matched_entry,
+            })
+
+        slot_details["items_matched"] = slot_items_matched
+        slot_details["items_expected"] = len(expected_foods)
+        details[slot] = slot_details
+
+    # Cap at 0.25 for Dimension 1
+    score = min(slot_score, 0.25)
+
+    # Catalog usage bonus (0.05): at least one entry uses valid food_catalog_id
+    catalog_bonus = 0.05 if total_catalog_entries >= 1 else 0.0
+    details["catalog_usage"] = {
+        "entries_with_catalog_id": total_catalog_entries,
+        "bonus_applied": catalog_bonus > 0,
     }
 
-    # Lunch: chicken breast/鸡胸肉 AND white rice/白米饭/rice
-    lunch_foods = [e["food_name"].lower() for e in slot_foods["lunch"]]
-    has_chicken = any("chicken" in f or "鸡胸" in f for f in lunch_foods)
-    has_rice = any("rice" in f or "米饭" in f for f in lunch_foods)
-    if has_chicken:
-        slot_score += 0.03125
-    if has_rice:
-        slot_score += 0.03125
-    details["lunch"] = {
-        "has_chicken": has_chicken,
-        "has_rice": has_rice,
-        "foods": lunch_foods,
-    }
-
-    # Dinner: salmon/三文鱼 AND broccoli
-    dinner_foods = [e["food_name"].lower() for e in slot_foods["dinner"]]
-    has_salmon = any("salmon" in f or "三文鱼" in f for f in dinner_foods)
-    has_broccoli = any("broccoli" in f for f in dinner_foods)
-    if has_salmon:
-        slot_score += 0.03125
-    if has_broccoli:
-        slot_score += 0.03125
-    details["dinner"] = {
-        "has_salmon": has_salmon,
-        "has_broccoli": has_broccoli,
-        "foods": dinner_foods,
-    }
-
-    # Snacks: milk/牛奶
-    snack_foods = [e["food_name"].lower() for e in slot_foods["snacks"]]
-    has_milk = any("milk" in f or "牛奶" in f for f in snack_foods)
-    if has_milk:
-        slot_score += 0.0625
-    details["snacks"] = {
-        "has_milk": has_milk,
-        "foods": snack_foods,
-    }
-
-    score = min(slot_score, 0.25)  # Cap at 0.25
-    return score, details
+    return score, details, catalog_bonus
 
 
 def check_meal_plan(conn: sqlite3.Connection, next_monday: str, next_sunday: str) -> tuple[float, dict]:
@@ -194,23 +246,25 @@ def check_meal_plan(conn: sqlite3.Connection, next_monday: str, next_sunday: str
     return score, details
 
 
-def check_plan_items(conn: sqlite3.Connection, plan_id: int, target_date: str) -> tuple[float, int]:
+def check_plan_items(conn: sqlite3.Connection, plan_id: int, target_date: str) -> tuple[float, int, list]:
     """
     Check meal_plan_item rows for a specific date.
-    Returns (score, count).
+    Returns (score, count, items).
     """
-    count = conn.execute(
+    items = conn.execute(
         """
-        SELECT COUNT(*)
+        SELECT mpi.id, mpi.meal_slot, mpi.dish_name
         FROM meal_plan_item mpi
         JOIN meal_plan_day mpd ON mpd.id = mpi.meal_plan_day_id
         WHERE mpd.meal_plan_id = ? AND mpd.plan_date = ?
         """,
         (plan_id, target_date),
-    ).fetchone()[0]
+    ).fetchall()
 
+    count = len(items)
     score = 0.25 if count >= 3 else 0.0
-    return score, count
+    item_list = [{"slot": item[1], "dish": item[2]} for item in items]
+    return score, count, item_list
 
 
 def main() -> int:
@@ -230,9 +284,11 @@ def main() -> int:
     conn.row_factory = sqlite3.Row
 
     try:
-        # Dimension 1: Daily log entries (0.25)
-        d1_score, d1_details = check_daily_log(conn, today)
+        # Dimension 1: Daily log entries (0.25) + catalog bonus (0.05)
+        d1_score, d1_details, catalog_bonus = check_daily_log(conn, today)
         print(f"Dimension 1 (Daily log): {d1_score:.2f}/0.25")
+        print(f"  Catalog usage bonus: {catalog_bonus:.2f}")
+        print(f"  Entries with catalog_id: {d1_details.get('catalog_usage', {}).get('entries_with_catalog_id', 0)}")
 
         # Dimension 2: Meal plan configuration (0.25)
         d2_score, d2_details = check_meal_plan(conn, next_monday, next_sunday)
@@ -243,22 +299,22 @@ def main() -> int:
 
         # Dimension 3: Monday plan items (0.25)
         if plan_id:
-            d3_score, d3_count = check_plan_items(conn, plan_id, next_monday)
+            d3_score, d3_count, d3_items = check_plan_items(conn, plan_id, next_monday)
         else:
-            d3_score, d3_count = 0.0, 0
+            d3_score, d3_count, d3_items = 0.0, 0, []
         print(f"Dimension 3 (Monday items): {d3_score:.2f}/0.25 (found {d3_count} items)")
 
         # Dimension 4: Tuesday plan items (0.25)
         next_tuesday = (date.fromisoformat(next_monday) + timedelta(days=1)).isoformat()
         if plan_id:
-            d4_score, d4_count = check_plan_items(conn, plan_id, next_tuesday)
+            d4_score, d4_count, d4_items = check_plan_items(conn, plan_id, next_tuesday)
         else:
-            d4_score, d4_count = 0.0, 0
+            d4_score, d4_count, d4_items = 0.0, 0, []
         print(f"Dimension 4 (Tuesday items): {d4_score:.2f}/0.25 (found {d4_count} items)")
 
-        # Total score
-        total_score = d1_score + d2_score + d3_score + d4_score
-        total_score = round(total_score, 2)
+        # Total score (max 1.0: 0.25 + 0.05 + 0.25 + 0.25 + 0.25 = 1.05, capped at 1.0)
+        raw_score = d1_score + catalog_bonus + d2_score + d3_score + d4_score
+        total_score = min(round(raw_score, 2), 1.0)
 
         # Write reward files
         with open("/logs/verifier/reward.txt", "w") as f:
@@ -267,9 +323,16 @@ def main() -> int:
         reward_json = {
             "reward": total_score,
             "_meta_d1": round(d1_score, 2),
+            "_meta_d1_catalog_bonus": round(catalog_bonus, 2),
             "_meta_d2": round(d2_score, 2),
             "_meta_d3": round(d3_score, 2),
             "_meta_d4": round(d4_score, 2),
+            "_meta_details": {
+                "d1_daily_log": d1_details,
+                "d2_meal_plan": d2_details,
+                "d3_monday_items": {"count": d3_count, "items": d3_items},
+                "d4_tuesday_items": {"count": d4_count, "items": d4_items},
+            }
         }
         with open("/logs/verifier/reward.json", "w") as f:
             json.dump(reward_json, f, indent=2)
