@@ -229,7 +229,8 @@ function initDatabase(): void {
       unit TEXT NOT NULL,
       location TEXT NOT NULL,
       expiry_date TEXT,
-      category TEXT
+      category TEXT,
+      updated_at TEXT
     );
 
     -- Inventory snapshot (captured at startup)
@@ -537,8 +538,10 @@ const Layout: FC<{ title: string; children: Child; scripts?: string }> = ({ titl
 <nav class="nav">
 <a href="/">Dashboard</a>
 <a href="/thermostat">Thermostat</a>
+<a href="/coffee">Coffee</a>
 <a href="/inventory">Inventory</a>
 <a href="/grocery">Grocery</a>
+<a href="/wearable">Wearable</a>
 <a href="/calendar">Calendar</a>
 <a href="/meal-plan">Meal Plan</a>
 </nav>
@@ -570,6 +573,78 @@ const ErrorPage: FC<{ title: string; message: string }> = ({ title, message }) =
 </div>
 </body>
 </html>`;
+};
+
+// Coffee Schedule page
+const CoffeePage: FC<{ schedule: { start_time: string; status: string; updated_at: string } }> = ({ schedule }) => {
+  return <Layout title="Coffee Schedule" scripts={`
+async function updateSchedule() {
+  const startTime = document.getElementById('start-time').value;
+  if (!startTime) { alert('Please enter a start time'); return; }
+  try {
+    const response = await fetch('/api/coffee-schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ start_time: startTime })
+    });
+    const data = await response.json();
+    if (data.error) alert('Error: ' + data.error);
+    else location.reload();
+  } catch (err) { alert('Failed to update schedule'); }
+}
+`}>
+    <h1>Coffee Schedule</h1>
+    <div class="card">
+      <div class="metric">
+        <span class="metric-label">Start Time</span>
+        <span class="metric-value">{schedule.start_time}</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Status</span>
+        <span class="metric-value">
+          <span class={`status-badge ${schedule.status === 'ready' ? 'status-ready' : schedule.status === 'brewing' ? 'status-brewing' : 'status-scheduled'}`}>
+            {schedule.status.toUpperCase()}
+          </span>
+        </span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Last Updated</span>
+        <span class="metric-value">{schedule.updated_at}</span>
+      </div>
+    </div>
+
+    <h2>Update Schedule</h2>
+    <div class="card">
+      <input type="time" id="start-time" value={schedule.start_time} />
+      <button class="btn" onclick="updateSchedule()">Update</button>
+    </div>
+  </Layout>;
+};
+
+// Wearable/Recovery page
+const WearablePage: FC<{ data: WearableRecovery }> = ({ data }) => {
+  return <Layout title="Wearable & Recovery">
+    <h1>Wearable & Recovery Data</h1>
+    <div class="card">
+      <div class="metric">
+        <span class="metric-label">Sleep Hours</span>
+        <span class="metric-value">{`${data.sleep_hours} hrs`}</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Sleep Score</span>
+        <span class="metric-value">{`${data.sleep_score}/100`}</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Readiness</span>
+        <span class="metric-value">{`${data.readiness}/100`}</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Resting Heart Rate</span>
+        <span class="metric-value">{`${data.resting_heart_rate} bpm`}</span>
+      </div>
+    </div>
+    <p style="color: #666; font-size: 14px;">This data is read-only and synced from your wearable device.</p>
+  </Layout>;
 };
 
 // Dashboard page
@@ -671,6 +746,68 @@ const InventoryPage: FC<{ items: InventoryItem[] }> = ({ items }) => {
   const pantryItems = items.filter(i => i.location === "pantry");
 
   return <Layout title="Inventory" scripts={`
+let editingId = null;
+
+function openAddModal(location) {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add Item';
+  document.getElementById('item-id').value = '';
+  document.getElementById('item-name').value = '';
+  document.getElementById('item-quantity').value = '';
+  document.getElementById('item-unit').value = '';
+  document.getElementById('item-location').value = location;
+  document.getElementById('item-expiry').value = '';
+  document.getElementById('item-category').value = '';
+  document.getElementById('item-modal').style.display = 'block';
+}
+
+function openEditModal(id, name, quantity, unit, location, expiry, category) {
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit Item';
+  document.getElementById('item-id').value = id;
+  document.getElementById('item-name').value = name;
+  document.getElementById('item-quantity').value = quantity;
+  document.getElementById('item-unit').value = unit;
+  document.getElementById('item-location').value = location;
+  document.getElementById('item-expiry').value = expiry || '';
+  document.getElementById('item-category').value = category || '';
+  document.getElementById('item-modal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('item-modal').style.display = 'none';
+  editingId = null;
+}
+
+async function saveItem() {
+  const name = document.getElementById('item-name').value.trim();
+  const quantity = parseFloat(document.getElementById('item-quantity').value);
+  const unit = document.getElementById('item-unit').value.trim();
+  const location = document.getElementById('item-location').value;
+  const expiry = document.getElementById('item-expiry').value.trim() || null;
+  const category = document.getElementById('item-category').value.trim() || null;
+
+  if (!name || isNaN(quantity) || !unit || !location) {
+    alert('Please fill in all required fields');
+    return;
+  }
+
+  const body = { item_name: name, quantity, unit, location, expiry_date: expiry, category };
+
+  try {
+    const url = editingId ? '/api/inventory/' + editingId : '/api/inventory';
+    const method = editingId ? 'PUT' : 'POST';
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await response.json();
+    if (data.error) alert('Error: ' + data.error);
+    else { closeModal(); location.reload(); }
+  } catch (err) { alert('Failed to save item'); }
+}
+
 async function deleteItem(id) {
   if (!confirm('Delete this item?')) return;
   try {
@@ -680,10 +817,56 @@ async function deleteItem(id) {
     else location.reload();
   } catch (err) { alert('Failed to delete item'); }
 }
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('item-modal');
+  if (event.target === modal) closeModal();
+}
 `}>
     <h1>Inventory</h1>
 
+    {/* Modal */}
+    <div id="item-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4);">
+      <div style="background:white; margin:80px auto; padding:20px; border-radius:8px; width:400px; max-width:90%;">
+        <h2 id="modal-title" style="margin-top:0;">Add Item</h2>
+        <input type="hidden" id="item-id" />
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Name *</label>
+          <input type="text" id="item-name" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Quantity *</label>
+          <input type="number" id="item-quantity" step="any" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Unit *</label>
+          <input type="text" id="item-unit" placeholder="e.g. kg, lbs, pieces" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Location *</label>
+          <select id="item-location" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+            <option value="fridge">Fridge</option>
+            <option value="pantry">Pantry</option>
+          </select>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Expiry Date</label>
+          <input type="date" id="item-expiry" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Category</label>
+          <input type="text" id="item-category" placeholder="e.g. dairy, vegetables" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn" onclick="saveItem()">Save</button>
+        </div>
+      </div>
+    </div>
+
     <h2>Fridge</h2>
+    <button class="btn" onclick="openAddModal('fridge')" style="margin-bottom:15px;">Add Item</button>
     {fridgeItems.length > 0 ? (
       <table>
         <thead><tr><th>Item</th><th>Quantity</th><th>Unit</th><th>Expiry</th><th>Actions</th></tr></thead>
@@ -694,7 +877,10 @@ async function deleteItem(id) {
               <td>{item.quantity}</td>
               <td>{item.unit}</td>
               <td>{item.expiry_date || "-"}</td>
-              <td><button class="btn btn-danger" onclick={`deleteItem(${item.id})`}>Delete</button></td>
+              <td>
+                <button class="btn btn-secondary" onclick={`openEditModal(${item.id}, '${escJs(item.item_name)}', ${item.quantity}, '${escJs(item.unit)}', 'fridge', '${item.expiry_date || ''}', '${item.category || ''}')`}>Edit</button>
+                <button class="btn btn-danger" onclick={`deleteItem(${item.id})`}>Delete</button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -702,6 +888,7 @@ async function deleteItem(id) {
     ) : <p>No items in fridge.</p>}
 
     <h2>Pantry</h2>
+    <button class="btn" onclick="openAddModal('pantry')" style="margin-bottom:15px;">Add Item</button>
     {pantryItems.length > 0 ? (
       <table>
         <thead><tr><th>Item</th><th>Quantity</th><th>Unit</th><th>Category</th><th>Actions</th></tr></thead>
@@ -712,7 +899,10 @@ async function deleteItem(id) {
               <td>{item.quantity}</td>
               <td>{item.unit}</td>
               <td>{item.category || "-"}</td>
-              <td><button class="btn btn-danger" onclick={`deleteItem(${item.id})`}>Delete</button></td>
+              <td>
+                <button class="btn btn-secondary" onclick={`openEditModal(${item.id}, '${escJs(item.item_name)}', ${item.quantity}, '${escJs(item.unit)}', 'pantry', '${item.expiry_date || ''}', '${item.category || ''}')`}>Edit</button>
+                <button class="btn btn-danger" onclick={`deleteItem(${item.id})`}>Delete</button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -722,11 +912,63 @@ async function deleteItem(id) {
 };
 
 // Grocery page
-const GroceryPage: FC<{ products: GroceryProduct[] }> = ({ products }) => {
-  return <Layout title="Grocery Catalog">
-    <h1>Grocery Catalog</h1>
+const GroceryPage: FC<{ products: GroceryProduct[]; orders: GroceryOrder[] }> = ({ products, orders }) => {
+  return <Layout title="Grocery" scripts={`
+const products = ${JSON.stringify(products)};
+let cart = [];
+
+function updateCart() {
+  const tbody = document.getElementById('cart-items');
+  let total = 0;
+  let html = '';
+  for (const item of cart) {
+    const product = products.find(p => p.product_id === item.product_id);
+    if (product) {
+      const subtotal = product.price * item.quantity;
+      total += subtotal;
+      html += '<tr><td>' + product.name + '</td><td>' + item.quantity + '</td><td>$' + subtotal.toFixed(2) + '</td><td><button class="btn btn-danger" style="padding:4px 8px;" onclick="removeFromCart(\\'' + item.product_id + '\\')">Remove</button></td></tr>';
+    }
+  }
+  tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;color:#666;">Cart is empty</td></tr>';
+  document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
+}
+
+function addToCart(productId) {
+  const quantity = parseInt(document.getElementById('qty-' + productId).value) || 1;
+  const existing = cart.find(c => c.product_id === productId);
+  if (existing) {
+    existing.quantity += quantity;
+  } else {
+    cart.push({ product_id: productId, quantity });
+  }
+  updateCart();
+  document.getElementById('qty-' + productId).value = 1;
+}
+
+function removeFromCart(productId) {
+  cart = cart.filter(c => c.product_id !== productId);
+  updateCart();
+}
+
+async function placeOrder() {
+  if (cart.length === 0) { alert('Cart is empty'); return; }
+  try {
+    const response = await fetch('/api/grocery/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: cart })
+    });
+    const data = await response.json();
+    if (data.error) alert('Error: ' + data.error);
+    else { alert('Order placed! Order ID: ' + data.order_id + '\\nTotal: $' + data.total.toFixed(2)); cart = []; location.reload(); }
+  } catch (err) { alert('Failed to place order'); }
+}
+`}>
+    <h1>Grocery</h1>
+
+    <h2>Products</h2>
     <table>
-      <thead><tr><th>Product</th><th>Price</th><th>Stock</th></tr></thead>
+      <thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Qty</th><th>Action</th></tr></thead>
       <tbody>
         {products.map(p => (
           <tr>
@@ -737,31 +979,138 @@ const GroceryPage: FC<{ products: GroceryProduct[] }> = ({ products }) => {
                 {p.stock_status.replace("_", " ").toUpperCase()}
               </span>
             </td>
+            <td><input type="number" id={`qty-${p.product_id}`} value="1" min="1" max="99" style="width:60px;padding:4px;" /></td>
+            <td><button class="btn" style="padding:4px 12px;" onclick={`addToCart('${p.product_id}')`}>Add</button></td>
           </tr>
         ))}
       </tbody>
     </table>
+
+    <h2>Shopping Cart</h2>
+    <div class="card">
+      <table>
+        <thead><tr><th>Product</th><th>Qty</th><th>Subtotal</th><th>Action</th></tr></thead>
+        <tbody id="cart-items">
+          <tr><td colspan="4" style="text-align:center;color:#666;">Cart is empty</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:15px;display:flex;justify-content:space-between;align-items:center;">
+        <strong>Total: <span id="cart-total">$0.00</span></strong>
+        <button class="btn" onclick="placeOrder()">Place Order</button>
+      </div>
+    </div>
+
+    <h2>Order History</h2>
+    {orders.length > 0 ? (
+      <table>
+        <thead><tr><th>Order ID</th><th>Total</th><th>Created</th></tr></thead>
+        <tbody>
+          {orders.map(o => (
+            <tr>
+              <td>{o.order_id}</td>
+              <td>{`$${o.total.toFixed(2)}`}</td>
+              <td>{o.created_at}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : <p style="color:#666;">No orders yet.</p>}
   </Layout>;
 };
 
 // Calendar page
 const CalendarPage: FC<{ events: CalendarEvent[] }> = ({ events }) => {
   return <Layout title="Calendar" scripts={`
-async function updateWorkout(id) {
-  const workoutType = document.getElementById('workout-' + id).value;
+let editingId = null;
+
+function openEditModal(id, title, startTime, eventType, workoutType) {
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit Event';
+  document.getElementById('event-id').value = id;
+  document.getElementById('event-title').value = title;
+  document.getElementById('event-time').value = startTime;
+  document.getElementById('event-type').value = eventType || '';
+  document.getElementById('workout-type').value = workoutType || '';
+  document.getElementById('event-modal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('event-modal').style.display = 'none';
+  editingId = null;
+}
+
+async function saveEvent() {
+  const title = document.getElementById('event-title').value.trim();
+  const startTime = document.getElementById('event-time').value.trim();
+  const eventType = document.getElementById('event-type').value.trim();
+  const workoutType = document.getElementById('workout-type').value;
+
+  if (!editingId) { alert('No event selected'); return; }
+
+  const body = {};
+  if (title) body.title = title;
+  if (startTime) body.start_time = startTime;
+  if (eventType) body.event_type = eventType;
+  if (workoutType) body.workout_type = workoutType;
+
   try {
-    const response = await fetch('/api/calendar/' + id, {
+    const response = await fetch('/api/calendar/' + editingId, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ workout_type: workoutType })
+      body: JSON.stringify(body)
     });
     const data = await response.json();
     if (data.error) alert('Error: ' + data.error);
-    else location.reload();
-  } catch (err) { alert('Failed to update workout'); }
+    else { closeModal(); location.reload(); }
+  } catch (err) { alert('Failed to save event'); }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('event-modal');
+  if (event.target === modal) closeModal();
 }
 `}>
     <h1>Calendar</h1>
+
+    {/* Modal */}
+    <div id="event-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4);">
+      <div style="background:white; margin:80px auto; padding:20px; border-radius:8px; width:400px; max-width:90%;">
+        <h2 id="modal-title" style="margin-top:0;">Edit Event</h2>
+        <input type="hidden" id="event-id" />
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Title</label>
+          <input type="text" id="event-title" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Start Time</label>
+          <input type="text" id="event-time" placeholder="e.g. 2026-05-09T10:00:00Z" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Event Type</label>
+          <input type="text" id="event-type" placeholder="e.g. workout, meeting" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Workout Type</label>
+          <select id="workout-type" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+            <option value="">-- None --</option>
+            <option value="hiit">HIIT</option>
+            <option value="yoga">Yoga</option>
+            <option value="walking">Walking</option>
+            <option value="cycling">Cycling</option>
+            <option value="strength">Strength</option>
+            <option value="stretching">Stretching</option>
+            <option value="swimming">Swimming</option>
+            <option value="rest">Rest</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn" onclick="saveEvent()">Save</button>
+        </div>
+      </div>
+    </div>
+
     <table>
       <thead><tr><th>Event</th><th>Time</th><th>Type</th><th>Workout</th><th>Actions</th></tr></thead>
       <tbody>
@@ -770,23 +1119,10 @@ async function updateWorkout(id) {
             <td>{event.title}</td>
             <td>{event.start_time}</td>
             <td>{event.event_type || "-"}</td>
+            <td>{event.workout_type || "-"}</td>
             <td>
-              {event.workout_type ? (
-                event.event_type === "workout" ? (
-                  <select id={`workout-${event.id}`} onchange={`updateWorkout(${event.id})`}>
-                    <option value="hiit" selected={event.workout_type === "hiit"}>HIIT</option>
-                    <option value="yoga" selected={event.workout_type === "yoga"}>Yoga</option>
-                    <option value="walking" selected={event.workout_type === "walking"}>Walking</option>
-                    <option value="cycling" selected={event.workout_type === "cycling"}>Cycling</option>
-                    <option value="strength" selected={event.workout_type === "strength"}>Strength</option>
-                    <option value="stretching" selected={event.workout_type === "stretching"}>Stretching</option>
-                    <option value="swimming" selected={event.workout_type === "swimming"}>Swimming</option>
-                    <option value="rest" selected={event.workout_type === "rest"}>Rest</option>
-                  </select>
-                ) : event.workout_type
-              ) : "-"}
+              <button class="btn btn-secondary" style="padding:4px 12px;" onclick={`openEditModal(${event.id}, '${escJs(event.title)}', '${escJs(event.start_time)}', '${escJs(event.event_type || '')}', '${escJs(event.workout_type || '')}')`}>Edit</button>
             </td>
-            <td>-</td>
           </tr>
         ))}
       </tbody>
@@ -795,9 +1131,150 @@ async function updateWorkout(id) {
 };
 
 // Meal Plan page
-const MealPlanPage: FC<{ constraints: UserConstraints; recipes: Recipe[] }> = ({ constraints, recipes }) => {
-  return <Layout title="Meal Planning">
+const MealPlanPage: FC<{ constraints: UserConstraints; recipes: Recipe[]; currentPlan: MealPlan | null }> = ({ constraints, recipes, currentPlan }) => {
+  // Group recipes by meal type
+  const breakfastRecipes = recipes.filter(r => r.meal_type === "breakfast");
+  const lunchRecipes = recipes.filter(r => r.meal_type === "lunch");
+  const dinnerRecipes = recipes.filter(r => r.meal_type === "dinner");
+
+  return <Layout title="Meal Planning" scripts={`
+let currentPlan = null;
+let editingPlan = null;
+
+function initPlanData() {
+  const today = new Date();
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    days.push({
+      date: date.toISOString().split('T')[0],
+      meals: []
+    });
+  }
+  return days;
+}
+
+function openCreateModal() {
+  editingPlan = null;
+  document.getElementById('plan-modal-title').textContent = 'Create Weekly Meal Plan';
+  renderPlanEditor(initPlanData());
+  document.getElementById('plan-modal').style.display = 'block';
+}
+
+function openEditModal() {
+  if (!currentPlan) return;
+  editingPlan = currentPlan;
+  document.getElementById('plan-modal-title').textContent = 'Edit Weekly Meal Plan';
+  renderPlanEditor(JSON.parse(currentPlan.plan_data));
+  document.getElementById('plan-modal').style.display = 'block';
+}
+
+function closePlanModal() {
+  document.getElementById('plan-modal').style.display = 'none';
+  editingPlan = null;
+}
+
+function renderPlanEditor(days) {
+  const container = document.getElementById('plan-days');
+  const mealTypes = ['breakfast', 'lunch', 'dinner'];
+  const recipes = ${JSON.stringify(recipes.map(r => ({ id: r.id, name: r.name, meal_type: r.meal_type, calories_total: r.calories_total })))};
+
+  let html = '';
+  for (let i = 0; i < days.length; i++) {
+    const day = days[i];
+    html += '<div class="day-card"><h3>' + day.date + '</h3>';
+    for (const mealType of mealTypes) {
+      const meal = day.meals.find(m => m.meal_type === mealType);
+      const mealRecipes = recipes.filter(r => r.meal_type === mealType);
+      html += '<div class="meal-row"><label>' + mealType.charAt(0).toUpperCase() + mealType.slice(1) + ':</label>';
+      html += '<select id="day-' + i + '-' + mealType + '" onchange="updateCalories()">';
+      html += '<option value="">-- Select --</option>';
+      for (const r of mealRecipes) {
+        const selected = meal && meal.meal_id === r.id ? ' selected' : '';
+        html += '<option value="' + r.id + '"' + selected + '>' + r.name + ' (' + r.calories_total + ' kcal)</option>';
+      }
+      html += '</select></div>';
+    }
+    html += '</div>';
+  }
+  container.innerHTML = html;
+  updateCalories();
+}
+
+function updateCalories() {
+  const recipes = ${JSON.stringify(recipes.map(r => ({ id: r.id, calories_total: r.calories_total })))};
+  let totalCalories = 0;
+  for (let i = 0; i < 7; i++) {
+    for (const mealType of ['breakfast', 'lunch', 'dinner']) {
+      const select = document.getElementById('day-' + i + '-' + mealType);
+      if (select && select.value) {
+        const recipe = recipes.find(r => r.id === parseInt(select.value));
+        if (recipe) totalCalories += recipe.calories_total;
+      }
+    }
+  }
+  document.getElementById('total-calories').textContent = totalCalories + ' kcal';
+  document.getElementById('avg-calories').textContent = Math.round(totalCalories / 7) + ' kcal/day';
+}
+
+function savePlan() {
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const dateInput = document.querySelector('#plan-days .day-card:nth-child(' + (i + 1) + ') h3');
+    const meals = [];
+    for (const mealType of ['breakfast', 'lunch', 'dinner']) {
+      const select = document.getElementById('day-' + i + '-' + mealType);
+      if (select && select.value) {
+        meals.push({ meal_type: mealType, meal_id: parseInt(select.value) });
+      }
+    }
+    days.push({ date: dateInput.textContent, meals });
+  }
+
+  fetch('/api/meal-plan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ days })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) alert('Error: ' + data.error);
+    else { closePlanModal(); location.reload(); }
+  })
+  .catch(err => alert('Failed to save plan'));
+}
+
+function deletePlan() {
+  if (!currentPlan) return;
+  if (!confirm('Delete current meal plan?')) return;
+  fetch('/api/meal-plan', { method: 'DELETE' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) alert('Error: ' + data.error);
+      else location.reload();
+    })
+    .catch(err => alert('Failed to delete plan'));
+}
+
+// Initialize currentPlan from server data
+const planDataElement = document.getElementById('current-plan-data');
+if (planDataElement && planDataElement.textContent) {
+  try {
+    currentPlan = JSON.parse(planDataElement.textContent);
+  } catch (e) {}
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('plan-modal');
+  if (event.target === modal) closePlanModal();
+}
+`}>
     <h1>Meal Planning</h1>
+
+    {/* Hidden data for JS */}
+    <script id="current-plan-data" type="application/json">{currentPlan ? JSON.stringify(currentPlan) : ""}</script>
 
     <h2>Your Constraints</h2>
     <div class="card">
@@ -815,6 +1292,51 @@ const MealPlanPage: FC<{ constraints: UserConstraints; recipes: Recipe[] }> = ({
       </div>
     </div>
 
+    <h2>Current Meal Plan</h2>
+    {currentPlan ? (
+      <div class="card">
+        <div class="metric">
+          <span class="metric-label">Plan ID</span>
+          <span class="metric-value">{currentPlan.plan_id}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Created</span>
+          <span class="metric-value">{currentPlan.created_at}</span>
+        </div>
+        <div style="margin-top: 15px;">
+          <button class="btn btn-secondary" onclick="openEditModal()">Edit Plan</button>
+        </div>
+        <table style="margin-top: 15px;">
+          <thead><tr><th>Date</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th><th>Daily Calories</th></tr></thead>
+          <tbody id="current-plan-table"></tbody>
+        </table>
+        <script>{`
+          const planData = ${JSON.stringify(currentPlan.plan_data)};
+          const recipes = ${JSON.stringify(recipes)};
+          const table = document.getElementById('current-plan-table');
+          let html = '';
+          for (const day of JSON.parse(planData)) {
+            let dayCalories = 0;
+            const meals = { breakfast: '-', lunch: '-', dinner: '-' };
+            for (const m of day.meals) {
+              const recipe = recipes.find(r => r.id === m.meal_id);
+              if (recipe) {
+                meals[m.meal_type] = recipe.name;
+                dayCalories += recipe.calories_total;
+              }
+            }
+            html += '<tr><td>' + day.date + '</td><td>' + meals.breakfast + '</td><td>' + meals.lunch + '</td><td>' + meals.dinner + '</td><td>' + dayCalories + ' kcal</td></tr>';
+          }
+          table.innerHTML = html;
+        `}</script>
+      </div>
+    ) : (
+      <div class="card">
+        <p>No meal plan created yet.</p>
+        <button class="btn" onclick="openCreateModal()" style="margin-top: 10px;">Create Meal Plan</button>
+      </div>
+    )}
+
     <h2>Available Recipes</h2>
     <table>
       <thead><tr><th>Name</th><th>Meal</th><th>Calories</th><th>Allergens</th></tr></thead>
@@ -829,6 +1351,31 @@ const MealPlanPage: FC<{ constraints: UserConstraints; recipes: Recipe[] }> = ({
         ))}
       </tbody>
     </table>
+
+    {/* Modal */}
+    <div id="plan-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4); overflow:auto;">
+      <div style="background:white; margin:20px auto; padding:20px; border-radius:8px; width:900px; max-width:95%; max-height:90vh; overflow-y:auto;">
+        <h2 id="plan-modal-title" style="margin-top:0;">Create Weekly Meal Plan</h2>
+        <div style="margin-bottom:15px; padding:10px; background:#f8f9fa; border-radius:4px;">
+          <strong>Weekly Total:</strong> <span id="total-calories">0 kcal</span> |
+          <strong> Daily Avg:</strong> <span id="avg-calories">0 kcal/day</span>
+          <span style="margin-left:15px; color:#666;">Target: {constraints.calorie_target} kcal/day</span>
+        </div>
+        <div id="plan-days" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px;"></div>
+        <div style="margin-top:20px; display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn btn-secondary" onclick="closePlanModal()">Cancel</button>
+          <button class="btn" onclick="savePlan()">Save Plan</button>
+        </div>
+      </div>
+    </div>
+
+    <style>{`
+      .day-card { background: #f8f9fa; padding: 12px; border-radius: 6px; }
+      .day-card h3 { margin: 0 0 10px 0; font-size: 14px; color: #333; }
+      .meal-row { margin-bottom: 8px; }
+      .meal-row label { display: block; font-size: 12px; color: #666; margin-bottom: 2px; }
+      .meal-row select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+    `}</style>
   </Layout>;
 };
 
@@ -869,6 +1416,20 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.html(<ThermostatPage thermostat={thermostat} />);
   });
 
+  // Coffee page
+  app.page("/coffee", (c) => {
+    const database = assertDb();
+    const schedule = database.query("SELECT start_time, updated_at FROM coffee_schedule WHERE id = 1").get() as { start_time: string; updated_at: string };
+    const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string };
+
+    if (!schedule) {
+      return c.html(<ErrorPage title="Service Error" message="Coffee schedule data unavailable." />, 500);
+    }
+
+    const status = clock ? deriveCoffeeStatus(schedule.start_time, clock.clock_time) : "scheduled";
+    return c.html(<CoffeePage schedule={{ start_time: schedule.start_time, status, updated_at: schedule.updated_at }} />);
+  });
+
   // Inventory page
   app.page("/inventory", (c) => {
     const database = assertDb();
@@ -881,8 +1442,20 @@ function registerRoutes(app: OpenAPIApp): void {
   app.page("/grocery", (c) => {
     const database = assertDb();
     const products = database.query("SELECT * FROM grocery_product ORDER BY name").all() as GroceryProduct[];
-    // Grocery catalog can be empty, no error needed
-    return c.html(<GroceryPage products={products} />);
+    const orders = database.query("SELECT order_id, total, created_at FROM grocery_order ORDER BY created_at DESC").all() as GroceryOrder[];
+    return c.html(<GroceryPage products={products} orders={orders} />);
+  });
+
+  // Wearable page
+  app.page("/wearable", (c) => {
+    const database = assertDb();
+    const data = database.query("SELECT sleep_hours, sleep_score, readiness, resting_heart_rate FROM wearable_recovery_state WHERE id = 1").get() as WearableRecovery;
+
+    if (!data) {
+      return c.html(<ErrorPage title="Service Error" message="Wearable data unavailable." />, 500);
+    }
+
+    return c.html(<WearablePage data={data} />);
   });
 
   // Calendar page
@@ -898,12 +1471,13 @@ function registerRoutes(app: OpenAPIApp): void {
     const database = assertDb();
     const constraints = database.query("SELECT * FROM user_constraints WHERE id = 1").get() as UserConstraints;
     const recipes = database.query("SELECT * FROM recipe ORDER BY meal_type, name").all() as Recipe[];
+    const currentPlan = database.query("SELECT plan_id, created_at, plan_data FROM meal_plan ORDER BY created_at DESC, id DESC LIMIT 1").get() as MealPlan | null;
 
     if (!constraints) {
       return c.html(<ErrorPage title="Service Error" message="Constraints data unavailable. Please check system configuration." />, 500);
     }
 
-    return c.html(<MealPlanPage constraints={constraints} recipes={recipes} />);
+    return c.html(<MealPlanPage constraints={constraints} recipes={recipes} currentPlan={currentPlan} />);
   });
 
   // --- API Routes ---
@@ -1063,6 +1637,49 @@ function registerRoutes(app: OpenAPIApp): void {
       expiry_date: body.expiry_date,
       category: body.category
     }, 201);
+  });
+
+  app.put("/api/inventory/:id", async (c) => {
+    const idParam = c.req.param("id");
+    const id = Number(idParam);
+    if (isNaN(id) || !Number.isInteger(id) || id <= 0) {
+      return c.json({ error: "Invalid id: must be a positive integer" }, 400);
+    }
+
+    let body: Partial<InventoryItem>;
+    try {
+      body = await c.req.json();
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
+    }
+
+    const database = assertDb();
+    const existing = database.query("SELECT id FROM inventory_item WHERE id = ?").get(id);
+    if (!existing) {
+      return c.json({ error: "Item not found" }, 404);
+    }
+
+    // Validate quantity if provided
+    if (body.quantity !== undefined && (typeof body.quantity !== "number" || !Number.isFinite(body.quantity))) {
+      return c.json({ error: "Quantity must be a valid number" }, 400);
+    }
+
+    // Validate location if provided
+    if (body.location !== undefined && !["fridge", "pantry"].includes(body.location)) {
+      return c.json({ error: "Location must be 'fridge' or 'pantry'" }, 400);
+    }
+
+    const now = getBenchmarkTime();
+    database.query(
+      "UPDATE inventory_item SET item_name = COALESCE(?, item_name), quantity = COALESCE(?, quantity), unit = COALESCE(?, unit), location = COALESCE(?, location), expiry_date = COALESCE(?, expiry_date), category = COALESCE(?, category), updated_at = ? WHERE id = ?"
+    ).run(body.item_name ?? null, body.quantity ?? null, body.unit ?? null, body.location ?? null, body.expiry_date ?? null, body.category ?? null, now, id);
+
+    const updated = database.query("SELECT id, item_name, quantity, unit, location, expiry_date, category FROM inventory_item WHERE id = ?").get(id);
+    return c.json(updated);
   });
 
   app.delete("/api/inventory/:id", (c) => {
