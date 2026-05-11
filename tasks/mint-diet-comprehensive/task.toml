@@ -1,12 +1,12 @@
 version = "1.0"
 
 [metadata]
-difficulty = "easy"
+difficulty = "medium"
 category = "open-world"
 tags = ["health_fitness"]
 
-domain = "Health & Fitness"
-domains_multi = ["Health & Fitness"]
+domain = "Health & Wellness"
+domains_multi = ["Health & Wellness"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 0   # Cross-Service Dependency
@@ -14,7 +14,7 @@ factor_a2 = 0   # Contaminated Initial State
 factor_b1 = 0   # Implicit Goal Resolution
 factor_b2 = 0   # Knowledge System Maintenance
 
-case_id = 108
+case_id = 109
 
 [verifier]
 timeout_sec = 900.0
