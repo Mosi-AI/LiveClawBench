@@ -4,9 +4,11 @@ set -euo pipefail
 mkdir -p /logs/verifier /logs/artifacts
 
 # Run verifier and capture both output and exit code
-# Use PIPESTATUS to get verify.py's exit code even when piping to tee
+# Temporarily disable errexit so we can capture the exit code even if verify.py fails
+set +e
 python3 /tests/verify.py 2>&1 | tee /tmp/verify_output.txt
 VERIFY_EXIT=${PIPESTATUS[0]}
+set -e
 
 # Extract score from output for reward.txt
 SCORE=$(grep -oE 'Score:[[:space:]]*[0-9.]+' /tmp/verify_output.txt | tail -1 | grep -oE '[0-9.]+' || echo "0")
