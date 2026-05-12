@@ -33,7 +33,9 @@
       {"name": "incremental-update-ctp", "path": "tasks/incremental-update-ctp"},
       {"name": "conflict-repair-acb", "path": "tasks/conflict-repair-acb"},
       {"name": "mixed-tool-memory", "path": "tasks/mixed-tool-memory"},
-      {"name": "live-web-research-sqlite-fts5", "path": "tasks/live-web-research-sqlite-fts5"}
+      {"name": "live-web-research-sqlite-fts5", "path": "tasks/live-web-research-sqlite-fts5"},
+      {"name": "smarthome-test", "path": "tasks/smarthome-test"},
+      {"name": "grocery-reorder", "path": "tasks/grocery-reorder"}
     ]
   }
 ]

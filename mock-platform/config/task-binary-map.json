@@ -90,6 +90,14 @@
       "assets": [
         { "src": "tasks/smarthome-test/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
       ]
+    },
+    "grocery-reorder": {
+      "binaries": ["smarthome", "shop"],
+      "startup_extra": "tasks/grocery-reorder/environment/startup.sh",
+      "assets": [
+        { "src": "tasks/grocery-reorder/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" },
+        { "src": "tasks/grocery-reorder/environment/products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ]
     }
   }
 }
