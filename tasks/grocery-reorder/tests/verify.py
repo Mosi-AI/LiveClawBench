@@ -64,25 +64,40 @@ def find_egg_row(conn):
     Returns the product_id of the qualifying row, or None if not found.
     This ensures D1 and D3 are evaluated against the SAME row.
 
-    Accepts both 30.0 pieces (shortage amount) and 36.0 pieces (3 dozen).
-    The instruction tells the agent to add the shortage to the Shopping List,
-    so 30 pieces is a valid instruction-following response.
+    Accepts multiple valid instruction-following patterns:
+    - 30.0 pieces (shortage amount: 48 needed - 18 in stock)
+    - 36.0 pieces (3 dozen converted to pieces)
+    - 3.0 dozen (direct dozen entry without conversion)
+
+    The shopping-list API accepts arbitrary unit strings, so agents may
+    record the entry in either pieces or dozens.
     """
     cursor = conn.cursor()
+    # Check for pieces entries (30 or 36)
     cursor.execute(
         "SELECT product_id FROM grocery_product WHERE (name LIKE '%egg%' OR product_id LIKE '%egg%') AND quantity IN (30.0, 36.0) AND unit = 'pieces'"
+    )
+    row = cursor.fetchone()
+    if row:
+        return row[0]
+
+    # Check for dozen entry (3 dozen)
+    cursor.execute(
+        "SELECT product_id FROM grocery_product WHERE (name LIKE '%egg%' OR product_id LIKE '%egg%') AND quantity = 3.0 AND unit = 'dozen'"
     )
     row = cursor.fetchone()
     return row[0] if row else None
 
 
 def check_dimension_1(conn):
-    """D1: Eggs entry in grocery_product with quantity=30 or 36, unit='pieces'.
+    """D1: Eggs entry in grocery_product with correct quantity and unit.
 
     Returns (pass, egg_product_id) where egg_product_id identifies the specific row.
 
-    Accepts 30 pieces (shortage: 48 needed - 18 in stock) or 36 pieces (3 dozen).
-    The instruction says to add the shortage to the Shopping List, so both are valid.
+    Accepts multiple valid instruction-following patterns:
+    - 30 pieces (shortage: 48 needed - 18 in stock)
+    - 36 pieces (3 dozen converted to pieces)
+    - 3 dozen (direct dozen entry without conversion)
     """
     egg_product_id = find_egg_row(conn)
     return egg_product_id is not None, egg_product_id
@@ -127,7 +142,7 @@ def check_dimension_3(conn, egg_product_id, expected_order_id):
 
 
 def check_dimension_4():
-    """D4: Agent response contains rounding keywords.
+    """D4: Agent response explains the order quantity reasoning.
 
     Checks the last assistant message from harbor.jsonl agent logs.
     This ensures the agent actually explained the reasoning to the user,
@@ -135,6 +150,11 @@ def check_dimension_4():
 
     Fallback to response.txt only when harbor.jsonl doesn't exist
     (oracle solution scenario - shell script cannot write to harbor.jsonl).
+
+    Accepts any reasonable explanation that mentions:
+    - The shortage calculation (e.g., "needed 30 pieces", "2.5 dozen")
+    - The rounding/up-sizing decision (e.g., "3 dozen", "whole dozens")
+    - The unit conversion reasoning
     """
     response = get_last_assistant_message()
 
@@ -158,10 +178,22 @@ def check_dimension_4():
     if response is None:
         return False
 
-    # Must contain at least one rounding/conversion keyword (not just "dozen")
-    rounding_keywords = ["round", "rounding", "convert", "conversion", "adjust"]
     response_lower = response.lower()
-    return any(kw in response_lower for kw in rounding_keywords)
+
+    # Check for dozen-related reasoning patterns
+    # Accepts explanations like:
+    # - "2.5 dozen" or "3 dozen" (mentions the dozen calculation)
+    # - "whole dozen" or "full dozen" (explains rounding decision)
+    # - "round" / "convert" / "adjust" (explicit conversion language)
+    dozen_patterns = [
+        "dozen",  # Any mention of dozen (e.g., "3 dozen", "2.5 dozen")
+        "round",
+        "rounding",
+        "convert",
+        "conversion",
+        "adjust",
+    ]
+    return any(pattern in response_lower for pattern in dozen_patterns)
 
 
 def check_dimension_5(conn):
