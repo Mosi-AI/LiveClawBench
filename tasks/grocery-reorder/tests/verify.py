@@ -5,7 +5,7 @@ Verify grocery-reorder task: 5-dimension scoring with gate condition.
 Dimensions:
 - D1: Eggs entry in smarthome grocery_product table (SQLite) with quantity=36, unit='pieces' (0.25)
 - D2: Shop order (JSON orders file) with egg product and OrderItem.quantity=3 (3 dozen) (0.25)
-- D3: grocery_product.reference matches shop order_id (0.25)
+- D3: grocery_product.reference matches the EXACT egg order found in D2 (0.25)
 - D4: Agent response contains rounding keywords (0.15, mandatory)
 - D5: Existing entries (PROD001, PROD002) unchanged (0.10, gated by D1-3)
 
@@ -73,7 +73,10 @@ def check_dimension_1(conn):
 
 
 def check_dimension_2(orders):
-    """D2: Shop order with egg product and quantity=3 (3 dozen)."""
+    """D2: Shop order with egg product and quantity=3 (3 dozen).
+
+    Returns (pass, egg_order_id) where egg_order_id is the actual order found.
+    """
     for order in orders:
         for item in order.get("items", []):
             product_id = item.get("product_id", "")
@@ -81,12 +84,19 @@ def check_dimension_2(orders):
             quantity = item.get("quantity", 0)
             # Check for egg product with quantity 3 (3 dozen)
             if ("egg" in product_id.lower() or "egg" in title) and quantity == 3:
-                return True
-    return False
+                return True, order.get("order_id")
+    return False, None
 
 
-def check_dimension_3(conn, orders):
-    """D3: grocery_product.reference matches shop order_id."""
+def check_dimension_3(conn, expected_order_id):
+    """D3: grocery_product.reference matches the EXACT egg order from D2.
+
+    This enforces that the agent correctly links the Shopping List entry
+    to the specific order they placed for eggs, not just any existing order.
+    """
+    if expected_order_id is None:
+        return False
+
     cursor = conn.cursor()
     # Find eggs entry in grocery_product
     cursor.execute(
@@ -98,17 +108,27 @@ def check_dimension_3(conn, orders):
 
     for row in rows:
         reference = row[0]
-        if reference:
-            # Check if this reference exists in orders
-            for order in orders:
-                if order.get("order_id") == reference:
-                    return True
+        if reference == expected_order_id:
+            return True
     return False
 
 
 def check_dimension_4():
-    """D4: Agent response contains rounding keywords."""
+    """D4: Agent response contains rounding keywords.
+
+    Checks multiple sources:
+    1. Harbor agent logs (normal agent runs)
+    2. /workspace/output/response.txt (oracle solution fallback)
+    """
+    # First try to get from agent logs
     response = get_last_assistant_message()
+
+    # Fallback to oracle solution output file
+    if response is None:
+        response_path = Path("/workspace/output/response.txt")
+        if response_path.exists():
+            response = response_path.read_text()
+
     if response is None:
         return False
 
@@ -146,6 +166,7 @@ def check_dimension_5(conn):
 def main():
     score = 0.0
     results = {}
+    egg_order_id = None
 
     # Connect to smarthome SQLite
     smarthome_path = "/tmp/mosi_smart_home.sqlite"
@@ -170,14 +191,14 @@ def main():
     if d1_pass:
         score += 0.25
 
-    # Check D2
-    d2_pass = check_dimension_2(orders)
+    # Check D2 - returns both pass status and the actual egg order ID
+    d2_pass, egg_order_id = check_dimension_2(orders)
     results["D2"] = d2_pass
     if d2_pass:
         score += 0.25
 
-    # Check D3
-    d3_pass = check_dimension_3(conn, orders)
+    # Check D3 - must match the EXACT egg order from D2
+    d3_pass = check_dimension_3(conn, egg_order_id)
     results["D3"] = d3_pass
     if d3_pass:
         score += 0.25
@@ -201,7 +222,11 @@ def main():
     # Print results
     print(f"D1 (Eggs in grocery_product): {'PASS' if d1_pass else 'FAIL'}")
     print(f"D2 (Shop order for 3 dozen): {'PASS' if d2_pass else 'FAIL'}")
+    if d2_pass and egg_order_id:
+        print(f"    -> Found egg order: {egg_order_id}")
     print(f"D3 (Reference match): {'PASS' if d3_pass else 'FAIL'}")
+    if d2_pass and egg_order_id:
+        print(f"    -> Expected reference: {egg_order_id}")
     print(f"D4 (Rounding explanation): {'PASS' if d4_pass else 'FAIL'}")
     print(f"D5 (Existing entries unchanged): {'PASS' if d5_pass else 'FAIL' if d1_pass and d2_pass and d3_pass else 'SKIPPED (D1-3 not all pass)'}")
     print(f"Score: {score:.2f}/1.0")

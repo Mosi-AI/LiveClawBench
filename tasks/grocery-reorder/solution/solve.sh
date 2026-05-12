@@ -24,35 +24,17 @@ EXISTING_ORDERS=$(cat /tmp/mosi_shop_orders.json)
 # Generate new order ID (next sequential)
 NEW_ORDER_ID="ORD000003"
 
-# Create new order with 3 dozen eggs
-NEW_ORDER=$(cat << 'EOF'
-{
-  "order_id": "ORD000003",
-  "items": [
-    {
-      "product_id": "prod_eggs",
-      "title": "One Dozen of Eggs, Fresh Farm Eggs, 12 Pieces",
-      "price": 5.99,
-      "quantity": 3,
-      "image_url": "https://example.com/eggs.jpg"
-    }
-  ],
-  "status": "pending",
-  "created_at": "2026-05-12T08:30:00Z"
-}
-EOF
-)
-
-# Append new order to existing orders
-# Parse and merge JSON arrays
+# Create new order with 3 dozen eggs using correct Order schema
 python3 << 'PYTHON'
 import json
+from datetime import datetime
 
 with open('/tmp/mosi_shop_orders.json', 'r') as f:
     orders = json.load(f)
 
 new_order = {
     "order_id": "ORD000003",
+    "user_id": "Peter Griffin",
     "items": [
         {
             "product_id": "prod_eggs",
@@ -62,8 +44,10 @@ new_order = {
             "image_url": "https://example.com/eggs.jpg"
         }
     ],
-    "status": "pending",
-    "created_at": "2026-05-12T08:30:00Z"
+    "total_amount": 17.97,  # 5.99 * 3
+    "status": "Pending Shipment",
+    "create_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "shipping_address": "1234 Innovation Drive, San Francisco, CA 94105, USA"
 }
 
 orders.append(new_order)
@@ -79,8 +63,36 @@ SET reference = 'ORD000003'
 WHERE product_id = 'PROD_eggs';
 SQL
 
+# Step 4: Write D4 rounding explanation evidence
+# This simulates the agent's final response containing rounding/conversion reasoning
+mkdir -p /workspace/output
+cat > /workspace/output/response.txt << 'EOF'
+I've completed the egg ordering task. Here's what I did:
+
+1. Checked egg inventory in the smart-home app:
+   - Fridge: 11 pieces
+   - Pantry: 7 pieces
+   - Total: 18 pieces
+
+2. Calculated shortage against target of 4 dozen (48 pieces):
+   - Missing: 48 - 18 = 30 pieces
+
+3. Converted to dozens and rounded:
+   - 30 pieces / 12 pieces per dozen = 2.5 dozen
+   - Since eggs are sold by the dozen, I rounded up to 3 dozen (36 pieces)
+   - This ensures we have enough eggs (36 + 18 = 54 pieces, exceeding the 48-piece target)
+
+4. Added 36 pieces (3 dozen) to the Shopping List
+
+5. Placed order ORD000003 for 3 dozen eggs in the shop
+
+6. Updated the Shopping List entry with order reference ORD000003
+
+The rounding up from 2.5 to 3 dozen ensures we don't fall short of the target quantity.
+EOF
+
 echo "Reference solution completed:"
 echo "- Added Eggs (36 pieces) to Shopping List"
 echo "- Placed order ORD000003 for 3 dozen eggs"
 echo "- Linked order reference to Shopping List entry"
-echo "- Note: Rounded up from 30 pieces shortage to 36 pieces (3 dozen)"
+echo "- Wrote rounding explanation to /workspace/output/response.txt"

@@ -6,11 +6,16 @@ set -e
 
 mkdir -p /var/lib/mock-data/shop
 
-# Write orders with complete OrderItem structure
+# Write orders with correct Order schema matching shop mock types.ts:
+# - order_id, user_id, items, total_amount, status, create_time, shipping_address
+# - status uses capitalized format (Delivered, Pending Shipment, etc.)
+# - create_time format: "YYYY-MM-DD HH:MM:SS" (not ISO format with T)
+
 cat > /var/lib/mock-data/shop/mosi_shop_orders.json << 'EOF'
 [
   {
     "order_id": "ORD000001",
+    "user_id": "Peter Griffin",
     "items": [
       {
         "product_id": "prod_0001",
@@ -20,11 +25,14 @@ cat > /var/lib/mock-data/shop/mosi_shop_orders.json << 'EOF'
         "image_url": "https://example.com/milk.jpg"
       }
     ],
-    "status": "delivered",
-    "created_at": "2026-05-10T10:00:00Z"
+    "total_amount": 4.99,
+    "status": "Delivered",
+    "create_time": "2026-05-10 10:00:00",
+    "shipping_address": "1234 Innovation Drive, San Francisco, CA 94105, USA"
   },
   {
     "order_id": "ORD000002",
+    "user_id": "Peter Griffin",
     "items": [
       {
         "product_id": "prod_0004",
@@ -34,8 +42,10 @@ cat > /var/lib/mock-data/shop/mosi_shop_orders.json << 'EOF'
         "image_url": "https://example.com/butter.jpg"
       }
     ],
-    "status": "delivered",
-    "created_at": "2026-05-11T14:00:00Z"
+    "total_amount": 3.49,
+    "status": "Delivered",
+    "create_time": "2026-05-11 14:00:00",
+    "shipping_address": "1234 Innovation Drive, San Francisco, CA 94105, USA"
   }
 ]
 EOF
