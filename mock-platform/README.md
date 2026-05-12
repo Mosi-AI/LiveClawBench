@@ -29,8 +29,6 @@ mock-platform/
 | `types.ts` | Shared TypeScript interfaces |
 | `openapi.ts` | Zod schema + `@hono/zod-openapi` integration; auto-generates OpenAPI 3.1 specs |
 
-> **Full conventions and detailed guidelines** are documented in [`docs/mock-conventions.md`](docs/mock-conventions.md). This README provides an overview; refer to that document for implementation rules (factory pattern, response wrappers, auth, database seeding, testing, etc.).
-
 All mock services use `createMockApp()` which automatically exposes:
 
 - `GET /health` — returns `{ ok: true, status: "healthy", service: <name> }`
@@ -42,27 +40,19 @@ Search parity between the legacy Python mock implementations and the current Bun
 
 ## Mock Services
 
-| Service | Directory | Binary | Route Style | Description |
-|---------|-----------|--------|-------------|-------------|
-| Shop | `mocks/shop/` | `mock-shop` | Zod OpenAPI | E-commerce: products, cart, orders, user profile, search |
-| Doc-search | `mocks/doc-search/` | `mock-doc-search` | Zod OpenAPI | FTS5 full-text search with BM25 ranking, JSONL access logging |
-| Airline | `mocks/airline/` | `mock-airline` | Zod OpenAPI | Flight booking, seat selection, check-in, baggage, claims |
-| Email | `mocks/email/` | `mock-email` | Zod OpenAPI | Email inbox, compose, reply, drafts, attachments |
-| Todolist | `mocks/todolist/` | `mock-todolist` | Zod OpenAPI | Task management with date/month filtering |
+| Service | Directory | Binary | Description |
+|---------|-----------|--------|-------------|
+| Shop | `mocks/shop/` | `mock-shop` | E-commerce: products, cart, orders, user profile, search |
+| Doc-search | `mocks/doc-search/` | `mock-doc-search` | FTS5 full-text search with BM25 ranking, JSONL access logging |
+| Airline | `mocks/airline/` | `mock-airline` | Flight booking, seat selection, baggage tracking |
+| Email | `mocks/email/` | `mock-email` | Email inbox, compose, reply |
+| Todolist | `mocks/todolist/` | `mock-todolist` | Task management |
 
 API documentation is auto-generated as OpenAPI 3.1 specs in `dist/openapi/*.json`. Run `bun run generate-openapi` to regenerate after route changes.
 
-### Internal Documentation
+### Why only shop and doc-search have internal docs
 
-Internal docs capture domain-specific behaviors not exposed in the OpenAPI specs:
-
-| Document | Covered Behaviors |
-|---|---|
-| `docs/shop-internal.md` | Search algorithm, product/cart/order data types |
-| `docs/doc-search-internal.md` | FTS5 schema, BM25 ranking, JSONL access log format |
-| `docs/airline-internal.md` | Seat generation, claiming/upgrades, booking lifecycle, task fixtures |
-| `docs/email-internal.md` | Seed injection, compose/reply/draft flow, Werkzeug hash compatibility |
-| `docs/todolist-internal.md` | Date filtering, month boundaries, `getNextSunday` fix, task fixtures |
+`docs/shop-internal.md` and `docs/doc-search-internal.md` document implementation details that are not captured by the OpenAPI spec (e.g., search algorithm behavior, FTS5 schema, JSONL access log format). The other three mocks — airline, email, and todolist — are currently **stubs** that expose only the sentinel route (`/__mock_sentinel__/<name>`) and `GET /health`. They exist in the binary map so that multi-service tasks can reference them, but they have no business logic worth documenting beyond the auto-generated spec.
 
 ## Build Commands
 
@@ -164,54 +154,98 @@ BROWSER_MOCK_DATA_DIR=tasks/mixed-tool-memory/environment \
 
 The Layer 2 test specification in `docs/tests/negative-paths-reference.md` documents 16 targeted fail-fast checks against shop and doc-search. Layer 1 `bun:test` suites already provide executable negative-path coverage: shop has 39 tests in `mocks/shop/src/index.test.ts` and doc-search has 18 tests in `mocks/doc-search/src/index.test.ts`. Run them with `bun test`.
 
-## Design Principles (Summary)
+## Authentication & Auth Patterns
 
-All mocks follow these conventions. See [`docs/mock-conventions.md`](docs/mock-conventions.md) for the full specification with examples.
+All mocks that gate user data must use `mock-lib`'s built-in auth helpers. Hand-rolling JWT, base64 cookies, or comparing `password_hash` to plaintext is incorrect.
+
+### Required imports
+
+```typescript
+import {
+  sign, verify,                          // crypto.subtle HMAC-SHA256
+  authRequired, authOptional,            // Hono middleware
+  tokenCookieOptions, serializeCookie,   // canonical cookie attributes
+  BCRYPT_SALT_ROUNDS,                    // bcrypt cost factor
+} from "mock-lib";
+import bcryptjs from "bcryptjs";
+```
+
+### Login handler (canonical pattern)
+
+```typescript
+app.post("/login", async (c) => {
+  const { email, password } = await c.req.parseBody();
+  const user = getUserByEmail(db, String(email));
+  if (!user || !bcryptjs.compareSync(String(password), user.password_hash)) {
+    return c.html(<LoginPage error="Invalid credentials" />);
+  }
+  const token = await sign({ userId: user.id });
+  c.header("Set-Cookie", serializeCookie("token", token, tokenCookieOptions()));
+  return c.redirect("/");
+});
+```
+
+### Protecting routes
+
+```typescript
+// API routes — return 401 JSON on auth failure
+app.use("/api/*", authRequired);
+
+// SSR pages — redirect to /login on auth failure
+app.use("/dashboard/*", authRequired({ onUnauthorized: "redirect" }));
+```
+
+### Row-level access (IDOR prevention)
+
+Every query that returns or mutates a row must filter by the authenticated user:
+
+```typescript
+// GOOD: ownership filter
+db.query("SELECT * FROM event WHERE id = ? AND user_id = ?").get(eventId, c.get("userId"));
+db.run("DELETE FROM event WHERE id = ? AND user_id = ?", [eventId, c.get("userId")]);
+
+// BAD: trusts client-supplied user_id
+const { user_id } = req.body;  // Never do this
+```
+
+Never trust `user_id` from request body. Remove it from Zod schemas. Use `c.get("userId")` which is set by `authRequired` middleware.
+
+### Token & cookie details
+
+- **Algorithm**: HS256 via `crypto.subtle.sign/verify`
+- **Secret**: `crypto.getRandomValues()` at process startup (no env vars in production)
+- **TTL**: 1 hour; `exp` field uses **seconds** (RFC 7519)
+- **Cookie name**: `token` (not customizable — all mocks share this convention)
+- **Test override**: set `NODE_ENV=test` + `MOCK_JWT_SECRET=...` for deterministic tokens
+
+See `packages/mock-lib/README.md` for the full API reference.
+
+## Design Principles
+
+All mocks in this platform follow these conventions:
 
 1. **Factory Pattern**: Each mock exports `createXxxApp()` returning `MockAppV2`. No global state, no side effects on import.
-2. **Server Startup Guarded**: Entry point uses `if (import.meta.main)` so dynamic imports never boot a listener.
+2. **Server Startup Guarded**: Entry point uses `if (import.meta.main)` so dynamic imports (e.g., OpenAPI generation) never boot a listener.
 3. **Seed Before Listen**: Data initialization goes in `seed()` callback. `startServer()` consumes `mockApp.seed` directly. Seed failures are fatal.
 4. **Self-Contained Binary**: Each mock compiles to a standalone binary via `bun build --compile`. No runtime dependency on node_modules.
-5. **Zod Schema-First**: All API routes use `createRoute()` + Zod schema, registered via `app.openApiRoute()`. OpenAPI 3.1 specs are generated automatically.
+5. **Zod Schema-First**: All request/response validation uses Zod schemas. OpenAPI specs are generated automatically from route definitions.
 6. **Test Isolation**: Tests use `beforeEach` to create fresh app instances. No shared state between tests. `seed()` must be idempotent.
-
-## Response Wrapper Patterns
-
-Mocks standardize on the `ok()`/`err()` envelope pattern. See [`docs/mock-conventions.md`](docs/mock-conventions.md#response-wrappers) for the full specification and examples.
-
-## Auth Patterns
-
-All mocks use `mock-lib`'s `sign()`/`verify()` for JWT (HMAC-SHA256, per-process random secret) and Werkzeug-compatible PBKDF2 for password hashing. See [`docs/mock-conventions.md`](docs/mock-conventions.md#authentication) for the full auth specification.
 
 ## Adding a New Mock
 
 ```bash
 # 1. Scaffold
 bun run create-mock <name>
-```
 
-### 2. Implement in `mocks/<name>/src/`
+# 2. Implement in mocks/<name>/src/
+#    - Export create<PascalCase>App() factory returning MockAppV2
+#    - Put seed logic in the seed property of the returned object
+#    - Register routes via app.openApiRoute() or app.page()
+#    - Put tests in mocks/<name>/tests/
 
-- Export `create<PascalCase>App()` factory returning `MockAppV2`
-- Put seed logic in the `seed` property of the returned object
-- Register routes via `app.openApiRoute()` or `app.page()`
-- Put tests in `mocks/<name>/tests/`
-
-### 3. Register in the build system
-
-| Step | File | What to add |
-|------|------|-------------|
-| Port | `scripts/build-task-images.ts` — `BINARY_PORTS` | Assign a unique port (e.g., `myMock: 5010`) |
-| Sentinel | `scripts/build-all.ts` — `verifyIsolation()` | Add sentinel route pattern `\/__mock_sentinel__\/${name}` |
-| Binary map | `config/task-binary-map.json` | Add name to top-level `binaries` array |
-| Tasks | `config/task-binary-map.json` — `tasks` | For each task using this mock, add it to the task's `binaries` list; add `assets` / `frontends` if needed |
-| Verifier bridge | `mocks/<name>/python_compat/` (if needed) | If Python verifier scripts need SQLAlchemy model imports from the mock DB, create a compatibility bridge |
-
-### 4. Validate
-
-```bash
-bun test                           # Run Layer 1 tests
-bun run check-openapi              # Regenerate and verify specs are committed
-bun run build                      # Compile all binaries (validates sentinel isolation)
+# 3. Validate
+bun test                           # Run tests
+bun run check-openapi              # Regenerate and verify specs
+bun run build                      # Compile all binaries
 bun run build:images               # Build per-task Docker images
 ```

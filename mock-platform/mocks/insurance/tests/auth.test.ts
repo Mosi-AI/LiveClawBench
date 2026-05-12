@@ -1,7 +1,8 @@
 import { describe, expect, test, beforeEach } from "bun:test";
 import { Hono } from "hono";
-import { sign, _resetSecret } from "mock-lib";
-import { pageAuthRequired } from "../src/index";
+import { sign, _resetSecret, authRequired } from "mock-lib";
+
+const pageAuth = authRequired({ onUnauthorized: "redirect" });
 
 describe("pageAuthRequired middleware", () => {
   beforeEach(() => {
@@ -12,7 +13,7 @@ describe("pageAuthRequired middleware", () => {
 
   function createTestApp() {
     const app = new Hono();
-    app.get("/protected", pageAuthRequired, (c) => {
+    app.get("/protected", pageAuth, (c) => {
       const userId = c.get("userId");
       return c.json({ ok: true, userId });
     });

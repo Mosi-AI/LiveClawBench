@@ -5,16 +5,16 @@ import {
   createMockApp,
   createRoute,
   startServer,
-  verify,
   sign,
   tokenCookieOptions,
+  serializeCookie,
   registerStaticAssets,
+  authRequired,
 } from "mock-lib";
 import type { MockAppV2, AppEnv } from "mock-lib";
-import type { Context, Next } from "hono";
 import { getInsuranceDb } from "./db";
 import { seedDatabase } from "./seed";
-import { registerAuthRoutes, getUserByEmail, serializeCookie } from "./routes/auth";
+import { registerAuthRoutes, getUserByEmail } from "./routes/auth";
 import { registerClaimsRoutes } from "./routes/claims";
 import { registerAppointmentRoutes } from "./routes/appointments";
 import { registerPlansRoutes } from "./routes/plans";
@@ -30,38 +30,7 @@ import { PlansListPage } from "./components/plans-list-page";
 import { PlansCurrentPage } from "./components/plans-current-page";
 import { PlansSelectPage } from "./components/plans-select-page";
 
-/**
- * Page-auth middleware: cookie-first, Bearer fallback, redirect on failure.
- * Sets c.var.userId when authentication succeeds.
- */
-export async function pageAuthRequired(c: Context<AppEnv>, next: Next) {
-  let token: string | null = null;
-
-  // 1. Cookie-first extraction
-  const cookie = c.req.header("cookie") ?? "";
-  const match = cookie.match(/(?:^|;\s*)token=([^;]*)/);
-  if (match) token = match[1];
-
-  // 2. Bearer fallback
-  if (!token) {
-    const auth = c.req.header("Authorization");
-    if (auth?.startsWith("Bearer ")) {
-      token = auth.slice(7);
-    }
-  }
-
-  if (!token) {
-    return c.redirect(`/login?next=${encodeURIComponent(c.req.path)}`);
-  }
-
-  const payload = await verify(token);
-  if (!payload) {
-    return c.redirect(`/login?next=${encodeURIComponent(c.req.path)}`);
-  }
-
-  c.set("userId", payload.userId as number | undefined);
-  await next();
-}
+const pageAuth = authRequired({ onUnauthorized: "redirect" });
 
 export function createInsuranceApp(): MockAppV2 {
   const mockApp = createMockApp({
@@ -171,7 +140,7 @@ export function createInsuranceApp(): MockAppV2 {
   }
 
   // --- Claims pages ---
-  app.use("/claims", pageAuthRequired);
+  app.use("/claims", pageAuth);
   app.page("/claims", (c) => {
     const userId = c.get("userId")!;
     const user = getCurrentUser(db, userId);
@@ -183,13 +152,13 @@ export function createInsuranceApp(): MockAppV2 {
     return c.html(<ClaimsListPage user={user} claims={claims as any} />);
   });
 
-  app.use("/claims/new", pageAuthRequired);
+  app.use("/claims/new", pageAuth);
   app.page("/claims/new", (c) => {
     const userId = c.get("userId")!;
     const user = getCurrentUser(db, userId);
     return c.html(<ClaimsNewPage user={user} />);
   });
-  app.post("/claims/new", pageAuthRequired, async (c) => {
+  app.post("/claims/new", pageAuth, async (c) => {
     const userId = c.get("userId")!;
     let body: Record<string, string | File>;
     try {
@@ -216,7 +185,7 @@ export function createInsuranceApp(): MockAppV2 {
     return c.redirect(`/claims/${row!.id}`);
   });
 
-  app.use("/claims/:id", pageAuthRequired);
+  app.use("/claims/:id", pageAuth);
   app.page("/claims/:id", (c) => {
     const userId = c.get("userId")!;
     const user = getCurrentUser(db, userId);
@@ -250,7 +219,7 @@ export function createInsuranceApp(): MockAppV2 {
   });
 
   // --- Appointments pages ---
-  app.use("/appointments/search", pageAuthRequired);
+  app.use("/appointments/search", pageAuth);
   app.page("/appointments/search", (c) => {
     const userId = c.get("userId")!;
     const user = getCurrentUser(db, userId);
@@ -339,7 +308,7 @@ export function createInsuranceApp(): MockAppV2 {
     );
   });
 
-  app.use("/appointments/providers/:id", pageAuthRequired);
+  app.use("/appointments/providers/:id", pageAuth);
   app.page("/appointments/providers/:id", (c) => {
     const userId = c.get("userId")!;
     const user = getCurrentUser(db, userId);
@@ -397,7 +366,7 @@ export function createInsuranceApp(): MockAppV2 {
     );
   });
 
-  app.post("/appointments/book", pageAuthRequired, async (c) => {
+  app.post("/appointments/book", pageAuth, async (c) => {
     const userId = c.get("userId")!;
     let body: Record<string, string | File>;
     try {
@@ -466,7 +435,7 @@ export function createInsuranceApp(): MockAppV2 {
   });
 
   // --- Plans pages ---
-  app.use("/plans", pageAuthRequired);
+  app.use("/plans", pageAuth);
   app.page("/plans", (c) => {
     const userId = c.get("userId")!;
     const user = getCurrentUser(db, userId);
@@ -489,7 +458,7 @@ export function createInsuranceApp(): MockAppV2 {
     return c.html(<PlansListPage user={user} plans={plans} />);
   });
 
-  app.use("/plans/current", pageAuthRequired);
+  app.use("/plans/current", pageAuth);
   app.page("/plans/current", (c) => {
     const userId = c.get("userId")!;
     const user = getCurrentUser(db, userId);
@@ -523,7 +492,7 @@ export function createInsuranceApp(): MockAppV2 {
     return c.html(<PlansCurrentPage user={user} policy={{ ...policy, plan }} />);
   });
 
-  app.use("/plans/select", pageAuthRequired);
+  app.use("/plans/select", pageAuth);
   app.page("/plans/select", (c) => {
     const userId = c.get("userId")!;
     const user = getCurrentUser(db, userId);
@@ -565,7 +534,7 @@ export function createInsuranceApp(): MockAppV2 {
       <PlansSelectPage user={user} plans={plansWithBenefits} />,
     );
   });
-  app.post("/plans/select", pageAuthRequired, async (c) => {
+  app.post("/plans/select", pageAuth, async (c) => {
     const userId = c.get("userId")!;
     let body: Record<string, string | File>;
     try {

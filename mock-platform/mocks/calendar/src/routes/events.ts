@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createRoute, ErrorResponseSchema } from "mock-lib";
+import { createRoute, ErrorResponseSchema, authRequired } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 
@@ -15,7 +15,6 @@ const EventSchema = z.object({
 });
 
 const CreateEventSchema = z.object({
-  user_id: z.number(),
   title: z.string().min(1),
   start_time: z.string(),
   end_time: z.string(),
@@ -24,16 +23,14 @@ const CreateEventSchema = z.object({
 });
 
 export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
+  // All API routes require authentication
+  app.use("/api/*", authRequired);
+
   // GET /api/events
   const listRoute = createRoute({
     method: "get",
     path: "/api/events",
-    summary: "List calendar events",
-    request: {
-      query: z.object({
-        user_id: z.string().regex(/^\d+$/).optional(),
-      }),
-    },
+    summary: "List calendar events for the authenticated user",
     responses: {
       200: {
         content: {
@@ -46,16 +43,11 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(listRoute, (c): any => {
-    const userIdParam = c.req.query("user_id");
-    let sql = "SELECT * FROM calendar_event";
-    const params: (string | number)[] = [];
-    if (userIdParam) {
-      sql += " WHERE user_id = ?";
-      params.push(Number(userIdParam));
-    }
-    sql += " ORDER BY start_time ASC";
-    const rows = params.length > 0 ? db.query(sql).all(...params) : db.query(sql).all();
+  app.openApiRoute(listRoute, (c) => {
+    const userId = c.get("userId")!;
+    const rows = db
+      .query("SELECT * FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC")
+      .all(userId);
     return c.json({ events: rows });
   });
 
@@ -101,14 +93,21 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
     },
   });
 
-  app.openApiRoute(createRouteDef, async (c): Promise<any> => {
-    const body = await c.req.json();
+  app.openApiRoute(createRouteDef, async (c) => {
+    const userId = c.get("userId")!;
+    let body: Record<string, unknown>;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: "invalid_request", details: "Malformed JSON" }, 400);
+    }
+
     const parse = CreateEventSchema.safeParse(body);
     if (!parse.success) {
       return c.json({ error: "invalid_request", details: parse.error.format() }, 400);
     }
 
-    const { user_id, title, start_time, end_time, source, source_ref } = parse.data;
+    const { title, start_time, end_time, source, source_ref } = parse.data;
 
     const startUtc = new Date(start_time).toISOString();
     const endUtc = new Date(end_time).toISOString();
@@ -117,27 +116,33 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
       return c.json({ error: "invalid_time_range" }, 400);
     }
 
-    // Overlap check: start_time < new_end AND end_time > new_start (normalized to UTC)
-    const overlap = db
-      .query<{ count: number }, [number, string, string]>(
-        `SELECT COUNT(*) as count FROM calendar_event
-         WHERE user_id = ? AND start_time < ? AND end_time > ?`,
-      )
-      .get(user_id, endUtc, startUtc);
+    const insertEvent = db.transaction(() => {
+      const overlap = db
+        .query<{ count: number }, [number, string, string]>(
+          `SELECT COUNT(*) as count FROM calendar_event
+           WHERE user_id = ? AND start_time < ? AND end_time > ?`,
+        )
+        .get(userId, endUtc, startUtc);
 
-    if (overlap && overlap.count > 0) {
+      if (overlap && overlap.count > 0) {
+        return null;
+      }
+
+      const result = db.run(
+        `INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [userId, title, startUtc, endUtc, source ?? null, source_ref ?? null],
+      );
+
+      return db
+        .query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?")
+        .get(result.lastInsertRowid, userId);
+    });
+
+    const event = insertEvent();
+    if (!event) {
       return c.json({ error: "time_overlap" }, 409);
     }
-
-    const result = db.run(
-      `INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [user_id, title, startUtc, endUtc, source ?? null, source_ref ?? null],
-    );
-
-    const event = db
-      .query("SELECT * FROM calendar_event WHERE id = ?")
-      .get(result.lastInsertRowid);
 
     return c.json(event, 201);
   });
@@ -171,8 +176,9 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.openApiRoute(getRoute, (c) => {
+    const userId = c.get("userId")!;
     const id = Number(c.req.param("id"));
-    const event = db.query("SELECT * FROM calendar_event WHERE id = ?").get(id);
+    const event = db.query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?").get(id, userId);
     if (!event) {
       return c.json({ error: "not_found" }, 404);
     }
@@ -203,8 +209,9 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   app.openApiRoute(deleteRoute, (c) => {
+    const userId = c.get("userId")!;
     const id = Number(c.req.param("id"));
-    const result = db.run("DELETE FROM calendar_event WHERE id = ?", [id]);
+    const result = db.run("DELETE FROM calendar_event WHERE id = ? AND user_id = ?", [id, userId]);
     if (result.changes === 0) {
       return c.json({ error: "not_found" }, 404);
     }

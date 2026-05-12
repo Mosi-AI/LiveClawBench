@@ -187,3 +187,24 @@ export function tokenCookieOptions(): TokenCookieOptions {
     path: "/",
   };
 }
+
+/**
+ * Serialize a Set-Cookie header value from a name/value pair and cookie options.
+ *
+ * Does NOT URL-encode the value — callers must ensure the value contains no
+ * characters that conflict with cookie syntax (';', whitespace). Safe for JWTs
+ * by construction (base64url alphabet has no reserved cookie characters).
+ */
+export function serializeCookie(
+  name: string,
+  value: string,
+  opts: TokenCookieOptions,
+): string {
+  let cookie = `${name}=${value}`;
+  if (opts.httpOnly) cookie += "; HttpOnly";
+  if (opts.secure) cookie += "; Secure";
+  cookie += `; SameSite=${opts.sameSite}`;
+  cookie += `; Max-Age=${opts.maxAge}`;
+  cookie += `; Path=${opts.path}`;
+  return cookie;
+}

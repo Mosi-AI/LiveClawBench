@@ -1,12 +1,11 @@
 import type { Database } from "bun:sqlite";
 import bcryptjs from "bcryptjs";
+import { BCRYPT_SALT_ROUNDS } from "mock-lib";
 import { initSchema } from "./db/schema";
 
 export const DEFAULT_USER_EMAIL = "peter.griffin@work.mosi.inc";
 export const DEFAULT_USER_PASSWORD = "password123";
 export const PLAN_EFFECTIVE_YEAR = 2027;
-
-const BCRYPT_SALT_ROUNDS = 10;
 
 type CheckItem =
   | "general_checkup"

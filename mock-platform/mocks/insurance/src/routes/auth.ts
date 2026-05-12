@@ -1,6 +1,6 @@
 import { z } from "zod";
 import bcryptjs from "bcryptjs";
-import { createRoute, sign, tokenCookieOptions } from "mock-lib";
+import { createRoute, sign, tokenCookieOptions, serializeCookie, BCRYPT_SALT_ROUNDS } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ErrorResponseSchema } from "mock-lib";
@@ -30,20 +30,6 @@ const AuthSuccessSchema = z.object({
   token: z.string(),
   user: UserSchema,
 });
-
-export function serializeCookie(
-  name: string,
-  value: string,
-  opts: ReturnType<typeof tokenCookieOptions>,
-): string {
-  let cookie = `${name}=${value}`;
-  if (opts.httpOnly) cookie += "; HttpOnly";
-  if (opts.secure) cookie += "; Secure";
-  cookie += `; SameSite=${opts.sameSite}`;
-  cookie += `; Max-Age=${opts.maxAge}`;
-  cookie += `; Path=${opts.path}`;
-  return cookie;
-}
 
 export function getUserByEmail(
   db: Database,
@@ -163,7 +149,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json({ error: "Email already registered" }, 400);
     }
 
-    const passwordHash = bcryptjs.hashSync(password, 10);
+    const passwordHash = bcryptjs.hashSync(password, BCRYPT_SALT_ROUNDS);
     db.query(
       `INSERT INTO users (email, password_hash, first_name, last_name)
        VALUES (?, ?, ?, ?)`,

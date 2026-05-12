@@ -1,14 +1,30 @@
 /** @jsxImportSource hono/jsx */
 import { z } from "zod";
 import bcryptjs from "bcryptjs";
-import { createMockApp, createRoute, registerStaticAssets, startServer } from "mock-lib";
-import type { MockAppV2 } from "mock-lib";
+import {
+  createMockApp,
+  createRoute,
+  registerStaticAssets,
+  startServer,
+  sign,
+  tokenCookieOptions,
+  serializeCookie,
+  authRequired,
+} from "mock-lib";
+import type { MockAppV2, AppEnv } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { getCalendarDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
 import { registerEventsRoutes } from "./routes/events";
 import { CalendarPage } from "./pages/calendar-page";
 import { LoginPage } from "./pages/login-page";
+
+interface CalEvent {
+  id: number;
+  title: string;
+  start_time: string;
+  end_time: string;
+}
 
 export function createCalendarApp(): MockAppV2 {
   const mockApp = createMockApp({
@@ -45,74 +61,65 @@ export function createCalendarApp(): MockAppV2 {
     },
   });
 
-  mockApp.app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true, mock: "calendar" }));
+  mockApp.app.openApiRoute(sentinelRoute, (c) =>
+    c.json({ ok: true, mock: "calendar" }),
+  );
 
   registerEventsRoutes(mockApp.app, db);
-  registerStaticAssets(mockApp.app, { dir: "/opt/mock/static/calendar", prefix: "/static" });
-  registerPageRoutes(mockApp.app, db);
-
-  return {
-    ...mockApp,
-    seed: () => seedDatabase(db),
-  };
-}
-
-function getUserFromCookie(db: Database, c: any): { id: number; first_name: string; last_name: string } | null {
-  // Simple cookie-based session check
-  const cookieHeader = c.req.header("cookie") || "";
-  const match = cookieHeader.match(/calendar_token=([^;]+)/);
-  if (!match) return null;
-  try {
-    const parts = (match[1] || "").split(".");
-    if (parts.length < 3) return null;
-    const payload = JSON.parse(atob(parts[1]));
-    if (!payload.userId) return null;
-    const user = db
-      .query<{ id: number; first_name: string; last_name: string }, [number]>(
-        "SELECT id, first_name, last_name FROM users WHERE id = ?",
-      )
-      .get(payload.userId);
-    return user ?? null;
-  } catch {
-    return null;
-  }
-}
-
-interface CalEvent { id: number; title: string; start_time: string; end_time: string; }
-
-const listEventsStmt = (db: Database) =>
-  db.query<CalEvent, [number]>("SELECT id, title, start_time, end_time FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC");
-
-function registerPageRoutes(app: any, db: Database): void {
-  // GET / — Calendar portal home
-  app.get("/", async (c: any) => {
-    const user = getUserFromCookie(db, c);
-    if (!user) {
-      return c.redirect("/login");
-    }
-    const events = listEventsStmt(db).all(user.id);
-    return c.html(<CalendarPage user={user} events={events} />);
+  registerStaticAssets(mockApp.app, {
+    dir: "/opt/mock/static/calendar",
+    prefix: "/static",
   });
 
-  // GET /login — Login page
-  app.get("/login", async (c: any) => {
+  const { app } = mockApp;
+  const pageAuth = authRequired({ onUnauthorized: "redirect" });
+
+  function getCurrentUser(userId: number) {
+    return (
+      db
+        .query<
+          { id: number; first_name: string; last_name: string },
+          [number]
+        >("SELECT id, first_name, last_name FROM users WHERE id = ?")
+        .get(userId) ?? null
+    );
+  }
+
+  function listEvents(userId: number) {
+    return db
+      .query<CalEvent, [number]>(
+        "SELECT id, title, start_time, end_time FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC",
+      )
+      .all(userId);
+  }
+
+  // --- Login routes (no auth) ---
+
+  app.get("/login", (c) => {
     return c.html(<LoginPage />);
   });
 
-  // POST /login — Login form handler
-  app.post("/login", async (c: any) => {
+  app.post("/login", async (c) => {
     let body: Record<string, string | File>;
     try {
       body = await c.req.parseBody();
     } catch {
       return c.html(<LoginPage error="Invalid form submission" />, 400);
     }
-    const email = String(body.email || "");
-    const password = String(body.password || "");
+    const email = String(body.email ?? "");
+    const password = String(body.password ?? "");
 
     const user = db
-      .query<{ id: number; email: string; password_hash: string; first_name: string; last_name: string }, [string]>(
-        "SELECT id, email, password_hash, first_name, last_name FROM users WHERE email = ?",
+      .query<
+        {
+          id: number;
+          password_hash: string;
+          first_name: string;
+          last_name: string;
+        },
+        [string]
+      >(
+        "SELECT id, password_hash, first_name, last_name FROM users WHERE email = ?",
       )
       .get(email);
 
@@ -120,74 +127,97 @@ function registerPageRoutes(app: any, db: Database): void {
       return c.html(<LoginPage error="Invalid email or password" />);
     }
 
-    // Simple JWT-like token
-    const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-    const payload = btoa(JSON.stringify({ userId: user.id, exp: Date.now() + 86400000 }));
-    const token = `${header}.${payload}.sig`;
-
-    c.header("Set-Cookie", `calendar_token=${token}; HttpOnly; SameSite=Lax; Max-Age=86400; Path=/`);
+    const token = await sign({ userId: user.id });
+    c.header("Set-Cookie", serializeCookie("token", token, tokenCookieOptions()));
     return c.redirect("/");
   });
 
-  // POST /events — Create event from form
-  app.post("/events", async (c: any) => {
-    const user = getUserFromCookie(db, c);
+  // --- Protected page routes ---
+
+  app.get("/", pageAuth, (c) => {
+    const userId = c.get("userId")!;
+    const user = getCurrentUser(userId);
+    if (!user) return c.redirect("/login");
+    const events = listEvents(userId);
+    return c.html(<CalendarPage user={user} events={events} />);
+  });
+
+  app.post("/events", pageAuth, async (c) => {
+    const userId = c.get("userId")!;
+    const user = getCurrentUser(userId);
     if (!user) return c.redirect("/login");
 
     let body: Record<string, string | File>;
     try {
       body = await c.req.parseBody();
     } catch {
-      const events = listEventsStmt(db).all(user.id);
-      return c.html(<CalendarPage user={user} events={events} error="Invalid form submission" />, 400);
+      const events = listEvents(userId);
+      return c.html(
+        <CalendarPage user={user} events={events} error="Invalid form submission" />,
+        400,
+      );
     }
-    const title = String(body.title || "");
-    const startTime = String(body.start_time || "");
-    const endTime = String(body.end_time || "");
+    const title = String(body.title ?? "");
+    const startTime = String(body.start_time ?? "");
+    const endTime = String(body.end_time ?? "");
 
     if (!title || !startTime || !endTime) {
-      const events = listEventsStmt(db).all(user.id);
-      return c.html(<CalendarPage user={user} events={events} error="All fields are required" />);
+      const events = listEvents(userId);
+      return c.html(
+        <CalendarPage user={user} events={events} error="All fields are required" />,
+      );
     }
 
-    // Convert datetime-local to ISO
     const startUtc = new Date(startTime).toISOString();
     const endUtc = new Date(endTime).toISOString();
 
     if (new Date(startUtc) >= new Date(endUtc)) {
-      const events = listEventsStmt(db).all(user.id);
-      return c.html(<CalendarPage user={user} events={events} error="End time must be after start time" />);
+      const events = listEvents(userId);
+      return c.html(
+        <CalendarPage
+          user={user}
+          events={events}
+          error="End time must be after start time"
+        />,
+      );
     }
 
-    // Overlap check
     const overlap = db
       .query<{ count: number }, [number, string, string]>(
         "SELECT COUNT(*) as count FROM calendar_event WHERE user_id = ? AND start_time < ? AND end_time > ?",
       )
-      .get(user.id, endUtc, startUtc);
+      .get(userId, endUtc, startUtc);
 
     if (overlap && overlap.count > 0) {
-      const events = listEventsStmt(db).all(user.id);
-      return c.html(<CalendarPage user={user} events={events} error="Time overlaps with an existing event" />);
+      const events = listEvents(userId);
+      return c.html(
+        <CalendarPage
+          user={user}
+          events={events}
+          error="Time overlaps with an existing event"
+        />,
+      );
     }
 
     db.run(
       "INSERT INTO calendar_event (user_id, title, start_time, end_time) VALUES (?, ?, ?, ?)",
-      [user.id, title, startUtc, endUtc],
+      [userId, title, startUtc, endUtc],
     );
 
     return c.redirect("/");
   });
 
-  // POST /events/:id/delete — Delete event from form
-  app.post("/events/:id/delete", async (c: any) => {
-    const user = getUserFromCookie(db, c);
-    if (!user) return c.redirect("/login");
-
+  app.post("/events/:id/delete", pageAuth, (c) => {
+    const userId = c.get("userId")!;
     const id = Number(c.req.param("id"));
-    db.run("DELETE FROM calendar_event WHERE id = ? AND user_id = ?", [id, user.id]);
+    db.run("DELETE FROM calendar_event WHERE id = ? AND user_id = ?", [id, userId]);
     return c.redirect("/");
   });
+
+  return {
+    ...mockApp,
+    seed: () => seedDatabase(db),
+  };
 }
 
 if (import.meta.main) {

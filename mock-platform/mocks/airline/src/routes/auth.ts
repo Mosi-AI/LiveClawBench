@@ -1,21 +1,18 @@
+import bcryptjs from "bcryptjs";
+import { sign, BCRYPT_SALT_ROUNDS, tokenCookieOptions, serializeCookie } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ok, err, getUserById, DEFAULT_USER_ID } from "../helpers";
 
-function generateJwtToken(userId: number): string {
-  const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
-  const payload = Buffer.from(JSON.stringify({
-    sub: userId,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 3600,
-  })).toString("base64url");
-  return `${header}.${payload}.mock-signature`;
-}
-
 export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   // POST /api/auth/register
   app.post("/api/auth/register", async (c) => {
-    const body = (await c.req.json()) as Record<string, unknown>;
+    let body: Record<string, unknown>;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json(err("Invalid JSON body"), 400);
+    }
     const email = String(body.email ?? "");
     const password = String(body.password ?? "");
     const firstName = String(body.first_name ?? "");
@@ -32,33 +29,46 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Email already registered"), 400);
     }
 
+    const passwordHash = bcryptjs.hashSync(password, BCRYPT_SALT_ROUNDS);
     db.query(
       "INSERT INTO users (email, password_hash, first_name, last_name, phone, date_of_birth, is_verified, is_active) VALUES (?, ?, ?, ?, ?, ?, 1, 1)"
-    ).run(email, password, firstName, lastName, phone, dateOfBirth);
+    ).run(email, passwordHash, firstName, lastName, phone, dateOfBirth);
 
     const row = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
     const user = getUserById(db, row.id);
-    return c.json(ok({ user, access_token: generateJwtToken(row.id), refresh_token: generateJwtToken(row.id) + "-refresh" }, "Registration successful"), 201);
+    const token = await sign({ userId: row.id });
+    const cookieStr = serializeCookie("token", token, tokenCookieOptions());
+    c.header("Set-Cookie", cookieStr);
+    return c.json(ok({ user, access_token: token, refresh_token: token + "-refresh" }, "Registration successful"), 201);
   });
 
   // POST /api/auth/login
   app.post("/api/auth/login", async (c) => {
-    const body = (await c.req.json()) as Record<string, unknown>;
+    let body: Record<string, unknown>;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json(err("Invalid JSON body"), 400);
+    }
     const email = String(body.email ?? "");
     const password = String(body.password ?? "");
 
-    const row = db.query("SELECT * FROM users WHERE email = ? AND password_hash = ?").get(email, password) as { id: number } | null;
-    if (!row) {
+    const row = db.query("SELECT id, password_hash FROM users WHERE email = ?").get(email) as { id: number; password_hash: string } | null;
+    if (!row || !bcryptjs.compareSync(password, row.password_hash)) {
       return c.json(err("Invalid email or password"), 401);
     }
 
     const user = getUserById(db, row.id);
-    return c.json(ok({ user, access_token: generateJwtToken(row.id), refresh_token: generateJwtToken(row.id) + "-refresh" }, "Login successful"));
+    const token = await sign({ userId: row.id });
+    const cookieStr = serializeCookie("token", token, tokenCookieOptions());
+    c.header("Set-Cookie", cookieStr);
+    return c.json(ok({ user, access_token: token, refresh_token: token + "-refresh" }, "Login successful"));
   });
 
   // POST /api/auth/refresh
   app.post("/api/auth/refresh", async (c) => {
-    return c.json(ok({ access_token: "mock_token" }, "Token refreshed"));
+    const token = await sign({ userId: DEFAULT_USER_ID });
+    return c.json(ok({ access_token: token }, "Token refreshed"));
   });
 
   // GET /api/auth/profile
@@ -70,7 +80,12 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
   // PUT /api/auth/profile
   app.put("/api/auth/profile", async (c) => {
-    const body = (await c.req.json()) as Record<string, unknown>;
+    let body: Record<string, unknown>;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json(err("Invalid JSON body"), 400);
+    }
     const fields: string[] = [];
     const values: (string | null)[] = [];
 
@@ -91,16 +106,22 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
   // POST /api/auth/change-password
   app.post("/api/auth/change-password", async (c) => {
-    const body = (await c.req.json()) as Record<string, unknown>;
+    let body: Record<string, unknown>;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json(err("Invalid JSON body"), 400);
+    }
     const oldPassword = String(body.old_password ?? "");
     const newPassword = String(body.new_password ?? "");
 
-    const row = db.query("SELECT id FROM users WHERE id = ? AND password_hash = ?").get(DEFAULT_USER_ID, oldPassword) as { id: number } | null;
-    if (!row) {
+    const row = db.query("SELECT id, password_hash FROM users WHERE id = ?").get(DEFAULT_USER_ID) as { id: number; password_hash: string } | null;
+    if (!row || !bcryptjs.compareSync(oldPassword, row.password_hash)) {
       return c.json(err("Current password is incorrect"), 401);
     }
 
-    db.query("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(newPassword, DEFAULT_USER_ID);
+    const newHash = bcryptjs.hashSync(newPassword, BCRYPT_SALT_ROUNDS);
+    db.query("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(newHash, DEFAULT_USER_ID);
     return c.json(ok(null, "Password changed successfully"));
   });
 }

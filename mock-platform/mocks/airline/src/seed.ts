@@ -4,6 +4,8 @@ import { formatDateTime } from "./helpers";
 import type { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import { generateBookingReference } from "./helpers";
+import bcryptjs from "bcryptjs";
+import { BCRYPT_SALT_ROUNDS } from "mock-lib";
 
 const SEAT_LETTERS = ["A", "B", "C", "D", "E", "F"];
 const AISLE_LETTERS: readonly string[] = ["C", "D"];
@@ -62,9 +64,9 @@ function calculateNextMonday(from?: Date): Date {
 }
 
 function createUsers(db: Database, taskMode: boolean): number[] {
-  const users = taskMode
+  const rawUsers = taskMode
     ? [
-        { email: "peter.griffin@work.mosi.inc", password: "$2b$12$placeholder_hash_for_peter", first_name: "Peter", last_name: "Griffin", phone: "+1-555-0100", dob: "1975-04-12" },
+        { email: "peter.griffin@work.mosi.inc", password: "password123", first_name: "Peter", last_name: "Griffin", phone: "+1-555-0100", dob: "1975-04-12" },
         { email: "john.doe@email.com", password: "password123", first_name: "John", last_name: "Doe", phone: "+1-555-0101", dob: "1988-06-15" },
         { email: "jane.smith@email.com", password: "password123", first_name: "Jane", last_name: "Smith", phone: "+1-555-0102", dob: "1990-03-22" },
         { email: "mike.johnson@email.com", password: "password123", first_name: "Mike", last_name: "Johnson", phone: "+1-555-0103", dob: "1985-11-08" },
@@ -72,14 +74,15 @@ function createUsers(db: Database, taskMode: boolean): number[] {
         { email: "david.brown@email.com", password: "password123", first_name: "David", last_name: "Brown", phone: "+1-555-0105", dob: "1980-01-18" },
       ]
     : [
-        { email: "peter.griffin@work.mosi.inc", password: "$2b$12$placeholder_hash_for_peter", first_name: "Peter", last_name: "Griffin", phone: "+1-555-0100", dob: "1975-04-12" },
+        { email: "peter.griffin@work.mosi.inc", password: "password123", first_name: "Peter", last_name: "Griffin", phone: "+1-555-0100", dob: "1975-04-12" },
       ];
 
   const ids: number[] = [];
-  for (const u of users) {
+  for (const u of rawUsers) {
+    const hash = bcryptjs.hashSync(u.password, BCRYPT_SALT_ROUNDS);
     db.query(
       "INSERT INTO users (email, password_hash, first_name, last_name, phone, date_of_birth, is_verified, is_active) VALUES (?, ?, ?, ?, ?, ?, 1, 1)"
-    ).run(u.email, u.password, u.first_name, u.last_name, u.phone, u.dob);
+    ).run(u.email, hash, u.first_name, u.last_name, u.phone, u.dob);
     ids.push(Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id));
   }
   return ids;
@@ -489,9 +492,10 @@ function createFlightSeatSelectionFailedData(db: Database, peterId: number, now:
 
   for (let i = 0; i < windowSeats.length; i++) {
     const userEmail = `windowseat.user${i + 1}@test.com`;
+    const wsHash = bcryptjs.hashSync("password123", BCRYPT_SALT_ROUNDS);
     db.query(
-      "INSERT INTO users (email, password_hash, first_name, last_name, is_verified, is_active) VALUES (?, 'password123', ?, ?, 1, 1)"
-    ).run(userEmail, `Window${i + 1}`, `Passenger${i + 1}`);
+      "INSERT INTO users (email, password_hash, first_name, last_name, is_verified, is_active) VALUES (?, ?, ?, ?, 1, 1)"
+    ).run(userEmail, wsHash, `Window${i + 1}`, `Passenger${i + 1}`);
 
     const userId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
 
