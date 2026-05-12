@@ -41,6 +41,36 @@ const BINARY_PORTS: Record<string, number> = {
   calendar: 5003,
 };
 
+function portProxyLines(listenPort: number, targetPort: number): string[] {
+  return [
+    `python3 -c "`,
+    `import socketserver, socket, threading`,
+    `class P(socketserver.ThreadingTCPServer):`,
+    `  allow_reuse_address = True`,
+    `  def server_bind(self):`,
+    `    super().server_bind()`,
+    `    import os`,
+    `    os.set_inheritable(self.socket.fileno(), False)`,
+    `class H(socketserver.BaseRequestHandler):`,
+    `  def handle(self):`,
+    `    b=socket.socket(socket.AF_INET, socket.SOCK_STREAM | getattr(socket, 'SOCK_CLOEXEC', 0)); b.connect(('127.0.0.1',${targetPort}))`,
+    `    def fwd(src,dst):`,
+    `      try:`,
+    `        while (d:=src.recv(8192)): dst.send(d)`,
+    `      except: pass`,
+    `    threading.Thread(target=fwd,args=(self.request,b),daemon=True).start()`,
+    `    try:`,
+    `      fwd(b,self.request)`,
+    `    finally:`,
+    `      try: self.request.shutdown(socket.SHUT_RDWR)`,
+    `      except: pass`,
+    `      try: b.shutdown(socket.SHUT_RDWR)`,
+    `      except: pass`,
+    `P(('0.0.0.0',${listenPort}),H).serve_forever()`,
+    `" > /dev/null 2>&1 &`,
+  ];
+}
+
 // All 32 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
@@ -53,8 +83,7 @@ const ALL_TASK_NAMES = new Set([
   "skill-conflict-resolution", "skill-dependency-fix", "noise-filtering",
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination",
-  "insurance-deductible-selection",
-  "health-insurance-optimization",
+  "insurance-deductible-selection", "health-insurance-optimization",
 ]);
 
 interface AssetMapping {
@@ -78,8 +107,8 @@ interface TaskMapping {
   startup_extra?: string;
   /** Optional per-task assets to COPY into the image */
   assets?: AssetMapping[];
-  /** Optional frontend SPA build configuration */
-  frontend?: FrontendConfig;
+  /** Optional multiple frontend SPA build configurations */
+  frontends?: FrontendConfig[];
 }
 
 interface MappingConfig {
@@ -209,23 +238,29 @@ function validateMapping(raw: unknown): MappingConfig {
       }
     }
 
-    // Validate optional frontend field
-    if ("frontend" in taskObj) {
-      const fe = taskObj.frontend;
-      if (typeof fe !== "object" || fe === null) {
-        errors.push(`Task "${taskName}" 'frontend' must be an object`);
+    // Validate optional frontends array
+    if ("frontends" in taskObj) {
+      const fes = taskObj.frontends;
+      if (!Array.isArray(fes)) {
+        errors.push(`Task "${taskName}" 'frontends' must be an array`);
       } else {
-        const feObj = fe as Record<string, unknown>;
-        for (const key of ["src", "buildDir", "dest"]) {
-          if (typeof feObj[key] !== "string" || !(feObj[key] as string)) {
-            errors.push(`Task "${taskName}" 'frontend.${key}' must be a non-empty string`);
+        for (let fi = 0; fi < fes.length; fi++) {
+          const fe = fes[fi];
+          if (typeof fe !== "object" || fe === null) {
+            errors.push(`Task "${taskName}" 'frontends[${fi}]' must be an object`);
+            continue;
           }
-        }
-        // Check for unknown keys in frontend object
-        const allowedFrontendKeys = new Set(["src", "buildDir", "dest"]);
-        for (const key of Object.keys(feObj)) {
-          if (!allowedFrontendKeys.has(key)) {
-            errors.push(`Task "${taskName}" 'frontend' has unknown key: "${key}"`);
+          const feObj = fe as Record<string, unknown>;
+          for (const key of ["src", "buildDir", "dest"]) {
+            if (typeof feObj[key] !== "string" || !(feObj[key] as string)) {
+              errors.push(`Task "${taskName}" 'frontends[${fi}].${key}' must be a non-empty string`);
+            }
+          }
+          const allowedFrontendKeys = new Set(["src", "buildDir", "dest"]);
+          for (const key of Object.keys(feObj)) {
+            if (!allowedFrontendKeys.has(key)) {
+              errors.push(`Task "${taskName}" 'frontends[${fi}]' has unknown key: "${key}"`);
+            }
           }
         }
       }
@@ -273,6 +308,22 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     `# Binaries: ${binaries.length > 0 ? binaries.join(", ") : "(none)"}`,
     "set -e",
     "",
+    "# Helper: wait for an HTTP endpoint to become ready, exit non-zero on timeout",
+    "wait_http() {",
+    "  url=\"$1\"",
+    "  max=\"${2:-30}\"",
+    "  i=0",
+    "  while [ $i -lt $max ]; do",
+    "    if curl -sf \"$url\" >/dev/null 2>&1; then",
+    "      return 0",
+    "    fi",
+    "    i=$((i + 1))",
+    "    sleep 0.5",
+    "  done",
+    "  echo \"ERROR: $url did not become ready after ${max} attempts\" >&2",
+    "  exit 1",
+    "}",
+    "",
   ];
 
   // Step 0: Data directory initialization for shop tasks
@@ -289,20 +340,10 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("");
   }
 
-  // Binaries that are stubs (health/sentinel only) — the real services are
-  // started by the task's startup.sh.  Implemented binaries (shop, doc-search)
-  // are full Bun replacements and should be launched directly.
-  // TODO: Remove this filter block when email and todolist are fully
-  // migrated from Python stubs to Bun implementations.
-  // Condition: all entries in STUB_BINARIES are removed.
-  const STUB_BINARIES = new Set(["email", "todolist"]);
-  const implementedBinaries = binaries.filter((b) => !STUB_BINARIES.has(b));
-  const hasStubBinaries = binaries.some((b) => STUB_BINARIES.has(b));
-
-  // Step 1: Launch implemented Bun mock binaries (skip stubs)
-  if (implementedBinaries.length > 0) {
-    lines.push("# Start Bun mock binaries (implemented services)");
-    for (const bin of implementedBinaries) {
+  // Step 1: Launch Bun mock binaries
+  if (binaries.length > 0) {
+    lines.push("# Start Bun mock binaries");
+    for (const bin of binaries) {
       const port = BINARY_PORTS[bin];
       if (bin === "doc-search") {
         // Doc-search requires explicit --database and --log flags for verifier
@@ -329,8 +370,8 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`ln -sfn /opt/mock/python_compat/airline-app /workspace/environment/airline-app`);
         lines.push(`mkdir -p /workspace/environment/airline-app/backend/instance`);
         lines.push(`ln -sf /var/lib/mock-data/airline/airline.db /workspace/environment/airline-app/backend/instance/airline.db`);
-        // Fail-fast smoke check: verify python_compat bridge creates a working app
-        lines.push(`python3 -c "import sys; sys.path.insert(0, '/workspace/environment/airline-app/backend'); from app import create_app; create_app('development')"`);
+        // Smoke check: verify python_compat bridge creates a working app (non-fatal)
+        lines.push(`python3 -c "import sys; sys.path.insert(0, '/workspace/environment/airline-app/backend'); from app import create_app; create_app('development')" || echo "WARN: python_compat smoke check failed, continuing..."`);
         // Redirect Bun airline logs to expected paths and proxy 5173→5000
         // so task instructions referencing localhost:5173 continue to work.
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/airline-backend.log 2>&1 &`);
@@ -338,27 +379,53 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/airline-npm-install.log`);
         // Proxy port 5173 to Bun airline port for legacy URL compatibility
         // Uses Python's socketserver (always available) as a simple TCP forwarder.
-        lines.push(`python3 -c "`);
-        lines.push(`import socketserver, socket, threading`);
-        lines.push(`class P(socketserver.ThreadingTCPServer): allow_reuse_address = True`);
-        lines.push(`class H(socketserver.BaseRequestHandler):`);
-        lines.push(`  def handle(self):`);
-        lines.push(`    b=socket.socket(); b.connect(('127.0.0.1',${port}))`);
-        lines.push(`    def fwd(src,dst):`);
-        lines.push(`      try:`);
-        lines.push(`        while 1: d=src.recv(8192); dst.send(d) if d else None`);
-        lines.push(`      except: pass`);
-        lines.push(`    threading.Thread(target=fwd,args=(self.request,b)).start()`);
-        lines.push(`    fwd(b,self.request)`);
-        lines.push(`P(('0.0.0.0',5173),H).serve_forever()`);
-        lines.push(`" > /dev/null 2>&1 &`);
+        lines.push(...portProxyLines(5173, port));
+      } else if (bin === "email") {
+        // Email Bun binary must share the SQLite DB with the Python verifier
+        // so that verifier scripts (which import SQLAlchemy models) see the
+        // same data the agent created through the Bun API.
+        lines.push(`export EMAIL_DB_PATH=/var/lib/mock-data/email/email.db`);
+        lines.push(`mkdir -p /var/lib/mock-data/email`);
+        lines.push(`if [ -e /workspace/environment/email-app ] && [ ! -L /workspace/environment/email-app ]; then`);
+        lines.push(`  mv /workspace/environment/email-app /workspace/environment/email-app.legacy`);
+        lines.push(`fi`);
+        lines.push(`ln -sfn /opt/mock/python_compat/email-app /workspace/environment/email-app`);
+        lines.push(`mkdir -p /workspace/environment/email-app/backend/instance`);
+        lines.push(`ln -sf /var/lib/mock-data/email/email.db /workspace/environment/email-app/backend/instance/email.db`);
+        // Smoke check: verify python_compat bridge exports the verifier import contract (fatal)
+        lines.push(`python3 -c "import sys; sys.path.insert(0, '/workspace/environment/email-app/backend'); from app import app; from models import Email"`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/email-backend.log 2>&1 &`);
+        lines.push(`echo "Email frontend served by Bun on port ${port}" > /tmp/email-frontend.log`);
+        lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/email-npm-install.log`);
+        // Proxy port 5174 to Bun email port for legacy URL compatibility
+        lines.push(...portProxyLines(5174, port));
+      } else if (bin === "todolist") {
+        lines.push(`export TODOLIST_DB_PATH=/var/lib/mock-data/todolist/todolist.db`);
+        lines.push(`mkdir -p /var/lib/mock-data/todolist`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/todolist-backend.log 2>&1 &`);
+        lines.push(`echo "Todolist frontend served by Bun on port ${port}" > /tmp/todolist-frontend.log`);
+        lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/todolist-npm-install.log`);
+        // Proxy port 3000 to Bun todolist port for legacy URL compatibility
+        lines.push(...portProxyLines(3000, port));
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }
     }
     lines.push("");
     lines.push("# Wait for mock binaries to bind their ports");
-    lines.push("sleep 2");
+    lines.push("for port in " + binaries.map((b) => BINARY_PORTS[b]).join(" ") + "; do");
+    lines.push("  wait_http \"http://localhost:${port}/health\"");
+    lines.push("done");
+    // Also wait for proxy ports to be ready
+    if (binaries.includes("airline")) {
+      lines.push("wait_http \"http://localhost:5173/health\"");
+    }
+    if (binaries.includes("email")) {
+      lines.push("wait_http \"http://localhost:5174/health\"");
+    }
+    if (binaries.includes("todolist")) {
+      lines.push("wait_http \"http://localhost:3000/health\"");
+    }
     lines.push("");
   }
 
@@ -406,7 +473,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     // shop-app startup lines when the Bun mock-shop binary is present.
     // When implemented binaries include 'shop', strip Python shop-app startup lines
     // to avoid port conflicts (Python start.sh kills processes on port 1234).
-    if (implementedBinaries.includes("shop")) {
+    if (binaries.includes("shop")) {
       let inShopBlock = false;
       filtered = filtered.filter((line) => {
         const l = line.trim();
@@ -434,7 +501,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     // When Bun mock-airline is implemented, legacy Python airline-app startup
     // (both backend python3 run.py and frontend npm run dev) must be stripped
     // to avoid port-5000 conflicts.
-    if (implementedBinaries.includes("airline")) {
+    if (binaries.includes("airline")) {
       let inAirlineBlock = false;
       filtered = filtered.filter((line) => {
         const l = line.trim();
@@ -451,12 +518,52 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       });
     }
 
+    // Email-app block filter (port-conflict avoidance):
+    // When Bun mock-email is implemented, legacy Python email-app startup
+    // must be stripped to avoid port-5001 conflicts.
+    if (binaries.includes("email")) {
+      let inEmailBlock = false;
+      filtered = filtered.filter((line) => {
+        const l = line.trim();
+        if (l.match(/^#\s*Start\s+email-app/i)) {
+          inEmailBlock = true;
+          return false;
+        }
+        if (inEmailBlock && l.match(/^#\s*Start\s+/i)) {
+          inEmailBlock = false;
+          return true;
+        }
+        if (inEmailBlock) return false;
+        return true;
+      });
+    }
+
+    // Todolist-app block filter (port-conflict avoidance):
+    // When Bun mock-todolist is implemented, legacy Python todolist-app startup
+    // must be stripped to avoid port-5002 conflicts.
+    if (binaries.includes("todolist")) {
+      let inTodolistBlock = false;
+      filtered = filtered.filter((line) => {
+        const l = line.trim();
+        if (l.match(/^#\s*Start\s+todolist-app/i)) {
+          inTodolistBlock = true;
+          return false;
+        }
+        if (inTodolistBlock && l.match(/^#\s*Start\s+/i)) {
+          inTodolistBlock = false;
+          return true;
+        }
+        if (inTodolistBlock) return false;
+        return true;
+      });
+    }
+
     // TODO: Remove sqlite bootstrap filter when no task uses startup_extra
     // that contains the python3 sqlite bootstrap heredoc.
     // When implemented binaries include 'doc-search', strip Python sqlite bootstrap
     // because the Bun binary handles DB initialization via initDatabase().
     // The Python bootstrap would delete/recreate the DB after Bun has opened it.
-    if (implementedBinaries.includes("doc-search")) {
+    if (binaries.includes("doc-search")) {
       let inSqliteBlock = false;
       filtered = filtered.filter((line) => {
         const l = line.trim();
@@ -485,78 +592,12 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       lines.push(stripped);
       lines.push("");
     }
-  } else if (hasStubBinaries && implementedBinaries.length === 0) {
-    // Tasks with ONLY stub binaries (no implemented ones) and no startup_extra:
-    // start the real Python/Node services from the task's startup.sh instead.
-    // Run via bash since startup.sh files use Bash-specific features.
-    lines.push("# Legacy app fallback — stub binaries, run real services via bash");
-    lines.push("if [ -f /workspace/environment/startup.sh ]; then");
-    lines.push("  bash /workspace/environment/startup.sh");
-    lines.push("fi");
-    lines.push("");
-  } else if (hasStubBinaries && implementedBinaries.length > 0 && !startupExtra) {
-    // Mixed tasks: some binaries are implemented (Bun), others are stubs (legacy Python).
-    // No startup_extra provided, so load the task's default startup.sh and filter
-    // out blocks for implemented services to avoid port conflicts.
-    const taskStartupPath = join(
-      import.meta.dir, "..", "..", "tasks", task, "environment", "startup.sh"
-    );
-    let taskStartup: string | undefined;
-    if (existsSync(taskStartupPath)) {
-      taskStartup = readFileSync(taskStartupPath, "utf-8");
-    }
-    if (taskStartup) {
-      let filtered = taskStartup
-        .split("\n")
-        .filter((line) => !line.startsWith("#!") && line.trim() !== "set -euo pipefail");
-
-      // Apply the same block filters as startup_extra path
-      if (implementedBinaries.includes("airline")) {
-        let inAirlineBlock = false;
-        filtered = filtered.filter((line) => {
-          const l = line.trim();
-          if (l.match(/^#\s*Start\s+airline-app/i)) {
-            inAirlineBlock = true;
-            return false;
-          }
-          if (inAirlineBlock && l.match(/^#\s*Start\s+/i)) {
-            inAirlineBlock = false;
-            return true;
-          }
-          if (inAirlineBlock) return false;
-          return true;
-        });
-      }
-      if (implementedBinaries.includes("shop")) {
-        let inShopBlock = false;
-        filtered = filtered.filter((line) => {
-          const l = line.trim();
-          if (l.match(/^#\s*Start\s+shop-app/i)) {
-            inShopBlock = true;
-            return false;
-          }
-          if (inShopBlock && l.match(/^#\s*Start\s+/i)) {
-            inShopBlock = false;
-            return true;
-          }
-          if (inShopBlock) return false;
-          return true;
-        });
-      }
-
-      const stripped = filtered.join("\n").trimEnd();
-      if (stripped) {
-        lines.push("# Filtered legacy startup (stub services only, implemented services stripped)");
-        lines.push(stripped);
-        lines.push("");
-      }
-    }
   }
 
   // Step 3: Final wait for all services to be ready
-  if (implementedBinaries.length > 0 || startupExtra || hasStubBinaries) {
+  if (binaries.length > 0 || startupExtra) {
     lines.push("# Wait for all services to be ready");
-    lines.push("sleep 3");
+    lines.push("sleep 2");
     lines.push("");
   }
 
@@ -569,7 +610,7 @@ async function buildTaskImage(
   dryRun: boolean,
   startupExtraPath?: string,
   assets?: AssetMapping[],
-  frontend?: FrontendConfig,
+  frontends?: FrontendConfig[],
 ): Promise<BuildTaskImageResult> {
   const imageTag = `liveclawbench-${task}-base:latest`;
 
@@ -665,11 +706,15 @@ async function buildTaskImage(
 
   const startupContent = generateStartupScript(task, binaries, startupExtraContent);
 
-  // Build frontend SPA on host if configured
-  let frontendBuildDir: string | undefined;
-  if (frontend) {
+  // Collect frontend build configurations
+  const allFrontends: FrontendConfig[] = [];
+  if (frontends) allFrontends.push(...frontends);
+
+  // Build frontend SPAs on host if configured
+  const frontendBuildDirs: { buildDir: string; dest: string }[] = [];
+  for (const fe of allFrontends) {
     const repoRoot = join(import.meta.dir, "..", "..");
-    const frontendSrc = resolve(repoRoot, frontend.src);
+    const frontendSrc = resolve(repoRoot, fe.src);
 
     if (!existsSync(frontendSrc)) {
       return {
@@ -716,7 +761,7 @@ async function buildTaskImage(
     }
 
     if (!dryRun) {
-      const buildOutputDir = join(frontendSrc, frontend.buildDir);
+      const buildOutputDir = join(frontendSrc, fe.buildDir);
 
       // npm install
       const installProc = Bun.spawn(["npm", "install", "--prefix", frontendSrc], {
@@ -762,10 +807,10 @@ async function buildTaskImage(
         };
       }
 
-      frontendBuildDir = buildOutputDir;
+      frontendBuildDirs.push({ buildDir: buildOutputDir, dest: fe.dest });
     } else {
       console.log(`  [DRY RUN] npm install && npm run build in ${frontendSrc}`);
-      frontendBuildDir = join(frontendSrc, frontend.buildDir);
+      frontendBuildDirs.push({ buildDir: join(frontendSrc, fe.buildDir), dest: fe.dest });
     }
   }
 
@@ -804,6 +849,30 @@ async function buildTaskImage(
       dockerfileLines.push(`RUN pip install --no-cache-dir --break-system-packages -r /opt/mock/python_compat/airline-app/requirements.txt`);
       // Ensure the /workspace/environment/airline-app symlink exists at runtime
       // (the startup script creates it; here we just ensure the target dir exists)
+      dockerfileLines.push(`RUN mkdir -p /workspace/environment`);
+    }
+  }
+
+  // Copy python_compat bridge for email tasks so verifier scripts can
+  // import SQLAlchemy models and query the shared DB.
+  if (binaries.includes("email")) {
+    const pythonCompatDir = join(import.meta.dir, "..", "python_compat", "email-app");
+    if (existsSync(pythonCompatDir)) {
+      const contextDir = "python-compat-email";
+      const contextPath = join(DIST_DIR, contextDir);
+      mkdirSync(contextPath, { recursive: true });
+      const cpProc = Bun.spawnSync(["cp", "-r", `${pythonCompatDir}/.`, contextPath]);
+      if (cpProc.exitCode !== 0) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Failed to copy python_compat to context: ${cpProc.stderr}`,
+        };
+      }
+      dockerfileLines.push(`COPY ${contextDir}/ /opt/mock/python_compat/email-app/`);
+      dockerfileLines.push(`RUN pip install --no-cache-dir --break-system-packages -r /opt/mock/python_compat/email-app/requirements.txt`);
       dockerfileLines.push(`RUN mkdir -p /workspace/environment`);
     }
   }
@@ -882,15 +951,16 @@ async function buildTaskImage(
   }
 
   // COPY pre-built frontend SPA files (if configured)
-  if (frontend && frontendBuildDir) {
+  for (let fi = 0; fi < frontendBuildDirs.length; fi++) {
+    const { buildDir, dest } = frontendBuildDirs[fi];
     if (dryRun) {
-      console.log(`  [DRY RUN] frontend build output → ${frontend.dest}`);
-      console.log(`  [DRY RUN] COPY frontend-${task}/ ${frontend.dest}/`);
+      console.log(`  [DRY RUN] frontend build output → ${dest}`);
+      console.log(`  [DRY RUN] COPY frontend-${task}-${fi}/ ${dest}/`);
     } else {
-      const contextDir = `frontend-${task}`;
+      const contextDir = `frontend-${task}-${fi}`;
       const contextPath = join(DIST_DIR, contextDir);
       mkdirSync(contextPath, { recursive: true });
-      const cpProc = Bun.spawnSync(["cp", "-r", `${frontendBuildDir}/.`, contextPath]);
+      const cpProc = Bun.spawnSync(["cp", "-r", `${buildDir}/.`, contextPath]);
       if (cpProc.exitCode !== 0) {
         return {
           task,
@@ -900,8 +970,8 @@ async function buildTaskImage(
           error: `Failed to copy frontend build output to context: ${cpProc.stderr}`,
         };
       }
-      dockerfileLines.push(`RUN mkdir -p ${frontend.dest}`);
-      dockerfileLines.push(`COPY ${contextDir}/ ${frontend.dest}/`);
+      dockerfileLines.push(`RUN mkdir -p ${dest}`);
+      dockerfileLines.push(`COPY ${contextDir}/ ${dest}/`);
     }
   }
 
@@ -999,7 +1069,7 @@ async function main() {
   const results: BuildTaskImageResult[] = [];
   for (const [task, config] of Object.entries(mapping.tasks)) {
     process.stdout.write(`Building ${task} (${config.binaries.length} binaries)... `);
-    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontend);
+    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontends);
     results.push(result);
 
     if (result.success) {

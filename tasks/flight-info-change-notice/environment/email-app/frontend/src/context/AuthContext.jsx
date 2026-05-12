@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       try {
         const response = await authAPI.getMe();
-        setUser(response.data.user);
+        setUser(response.data.data.user);
       } catch (error) {
         // Token invalid or expired, clear and try auto-login
         localStorage.removeItem('token');
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const response = await authAPI.login(username, password);
-      const { access_token, user } = response.data;
+      const { access_token, user } = response.data.data;
       localStorage.setItem('token', access_token);
       setUser(user);
       return { success: true };
@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
         MOCK_CREDENTIALS.username,
         MOCK_CREDENTIALS.password
       );
-      const { access_token, user } = response.data;
+      const { access_token, user } = response.data.data;
       localStorage.setItem('token', access_token);
       setUser(user);
       return { success: true };
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (username, email, password) => {
     try {
       const response = await authAPI.register(username, email, password);
-      const { access_token, user } = response.data;
+      const { access_token, user } = response.data.data;
       localStorage.setItem('token', access_token);
       setUser(user);
       return { success: true };

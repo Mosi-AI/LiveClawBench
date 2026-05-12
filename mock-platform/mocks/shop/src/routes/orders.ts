@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { createRoute } from "mock-lib";
+import { createRoute, ok, err } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import {
   ListOrdersResponseSchema,
   GenericSuccessResponseSchema,
+  ErrSchema,
 } from "../schemas.js";
 import { loadOrders, saveOrders } from "../data/store.js";
 
@@ -27,7 +28,7 @@ export function registerOrderRoutes(app: OpenAPIApp) {
 
   app.openApiRoute(listOrdersRoute, (c) => {
     const orders = loadOrders();
-    return c.json({ orders, total: orders.length });
+    return c.json(ok({ orders, total: orders.length }));
   });
 
   // POST /api/orders/:order_id/return
@@ -50,7 +51,7 @@ export function registerOrderRoutes(app: OpenAPIApp) {
       404: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Order not found",
@@ -58,7 +59,7 @@ export function registerOrderRoutes(app: OpenAPIApp) {
       400: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Cannot return this order",
@@ -66,7 +67,7 @@ export function registerOrderRoutes(app: OpenAPIApp) {
       500: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Internal server error",
@@ -78,24 +79,21 @@ export function registerOrderRoutes(app: OpenAPIApp) {
     const { order_id } = c.req.valid("param");
     const orders = loadOrders();
     const order = orders.find((o) => o.order_id === order_id);
-    if (!order) return c.json({ error: "Order not found" }, 404);
+    if (!order) return c.json(err("Order not found"), 404);
 
     const allowedStatuses = ["Pending Shipment", "Delivered", "Shipped", "Completed"];
     if (!allowedStatuses.includes(order.status)) {
-      return c.json({ error: "This order cannot be returned" }, 400);
+      return c.json(err("This order cannot be returned"), 400);
     }
 
     order.status = "Returning";
     try {
       saveOrders(orders);
-    } catch (err) {
-      console.error("mock-shop: failed to save orders", err);
-      return c.json({ error: "Failed to update order" }, 500);
+    } catch (e) {
+      console.error("mock-shop: failed to save orders", e);
+      return c.json(err("Failed to update order"), 500);
     }
-    return c.json({
-      success: true,
-      message: "Return request received. Customer service will contact you regarding the return.",
-    }, 200);
+    return c.json(ok(null, "Return request received. Customer service will contact you regarding the return."), 200);
   });
 
   // POST /api/orders/:order_id/confirm
@@ -118,7 +116,7 @@ export function registerOrderRoutes(app: OpenAPIApp) {
       404: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Order not found",
@@ -126,7 +124,7 @@ export function registerOrderRoutes(app: OpenAPIApp) {
       400: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Only delivered orders can be confirmed",
@@ -134,7 +132,7 @@ export function registerOrderRoutes(app: OpenAPIApp) {
       500: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Internal server error",
@@ -146,18 +144,18 @@ export function registerOrderRoutes(app: OpenAPIApp) {
     const { order_id } = c.req.valid("param");
     const orders = loadOrders();
     const order = orders.find((o) => o.order_id === order_id);
-    if (!order) return c.json({ error: "Order not found" }, 404);
+    if (!order) return c.json(err("Order not found"), 404);
     if (order.status !== "Delivered") {
-      return c.json({ error: "Only delivered orders can be confirmed" }, 400);
+      return c.json(err("Only delivered orders can be confirmed"), 400);
     }
 
     order.status = "Completed";
     try {
       saveOrders(orders);
-    } catch (err) {
-      console.error("mock-shop: failed to save orders", err);
-      return c.json({ error: "Failed to update order" }, 500);
+    } catch (e) {
+      console.error("mock-shop: failed to save orders", e);
+      return c.json(err("Failed to update order"), 500);
     }
-    return c.json({ success: true, message: "Order confirmed as completed." }, 200);
+    return c.json(ok(null, "Order confirmed as completed."), 200);
   });
 }

@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 
 source .env
 
-.venv/bin/harbor run --dataset liveclawbench@1.0 \
+.venv/bin/harbor run --dataset liveclawbench@0.1.0 \
   --registry-path ./registry.json \
   -a openclaw \
   -m moonshot/kimi-k2.5 \

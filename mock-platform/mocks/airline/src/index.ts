@@ -26,6 +26,7 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
   const mockApp = createMockApp({
     name: "airline",
     port: 5000,
+    healthResponse: { ok: true, status: "healthy", service: "airline" },
     openApi: {
       enabled: true,
       title: "Airline Mock API",

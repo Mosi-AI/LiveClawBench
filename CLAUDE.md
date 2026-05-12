@@ -174,21 +174,22 @@ bun run build          # Build all mock binaries → dist/
 bun run build:images   # Build per-task Docker images (requires base image first)
 ```
 
-### Architecture
+### Documentation
 
-- `packages/mock-lib/` — Shared library (Hono app factory, SQLite helpers, render utilities, types)
-- `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented)
-- `scripts/build-all.ts` — Builds all mock binaries
-- `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set
+- [`mock-platform/README.md`](mock-platform/README.md) — Architecture overview, build flow, and adding-a-mock checklist
+- [`mock-platform/docs/mock-conventions.md`](mock-platform/docs/mock-conventions.md) — Full conventions: factory pattern, response wrappers, auth, DB/seeding, testing
+- [`mock-platform/DESIGN.md`](mock-platform/DESIGN.md) — MockAppV2 interface, file size guidelines, build pipeline, Docker layers
 
 ### Key Files
 
 | File | Purpose |
 |---|---|
-| `mock-platform/README.md` | Architecture overview, build flow, and development commands |
+| `mock-platform/README.md` | Architecture overview, build flow, and adding-a-mock checklist |
+| `mock-platform/docs/mock-conventions.md` | Full conventions: factory pattern, response wrappers, auth, DB/seeding, testing |
+| `mock-platform/packages/mock-lib/README.md` | Shared library API reference |
 | `mocks/shop/src/index.tsx` | Shop UI and API (Hono TSX rendering) |
 | `mocks/shop/src/search-algorithm.ts` | Extracted search logic (single source of truth) |
-| `mocks/shop/src/search-algorithm.test.ts` | Layer 1 unit tests (bun:test snapshot tests) |
+| `mocks/shop/tests/search-algorithm.test.ts` | Layer 1 unit tests (bun:test explicit assertions) |
 | `mocks/doc-search/src/index.ts` | Doc-search with FTS5 + JSONL browser trace logging |
 
 ## Task List
