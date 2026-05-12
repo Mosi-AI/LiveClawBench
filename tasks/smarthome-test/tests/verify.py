@@ -247,7 +247,11 @@ def main():
         f.write(f"{final_score:.2f}\n")
 
     print(f"Score: {final_score:.2f}/1.0")
-    sys.exit(0 if final_score >= 0.5 else 1)
+
+    # Require all 4 tests to pass (thermostat, workout, meal plan, shopping list)
+    # Each test must score at least 0.8 to be considered passing
+    all_passed = all(score >= max_score * 0.8 for _, score, max_score in results)
+    sys.exit(0 if all_passed else 1)
 
 
 if __name__ == "__main__":

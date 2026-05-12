@@ -39,3 +39,4 @@ docs/superpowers/
 .venv
 .venv/
 
+jobs-verify/
