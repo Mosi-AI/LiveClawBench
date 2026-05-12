@@ -3,10 +3,10 @@
 Verify grocery-reorder task: 5-dimension scoring with gate condition.
 
 Dimensions:
-- D1: Eggs entry in smarthome grocery_product table (SQLite) with quantity=36, unit='pieces' (0.25)
+- D1: Eggs entry in smarthome grocery_product table (SQLite) with quantity=30 or 36, unit='pieces' (0.25)
 - D2: Shop order (JSON orders file) with egg product and OrderItem.quantity=3 (3 dozen) (0.25)
 - D3: The SAME eggs entry has reference matching the EXACT egg order from D2 (0.25)
-- D4: Agent response contains rounding keywords (0.15, mandatory)
+- D4: Agent response contains rounding/conversion keywords (not just "dozen") (0.15, mandatory)
 - D5: Existing entries (PROD001, PROD002) unchanged (0.10, gated by D1-3)
 
 Zero-work baseline: 0.0 (D5 gate prevents bonus without D1-3)
@@ -63,19 +63,26 @@ def find_egg_row(conn):
 
     Returns the product_id of the qualifying row, or None if not found.
     This ensures D1 and D3 are evaluated against the SAME row.
+
+    Accepts both 30.0 pieces (shortage amount) and 36.0 pieces (3 dozen).
+    The instruction tells the agent to add the shortage to the Shopping List,
+    so 30 pieces is a valid instruction-following response.
     """
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT product_id FROM grocery_product WHERE (name LIKE '%egg%' OR product_id LIKE '%egg%') AND quantity = 36.0 AND unit = 'pieces'"
+        "SELECT product_id FROM grocery_product WHERE (name LIKE '%egg%' OR product_id LIKE '%egg%') AND quantity IN (30.0, 36.0) AND unit = 'pieces'"
     )
     row = cursor.fetchone()
     return row[0] if row else None
 
 
 def check_dimension_1(conn):
-    """D1: Eggs entry in grocery_product with quantity=36, unit='pieces'.
+    """D1: Eggs entry in grocery_product with quantity=30 or 36, unit='pieces'.
 
     Returns (pass, egg_product_id) where egg_product_id identifies the specific row.
+
+    Accepts 30 pieces (shortage: 48 needed - 18 in stock) or 36 pieces (3 dozen).
+    The instruction says to add the shortage to the Shopping List, so both are valid.
     """
     egg_product_id = find_egg_row(conn)
     return egg_product_id is not None, egg_product_id
@@ -122,23 +129,37 @@ def check_dimension_3(conn, egg_product_id, expected_order_id):
 def check_dimension_4():
     """D4: Agent response contains rounding keywords.
 
-    Checks multiple sources:
-    1. Harbor agent logs (normal agent runs)
-    2. /workspace/output/response.txt (oracle solution fallback)
+    Checks the last assistant message from harbor.jsonl agent logs.
+    This ensures the agent actually explained the reasoning to the user,
+    not just wrote to an internal file.
+
+    Fallback to response.txt only when harbor.jsonl doesn't exist
+    (oracle solution scenario - shell script cannot write to harbor.jsonl).
     """
-    # First try to get from agent logs
     response = get_last_assistant_message()
 
-    # Fallback to oracle solution output file
+    # Fallback to oracle solution output file ONLY if no harbor.jsonl exists
+    # This allows oracle shell scripts to pass D4 while ensuring real agents
+    # must communicate the reasoning to the user
     if response is None:
-        response_path = Path("/workspace/output/response.txt")
-        if response_path.exists():
-            response = response_path.read_text()
+        harbor_exists = any(
+            Path(p).exists()
+            for p in [
+                Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
+                Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
+                Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
+            ]
+        )
+        if not harbor_exists:
+            response_path = Path("/workspace/output/response.txt")
+            if response_path.exists():
+                response = response_path.read_text()
 
     if response is None:
         return False
 
-    rounding_keywords = ["round", "rounding", "dozen", "convert", "conversion", "adjust"]
+    # Must contain at least one rounding/conversion keyword (not just "dozen")
+    rounding_keywords = ["round", "rounding", "convert", "conversion", "adjust"]
     response_lower = response.lower()
     return any(kw in response_lower for kw in rounding_keywords)
 
