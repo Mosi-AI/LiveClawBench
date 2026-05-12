@@ -18,7 +18,7 @@ logs/
 *.log
 
 # Harbor parity comparison tables (generated verification artifacts)
-harbor-parity-comparison.md
+harbor-parity-*.md
 
 # Evidence directories (generated verification artifacts)
 evidence-round*/
