@@ -1973,15 +1973,22 @@ function registerRoutes(app: OpenAPIApp): void {
 // App bootstrap
 // ---------------------------------------------------------------------------
 
-const app = createMockApp({
-  name: "smarthome",
-  port: 5004,
-  healthResponse: { ok: true, status: "healthy", service: "smarthome" },
-  routes: registerRoutes,
-});
+export function createSmarthomeApp() {
+  const app = createMockApp({
+    name: "smarthome",
+    port: 5004,
+    healthResponse: { ok: true, status: "healthy", service: "smarthome" },
+    routes: registerRoutes,
+  });
 
-app.seed = () => {
-  initDatabase();
-};
+  app.seed = () => {
+    initDatabase();
+  };
 
-startServer(app);
+  return app;
+}
+
+if (import.meta.main) {
+  const app = createSmarthomeApp();
+  startServer(app);
+}
