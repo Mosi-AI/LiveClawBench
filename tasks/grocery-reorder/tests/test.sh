@@ -20,23 +20,25 @@ else
 fi
 
 # Also write reward.json with dimension breakdown for debugging
-python3 << 'PYTHON'
+# Pass verifier output via environment variable to avoid stdin/heredoc conflict
+export VERIFIER_OUTPUT
+python3 -c '
 import json
+import os
 import re
-import sys
 
-# Read verifier output from stdin
-output = sys.stdin.read()
+# Read verifier output from environment variable
+output = os.environ.get("VERIFIER_OUTPUT", "")
 
 # Extract dimension results
 dimensions = {}
-for line in output.split('\n'):
-    match = re.match(r'(D\d+).*: (PASS|FAIL|SKIPPED)', line)
+for line in output.split("\n"):
+    match = re.match(r"(D\d+).*: (PASS|FAIL|SKIPPED)", line)
     if match:
         dimensions[match.group(1)] = match.group(2)
 
 # Extract score
-score_match = re.search(r'Score: ([0-9]+\.[0-9]+)', output)
+score_match = re.search(r"Score: ([0-9]+\.[0-9]+)", output)
 score = float(score_match.group(1)) if score_match else 0.0
 
 # Write reward.json
@@ -45,15 +47,20 @@ reward_data = {
     "_meta_dimensions": dimensions
 }
 
-with open('/logs/verifier/reward.json', 'w') as f:
+with open("/logs/verifier/reward.json", "w") as f:
     json.dump(reward_data, f, indent=2)
-PYTHON <<< "$VERIFIER_OUTPUT"
+'
 
-# Exit based on score threshold
-if [ -n "$SCORE" ] && (( $(echo "$SCORE >= 0.5" | bc -l) )); then
+# Exit based on score threshold (use python3 instead of bc for container compatibility)
+python3 -c "
+import sys
+score = float(sys.argv[1]) if len(sys.argv) > 1 else 0.0
+sys.exit(0 if score >= 0.5 else 1)
+" "$SCORE"
+EXIT_CODE=$?
+if [ $EXIT_CODE -eq 0 ]; then
     echo "Verification passed (score >= 0.5)"
-    exit 0
 else
     echo "Verification failed (score < 0.5)"
-    exit 1
 fi
+exit $EXIT_CODE
