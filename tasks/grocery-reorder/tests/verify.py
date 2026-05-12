@@ -6,11 +6,14 @@ Dimensions:
 - D1: Eggs entry in smarthome grocery_product table (SQLite) with quantity=36 pieces or 3 dozen (0.25)
 - D2: Shop order (JSON orders file) with egg product and OrderItem.quantity=3 (3 dozen) (0.25)
 - D3: The SAME eggs entry has reference matching the EXACT egg order from D2 (0.25)
-- D4: Agent response contains dozen-related reasoning explanation (0.15, mandatory)
+- D4: Agent response contains explicit rounding/up-sizing explanation (0.15, mandatory)
 - D5: Existing entries (PROD001, PROD002) unchanged (0.10, gated by D1-3)
 
 Note: D1 only accepts 36 pieces or 3 dozen (not 30 pieces) because eggs are sold
 by the dozen, so valid quantities must be multiples of 12.
+
+Note: D4 requires explicit rounding language (round, convert, adjust, "up to", "instead of"),
+not just a bare "dozen" mention.
 
 Zero-work baseline: 0.0 (D5 gate prevents bonus without D1-3)
 """
@@ -146,7 +149,7 @@ def check_dimension_3(conn, egg_product_id, expected_order_id):
 
 
 def check_dimension_4():
-    """D4: Agent response explains the order quantity reasoning.
+    """D4: Agent response explains the rounding/up-sizing reasoning.
 
     Checks the last assistant message from harbor.jsonl agent logs.
     This ensures the agent actually explained the reasoning to the user,
@@ -155,10 +158,14 @@ def check_dimension_4():
     Fallback to response.txt only when harbor.jsonl doesn't exist
     (oracle solution scenario - shell script cannot write to harbor.jsonl).
 
-    Accepts any reasonable explanation that mentions:
-    - The shortage calculation (e.g., "needed 30 pieces", "2.5 dozen")
-    - The rounding/up-sizing decision (e.g., "3 dozen", "whole dozens")
-    - The unit conversion reasoning
+    Requires explicit rounding/up-sizing language such as:
+    - "round up", "rounded up", "rounding" (explicit rounding)
+    - "convert", "conversion" (unit conversion)
+    - "adjust", "adjusted" (quantity adjustment)
+    - "up to 3 dozen", "bought 3 dozen instead of 2.5" (up-sizing explanation)
+
+    Does NOT accept bare "dozen" mention - must explain WHY the quantity
+    was chosen (the rounding/up-sizing decision).
     """
     response = get_last_assistant_message()
 
@@ -184,20 +191,18 @@ def check_dimension_4():
 
     response_lower = response.lower()
 
-    # Check for dozen-related reasoning patterns
-    # Accepts explanations like:
-    # - "2.5 dozen" or "3 dozen" (mentions the dozen calculation)
-    # - "whole dozen" or "full dozen" (explains rounding decision)
-    # - "round" / "convert" / "adjust" (explicit conversion language)
-    dozen_patterns = [
-        "dozen",  # Any mention of dozen (e.g., "3 dozen", "2.5 dozen")
+    # Must contain explicit rounding/up-sizing language
+    # "dozen" alone is NOT sufficient - must explain the rounding decision
+    rounding_patterns = [
         "round",
         "rounding",
         "convert",
         "conversion",
         "adjust",
+        "up to",  # "rounded up to 3 dozen"
+        "instead of",  # "bought 3 dozen instead of 2.5"
     ]
-    return any(pattern in response_lower for pattern in dozen_patterns)
+    return any(pattern in response_lower for pattern in rounding_patterns)
 
 
 def check_dimension_5(conn):
