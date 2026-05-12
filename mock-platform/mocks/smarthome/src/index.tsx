@@ -6,7 +6,7 @@
  * - Thermostat (GET/POST)
  * - Coffee Schedule (GET/POST with derived status)
  * - Inventory (GET/POST/DELETE)
- * - Grocery Ordering (GET products, POST orders with transactions)
+ * - Shopping List (GET/POST/PUT/DELETE products)
  * - Wearable/Recovery (read-only)
  * - Calendar/Workout (GET/PUT with workout_type enum)
  * - Meal Planning (GET constraints/recipes, POST/GET meal-plan)
@@ -67,24 +67,11 @@ interface InventoryItem {
 interface GroceryProduct {
   product_id: string;
   name: string;
-  price: number;
-  stock_status: "in_stock" | "low_stock" | "out_of_stock";
-  substitute_for?: string;
-}
-
-interface GroceryOrderItem {
-  id: number;
-  order_id: string;
-  product_id: string;
   quantity: number;
-  unit_price: number;
+  unit: string;
+  stock_status: "sufficient" | "insufficient" | "unavailable";
   substitute_for?: string;
-}
-
-interface GroceryOrder {
-  order_id: string;
-  total: number;
-  created_at: string;
+  reference?: string; // Optional order_id from shop mock
 }
 
 // Wearable/Recovery
@@ -247,27 +234,11 @@ function initDatabase(): void {
     CREATE TABLE IF NOT EXISTS grocery_product (
       product_id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
-      price REAL NOT NULL,
-      stock_status TEXT NOT NULL CHECK (stock_status IN ('in_stock', 'low_stock', 'out_of_stock')),
-      substitute_for TEXT
-    );
-
-    -- Grocery orders
-    CREATE TABLE IF NOT EXISTS grocery_order (
-      order_id TEXT PRIMARY KEY,
-      total REAL NOT NULL,
-      created_at TEXT NOT NULL
-    );
-
-    -- Grocery order items
-    CREATE TABLE IF NOT EXISTS grocery_order_item (
-      id INTEGER PRIMARY KEY,
-      order_id TEXT NOT NULL,
-      product_id TEXT NOT NULL,
-      quantity INTEGER NOT NULL,
-      unit_price REAL NOT NULL,
+      quantity REAL NOT NULL,
+      unit TEXT NOT NULL,
+      stock_status TEXT NOT NULL CHECK (stock_status IN ('sufficient', 'insufficient', 'unavailable')),
       substitute_for TEXT,
-      FOREIGN KEY (order_id) REFERENCES grocery_order(order_id)
+      reference TEXT
     );
 
     -- Wearable/recovery state
@@ -438,29 +409,6 @@ function deriveCoffeeStatus(startTime: string, currentTime: string): string {
   }
 }
 
-// Generate deterministic order ID based on benchmark clock and database state
-function generateOrderId(): string {
-  const database = assertDb();
-  const time = getBenchmarkTime();
-  const timestamp = time.replace(/[-:T]/g, "").substring(0, 14);
-
-  // Query existing orders with same timestamp prefix to get next suffix
-  const prefix = `ORD${timestamp}-`;
-  const existing = database.query("SELECT order_id FROM grocery_order WHERE order_id LIKE ? ORDER BY order_id DESC LIMIT 1").all(`${prefix}%`) as { order_id: string }[];
-  let nextSuffix = 1;
-  if (existing.length > 0) {
-    const lastSuffix = existing[0].order_id.substring(prefix.length);
-    const parsed = parseInt(lastSuffix, 36);
-    if (isNaN(parsed)) {
-      console.error(`mock-smarthome: WARNING: malformed order_id "${existing[0].order_id}", resetting suffix to 1`);
-    } else {
-      nextSuffix = parsed + 1;
-    }
-  }
-
-  return `ORD${timestamp}-${nextSuffix.toString(36).toUpperCase().padStart(3, "0")}`;
-}
-
 // Generate deterministic plan ID based on benchmark clock and database state
 function generatePlanId(): string {
   const database = assertDb();
@@ -540,7 +488,7 @@ const Layout: FC<{ title: string; children: Child; scripts?: string }> = ({ titl
 <a href="/thermostat">Thermostat</a>
 <a href="/coffee">Coffee</a>
 <a href="/inventory">Inventory</a>
-<a href="/grocery">Grocery</a>
+<a href="/grocery">Shopping List</a>
 <a href="/wearable">Wearable</a>
 <a href="/calendar">Calendar</a>
 <a href="/meal-plan">Meal Plan</a>
@@ -911,110 +859,147 @@ window.onclick = function(event) {
   </Layout>;
 };
 
-// Grocery page
-const GroceryPage: FC<{ products: GroceryProduct[]; orders: GroceryOrder[] }> = ({ products, orders }) => {
-  return <Layout title="Grocery" scripts={`
-const products = ${JSON.stringify(products)};
-let cart = [];
+// Shopping List page (similar to Inventory: add/edit/delete items)
+const GroceryPage: FC<{ products: GroceryProduct[] }> = ({ products }) => {
+  return <Layout title="Shopping List" scripts={`
+let editingId = null;
 
-function updateCart() {
-  const tbody = document.getElementById('cart-items');
-  let total = 0;
-  let html = '';
-  for (const item of cart) {
-    const product = products.find(p => p.product_id === item.product_id);
-    if (product) {
-      const subtotal = product.price * item.quantity;
-      total += subtotal;
-      html += '<tr><td>' + product.name + '</td><td>' + item.quantity + '</td><td>$' + subtotal.toFixed(2) + '</td><td><button class="btn btn-danger" style="padding:4px 8px;" onclick="removeFromCart(\\'' + item.product_id + '\\')">Remove</button></td></tr>';
-    }
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add Item';
+  document.getElementById('item-id').value = '';
+  document.getElementById('item-name').value = '';
+  document.getElementById('item-quantity').value = '';
+  document.getElementById('item-unit').value = '';
+  document.getElementById('item-stock').value = 'sufficient';
+  document.getElementById('item-reference').value = '';
+  document.getElementById('item-modal').style.display = 'block';
+}
+
+function openEditModal(id, name, quantity, unit, stockStatus, reference) {
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit Item';
+  document.getElementById('item-id').value = id;
+  document.getElementById('item-name').value = name;
+  document.getElementById('item-quantity').value = quantity;
+  document.getElementById('item-unit').value = unit;
+  document.getElementById('item-stock').value = stockStatus;
+  document.getElementById('item-reference').value = reference || '';
+  document.getElementById('item-modal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('item-modal').style.display = 'none';
+  editingId = null;
+}
+
+async function saveItem() {
+  const name = document.getElementById('item-name').value.trim();
+  const quantity = parseFloat(document.getElementById('item-quantity').value);
+  const unit = document.getElementById('item-unit').value.trim();
+  const stockStatus = document.getElementById('item-stock').value;
+  const reference = document.getElementById('item-reference').value.trim() || null;
+
+  if (!name || isNaN(quantity) || !unit || !stockStatus) {
+    alert('Please fill in all required fields');
+    return;
   }
-  tbody.innerHTML = html || '<tr><td colspan="4" style="text-align:center;color:#666;">Cart is empty</td></tr>';
-  document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
-}
 
-function addToCart(productId) {
-  const quantity = parseInt(document.getElementById('qty-' + productId).value) || 1;
-  const existing = cart.find(c => c.product_id === productId);
-  if (existing) {
-    existing.quantity += quantity;
-  } else {
-    cart.push({ product_id: productId, quantity });
-  }
-  updateCart();
-  document.getElementById('qty-' + productId).value = 1;
-}
+  const body = { name, quantity, unit, stock_status: stockStatus, reference };
 
-function removeFromCart(productId) {
-  cart = cart.filter(c => c.product_id !== productId);
-  updateCart();
-}
-
-async function placeOrder() {
-  if (cart.length === 0) { alert('Cart is empty'); return; }
   try {
-    const response = await fetch('/api/grocery/orders', {
-      method: 'POST',
+    const url = editingId ? '/api/grocery/products/' + editingId : '/api/grocery/products';
+    const method = editingId ? 'PUT' : 'POST';
+    const response = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: cart })
+      body: JSON.stringify(body)
     });
     const data = await response.json();
     if (data.error) alert('Error: ' + data.error);
-    else { alert('Order placed! Order ID: ' + data.order_id + '\\nTotal: $' + data.total.toFixed(2)); cart = []; location.reload(); }
-  } catch (err) { alert('Failed to place order'); }
+    else { closeModal(); location.reload(); }
+  } catch (err) { alert('Failed to save item'); }
+}
+
+async function deleteItem(id) {
+  if (!confirm('Delete this item?')) return;
+  try {
+    const response = await fetch('/api/grocery/products/' + id, { method: 'DELETE' });
+    const data = await response.json();
+    if (data.error) alert('Error: ' + data.error);
+    else location.reload();
+  } catch (err) { alert('Failed to delete item'); }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('item-modal');
+  if (event.target === modal) closeModal();
 }
 `}>
-    <h1>Grocery</h1>
+    <h1>Shopping List</h1>
 
-    <h2>Products</h2>
-    <table>
-      <thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Qty</th><th>Action</th></tr></thead>
-      <tbody>
-        {products.map(p => (
-          <tr>
-            <td>{p.name}</td>
-            <td>{`$${p.price.toFixed(2)}`}</td>
-            <td>
-              <span class={`status-badge ${p.stock_status === "in_stock" ? "status-ready" : p.stock_status === "low_stock" ? "status-brewing" : "status-scheduled"}`}>
-                {p.stock_status.replace("_", " ").toUpperCase()}
-              </span>
-            </td>
-            <td><input type="number" id={`qty-${p.product_id}`} value="1" min="1" max="99" style="width:60px;padding:4px;" /></td>
-            <td><button class="btn" style="padding:4px 12px;" onclick={`addToCart('${p.product_id}')`}>Add</button></td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-
-    <h2>Shopping Cart</h2>
-    <div class="card">
-      <table>
-        <thead><tr><th>Product</th><th>Qty</th><th>Subtotal</th><th>Action</th></tr></thead>
-        <tbody id="cart-items">
-          <tr><td colspan="4" style="text-align:center;color:#666;">Cart is empty</td></tr>
-        </tbody>
-      </table>
-      <div style="margin-top:15px;display:flex;justify-content:space-between;align-items:center;">
-        <strong>Total: <span id="cart-total">$0.00</span></strong>
-        <button class="btn" onclick="placeOrder()">Place Order</button>
+    {/* Modal */}
+    <div id="item-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4);">
+      <div style="background:white; margin:80px auto; padding:20px; border-radius:8px; width:400px; max-width:90%;">
+        <h2 id="modal-title" style="margin-top:0;">Add Item</h2>
+        <input type="hidden" id="item-id" />
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Name *</label>
+          <input type="text" id="item-name" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Quantity *</label>
+          <input type="number" id="item-quantity" step="any" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Unit *</label>
+          <input type="text" id="item-unit" placeholder="e.g. kg, lbs, pieces" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Stock Status *</label>
+          <select id="item-stock" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+            <option value="sufficient">Sufficient</option>
+            <option value="insufficient">Insufficient</option>
+            <option value="unavailable">Unavailable</option>
+          </select>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Order Reference</label>
+          <input type="text" id="item-reference" placeholder="e.g. ORD000001" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn" onclick="saveItem()">Save</button>
+        </div>
       </div>
     </div>
 
-    <h2>Order History</h2>
-    {orders.length > 0 ? (
+    <button class="btn" onclick="openAddModal()" style="margin-bottom:15px;">Add Item</button>
+    {products.length > 0 ? (
       <table>
-        <thead><tr><th>Order ID</th><th>Total</th><th>Created</th></tr></thead>
+        <thead><tr><th>Product</th><th>Quantity</th><th>Unit</th><th>Stock</th><th>Order Reference</th><th>Actions</th></tr></thead>
         <tbody>
-          {orders.map(o => (
+          {products.map(p => (
             <tr>
-              <td>{o.order_id}</td>
-              <td>{`$${o.total.toFixed(2)}`}</td>
-              <td>{o.created_at}</td>
+              <td>{p.name}</td>
+              <td>{p.quantity}</td>
+              <td>{p.unit}</td>
+              <td>
+                <span class={`status-badge ${p.stock_status === "sufficient" ? "status-ready" : p.stock_status === "insufficient" ? "status-brewing" : "status-scheduled"}`}>
+                  {p.stock_status.replace("_", " ").toUpperCase()}
+                </span>
+              </td>
+              <td>{p.reference || "-"}</td>
+              <td>
+                <button class="btn btn-secondary" onclick={`openEditModal('${escJs(p.product_id)}', '${escJs(p.name)}', ${p.quantity}, '${escJs(p.unit)}', '${escJs(p.stock_status)}', '${escJs(p.reference || '')}')`}>Edit</button>
+                <button class="btn btn-danger" onclick={`deleteItem('${escJs(p.product_id)}')`}>Delete</button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
-    ) : <p style="color:#666;">No orders yet.</p>}
+    ) : <p>No items in shopping list.</p>}
   </Layout>;
 };
 
@@ -1442,8 +1427,7 @@ function registerRoutes(app: OpenAPIApp): void {
   app.page("/grocery", (c) => {
     const database = assertDb();
     const products = database.query("SELECT * FROM grocery_product ORDER BY name").all() as GroceryProduct[];
-    const orders = database.query("SELECT order_id, total, created_at FROM grocery_order ORDER BY created_at DESC").all() as GroceryOrder[];
-    return c.html(<GroceryPage products={products} orders={orders} />);
+    return c.html(<GroceryPage products={products} />);
   });
 
   // Wearable page
@@ -1699,15 +1683,15 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.json({ success: true });
   });
 
-  // Grocery API
+  // Shopping List API
   app.get("/api/grocery/products", (c) => {
     const database = assertDb();
-    const products = database.query("SELECT product_id, name, price, stock_status, substitute_for FROM grocery_product ORDER BY name").all();
+    const products = database.query("SELECT product_id, name, quantity, unit, stock_status, substitute_for, reference FROM grocery_product ORDER BY name").all();
     return c.json(products);
   });
 
-  app.post("/api/grocery/orders", async (c) => {
-    let body: { items?: Array<{ product_id: string; quantity: number; substitute_for?: string }> };
+  app.post("/api/grocery/products", async (c) => {
+    let body: Partial<GroceryProduct>;
     try {
       body = await c.req.json();
     } catch (err) {
@@ -1718,68 +1702,94 @@ function registerRoutes(app: OpenAPIApp): void {
       return c.json({ error: "Internal server error" }, 500);
     }
 
-    const items = body.items;
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return c.json({ error: "Items array required" }, 400);
+    if (!body.name || typeof body.quantity !== "number" || !body.unit || !body.stock_status) {
+      return c.json({ error: "Missing required fields: name, quantity, unit, stock_status" }, 400);
+    }
+
+    const validStockStatuses = ["sufficient", "insufficient", "unavailable"];
+    if (!validStockStatuses.includes(body.stock_status)) {
+      return c.json({ error: "Invalid stock_status. Must be sufficient, insufficient, or unavailable" }, 400);
     }
 
     const database = assertDb();
 
-    // Validate products and calculate total
-    let total = 0;
-    const orderItems: Array<{ product_id: string; quantity: number; unit_price: number; substitute_for?: string }> = [];
+    // Generate product_id
+    const timestamp = getBenchmarkTime().replace(/[-:T]/g, "").substring(0, 14);
+    const productId = `PROD${timestamp}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
 
-    for (const item of items) {
-      if (!item.product_id || typeof item.quantity !== "number" || item.quantity <= 0) {
-        return c.json({ error: "Invalid item: product_id and positive quantity required" }, 400);
-      }
-
-      const product = database.query("SELECT product_id, name, price, stock_status FROM grocery_product WHERE product_id = ?").get(item.product_id) as GroceryProduct | undefined;
-      if (!product) {
-        return c.json({ error: `Product not found: ${item.product_id}` }, 404);
-      }
-
-      if (product.stock_status === "out_of_stock" && !item.substitute_for) {
-        return c.json({ error: `Product out of stock and no substitute provided: ${item.product_id}` }, 409);
-      }
-
-      total += product.price * item.quantity;
-      orderItems.push({
-        product_id: item.product_id,
-        quantity: item.quantity,
-        unit_price: product.price,
-        substitute_for: item.substitute_for
-      });
-    }
-
-    // Create order with transaction
-    const orderId = generateOrderId();
-    const now = getBenchmarkTime();
-
-    const createOrder = database.transaction(() => {
-      database.query("INSERT INTO grocery_order (order_id, total, created_at) VALUES (?, ?, ?)").run(orderId, total, now);
-
-      for (const orderItem of orderItems) {
-        database.query(
-          "INSERT INTO grocery_order_item (order_id, product_id, quantity, unit_price, substitute_for) VALUES (?, ?, ?, ?, ?)"
-        ).run(orderId, orderItem.product_id, orderItem.quantity, orderItem.unit_price, orderItem.substitute_for || null);
-      }
-    });
-
-    createOrder();
+    database.query(
+      "INSERT INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ).run(productId, body.name, body.quantity, body.unit, body.stock_status, body.substitute_for || null, body.reference || null);
 
     return c.json({
-      success: true,
-      order_id: orderId,
-      total: Math.round(total * 100) / 100,
-      items: orderItems
+      product_id: productId,
+      name: body.name,
+      quantity: body.quantity,
+      unit: body.unit,
+      stock_status: body.stock_status,
+      substitute_for: body.substitute_for,
+      reference: body.reference
     }, 201);
   });
 
-  app.get("/api/grocery/orders", (c) => {
+  app.put("/api/grocery/products/:id", async (c) => {
+    const idParam = c.req.param("id");
+    if (!idParam) {
+      return c.json({ error: "Product ID required" }, 400);
+    }
+
+    let body: Partial<GroceryProduct>;
+    try {
+      body = await c.req.json();
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
+    }
+
     const database = assertDb();
-    const orders = database.query("SELECT order_id, total, created_at FROM grocery_order ORDER BY created_at DESC").all() as GroceryOrder[];
-    return c.json(orders);
+    const existing = database.query("SELECT product_id FROM grocery_product WHERE product_id = ?").get(idParam);
+    if (!existing) {
+      return c.json({ error: "Product not found" }, 404);
+    }
+
+    // Validate quantity if provided
+    if (body.quantity !== undefined && (typeof body.quantity !== "number" || !Number.isFinite(body.quantity))) {
+      return c.json({ error: "Quantity must be a valid number" }, 400);
+    }
+
+    // Validate stock_status if provided
+    if (body.stock_status !== undefined) {
+      const validStockStatuses = ["sufficient", "insufficient", "unavailable"];
+      if (!validStockStatuses.includes(body.stock_status)) {
+        return c.json({ error: "Invalid stock_status. Must be sufficient, insufficient, or unavailable" }, 400);
+      }
+    }
+
+    database.query(
+      "UPDATE grocery_product SET name = COALESCE(?, name), quantity = COALESCE(?, quantity), unit = COALESCE(?, unit), stock_status = COALESCE(?, stock_status), substitute_for = COALESCE(?, substitute_for), reference = COALESCE(?, reference) WHERE product_id = ?"
+    ).run(body.name ?? null, body.quantity ?? null, body.unit ?? null, body.stock_status ?? null, body.substitute_for ?? null, body.reference ?? null, idParam);
+
+    const updated = database.query("SELECT product_id, name, quantity, unit, stock_status, substitute_for, reference FROM grocery_product WHERE product_id = ?").get(idParam);
+    return c.json(updated);
+  });
+
+  app.delete("/api/grocery/products/:id", (c) => {
+    const idParam = c.req.param("id");
+    if (!idParam) {
+      return c.json({ error: "Product ID required" }, 400);
+    }
+
+    const database = assertDb();
+    const existing = database.query("SELECT product_id FROM grocery_product WHERE product_id = ?").get(idParam);
+    if (!existing) {
+      return c.json({ error: "Product not found" }, 404);
+    }
+
+    database.query("DELETE FROM grocery_product WHERE product_id = ?").run(idParam);
+    return c.json({ success: true });
   });
 
   // Wearable/Recovery API

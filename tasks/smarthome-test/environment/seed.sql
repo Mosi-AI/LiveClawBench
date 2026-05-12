@@ -33,16 +33,16 @@ INSERT INTO inventory_item (item_name, quantity, unit, location, expiry_date, ca
 ('Pasta', 2.0, 'lbs', 'pantry', '2026-09-01', 'grains'),
 ('Tomatoes', 4.0, 'pieces', 'fridge', '2026-05-12', 'vegetables');
 
--- Grocery Products
-INSERT INTO grocery_product (product_id, name, price, stock_status) VALUES
-('PROD001', 'Organic Whole Milk', 5.99, 'in_stock'),
-('PROD002', 'Sourdough Bread', 4.49, 'in_stock'),
-('PROD003', 'Free Range Eggs (12 pack)', 6.99, 'in_stock'),
-('PROD004', 'Salted Butter', 4.29, 'in_stock'),
-('PROD005', 'Fresh Salmon Fillet', 12.99, 'in_stock'),
-('PROD006', 'Mixed Salad Greens', 3.99, 'in_stock'),
-('PROD007', 'Greek Yogurt', 5.49, 'in_stock'),
-('PROD008', 'Granola', 4.99, 'in_stock');
+-- Grocery Products (requirement list format: quantity + unit instead of price)
+INSERT INTO grocery_product (product_id, name, quantity, unit, stock_status) VALUES
+('PROD001', 'Organic Whole Milk', 1.0, 'gallon', 'sufficient'),
+('PROD002', 'Sourdough Bread', 1.0, 'loaf', 'sufficient'),
+('PROD003', 'Eggs', 12.0, 'pieces', 'sufficient'),
+('PROD004', 'Salted Butter', 1.0, 'lb', 'sufficient'),
+('PROD005', 'Fresh Salmon Fillet', 2.0, 'lbs', 'sufficient'),
+('PROD006', 'Mixed Salad Greens', 1.0, 'bag', 'sufficient'),
+('PROD007', 'Greek Yogurt', 2.0, 'cups', 'sufficient'),
+('PROD008', 'Granola', 1.0, 'box', 'sufficient');
 
 -- Wearable/Recovery State (good sleep last night)
 INSERT INTO wearable_recovery_state (id, sleep_hours, sleep_score, readiness, resting_heart_rate)
