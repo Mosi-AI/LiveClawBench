@@ -4,7 +4,7 @@ import { sign, _resetSecret, authRequired } from "mock-lib";
 
 const pageAuth = authRequired({ onUnauthorized: "redirect" });
 
-describe("pageAuthRequired middleware", () => {
+describe("authRequired redirect middleware", () => {
   beforeEach(() => {
     _resetSecret();
     process.env.NODE_ENV = "test";
