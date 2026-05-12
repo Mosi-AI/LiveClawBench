@@ -38,7 +38,7 @@ import { registerUserRoutes } from "./routes/user.js";
 
 const PRODUCTS_PER_PAGE = 30;
 
-export function createShopApp(): MockAppV2 {
+export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
   // Reset the shared store so each factory call picks up the current env vars
   // (needed for tests that set MOCK_DATA_DIR before creating the app)
   resetStore();
@@ -157,7 +157,7 @@ export function createShopApp(): MockAppV2 {
   return {
     ...mockApp,
     seed: async () => {
-      allProducts = await loadProducts();
+      allProducts = await loadProducts(options?.productsPath);
       seedUser();
       seedOrders(allProducts);
     },

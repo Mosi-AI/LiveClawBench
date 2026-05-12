@@ -27,13 +27,13 @@ import type { SearchResult } from "./types";
 // Factory
 // ---------------------------------------------------------------------------
 
-export function createDocSearchApp(): MockAppV2 {
+export function createDocSearchApp(options?: { dbPath?: string; logPath?: string; dataDir?: string }): MockAppV2 {
   const cliArgs = parseCliArgs();
   const OUTPUT_BASE = `${process.env.HOME ?? "/home/node"}/.openclaw/output`;
 
-  const DB_PATH = cliArgs.database ?? process.env.BROWSER_MOCK_DB_PATH ?? `${OUTPUT_BASE}/browser_mock_documents.sqlite`;
-  const LOG_PATH = cliArgs.log ?? process.env.BROWSER_MOCK_ACCESS_LOG ?? `${OUTPUT_BASE}/browser_mock_access.jsonl`;
-  const DATA_DIR = process.env.BROWSER_MOCK_DATA_DIR ?? "/opt/mock/data";
+  const DB_PATH = options?.dbPath ?? cliArgs.database ?? process.env.BROWSER_MOCK_DB_PATH ?? `${OUTPUT_BASE}/browser_mock_documents.sqlite`;
+  const LOG_PATH = options?.logPath ?? cliArgs.log ?? process.env.BROWSER_MOCK_ACCESS_LOG ?? `${OUTPUT_BASE}/browser_mock_access.jsonl`;
+  const DATA_DIR = options?.dataDir ?? process.env.BROWSER_MOCK_DATA_DIR ?? "/opt/mock/data";
   const SQL_PATH = `${DATA_DIR}/documents.sql`;
 
   // Per-instance state (isolated across createDocSearchApp() calls)

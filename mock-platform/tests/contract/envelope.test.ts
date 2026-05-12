@@ -1,9 +1,14 @@
 import { describe, expect, test, beforeEach } from "bun:test";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { mkdtempSync } from "node:fs";
 import { createEmailApp } from "../../mocks/email/src/index";
 import { resetEmailDb } from "../../mocks/email/src/db";
 import { createAirlineApp } from "../../mocks/airline/src/index";
 import { resetAirlineDb } from "../../mocks/airline/src/db";
 import { createTodolistApp } from "../../mocks/todolist/src/index";
+import { createShopApp } from "../../mocks/shop/src/index";
+import { createDocSearchApp } from "../../mocks/doc-search/src/index";
 import type { OpenAPIApp } from "mock-lib";
 
 // ---------------------------------------------------------------------------
@@ -136,5 +141,125 @@ describe.each(SIMPLE_MOCKS)("$name: basic health check", ({ factory }) => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok || body.status).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fixture-dependent mocks — shop + doc-search (factory injection)
+// ---------------------------------------------------------------------------
+
+const FIXTURES_DIR = join(import.meta.dir, "../fixtures");
+
+interface FixtureMockConfig {
+  name: string;
+  factory: () => { app: OpenAPIApp; seed?: () => void | Promise<void> };
+}
+
+const FIXTURE_MOCKS: FixtureMockConfig[] = [
+  {
+    name: "shop",
+    factory: () => {
+      process.env.MOCK_DATA_DIR = mkdtempSync(join(tmpdir(), "shop-test-"));
+      return createShopApp({
+        productsPath: join(FIXTURES_DIR, "shop-products.json"),
+      });
+    },
+  },
+  {
+    name: "doc-search",
+    factory: () =>
+      createDocSearchApp({
+        dbPath: join(tmpdir(), `doc-search-test-${Date.now()}.sqlite`),
+        logPath: join(tmpdir(), `doc-search-log-${Date.now()}.jsonl`),
+        dataDir: FIXTURES_DIR,
+      }),
+  },
+];
+
+describe.each(FIXTURE_MOCKS)("$name: basic health check (fixture)", ({ factory }) => {
+  let app: OpenAPIApp;
+
+  beforeEach(async () => {
+    const instance = factory();
+    app = instance.app;
+    if (instance.seed) {
+      await instance.seed();
+    }
+  });
+
+  test("GET /health returns 200", async () => {
+    const res = await app.request("/health");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok || body.status).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Shop business endpoint envelope contract
+// ---------------------------------------------------------------------------
+
+describe("shop: business endpoint envelope contract", () => {
+  let app: OpenAPIApp;
+
+  beforeEach(async () => {
+    process.env.MOCK_DATA_DIR = mkdtempSync(join(tmpdir(), "shop-test-"));
+    const instance = createShopApp({
+      productsPath: join(FIXTURES_DIR, "shop-products.json"),
+    });
+    app = instance.app;
+    if (instance.seed) {
+      await instance.seed();
+    }
+  });
+
+  test("GET /api/products returns wrapped envelope with data.products", async () => {
+    const res = await app.request("/api/products");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toMatchObject({
+      success: true,
+      data: {
+        products: expect.any(Array),
+        total_products: expect.any(Number),
+        total_pages: expect.any(Number),
+        current_page: expect.any(Number),
+        products_per_page: expect.any(Number),
+      },
+    });
+  });
+
+  test("GET /api/product/:id returns wrapped envelope with data.id", async () => {
+    const res = await app.request("/api/product/prod_0001");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toMatchObject({
+      success: true,
+      data: {
+        id: "prod_0001",
+        title: expect.any(String),
+      },
+    });
+  });
+
+  test("GET /api/product/nonexistent returns 404 with { success: false, message }", async () => {
+    const res = await app.request("/api/product/nonexistent");
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body).toMatchObject({
+      success: false,
+      message: expect.any(String),
+    });
+    expect(body).not.toHaveProperty("data");
+  });
+
+  test("invalid query param returns 400 with { success: false, message }", async () => {
+    const res = await app.request("/api/products?min_price=invalid");
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body).toMatchObject({
+      success: false,
+      message: expect.any(String),
+    });
   });
 });

@@ -2,16 +2,16 @@ import type { Product, Order } from "../types.js";
 import { userExists, loadOrders, saveOrders, saveUser } from "./store.js";
 import { DEFAULT_USER } from "./defaults.js";
 
-export async function loadProducts(): Promise<Product[]> {
-  const productsPath = process.env.MOCK_PRODUCTS_PATH ?? "/opt/mock/static/shop/products.json";
+export async function loadProducts(productsPath?: string): Promise<Product[]> {
+  const path = productsPath ?? process.env.MOCK_PRODUCTS_PATH ?? "/opt/mock/static/shop/products.json";
   try {
-    const content = Bun.file(productsPath);
+    const content = Bun.file(path);
     const products = (await content.json()) as Product[];
-    console.log(`mock-shop: loaded ${products.length} products from ${productsPath}`);
+    console.log(`mock-shop: loaded ${products.length} products from ${path}`);
     return products;
   } catch (err) {
     console.error(`mock-shop: FATAL: failed to load products.json`, err);
-    throw new Error(`Failed to load products.json from ${productsPath}: ${err}`);
+    throw new Error(`Failed to load products.json from ${path}: ${err}`);
   }
 }
 
