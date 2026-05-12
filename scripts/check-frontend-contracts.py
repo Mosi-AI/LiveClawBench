@@ -58,24 +58,27 @@ KNOWN_AUTH_SHAPES = {
         "envelope": ["success", "message", "data"],
         "data": ["access_token", "user", "refresh_token"],
     },
-    "shop-app": None,       # shop has no auth login endpoint
-    "todolist-app": None,   # todolist has no auth login endpoint
-    "doc-search-app": None, # doc-search has no auth login endpoint
+    "shop-app": None,  # shop has no auth login endpoint
+    "todolist-app": None,  # todolist has no auth login endpoint
+    "doc-search-app": None,  # doc-search has no auth login endpoint
 }
 
 # ---------------------------------------------------------------------------
 # Scanning
 # ---------------------------------------------------------------------------
 
+
 def scan_frontend():
     """Scan all frontend source files and collect access patterns."""
-    results = defaultdict(lambda: {
-        "nested_access": set(),
-        "nested_destructure": set(),
-        "whole_object_access": False,
-        "flat_access": set(),
-        "files": set(),
-    })
+    results = defaultdict(
+        lambda: {
+            "nested_access": set(),
+            "nested_destructure": set(),
+            "whole_object_access": False,
+            "flat_access": set(),
+            "files": set(),
+        }
+    )
 
     for frontend_dir in TASKS_DIR.rglob("frontend/src"):
         # Skip node_modules
@@ -121,9 +124,11 @@ def scan_frontend():
 
     return results
 
+
 # ---------------------------------------------------------------------------
 # Analysis
 # ---------------------------------------------------------------------------
+
 
 def analyze(results):
     """Compare scanned patterns against known mock shapes. Return list of violations."""
@@ -144,54 +149,64 @@ def analyze(results):
 
         # If frontend accesses the whole data object (e.g. response.data.data),
         # consider all nested properties as accessible.
-        effective_nested = nested if not data["whole_object_access"] else nested | expected_data_props
+        effective_nested = (
+            nested if not data["whole_object_access"] else nested | expected_data_props
+        )
 
         # Check 1: Are expected auth data properties accessed?
         missing = expected_data_props - effective_nested
         if missing:
-            violations.append({
-                "app": app_type,
-                "severity": "error",
-                "type": "missing_auth_data_access",
-                "message": f"Frontend never accesses auth data properties: {sorted(missing)}",
-                "expected": sorted(expected_data_props),
-                "found": sorted(nested),
-            })
+            violations.append(
+                {
+                    "app": app_type,
+                    "severity": "error",
+                    "type": "missing_auth_data_access",
+                    "message": f"Frontend never accesses auth data properties: {sorted(missing)}",
+                    "expected": sorted(expected_data_props),
+                    "found": sorted(nested),
+                }
+            )
 
         # Check 2: Are envelope properties (success/message) checked anywhere?
         has_envelope_checks = bool(expected_envelope_props & flat)
         if not has_envelope_checks:
-            warnings.append({
-                "app": app_type,
-                "severity": "warning",
-                "type": "no_envelope_check",
-                "message": (
-                    "Frontend does not check response envelope properties "
-                    f"({sorted(expected_envelope_props)}). "
-                    "It may assume all responses are successful."
-                ),
-            })
+            warnings.append(
+                {
+                    "app": app_type,
+                    "severity": "warning",
+                    "type": "no_envelope_check",
+                    "message": (
+                        "Frontend does not check response envelope properties "
+                        f"({sorted(expected_envelope_props)}). "
+                        "It may assume all responses are successful."
+                    ),
+                }
+            )
 
         # Check 3: Are there flat accesses to properties that should be nested?
         # e.g., response.data.access_token instead of response.data.data.access_token
         flat_misplaced = flat & expected_data_props
         if flat_misplaced:
-            violations.append({
-                "app": app_type,
-                "severity": "error",
-                "type": "flat_access_when_wrapped",
-                "message": (
-                    f"Frontend accesses {sorted(flat_misplaced)} via response.data.X "
-                    "but mock returns them under response.data.data.X"
-                ),
-                "properties": sorted(flat_misplaced),
-            })
+            violations.append(
+                {
+                    "app": app_type,
+                    "severity": "error",
+                    "type": "flat_access_when_wrapped",
+                    "message": (
+                        f"Frontend accesses {sorted(flat_misplaced)} via response.data.X "
+                        "but mock returns them under response.data.data.X"
+                    ),
+                    "properties": sorted(flat_misplaced),
+                }
+            )
 
     return violations, warnings
+
 
 # ---------------------------------------------------------------------------
 # Reporting
 # ---------------------------------------------------------------------------
+
 
 def report_text(results, violations, warnings):
     print("=" * 70)
@@ -264,13 +279,17 @@ def report_json(results, violations, warnings):
     }
     print(json.dumps(output, indent=2))
 
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main():
     parser = argparse.ArgumentParser(description="Frontend-Mock Contract Checker")
-    parser.add_argument("--json", action="store_true", help="Output JSON instead of text")
+    parser.add_argument(
+        "--json", action="store_true", help="Output JSON instead of text"
+    )
     args = parser.parse_args()
 
     results = scan_frontend()
