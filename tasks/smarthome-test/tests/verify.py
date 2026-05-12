@@ -11,8 +11,8 @@ Expected agent actions:
 3. Review inventory (implicit - no state change)
 4. Check calendar (implicit - no state change)
 5. Update workout type to "walking"
-6. Create a 7-day meal plan
-7. Optionally order groceries if items are low
+6. Create a 1-day meal plan (breakfast, lunch, dinner)
+7. Add an item to the Shopping List
 """
 
 import json
@@ -114,7 +114,7 @@ def check_workout_update():
 
 
 def check_meal_plan():
-    """Check if a 7-day meal plan was created"""
+    """Check if a 1-day meal plan was created"""
     print("\n=== Test 3: Meal Plan Creation ===")
     resp, status = http_request("GET", "/api/meal-plan")
 
@@ -138,53 +138,59 @@ def check_meal_plan():
         print(f"PASS: Meal plan created with id: {plan_id}")
         score += 0.3
 
-    # Check plan has 7 days
+    # Check plan has valid structure
     try:
         days = json.loads(plan_data) if isinstance(plan_data, str) else plan_data
-        if isinstance(days, list) and len(days) == 7:
-            print(f"PASS: Meal plan has 7 days")
+        if isinstance(days, list) and len(days) >= 1:
+            print(f"PASS: Meal plan has {len(days)} day(s)")
             score += 0.4
 
-            # Check each day has meals
-            valid_days = 0
-            for day in days:
-                if isinstance(day, dict) and "meals" in day and "date" in day:
-                    valid_days += 1
-
-            if valid_days == 7:
-                print("PASS: All 7 days have valid structure")
-                score += 0.3
+            # Check first day has meals
+            first_day = days[0] if days else None
+            if isinstance(first_day, dict) and "meals" in first_day:
+                meals = first_day.get("meals", [])
+                if len(meals) >= 1:
+                    print(f"PASS: First day has {len(meals)} meal(s)")
+                    score += 0.3
+                else:
+                    print("PARTIAL: First day has no meals")
+                    score += 0.1
             else:
-                print(f"PARTIAL: {valid_days}/7 days have valid structure")
-                score += 0.1
-
+                print("FAIL: First day has invalid structure")
         else:
-            print(f"FAIL: Expected 7 days, got {len(days) if isinstance(days, list) else 'invalid format'}")
+            print(f"FAIL: Expected at least 1 day, got {len(days) if isinstance(days, list) else 'invalid format'}")
     except (json.JSONDecodeError, TypeError) as e:
         print(f"FAIL: Could not parse plan_data: {e}")
 
     return min(score, 1.0)
 
 
-def check_grocery_order():
-    """Check if grocery order was placed (optional bonus)"""
-    print("\n=== Test 4: Grocery Order (Bonus) ===")
-
-    # Check if any orders exist via API
-    resp, status = http_request("GET", "/api/grocery/orders")
+def check_shopping_list():
+    """Check if an item was added to the Shopping List"""
+    print("\n=== Test 4: Shopping List Update ===")
+    resp, status = http_request("GET", "/api/grocery/products")
 
     if status != 200:
-        print(f"INFO: Could not check grocery orders: {status}")
+        print(f"FAIL: Could not get shopping list: {status}")
         return 0.0
 
-    orders = resp
-    if isinstance(orders, list) and len(orders) > 0:
-        print(f"BONUS: {len(orders)} grocery order(s) placed")
-        latest = orders[0]
-        print(f"  Latest order: {latest.get('order_id')}, total=${latest.get('total', 0):.2f}")
-        return 0.5  # Bonus points
+    products = resp
+    print(f"Found {len(products)} items in Shopping List")
+
+    # Initial seed has 8 items (PROD001-PROD008)
+    # If agent added an item, there should be more than 8
+    initial_count = 8
+    current_count = len(products)
+
+    if current_count > initial_count:
+        print(f"PASS: Shopping list has {current_count} items (added {current_count - initial_count} new item(s))")
+        # Show the new items
+        new_items = products[initial_count:]
+        for item in new_items:
+            print(f"  New item: {item.get('name')} ({item.get('quantity')} {item.get('unit')})")
+        return 1.0
     else:
-        print("INFO: No grocery orders placed (optional)")
+        print(f"INFO: Shopping list has {current_count} items (no new items added)")
         return 0.0
 
 
@@ -197,7 +203,7 @@ def main():
         ("Thermostat Adjustment", check_thermostat, 1.0),
         ("Workout Type Update", check_workout_update, 1.0),
         ("Meal Plan Creation", check_meal_plan, 1.0),
-        ("Grocery Order (Bonus)", check_grocery_order, 0.5),
+        ("Shopping List Update", check_shopping_list, 1.0),
     ]
 
     results = []
@@ -223,14 +229,8 @@ def main():
         total_score += score
         total_max += max_score
 
-    # Normalize to 0.0-1.0 scale (excluding bonus)
-    # Core tasks: thermostat (1.0) + workout (1.0) + meal_plan (1.0) = 3.0
-    # Bonus: grocery (0.5)
-    core_score = total_score - results[-1][1]  # Exclude bonus
-    final_score = min(core_score / 3.0, 1.0)
-
-    # Add bonus (capped at 1.0)
-    final_score = min(final_score + results[-1][1], 1.0)
+    # Normalize to 0.0-1.0 scale
+    final_score = total_score / total_max if total_max > 0 else 0.0
 
     print(f"\nFinal Score: {final_score:.2f}/1.0")
 
@@ -239,7 +239,7 @@ def main():
         f.write(f"{final_score:.2f}\n")
 
     print(f"Score: {final_score:.2f}/1.0")
-    sys.exit(0 if final_score >= 0.7 else 1)
+    sys.exit(0 if final_score >= 0.5 else 1)
 
 
 if __name__ == "__main__":

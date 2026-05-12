@@ -1129,20 +1129,18 @@ let editingPlan = null;
 function initPlanData() {
   const today = new Date();
   const days = [];
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    days.push({
-      date: date.toISOString().split('T')[0],
-      meals: []
-    });
-  }
+  // Start with just 1 day for simplicity
+  const date = new Date(today);
+  days.push({
+    date: date.toISOString().split('T')[0],
+    meals: []
+  });
   return days;
 }
 
 function openCreateModal() {
   editingPlan = null;
-  document.getElementById('plan-modal-title').textContent = 'Create Weekly Meal Plan';
+  document.getElementById('plan-modal-title').textContent = 'Create Meal Plan';
   renderPlanEditor(initPlanData());
   document.getElementById('plan-modal').style.display = 'block';
 }
@@ -1150,7 +1148,7 @@ function openCreateModal() {
 function openEditModal() {
   if (!currentPlan) return;
   editingPlan = currentPlan;
-  document.getElementById('plan-modal-title').textContent = 'Edit Weekly Meal Plan';
+  document.getElementById('plan-modal-title').textContent = 'Edit Meal Plan';
   renderPlanEditor(JSON.parse(currentPlan.plan_data));
   document.getElementById('plan-modal').style.display = 'block';
 }
@@ -1189,8 +1187,11 @@ function renderPlanEditor(days) {
 
 function updateCalories() {
   const recipes = ${JSON.stringify(recipes.map(r => ({ id: r.id, calories_total: r.calories_total })))};
+  const container = document.getElementById('plan-days');
+  const dayCards = container.querySelectorAll('.day-card');
+  const numDays = dayCards.length;
   let totalCalories = 0;
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < numDays; i++) {
     for (const mealType of ['breakfast', 'lunch', 'dinner']) {
       const select = document.getElementById('day-' + i + '-' + mealType);
       if (select && select.value) {
@@ -1200,12 +1201,15 @@ function updateCalories() {
     }
   }
   document.getElementById('total-calories').textContent = totalCalories + ' kcal';
-  document.getElementById('avg-calories').textContent = Math.round(totalCalories / 7) + ' kcal/day';
+  document.getElementById('avg-calories').textContent = numDays > 0 ? Math.round(totalCalories / numDays) + ' kcal/day' : '0 kcal/day';
 }
 
 function savePlan() {
   const days = [];
-  for (let i = 0; i < 7; i++) {
+  const container = document.getElementById('plan-days');
+  const dayCards = container.querySelectorAll('.day-card');
+  const numDays = dayCards.length;
+  for (let i = 0; i < numDays; i++) {
     const dateInput = document.querySelector('#plan-days .day-card:nth-child(' + (i + 1) + ') h3');
     const meals = [];
     for (const mealType of ['breakfast', 'lunch', 'dinner']) {
@@ -1900,8 +1904,8 @@ function registerRoutes(app: OpenAPIApp): void {
     }
 
     const days = body.days;
-    if (!days || !Array.isArray(days) || days.length !== 7) {
-      return c.json({ error: "Exactly 7 days required for weekly meal plan" }, 400);
+    if (!days || !Array.isArray(days) || days.length < 1) {
+      return c.json({ error: "At least 1 day required for meal plan" }, 400);
     }
 
     // Validate each day's structure
