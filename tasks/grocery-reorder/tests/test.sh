@@ -1,15 +1,16 @@
 #!/bin/bash
-set -e
+# Harbor verifier wrapper - always writes reward files before exiting
 
-# Run the verifier and capture output
-VERIFIER_OUTPUT=$(python3 /tests/verify.py 2>&1)
+# Ensure logs directory exists first
+mkdir -p /logs/verifier
+
+# Run the verifier and capture output WITHOUT set -e interfering
+# Use || true to prevent non-zero exit from aborting the script
+VERIFIER_OUTPUT=$(python3 /tests/verify.py 2>&1) || true
 echo "$VERIFIER_OUTPUT"
 
 # Extract score from output (format: "Score: X.XX/1.0")
 SCORE=$(echo "$VERIFIER_OUTPUT" | grep -oP 'Score: \K[0-9]+\.[0-9]+' | head -1)
-
-# Ensure logs directory exists
-mkdir -p /logs/verifier
 
 # Write reward.txt (required by Harbor verifier contract)
 if [ -n "$SCORE" ]; then
@@ -24,7 +25,7 @@ import json
 import re
 import sys
 
-# Read verifier output
+# Read verifier output from stdin
 output = sys.stdin.read()
 
 # Extract dimension results

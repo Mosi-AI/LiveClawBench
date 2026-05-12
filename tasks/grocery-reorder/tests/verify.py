@@ -5,7 +5,7 @@ Verify grocery-reorder task: 5-dimension scoring with gate condition.
 Dimensions:
 - D1: Eggs entry in smarthome grocery_product table (SQLite) with quantity=36, unit='pieces' (0.25)
 - D2: Shop order (JSON orders file) with egg product and OrderItem.quantity=3 (3 dozen) (0.25)
-- D3: grocery_product.reference matches the EXACT egg order found in D2 (0.25)
+- D3: The SAME eggs entry has reference matching the EXACT egg order from D2 (0.25)
 - D4: Agent response contains rounding keywords (0.15, mandatory)
 - D5: Existing entries (PROD001, PROD002) unchanged (0.10, gated by D1-3)
 
@@ -58,18 +58,27 @@ def get_last_assistant_message():
     return last_content
 
 
-def check_dimension_1(conn):
-    """D1: Eggs entry in grocery_product with quantity=36, unit='pieces'."""
+def find_egg_row(conn):
+    """Find the egg row in grocery_product with correct quantity and unit.
+
+    Returns the product_id of the qualifying row, or None if not found.
+    This ensures D1 and D3 are evaluated against the SAME row.
+    """
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT quantity, unit FROM grocery_product WHERE name LIKE '%egg%' OR product_id LIKE '%egg%'"
+        "SELECT product_id FROM grocery_product WHERE (name LIKE '%egg%' OR product_id LIKE '%egg%') AND quantity = 36.0 AND unit = 'pieces'"
     )
-    rows = cursor.fetchall()
-    for row in rows:
-        quantity, unit = row
-        if quantity == 36.0 and unit == "pieces":
-            return True
-    return False
+    row = cursor.fetchone()
+    return row[0] if row else None
+
+
+def check_dimension_1(conn):
+    """D1: Eggs entry in grocery_product with quantity=36, unit='pieces'.
+
+    Returns (pass, egg_product_id) where egg_product_id identifies the specific row.
+    """
+    egg_product_id = find_egg_row(conn)
+    return egg_product_id is not None, egg_product_id
 
 
 def check_dimension_2(orders):
@@ -88,29 +97,26 @@ def check_dimension_2(orders):
     return False, None
 
 
-def check_dimension_3(conn, expected_order_id):
-    """D3: grocery_product.reference matches the EXACT egg order from D2.
+def check_dimension_3(conn, egg_product_id, expected_order_id):
+    """D3: The SAME egg row from D1 has reference matching the EXACT egg order from D2.
 
     This enforces that the agent correctly links the Shopping List entry
-    to the specific order they placed for eggs, not just any existing order.
+    to the specific order they placed for eggs, on the same row that has
+    the correct quantity and unit.
     """
-    if expected_order_id is None:
+    if egg_product_id is None or expected_order_id is None:
         return False
 
     cursor = conn.cursor()
-    # Find eggs entry in grocery_product
     cursor.execute(
-        "SELECT reference FROM grocery_product WHERE name LIKE '%egg%' OR product_id LIKE '%egg%'"
+        "SELECT reference FROM grocery_product WHERE product_id = ?",
+        (egg_product_id,)
     )
-    rows = cursor.fetchall()
-    if not rows:
+    row = cursor.fetchone()
+    if row is None:
         return False
 
-    for row in rows:
-        reference = row[0]
-        if reference == expected_order_id:
-            return True
-    return False
+    return row[0] == expected_order_id
 
 
 def check_dimension_4():
@@ -166,6 +172,7 @@ def check_dimension_5(conn):
 def main():
     score = 0.0
     results = {}
+    egg_product_id = None
     egg_order_id = None
 
     # Connect to smarthome SQLite
@@ -185,8 +192,8 @@ def main():
     except (FileNotFoundError, json.JSONDecodeError):
         orders = []
 
-    # Check D1
-    d1_pass = check_dimension_1(conn)
+    # Check D1 - returns the specific egg row product_id
+    d1_pass, egg_product_id = check_dimension_1(conn)
     results["D1"] = d1_pass
     if d1_pass:
         score += 0.25
@@ -197,8 +204,8 @@ def main():
     if d2_pass:
         score += 0.25
 
-    # Check D3 - must match the EXACT egg order from D2
-    d3_pass = check_dimension_3(conn, egg_order_id)
+    # Check D3 - must match the EXACT egg order from D2 on the SAME row from D1
+    d3_pass = check_dimension_3(conn, egg_product_id, egg_order_id)
     results["D3"] = d3_pass
     if d3_pass:
         score += 0.25
@@ -221,12 +228,14 @@ def main():
 
     # Print results
     print(f"D1 (Eggs in grocery_product): {'PASS' if d1_pass else 'FAIL'}")
+    if egg_product_id:
+        print(f"    -> Found egg row: {egg_product_id}")
     print(f"D2 (Shop order for 3 dozen): {'PASS' if d2_pass else 'FAIL'}")
     if d2_pass and egg_order_id:
         print(f"    -> Found egg order: {egg_order_id}")
-    print(f"D3 (Reference match): {'PASS' if d3_pass else 'FAIL'}")
-    if d2_pass and egg_order_id:
-        print(f"    -> Expected reference: {egg_order_id}")
+    print(f"D3 (Reference match on same row): {'PASS' if d3_pass else 'FAIL'}")
+    if egg_product_id and egg_order_id:
+        print(f"    -> Row {egg_product_id} reference must equal {egg_order_id}")
     print(f"D4 (Rounding explanation): {'PASS' if d4_pass else 'FAIL'}")
     print(f"D5 (Existing entries unchanged): {'PASS' if d5_pass else 'FAIL' if d1_pass and d2_pass and d3_pass else 'SKIPPED (D1-3 not all pass)'}")
     print(f"Score: {score:.2f}/1.0")

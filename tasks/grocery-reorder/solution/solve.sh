@@ -10,9 +10,10 @@ set -e
 # Shortage: 48 - 18 = 30 pieces -> round up to 3 dozen = 36 pieces
 
 # Connect to smarthome SQLite and add eggs entry
+# Note: stock_status must be one of: 'sufficient', 'insufficient', 'unavailable'
 sqlite3 /tmp/mosi_smart_home.sqlite << 'SQL'
 INSERT INTO grocery_product (product_id, name, quantity, unit, stock_status, reference)
-VALUES ('PROD_eggs', 'Eggs', 36.0, 'pieces', 'pending', NULL);
+VALUES ('PROD_eggs', 'Eggs', 36.0, 'pieces', 'insufficient', NULL);
 SQL
 
 # Step 2: Place order in shop for 3 dozen eggs
