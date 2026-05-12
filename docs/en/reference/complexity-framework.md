@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 30-case annotation table (30 implemented),
+It covers factor definitions, the full 32-case annotation table (32 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 30-Case Factor Annotation Table
+## 1. 32-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -59,6 +59,8 @@ single, clean environment without structural complexity.
 |      27 | conflict-repair-acb               |     E      | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |      28 | mixed-tool-memory                 |     E      | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |     M      | ✓  |    |    | ✓  | Deep Research & Report     |
+|      31 | smarthome-test                    |     M      |    |    | ✓  |    | Smart Home                 |
+|      32 | grocery-reorder                   |     M      | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
 
 ---
 
@@ -66,12 +68,12 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    10 |      33.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb  |
-| A2     | Contaminated Initial State     |     6 |      20.0% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
-| B1     | Implicit Goal Resolution       |     4 |      13.3% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application |
-| B2     | Knowledge System Maintenance   |    11 |      36.7% | skill-creation, skill-dependency-fix, noise-filtering         |
+| A1     | Cross-Service Dependency       |    11 |      34.4% | flight-seat-selection, email-watch-shop, grocery-reorder      |
+| A2     | Contaminated Initial State     |     6 |      18.8% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
+| B1     | Implicit Goal Resolution       |     6 |      18.8% | flight-seat-selection-failed, flight-cancel-claim, smarthome-test, grocery-reorder |
+| B2     | Knowledge System Maintenance   |    11 |      34.4% | skill-creation, skill-dependency-fix, noise-filtering         |
 
-> Percentages are relative to 30 implemented cases.
+> Percentages are relative to 32 implemented cases.
 
 Factor combination distribution:
 

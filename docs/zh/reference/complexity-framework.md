@@ -1,7 +1,7 @@
 # LiveClawBench 复杂度框架
 
 本文档是 LiveClawBench 任务复杂度标注的唯一参考来源。
-涵盖因子定义、完整的 30 case 标注表（30 个已实现）、
+涵盖因子定义、完整的 32 case 标注表（32 个已实现）、
 摘要统计、领域覆盖和控制对。
 
 ## 复杂度因子定义
@@ -17,7 +17,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 ---
 
-## 1. 30 Case 因子标注表
+## 1. 32 Case 因子标注表
 
 `✓` 表示该 case 包含对应因子。
 
@@ -53,6 +53,8 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      27 | conflict-repair-acb               |  E   | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |      28 | mixed-tool-memory                 |  E   | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |  M   | ✓  |    |    | ✓  | Deep Research & Report     |
+|      31 | smarthome-test                    |  M   |    |    | ✓  |    | Smart Home                 |
+|      32 | grocery-reorder                   |  M   | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
 
 ---
 
@@ -60,12 +62,12 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |   10 | 33.3%  | flight-seat-selection, email-watch-shop, conflict-repair-acb   |
-| A2   | 初始状态污染             |    6 | 20.0%  | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
-| B1   | 隐式目标解析             |    4 | 13.3%  | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application |
-| B2   | 知识系统维护             |   11 | 36.7%  | skill-creation, skill-dependency-fix, noise-filtering          |
+| A1   | 跨服务依赖               |   11 | 34.4%  | flight-seat-selection, email-watch-shop, grocery-reorder       |
+| A2   | 初始状态污染             |    6 | 18.8%  | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
+| B1   | 隐式目标解析             |    6 | 18.8%  | flight-seat-selection-failed, flight-cancel-claim, smarthome-test, grocery-reorder |
+| B2   | 知识系统维护             |   11 | 34.4%  | skill-creation, skill-dependency-fix, noise-filtering          |
 
-> 占比以 30 个已实现 case 总数为分母。
+> 占比以 32 个已实现 case 总数为分母。
 
 因子组合分布：
 
