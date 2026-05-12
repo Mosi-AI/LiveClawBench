@@ -29,6 +29,8 @@ mock-platform/
 | `types.ts` | Shared TypeScript interfaces |
 | `openapi.ts` | Zod schema + `@hono/zod-openapi` integration; auto-generates OpenAPI 3.1 specs |
 
+> **Full conventions and detailed guidelines** are documented in [`docs/mock-conventions.md`](docs/mock-conventions.md). This README provides an overview; refer to that document for implementation rules (factory pattern, response wrappers, auth, database seeding, testing, etc.).
+
 All mock services use `createMockApp()` which automatically exposes:
 
 - `GET /health` — returns `{ ok: true, status: "healthy", service: <name> }`
@@ -50,9 +52,17 @@ Search parity between the legacy Python mock implementations and the current Bun
 
 API documentation is auto-generated as OpenAPI 3.1 specs in `dist/openapi/*.json`. Run `bun run generate-openapi` to regenerate after route changes.
 
-### Why only shop and doc-search have internal docs
+### Internal Documentation
 
-`docs/shop-internal.md` and `docs/doc-search-internal.md` document implementation details that are not captured by the OpenAPI spec (e.g., search algorithm behavior, FTS5 schema, JSONL access log format). The other three mocks — airline, email, and todolist — are currently **stubs** that expose only the sentinel route (`/__mock_sentinel__/<name>`) and `GET /health`. They exist in the binary map so that multi-service tasks can reference them, but they have no business logic worth documenting beyond the auto-generated spec.
+Internal docs capture domain-specific behaviors not exposed in the OpenAPI specs:
+
+| Document | Covered Behaviors |
+|---|---|
+| `docs/shop-internal.md` | Search algorithm, product/cart/order data types |
+| `docs/doc-search-internal.md` | FTS5 schema, BM25 ranking, JSONL access log format |
+| `docs/airline-internal.md` | Seat generation, claiming/upgrades, booking lifecycle, task fixtures |
+| `docs/email-internal.md` | Seed injection, compose/reply/draft flow, Werkzeug hash compatibility |
+| `docs/todolist-internal.md` | Date filtering, month boundaries, `getNextSunday` fix, task fixtures |
 
 ## Build Commands
 
