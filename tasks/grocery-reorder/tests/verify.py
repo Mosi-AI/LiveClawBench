@@ -240,7 +240,10 @@ def main():
     print(f"D5 (Existing entries unchanged): {'PASS' if d5_pass else 'FAIL' if d1_pass and d2_pass and d3_pass else 'SKIPPED (D1-3 not all pass)'}")
     print(f"Score: {score:.2f}/1.0")
 
-    sys.exit(0 if score >= 0.5 else 1)
+    # D3 (reference match) and D4 (rounding explanation) are mandatory
+    # Agent must link the order reference AND explain the conversion
+    mandatory_pass = d3_pass and d4_pass
+    sys.exit(0 if score >= 0.5 and mandatory_pass else 1)
 
 
 if __name__ == "__main__":

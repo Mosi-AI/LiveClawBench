@@ -1967,6 +1967,16 @@ function registerRoutes(app: OpenAPIApp): void {
 
     return c.json({ success: true, plan_id: planId, created_at: now }, 201);
   });
+
+  app.delete("/api/meal-plan", (c) => {
+    const database = assertDb();
+    // Delete the most recent meal plan
+    const result = database.query("DELETE FROM meal_plan WHERE id = (SELECT id FROM meal_plan ORDER BY created_at DESC, id DESC LIMIT 1)").run();
+    if (result.changes === 0) {
+      return c.json({ error: "No meal plan to delete" }, 404);
+    }
+    return c.json({ success: true });
+  });
 }
 
 // ---------------------------------------------------------------------------
