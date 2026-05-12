@@ -3,11 +3,14 @@
 Verify grocery-reorder task: 5-dimension scoring with gate condition.
 
 Dimensions:
-- D1: Eggs entry in smarthome grocery_product table (SQLite) with quantity=30 or 36, unit='pieces' (0.25)
+- D1: Eggs entry in smarthome grocery_product table (SQLite) with quantity=36 pieces or 3 dozen (0.25)
 - D2: Shop order (JSON orders file) with egg product and OrderItem.quantity=3 (3 dozen) (0.25)
 - D3: The SAME eggs entry has reference matching the EXACT egg order from D2 (0.25)
-- D4: Agent response contains rounding/conversion keywords (not just "dozen") (0.15, mandatory)
+- D4: Agent response contains dozen-related reasoning explanation (0.15, mandatory)
 - D5: Existing entries (PROD001, PROD002) unchanged (0.10, gated by D1-3)
+
+Note: D1 only accepts 36 pieces or 3 dozen (not 30 pieces) because eggs are sold
+by the dozen, so valid quantities must be multiples of 12.
 
 Zero-work baseline: 0.0 (D5 gate prevents bonus without D1-3)
 """
@@ -64,18 +67,17 @@ def find_egg_row(conn):
     Returns the product_id of the qualifying row, or None if not found.
     This ensures D1 and D3 are evaluated against the SAME row.
 
-    Accepts multiple valid instruction-following patterns:
-    - 30.0 pieces (shortage amount: 48 needed - 18 in stock)
-    - 36.0 pieces (3 dozen converted to pieces)
-    - 3.0 dozen (direct dozen entry without conversion)
+    Accepts valid order quantities (eggs sold by the dozen, must be multiples of 12):
+    - 36.0 pieces (3 dozen = 36 pieces)
+    - 3.0 dozen (direct dozen entry)
 
-    The shopping-list API accepts arbitrary unit strings, so agents may
-    record the entry in either pieces or dozens.
+    Does NOT accept 30 pieces because eggs are sold by the dozen,
+    so valid quantities must be multiples of 12.
     """
     cursor = conn.cursor()
-    # Check for pieces entries (30 or 36)
+    # Check for pieces entry (36 = 3 dozen)
     cursor.execute(
-        "SELECT product_id FROM grocery_product WHERE (name LIKE '%egg%' OR product_id LIKE '%egg%') AND quantity IN (30.0, 36.0) AND unit = 'pieces'"
+        "SELECT product_id FROM grocery_product WHERE (name LIKE '%egg%' OR product_id LIKE '%egg%') AND quantity = 36.0 AND unit = 'pieces'"
     )
     row = cursor.fetchone()
     if row:
@@ -94,10 +96,12 @@ def check_dimension_1(conn):
 
     Returns (pass, egg_product_id) where egg_product_id identifies the specific row.
 
-    Accepts multiple valid instruction-following patterns:
-    - 30 pieces (shortage: 48 needed - 18 in stock)
-    - 36 pieces (3 dozen converted to pieces)
-    - 3 dozen (direct dozen entry without conversion)
+    Accepts valid order quantities (eggs sold by the dozen):
+    - 36 pieces (3 dozen = 36 pieces)
+    - 3 dozen (direct dozen entry)
+
+    Does NOT accept 30 pieces because eggs are sold by the dozen,
+    so valid quantities must be multiples of 12.
     """
     egg_product_id = find_egg_row(conn)
     return egg_product_id is not None, egg_product_id
