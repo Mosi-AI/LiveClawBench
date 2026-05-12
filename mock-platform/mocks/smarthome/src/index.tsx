@@ -731,16 +731,16 @@ async function saveItem() {
   const name = document.getElementById('item-name').value.trim();
   const quantity = parseFloat(document.getElementById('item-quantity').value);
   const unit = document.getElementById('item-unit').value.trim();
-  const location = document.getElementById('item-location').value;
+  const storageLocation = document.getElementById('item-location').value;
   const expiry = document.getElementById('item-expiry').value.trim() || null;
   const category = document.getElementById('item-category').value.trim() || null;
 
-  if (!name || isNaN(quantity) || !unit || !location) {
+  if (!name || isNaN(quantity) || !unit || !storageLocation) {
     alert('Please fill in all required fields');
     return;
   }
 
-  const body = { item_name: name, quantity, unit, location, expiry_date: expiry, category };
+  const body = { item_name: name, quantity, unit, location: storageLocation, expiry_date: expiry, category };
 
   try {
     const url = editingId ? '/api/inventory/' + editingId : '/api/inventory';
@@ -752,7 +752,7 @@ async function saveItem() {
     });
     const data = await response.json();
     if (data.error) alert('Error: ' + data.error);
-    else { closeModal(); location.reload(); }
+    else { closeModal(); window.location.reload(); }
   } catch (err) { alert('Failed to save item'); }
 }
 
@@ -826,7 +826,7 @@ window.onclick = function(event) {
               <td>{item.unit}</td>
               <td>{item.expiry_date || "-"}</td>
               <td>
-                <button class="btn btn-secondary" onclick={`openEditModal(${item.id}, '${escJs(item.item_name)}', ${item.quantity}, '${escJs(item.unit)}', 'fridge', '${item.expiry_date || ''}', '${item.category || ''}')`}>Edit</button>
+                <button class="btn btn-secondary" onclick={`openEditModal(${item.id}, '${escJs(item.item_name)}', ${item.quantity}, '${escJs(item.unit)}', 'fridge', '${item.expiry_date || ''}', '${escJs(item.category || '')}')`}>Edit</button>
                 <button class="btn btn-danger" onclick={`deleteItem(${item.id})`}>Delete</button>
               </td>
             </tr>
@@ -848,7 +848,7 @@ window.onclick = function(event) {
               <td>{item.unit}</td>
               <td>{item.category || "-"}</td>
               <td>
-                <button class="btn btn-secondary" onclick={`openEditModal(${item.id}, '${escJs(item.item_name)}', ${item.quantity}, '${escJs(item.unit)}', 'pantry', '${item.expiry_date || ''}', '${item.category || ''}')`}>Edit</button>
+                <button class="btn btn-secondary" onclick={`openEditModal(${item.id}, '${escJs(item.item_name)}', ${item.quantity}, '${escJs(item.unit)}', 'pantry', '${item.expiry_date || ''}', '${escJs(item.category || '')}')`}>Edit</button>
                 <button class="btn btn-danger" onclick={`deleteItem(${item.id})`}>Delete</button>
               </td>
             </tr>
