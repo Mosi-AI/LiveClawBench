@@ -85,6 +85,11 @@
       ]
     },
     "skill-combination": { "binaries": [] },
-    "expense-draft-delete": { "binaries": ["expense"] }
+    "expense-draft-delete": {
+      "binaries": ["expense"],
+      "assets": [
+        { "src": "tasks/expense-draft-delete/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+      ]
+    }
   }
 }
