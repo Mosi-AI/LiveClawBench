@@ -4,21 +4,22 @@
 # Ensure logs directory exists first
 mkdir -p /logs/verifier
 
-# Run the verifier and capture output WITHOUT set -e interfering
-# Use || true to prevent non-zero exit from aborting the script
-VERIFIER_OUTPUT=$(python3 /tests/verify.py 2>&1) || true
-echo "$VERIFIER_OUTPUT"
+# Run the verifier and capture output
+# Use a temp file to capture output while preserving exit code
+VERIFIER_OUTPUT_FILE=$(mktemp)
+python3 /tests/verify.py 2>&1 | tee "$VERIFIER_OUTPUT_FILE"
+VERIFY_EXIT_CODE=${PIPESTATUS[0]}
 
 # Use Python to parse verifier output and write both reward files
 # This ensures reward.txt and reward.json are always consistent
 python3 -c "
 import json
-import os
 import re
 import sys
 
-# Read verifier output from environment variable
-output = os.environ.get('VERIFIER_OUTPUT', '') if 'VERIFIER_OUTPUT' in os.environ else sys.stdin.read()
+# Read verifier output from file
+with open(sys.argv[1], 'r') as f:
+    output = f.read()
 
 # Extract dimension results
 dimensions = {}
@@ -43,15 +44,10 @@ reward_data = {
 
 with open('/logs/verifier/reward.json', 'w') as f:
     json.dump(reward_data, f, indent=2)
+" "$VERIFIER_OUTPUT_FILE"
 
-# Exit based on score threshold
-sys.exit(0 if score >= 0.5 else 1)
-" <<< "$VERIFIER_OUTPUT"
-EXIT_CODE=$?
+# Clean up temp file
+rm -f "$VERIFIER_OUTPUT_FILE"
 
-if [ $EXIT_CODE -eq 0 ]; then
-    echo "Verification passed (score >= 0.5)"
-else
-    echo "Verification failed (score < 0.5)"
-fi
-exit $EXIT_CODE
+# Exit with verify.py's exit code (preserves mandatory D3/D4 gate)
+exit $VERIFY_EXIT_CODE

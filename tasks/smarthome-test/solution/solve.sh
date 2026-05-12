@@ -54,15 +54,12 @@ curl -s -X POST "$BASE_URL/api/meal-plan" \
   }' > /dev/null
 echo "   Meal plan created"
 
-# 7. Update grocery shopping list (milk and butter are low)
-echo "7. Updating grocery shopping list..."
-curl -s -X PUT "$BASE_URL/api/grocery/products/PROD001" \
+# 7. Add item to grocery shopping list
+echo "7. Adding item to grocery shopping list..."
+curl -s -X POST "$BASE_URL/api/grocery/products" \
   -H "Content-Type: application/json" \
-  -d '{"quantity": 2}' > /dev/null
-curl -s -X PUT "$BASE_URL/api/grocery/products/PROD004" \
-  -H "Content-Type: application/json" \
-  -d '{"quantity": 1}' > /dev/null
-echo "   Grocery shopping list updated"
+  -d '{"product_id": "PROD009", "name": "Orange Juice", "quantity": 1, "unit": "gallon", "stock_status": "insufficient"}' > /dev/null
+echo "   Added Orange Juice to shopping list"
 
 echo ""
 echo "=== Morning routine completed ==="

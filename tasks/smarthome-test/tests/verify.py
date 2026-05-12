@@ -139,26 +139,34 @@ def check_meal_plan():
         score += 0.3
 
     # Check plan has valid structure
+    # Requirement: exactly 1 day with breakfast, lunch, and dinner
     try:
         days = json.loads(plan_data) if isinstance(plan_data, str) else plan_data
-        if isinstance(days, list) and len(days) >= 1:
-            print(f"PASS: Meal plan has {len(days)} day(s)")
-            score += 0.4
+        if isinstance(days, list) and len(days) == 1:
+            print(f"PASS: Meal plan has exactly 1 day")
+            score += 0.2
 
-            # Check first day has meals
+            # Check first day has all three meals
             first_day = days[0] if days else None
             if isinstance(first_day, dict) and "meals" in first_day:
                 meals = first_day.get("meals", [])
-                if len(meals) >= 1:
-                    print(f"PASS: First day has {len(meals)} meal(s)")
-                    score += 0.3
+                meal_types = set(m.get("meal_type") for m in meals if isinstance(m, dict))
+
+                required_meals = {"breakfast", "lunch", "dinner"}
+                if required_meals.issubset(meal_types):
+                    print(f"PASS: Day has breakfast, lunch, and dinner")
+                    score += 0.5
                 else:
-                    print("PARTIAL: First day has no meals")
+                    missing = required_meals - meal_types
+                    print(f"FAIL: Missing required meal types: {missing}")
                     score += 0.1
             else:
                 print("FAIL: First day has invalid structure")
+        elif isinstance(days, list) and len(days) > 1:
+            print(f"FAIL: Expected exactly 1 day, got {len(days)} days")
+            score += 0.1
         else:
-            print(f"FAIL: Expected at least 1 day, got {len(days) if isinstance(days, list) else 'invalid format'}")
+            print(f"FAIL: Expected exactly 1 day, got {len(days) if isinstance(days, list) else 'invalid format'}")
     except (json.JSONDecodeError, TypeError) as e:
         print(f"FAIL: Could not parse plan_data: {e}")
 
