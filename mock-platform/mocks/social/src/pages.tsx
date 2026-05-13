@@ -1,3 +1,4 @@
+/** @jsxImportSource hono/jsx */
 /**
  * Social mock — HTML page components
  * All TSX pages plus shared Layout and CSS.
