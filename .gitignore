@@ -7,7 +7,21 @@ __pycache__/
 # Harbor evaluation run artifacts (logs, trajectories, scores)
 jobs/*
 !jobs/.gitkeep
+jobs-migrated/
+jobs-baseline/
+jobs-migrated-round6/
+jobs-baseline-round6/
+jobs-migrated-round7/
+jobs-*-round*/
+jobs-round11-*/
 logs/
+*.log
+
+# Harbor parity comparison tables (generated verification artifacts)
+harbor-parity-*.md
+
+# Evidence directories (generated verification artifacts)
+evidence-round*/
 
 # Local run scripts (not tracked)
 run_*.sh
@@ -20,6 +34,9 @@ run_*.sh
 # Node.js dependencies
 **/node_modules/
 
+# Flask instance folders (SQLite runtime databases)
+**/instance/
+
 # Local Git worktrees used by code agents
 .worktrees/
 
@@ -28,6 +45,9 @@ run_*.sh
 
 # Playwright MCP session logs
 .playwright-mcp/
+
+# Shell redirect artifacts (accidental `>&amp;` typos create files named `amp`)
+amp
 
 # Humanize plugin state (drafts, plans, plan QA, bitlesson, config)
 .humanize/
@@ -39,3 +59,6 @@ docs/superpowers/
 .venv
 .venv/
 
+tasks/**/airline-app/frontend/dist/
+tasks/**/email-app/frontend/dist/
+tasks/**/todolist-app/frontend/dist/

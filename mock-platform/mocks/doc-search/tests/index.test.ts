@@ -215,12 +215,12 @@ describe("createDocSearchApp — Layer 1 route tests", () => {
     const res = await freshApp.app.request("/search?q=test");
     expect(res.status).toBe(503);
     const body = await res.json();
-    expect(body).toEqual({ error: "Service not ready" });
+    expect(body).toEqual({ success: false, message: "Service not ready" });
 
     const docRes = await freshApp.app.request("/docs/some-slug");
     expect(docRes.status).toBe(503);
     const docBody = await docRes.json();
-    expect(docBody).toEqual({ error: "Service not ready" });
+    expect(docBody).toEqual({ success: false, message: "Service not ready" });
 
     // Home page should still work (does not need DB)
     const homeRes = await freshApp.app.request("/");
@@ -281,7 +281,7 @@ describe("createDocSearchApp — Layer 1 route tests", () => {
     const res = await badApp.app.request("/");
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body).toEqual({ error: "access log unavailable" });
+    expect(body).toEqual({ success: false, message: "access log unavailable" });
 
     try {
       rmSync(badTmpDir, { recursive: true, force: true });

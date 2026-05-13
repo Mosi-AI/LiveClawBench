@@ -10,7 +10,7 @@
  * Access log: JSONL with home/search/click/page events
  */
 
-import { createMockApp, createRoute, startServer, parseCliArgs } from "mock-lib";
+import { createMockApp, createRoute, startServer, parseCliArgs, err } from "mock-lib";
 import type { MockAppV2 } from "mock-lib";
 import { z } from "zod";
 import { createDbState, initDatabase, validateDocumentRow } from "./db/init";
@@ -27,13 +27,13 @@ import type { SearchResult } from "./types";
 // Factory
 // ---------------------------------------------------------------------------
 
-export function createDocSearchApp(): MockAppV2 {
+export function createDocSearchApp(options?: { dbPath?: string; logPath?: string; dataDir?: string }): MockAppV2 {
   const cliArgs = parseCliArgs();
   const OUTPUT_BASE = `${process.env.HOME ?? "/home/node"}/.openclaw/output`;
 
-  const DB_PATH = cliArgs.database ?? process.env.BROWSER_MOCK_DB_PATH ?? `${OUTPUT_BASE}/browser_mock_documents.sqlite`;
-  const LOG_PATH = cliArgs.log ?? process.env.BROWSER_MOCK_ACCESS_LOG ?? `${OUTPUT_BASE}/browser_mock_access.jsonl`;
-  const DATA_DIR = process.env.BROWSER_MOCK_DATA_DIR ?? "/opt/mock/data";
+  const DB_PATH = options?.dbPath ?? cliArgs.database ?? process.env.BROWSER_MOCK_DB_PATH ?? `${OUTPUT_BASE}/browser_mock_documents.sqlite`;
+  const LOG_PATH = options?.logPath ?? cliArgs.log ?? process.env.BROWSER_MOCK_ACCESS_LOG ?? `${OUTPUT_BASE}/browser_mock_access.jsonl`;
+  const DATA_DIR = options?.dataDir ?? process.env.BROWSER_MOCK_DATA_DIR ?? "/opt/mock/data";
   const SQL_PATH = `${DATA_DIR}/documents.sql`;
 
   // Per-instance state (isolated across createDocSearchApp() calls)
@@ -78,14 +78,14 @@ export function createDocSearchApp(): MockAppV2 {
   // GET / — Home page
   app.page("/", (c) => {
     if (!writeEvent(logState, { event: "home", path: c.req.path })) {
-      return c.json({ error: "access log unavailable" }, 500);
+      return c.json(err("access log unavailable"), 500);
     }
     return c.html(renderHome(configState.metadata, configState.queryExamples));
   });
 
   // GET /search — Search results page
   app.page("/search", (c) => {
-    if (!dbState.db) return c.json({ error: "Service not ready" }, 503);
+    if (!dbState.db) return c.json(err("Service not ready"), 503);
     const query = c.req.query("q") ?? "";
     const path = c.req.path;
 
@@ -137,7 +137,7 @@ export function createDocSearchApp(): MockAppV2 {
       query,
       results: logResults,
     })) {
-      return c.json({ error: "access log unavailable" }, 500);
+      return c.json(err("access log unavailable"), 500);
     }
 
     return c.html(renderSearch(configState.metadata, query, results, sid));
@@ -145,7 +145,7 @@ export function createDocSearchApp(): MockAppV2 {
 
   // GET /docs/:slug — Document page
   app.page("/docs/:slug", (c) => {
-    if (!dbState.db) return c.json({ error: "Service not ready" }, 503);
+    if (!dbState.db) return c.json(err("Service not ready"), 503);
     const slug = c.req.param("slug");
     const sid = c.req.query("sid") ?? "";
     const rank = c.req.query("rank") ?? "";
@@ -170,7 +170,7 @@ export function createDocSearchApp(): MockAppV2 {
         doc_id: doc.id,
         slug: doc.slug,
       })) {
-        return c.json({ error: "access log unavailable" }, 500);
+        return c.json(err("access log unavailable"), 500);
       }
     }
 
@@ -183,7 +183,7 @@ export function createDocSearchApp(): MockAppV2 {
       doc_id: doc.id,
       slug: doc.slug,
     })) {
-      return c.json({ error: "access log unavailable" }, 500);
+      return c.json(err("access log unavailable"), 500);
     }
 
     return c.html(renderDoc(configState.metadata, doc, sid, rank));

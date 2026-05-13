@@ -3,8 +3,12 @@
 // Types
 export type { MockConfig, MockApp, AppEnv, CreateMockAppOptions, OpenApiConfig } from "./types";
 
+// Response helpers
+export type { ApiResponse } from "./response";
+export { ok, err } from "./response";
+
 // Factory
-export { createMockApp } from "./create-app";
+export { createMockApp, registerFrontendFallback } from "./create-app";
 
 // Server
 export { startServer } from "./server";
@@ -29,6 +33,9 @@ export type { RouteConfig } from "./openapi/types";
 export { createRoute } from "./openapi/types";
 export { ErrorResponseSchema, FactoryValidationSchema } from "./openapi/schemas";
 export { createOpenAPIMockApp } from "./openapi/create-app";
+
+// Formatting
+export { formatDateTime } from "./format";
 
 // CLI
 export { parseCliArgs, parseCliPort } from "./cli";

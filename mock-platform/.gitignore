@@ -2,6 +2,7 @@ dist/*
 !dist/openapi/
 dist/openapi/*.yaml
 dist/openapi/*.yml
+dist/openapi/*.json
 .tmp-images/
 jobs/
 mocks/*/dist/
