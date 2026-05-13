@@ -231,11 +231,11 @@ The payment gateway simulates:
 - `POST /api/claims/calculate-refund/:reference` - Calculate refund
 
 ### Mock Services
-- `GET /api/mock/emails` - Get mock emails
-- `GET /api/mock/calendar/events` - Get calendar events
-- `POST /api/mock/payment/process` - Process payment
-- `POST /api/mock/chat/sessions` - Create chat session
-- `POST /api/mock/chat/sessions/:id/messages` - Send message
+- `GET /api/emails` - Get mock emails
+- `GET /api/calendar/events` - Get calendar events
+- `POST /api/payment/process` - Process payment
+- `POST /api/chat/sessions` - Create chat session
+- `POST /api/chat/sessions/:id/messages` - Send message
 
 ## Database Schema
 

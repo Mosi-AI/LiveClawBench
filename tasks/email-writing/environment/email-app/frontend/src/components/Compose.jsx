@@ -36,7 +36,7 @@ function Compose() {
     try {
       setLoading(true)
       const response = await emailAPI.getEmail(draftId)
-      const draft = response.data.email
+      const draft = response.data.data.email
 
       if (draft.folder === 'drafts') {
         setTo(draft.recipient_email || '')
@@ -75,7 +75,7 @@ function Compose() {
         setUploadProgress(progress)
       })
 
-      const newAttachments = response.data.attachments.map(att => ({
+      const newAttachments = response.data.data.attachments.map(att => ({
         ...att,
         progress: 100,
         error: null

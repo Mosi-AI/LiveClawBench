@@ -1,5 +1,0 @@
-uploads/
-*.pyc
-__pycache__/
-*.db
-.env

@@ -1,10 +1,12 @@
 import { z } from "zod";
-import { createRoute } from "mock-lib";
+import { createRoute, ok, err } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import {
   ListProductsQuerySchema,
   ListProductsResponseSchema,
+  OkSchema,
   ProductSchema,
+  ErrSchema,
 } from "../schemas.js";
 import { filterAndSortProducts, type FilterOptions } from "../search-algorithm.js";
 import type { Product } from "../types.js";
@@ -47,13 +49,13 @@ export function registerProductRoutes(app: OpenAPIApp, getProducts: () => Produc
     const startIdx = (page - 1) * PRODUCTS_PER_PAGE;
     const pageProducts = filtered.slice(startIdx, startIdx + PRODUCTS_PER_PAGE);
 
-    return c.json({
+    return c.json(ok({
       products: pageProducts,
       total_products: totalProducts,
       total_pages: totalPgs,
       current_page: page,
       products_per_page: PRODUCTS_PER_PAGE,
-    });
+    }));
   });
 
   // GET /api/product/:product_id
@@ -68,7 +70,7 @@ export function registerProductRoutes(app: OpenAPIApp, getProducts: () => Produc
       200: {
         content: {
           "application/json": {
-            schema: ProductSchema,
+            schema: OkSchema(ProductSchema),
           },
         },
         description: "OK",
@@ -76,7 +78,7 @@ export function registerProductRoutes(app: OpenAPIApp, getProducts: () => Produc
       404: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Not found",
@@ -87,7 +89,7 @@ export function registerProductRoutes(app: OpenAPIApp, getProducts: () => Produc
   app.openApiRoute(getProductRoute, (c) => {
     const { product_id } = c.req.valid("param");
     const product = getProducts().find((p) => p.id === product_id);
-    if (!product) return c.json({ error: "Product not found" }, 404);
-    return c.json(product, 200);
+    if (!product) return c.json(err("Product not found"), 404);
+    return c.json(ok(product), 200);
   });
 }

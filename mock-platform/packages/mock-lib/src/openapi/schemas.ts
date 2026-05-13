@@ -2,9 +2,14 @@ import { z } from "zod";
 
 /**
  * Standard error response schema used across all mock services.
+ *
+ * Matches the shape returned by `err()` from mock-lib's response helpers.
+ * All error responses — whether from business logic, validation failures,
+ * auth middleware, or global error handling — use this same shape.
  */
 export const ErrorResponseSchema = z.object({
-  error: z.string(),
+  success: z.literal(false),
+  message: z.string(),
 });
 
 /**
