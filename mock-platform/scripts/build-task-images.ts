@@ -37,8 +37,8 @@ const BINARY_PORTS: Record<string, number> = {
   shop: 1234,
   todolist: 5002,
   "doc-search": 8123,
-  expense: 5004,
   "mint-diet": 5003,
+  expense: 5004,
 };
 
 function portProxyLines(listenPort: number, targetPort: number): string[] {
@@ -406,6 +406,13 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/todolist-npm-install.log`);
         // Proxy port 3000 to Bun todolist port for legacy URL compatibility
         lines.push(...portProxyLines(3000, port));
+      } else if (bin === "expense") {
+        lines.push(`export EXPENSE_MOCK_DB_PATH=/var/lib/mock-data/expense/expense.db`);
+        lines.push(`export EXPENSE_MOCK_ATTACHMENTS_DIR=/var/lib/mock-data/expense/attachments`);
+        lines.push(`mkdir -p /var/lib/mock-data/expense/attachments`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/expense-backend.log 2>&1 &`);
+        lines.push(`echo "Expense frontend served by Bun on port ${port}" > /tmp/expense-frontend.log`);
+        lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/expense-npm-install.log`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }
