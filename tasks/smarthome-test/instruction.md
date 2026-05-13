@@ -11,7 +11,6 @@ The user has just woken up and needs your help with several morning tasks. The s
 - **Inventory Management**: View and manage items in fridge and pantry
 - **Shopping List**: Manage grocery items to buy
 - **Calendar**: View and update scheduled events including workout types
-- **Meal Planning**: Create meal plans based on dietary constraints
 
 ## Your Tasks
 
@@ -27,8 +26,6 @@ Please complete the following morning routine tasks:
 
 5. **Update workout** - If there's a workout scheduled, change it to "walking" (light exercise for today)
 
-6. **Create a simple meal plan** - Create a 1-day meal plan (breakfast, lunch, dinner) based on available recipes
-
-7. **Add to Shopping List** - Add one item to the Shopping List that you think would be useful
+6. **Add to Shopping List** - Add one item to the Shopping List that you think would be useful
 
 Report back on what you found and what actions you completed.

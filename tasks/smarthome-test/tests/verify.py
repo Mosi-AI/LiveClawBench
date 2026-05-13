@@ -11,8 +11,7 @@ Expected agent actions:
 3. Review inventory (implicit - no state change)
 4. Check calendar (implicit - no state change)
 5. Update workout type to "walking"
-6. Create a 1-day meal plan (breakfast, lunch, dinner)
-7. Add an item to the Shopping List
+6. Add an item to the Shopping List
 """
 
 import json
@@ -113,69 +112,9 @@ def check_workout_update():
         return 0.0
 
 
-def check_meal_plan():
-    """Check if a 1-day meal plan was created"""
-    print("\n=== Test 3: Meal Plan Creation ===")
-    resp, status = http_request("GET", "/api/meal-plan")
-
-    if status != 200:
-        print(f"FAIL: Could not get meal plan: {status}")
-        return 0.0
-
-    plan_id = resp.get("plan_id")
-    plan_data = resp.get("plan_data")
-
-    print(f"Meal plan: plan_id={plan_id}")
-
-    if not plan_id:
-        print("FAIL: No meal plan found")
-        return 0.0
-
-    score = 0.0
-
-    # Check plan_id exists
-    if plan_id:
-        print(f"PASS: Meal plan created with id: {plan_id}")
-        score += 0.3
-
-    # Check plan has valid structure
-    # Requirement: exactly 1 day with breakfast, lunch, and dinner
-    try:
-        days = json.loads(plan_data) if isinstance(plan_data, str) else plan_data
-        if isinstance(days, list) and len(days) == 1:
-            print(f"PASS: Meal plan has exactly 1 day")
-            score += 0.2
-
-            # Check first day has all three meals
-            first_day = days[0] if days else None
-            if isinstance(first_day, dict) and "meals" in first_day:
-                meals = first_day.get("meals", [])
-                meal_types = set(m.get("meal_type") for m in meals if isinstance(m, dict))
-
-                required_meals = {"breakfast", "lunch", "dinner"}
-                if required_meals.issubset(meal_types):
-                    print(f"PASS: Day has breakfast, lunch, and dinner")
-                    score += 0.5
-                else:
-                    missing = required_meals - meal_types
-                    print(f"FAIL: Missing required meal types: {missing}")
-                    score += 0.1
-            else:
-                print("FAIL: First day has invalid structure")
-        elif isinstance(days, list) and len(days) > 1:
-            print(f"FAIL: Expected exactly 1 day, got {len(days)} days")
-            score += 0.1
-        else:
-            print(f"FAIL: Expected exactly 1 day, got {len(days) if isinstance(days, list) else 'invalid format'}")
-    except (json.JSONDecodeError, TypeError) as e:
-        print(f"FAIL: Could not parse plan_data: {e}")
-
-    return min(score, 1.0)
-
-
 def check_shopping_list():
     """Check if an item was added to the Shopping List"""
-    print("\n=== Test 4: Shopping List Update ===")
+    print("\n=== Test 3: Shopping List Update ===")
     resp, status = http_request("GET", "/api/grocery/products")
 
     if status != 200:
@@ -210,7 +149,6 @@ def main():
     tests = [
         ("Thermostat Adjustment", check_thermostat, 1.0),
         ("Workout Type Update", check_workout_update, 1.0),
-        ("Meal Plan Creation", check_meal_plan, 1.0),
         ("Shopping List Update", check_shopping_list, 1.0),
     ]
 
@@ -248,7 +186,7 @@ def main():
 
     print(f"Score: {final_score:.2f}/1.0")
 
-    # Require all 4 tests to pass (thermostat, workout, meal plan, shopping list)
+    # Require all 3 tests to pass (thermostat, workout, shopping list)
     # Each test must score at least 0.8 to be considered passing
     all_passed = all(score >= max_score * 0.8 for _, score, max_score in results)
     sys.exit(0 if all_passed else 1)

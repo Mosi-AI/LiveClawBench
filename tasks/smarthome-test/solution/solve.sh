@@ -37,19 +37,8 @@ curl -s -X PUT "$BASE_URL/api/calendar/1" \
   -d '{"workout_type": "walking"}' > /dev/null
 echo "   Workout updated to walking"
 
-# 6. Create 1-day meal plan (breakfast, lunch, dinner)
-echo "6. Creating meal plan..."
-curl -s -X POST "$BASE_URL/api/meal-plan" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "days": [
-      {"date": "2026-05-09", "meals": [{"meal_type": "breakfast", "meal_id": 1}, {"meal_type": "lunch", "meal_id": 4}, {"meal_type": "dinner", "meal_id": 7}]}
-    ]
-  }' > /dev/null
-echo "   Meal plan created"
-
-# 7. Add item to grocery shopping list
-echo "7. Adding item to grocery shopping list..."
+# 6. Add item to grocery shopping list
+echo "6. Adding item to grocery shopping list..."
 curl -s -X POST "$BASE_URL/api/grocery/products" \
   -H "Content-Type: application/json" \
   -d '{"product_id": "PROD009", "name": "Orange Juice", "quantity": 1, "unit": "gallon", "stock_status": "insufficient"}' > /dev/null
