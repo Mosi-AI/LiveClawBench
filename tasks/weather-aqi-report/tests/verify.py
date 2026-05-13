@@ -2,6 +2,7 @@
 """Verify weather-aqi-report: agent correctly reads Beijing AQI from weather service."""
 
 import json
+import os
 import sys
 import urllib.request
 
@@ -48,7 +49,6 @@ for d in details:
     print(d)
 print(f"Score: {score}/1.0")
 
-import os
 os.makedirs("/logs/verifier", exist_ok=True)
 with open("/logs/verifier/reward.txt", "w") as f:
     f.write(str(score))
