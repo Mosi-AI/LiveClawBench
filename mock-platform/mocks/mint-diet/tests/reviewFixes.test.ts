@@ -5,7 +5,7 @@ import { createTables } from "../src/schema.js";
 import { resolveEffectiveBudget } from "../src/queries.js";
 import type { FoodCatalog } from "../src/queries.js";
 import { resetMutableTables } from "../src/routes/admin.js";
-import { isCatalogQuantityUnit, parseManualMacros } from "../src/routes/log.js";
+import { isCatalogQuantityUnit, parseManualMacros } from "../src/routes/log-shared.js";
 import {
   CreateFoodEntryFormSchema,
   IngredientFormSchema,
