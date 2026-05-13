@@ -31,6 +31,10 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const ref = c.req.param("booking_reference");
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
+    const userId = c.get("userId")!;
+    if (Number(booking.user_id) !== userId) {
+      return c.json(err("Booking not found"), 404);
+    }
     const bookingId = Number(booking.id);
 
     const passengers = db.query("SELECT * FROM passengers WHERE booking_id = ?").all(bookingId) as Record<string, unknown>[];
@@ -59,19 +63,28 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
 
     const totalPrice = basePrice * passengers.length;
 
-    // Generate unique booking reference
-    let reference = generateBookingReference();
-    let existing = db.query("SELECT id FROM bookings WHERE booking_reference = ?").get(reference) as { id: number } | null;
-    while (existing) {
-      reference = generateBookingReference();
-      existing = db.query("SELECT id FROM bookings WHERE booking_reference = ?").get(reference) as { id: number } | null;
-    }
-
-    const insertBooking = db.query(
-      "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'pending', 0)"
-    );
     const userId = c.get("userId")!;
-    const insertResult = insertBooking.run(reference, userId, flightId, cabinClass, totalPrice);
+
+    // Generate unique booking reference with retry loop
+    let reference = generateBookingReference();
+    let insertResult: { lastInsertRowid: number | bigint };
+    let attempts = 0;
+    const maxAttempts = 10;
+    while (true) {
+      try {
+        insertResult = db.query(
+          "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'pending', 0)"
+        ).run(reference, userId, flightId, cabinClass, totalPrice);
+        break;
+      } catch (e: any) {
+        if (e.message?.includes("UNIQUE constraint failed") && attempts < maxAttempts) {
+          reference = generateBookingReference();
+          attempts++;
+          continue;
+        }
+        throw e;
+      }
+    }
 
     const bookingId = Number(insertResult.lastInsertRowid);
 
@@ -121,6 +134,10 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
 
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
+    const userId = c.get("userId")!;
+    if (Number(booking.user_id) !== userId) {
+      return c.json(err("Booking not found"), 404);
+    }
     const bookingId = Number(booking.id);
     const flightId = Number(booking.flight_id);
 
@@ -154,14 +171,23 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
       }
     }
 
-    // Apply updates atomically
-    const assignSeats = db.transaction(() => {
+    // Apply updates atomically with TOCTOU protection
+    db.query("BEGIN TRANSACTION").run();
+    try {
       for (const assignment of assignments) {
+        const seatUpdate = db.query("UPDATE seats SET is_available = 0 WHERE id = ? AND is_available = 1").run(assignment.seat_id);
+        if (seatUpdate.changes === 0) {
+          db.query("ROLLBACK").run();
+          const seat = db.query("SELECT * FROM seats WHERE id = ? AND flight_id = ?").get(assignment.seat_id, flightId) as Record<string, unknown> | null;
+          return c.json(err(`Seat ${seat ? seat.seat_number : assignment.seat_id} is no longer available`), 409);
+        }
         db.query("UPDATE passengers SET seat_id = ? WHERE id = ? AND booking_id = ?").run(assignment.seat_id, assignment.passenger_id, bookingId);
-        db.query("UPDATE seats SET is_available = 0 WHERE id = ?").run(assignment.seat_id);
       }
-    });
-    assignSeats();
+      db.query("COMMIT").run();
+    } catch (e) {
+      db.query("ROLLBACK").run();
+      throw e;
+    }
 
     const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(bookingId) as Record<string, unknown>;
     return c.json(ok(updated, "Seats assigned successfully"));
@@ -172,6 +198,10 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const ref = c.req.param("booking_reference");
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
+    const userId = c.get("userId")!;
+    if (Number(booking.user_id) !== userId) {
+      return c.json(err("Booking not found"), 404);
+    }
     const bookingId = Number(booking.id);
 
     const cancelBooking = db.transaction(() => {

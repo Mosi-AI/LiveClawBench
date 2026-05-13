@@ -8,6 +8,10 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     const ref = c.req.param("booking_reference");
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
+    const userId = c.get("userId")!;
+    if (Number(booking.user_id) !== userId) {
+      return c.json(err("Booking not found"), 404);
+    }
     const bookingId = Number(booking.id);
 
     // Check payment completed
@@ -63,6 +67,10 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     const ref = c.req.param("booking_reference");
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
+    const userId = c.get("userId")!;
+    if (Number(booking.user_id) !== userId) {
+      return c.json(err("Booking not found"), 404);
+    }
     const bookingId = Number(booking.id);
     const flightId = booking.flight_id != null ? Number(booking.flight_id) : 0;
 

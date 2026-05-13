@@ -27,7 +27,10 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
   // GET /api/claims/:claim_id
   app.get("/api/claims/:claim_id", (c) => {
     const id = parseInt(c.req.param("claim_id"), 10);
-    const item = db.query("SELECT * FROM claims WHERE id = ?").get(id) as Record<string, unknown> | null;
+    const userId = c.get("userId")!;
+    const item = db.query(
+      "SELECT c.* FROM claims c JOIN bookings b ON c.booking_id = b.id WHERE c.id = ? AND b.user_id = ?"
+    ).get(id, userId) as Record<string, unknown> | null;
     if (!item) return c.json(err("Claim not found"), 404);
     return c.json(ok(item));
   });
@@ -40,7 +43,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     const claimAmount = parseFloat(String(body.claim_amount ?? "0"));
     const claimReason = String(body.claim_reason ?? "");
 
-    if (!bookingReference || !claimType || !claimReason || !body.claim_amount) {
+    if (!bookingReference || !claimType || !claimReason || body.claim_amount === undefined || body.claim_amount === null) {
       return c.json(err("booking_reference, claim_type, claim_amount and claim_reason are required"), 400);
     }
 
@@ -59,7 +62,10 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
   // PUT /api/claims/:claim_id
   app.put("/api/claims/:claim_id", async (c) => {
     const id = parseInt(c.req.param("claim_id"), 10);
-    const claim = db.query("SELECT * FROM claims WHERE id = ?").get(id) as Record<string, unknown> | null;
+    const userId = c.get("userId")!;
+    const claim = db.query(
+      "SELECT c.* FROM claims c JOIN bookings b ON c.booking_id = b.id WHERE c.id = ? AND b.user_id = ?"
+    ).get(id, userId) as Record<string, unknown> | null;
     if (!claim) return c.json(err("Claim not found"), 404);
 
     if (claim.claim_status !== "pending") {
