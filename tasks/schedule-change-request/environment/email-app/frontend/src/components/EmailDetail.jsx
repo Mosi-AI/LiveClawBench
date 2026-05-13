@@ -19,11 +19,11 @@ function EmailDetail() {
     try {
       setLoading(true)
       const response = await emailAPI.getEmail(id)
-      setEmail(response.data.email)
+      setEmail(response.data.data.email)
       setError('')
 
       // Mark as read if it's in inbox
-      if (response.data.email.folder === 'inbox' && !response.data.email.is_read) {
+      if (response.data.data.email.folder === 'inbox' && !response.data.data.email.is_read) {
         await emailAPI.markAsRead(id, true)
       }
     } catch (err) {
@@ -65,7 +65,7 @@ function EmailDetail() {
   const handleDownload = async (attachmentId, filename) => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:5001/api/attachments/${attachmentId}/download`, {
+      const response = await fetch(`/api/attachments/${attachmentId}/download`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

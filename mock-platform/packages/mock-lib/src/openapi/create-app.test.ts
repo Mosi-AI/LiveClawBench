@@ -197,7 +197,7 @@ describe("auth security field", () => {
     const res = await app.request("/api/protected-runtime");
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body).toEqual({ error: "Authentication required" });
+    expect(body).toEqual({ success: false, message: "Authentication required" });
   });
 
   test("auth: required returns 401 when Authorization has no Bearer prefix", async () => {
@@ -351,7 +351,7 @@ describe("auth security field", () => {
     });
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body).toEqual({ error: "Authentication required" });
+    expect(body).toEqual({ success: false, message: "Authentication required" });
   });
 
   test("auth middleware on parameterized route does not block sibling static routes", async () => {
@@ -678,7 +678,7 @@ describe("auto-injection of 400 response", () => {
 });
 
 describe("defaultHook validation errors", () => {
-  test("invalid query param returns { error: string } 400", async () => {
+  test("invalid query param returns { success: false, message: string } 400", async () => {
     const app = createTestApp({ openApi: false });
 
     app.openApiRoute(
@@ -698,8 +698,9 @@ describe("defaultHook validation errors", () => {
     const res = await app.request("/api/search?limit=0");
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toHaveProperty("error");
-    expect(typeof body.error).toBe("string");
+    expect(body).toHaveProperty("success");
+    expect(body.success).toBe(false);
+    expect(typeof body.message).toBe("string");
   });
 
   test("valid request body passes through without 400", async () => {
@@ -770,7 +771,7 @@ describe("Content-Type enforcement for JSON body routes", () => {
     });
     expect(res.status).toBe(415);
     const body = await res.json();
-    expect(body.error).toBe("Content-Type must be application/json");
+    expect(body.message).toBe("Content-Type must be application/json");
   });
 
   test("POST with wrong Content-Type returns 415", async () => {
@@ -1108,7 +1109,7 @@ describe("onError JSON parse handling", () => {
     });
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.error).toBe("Invalid JSON body");
+    expect(body.message).toBe("Invalid JSON body");
   });
 });
 

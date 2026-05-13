@@ -150,18 +150,7 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 
 ## Mock Platform
 
-The `mock-platform/` directory contains Bun+Hono mock services that simulate real-world APIs inside
-task containers. Each mock compiles to a standalone binary via `bun build --compile`.
-
-### Mock Services
-
-| Service | Directory | Binary | Description |
-|---|---|---|---|
-| Shop | `mocks/shop/` | `mock-shop` | E-commerce: products, cart, orders, user profile, search |
-| Doc-search | `mocks/doc-search/` | `mock-doc-search` | Full-text search with FTS5, BM25 ranking, JSONL access log |
-| Airline | `mocks/airline/` | `mock-airline` | Flight booking, seat selection, baggage tracking |
-| Email | `mocks/email/` | `mock-email` | Email inbox, compose, reply |
-| Todolist | `mocks/todolist/` | `mock-todolist` | Task management |
+The `mock-platform/` directory contains Bun+Hono mock services that compile to standalone binaries via `bun build --compile`. All five services (shop, doc-search, airline, email, todolist) use Zod schema-first routes with auto-generated OpenAPI 3.1 specs.
 
 ### Build Commands
 
@@ -172,21 +161,22 @@ bun run build          # Build all mock binaries → dist/
 bun run build:images   # Build per-task Docker images (requires base image first)
 ```
 
-### Architecture
+### Documentation
 
-- `packages/mock-lib/` — Shared library (Hono app factory, SQLite helpers, render utilities, types)
-- `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented)
-- `scripts/build-all.ts` — Builds all mock binaries
-- `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set
+- [`mock-platform/README.md`](mock-platform/README.md) — Architecture overview, build flow, and adding-a-mock checklist
+- [`mock-platform/docs/mock-conventions.md`](mock-platform/docs/mock-conventions.md) — Full conventions: factory pattern, response wrappers, auth, DB/seeding, testing
+- [`mock-platform/DESIGN.md`](mock-platform/DESIGN.md) — MockAppV2 interface, file size guidelines, build pipeline, Docker layers
 
 ### Key Files
 
 | File | Purpose |
 |---|---|
-| `mock-platform/README.md` | Architecture overview, build flow, and development commands |
+| `mock-platform/README.md` | Architecture overview, build flow, and adding-a-mock checklist |
+| `mock-platform/docs/mock-conventions.md` | Full conventions: factory pattern, response wrappers, auth, DB/seeding, testing |
+| `mock-platform/packages/mock-lib/README.md` | Shared library API reference |
 | `mocks/shop/src/index.tsx` | Shop UI and API (Hono TSX rendering) |
 | `mocks/shop/src/search-algorithm.ts` | Extracted search logic (single source of truth) |
-| `mocks/shop/src/search-algorithm.test.ts` | Layer 1 unit tests (bun:test snapshot tests) |
+| `mocks/shop/tests/search-algorithm.test.ts` | Layer 1 unit tests (bun:test explicit assertions) |
 | `mocks/doc-search/src/index.ts` | Doc-search with FTS5 + JSONL browser trace logging |
 
 ## Task List
@@ -223,6 +213,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `live-web-research-sqlite-fts5` | Deep Research & Report | medium | **llm_judge** |
 | `conflict-repair-acb` | Documents & Knowledge | easy | **llm_judge** |
 | `skill-combination` | Documents & Knowledge | easy | evaluate.py |
+| `mint-diet-snack-log` | Health & Fitness | easy | verify.py |
 
 ## Docker Image Architecture
 
@@ -376,8 +367,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-30 implemented tasks: A1=10, A2=6, B1=4, B2=11.
-Difficulty: Easy=18, Medium=7, Hard=5.
+31 implemented tasks: A1=10, A2=6, B1=4, B2=11.
+Difficulty: Easy=19, Medium=7, Hard=5.
 
 ## Known Issues
 

@@ -12,7 +12,7 @@
  * Products are loaded from sample_products.json at startup.
  */
 
-import { createMockApp, createRoute, startServer, registerStaticAssets } from "mock-lib";
+import { createMockApp, createRoute, startServer, registerStaticAssets, err } from "mock-lib";
 import type { MockAppV2 } from "mock-lib";
 import { z } from "zod";
 import {
@@ -38,7 +38,7 @@ import { registerUserRoutes } from "./routes/user.js";
 
 const PRODUCTS_PER_PAGE = 30;
 
-export function createShopApp(): MockAppV2 {
+export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
   // Reset the shared store so each factory call picks up the current env vars
   // (needed for tests that set MOCK_DATA_DIR before creating the app)
   resetStore();
@@ -98,7 +98,7 @@ export function createShopApp(): MockAppV2 {
       const message = parsed.error.issues
         .map((i) => `${i.path.join(".")}: ${i.message}`)
         .join("; ");
-      return c.json({ error: message }, 400);
+      return c.json(err(message), 400);
     }
     const { q = "", sort, page, min_price, max_price, min_rating } = parsed.data;
 
@@ -157,7 +157,7 @@ export function createShopApp(): MockAppV2 {
   return {
     ...mockApp,
     seed: async () => {
-      allProducts = await loadProducts();
+      allProducts = await loadProducts(options?.productsPath);
       seedUser();
       seedOrders(allProducts);
     },

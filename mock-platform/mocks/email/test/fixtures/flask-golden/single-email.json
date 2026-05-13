@@ -1,0 +1,21 @@
+{
+  "data": {
+    "email": {
+      "attachments": [],
+      "body": "Dear Peter Griffin,\n\nPlease find attached the invoice for services rendered in February 2026.\n\nInvoice Details:\n- Invoice Number: INV-2026-0342\n- Amount Due: $4,500.00\n- Due Date: March 25, 2026\n- Payment Terms: Net 30\n\nPayment Methods:\n- Bank Transfer (Preferred)\n- Credit Card (3% processing fee applies)\n- PayPal\n\nIf you have any questions about this invoice, please don't hesitate to contact our billing department.\n\nThank you for your business.\n\nBest regards,\nDavid Brown\nFinance Department\nCreative Agency Inc.",
+      "created_at": "<TIMESTAMP>",
+      "folder": "inbox",
+      "id": "<ID>",
+      "is_read": false,
+      "recipient_email": "peter.griffin@email.app",
+      "recipient_id": 1,
+      "recipient_name": "peter",
+      "sender_email": "david.brown@outlook.com",
+      "sender_id": 6,
+      "sender_name": "david.brown",
+      "subject": "Invoice #INV-2026-0342 - Due March 25",
+      "updated_at": "<TIMESTAMP>"
+    }
+  },
+  "success": true
+}
