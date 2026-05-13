@@ -1988,6 +1988,11 @@ export function createSmarthomeApp() {
     name: "smarthome",
     port: 5004,
     healthResponse: { ok: true, status: "healthy", service: "smarthome" },
+    openApi: {
+      enabled: true,
+      title: "Smart Home Mock API",
+      version: "1.0.0",
+    },
     routes: registerRoutes,
   });
 
