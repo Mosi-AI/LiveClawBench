@@ -8,15 +8,19 @@ import urllib.request
 
 REPORT_PATH = "/workspace/output/aqi_report.json"
 
+
 def get_ground_truth():
     """Fetch ground truth AQI from the live weather service."""
     try:
-        with urllib.request.urlopen("http://localhost:3000/api/location/beijing/air-quality", timeout=5) as r:
+        with urllib.request.urlopen(
+            "http://localhost:3000/api/location/beijing/air-quality", timeout=5
+        ) as r:
             data = json.load(r)["data"]
             return data["aqi"], data["category"]
     except Exception:
         # Fallback to seeded values if service is unreachable
         return 75, "moderate"
+
 
 score = 0.0
 details = []
@@ -32,8 +36,12 @@ try:
     category_ok = report.get("category") == true_category
 
     details.append(f"city: {'OK' if city_ok else 'FAIL'} (got {report.get('city')!r})")
-    details.append(f"aqi: {'OK' if aqi_ok else 'FAIL'} (expected {true_aqi}, got {report.get('aqi')})")
-    details.append(f"category: {'OK' if category_ok else 'FAIL'} (expected {true_category!r}, got {report.get('category')!r})")
+    details.append(
+        f"aqi: {'OK' if aqi_ok else 'FAIL'} (expected {true_aqi}, got {report.get('aqi')})"
+    )
+    details.append(
+        f"category: {'OK' if category_ok else 'FAIL'} (expected {true_category!r}, got {report.get('category')!r})"
+    )
 
     if city_ok and aqi_ok and category_ok:
         score = 1.0
