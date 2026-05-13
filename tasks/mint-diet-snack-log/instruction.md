@@ -1,0 +1,1 @@
+Please open Mint Diet at http://localhost:5003/ and add one banana to the snack log for 2026-05-06. Use the standard banana serving from the food catalog: 120 g. You do not need to create or edit any meal plans.

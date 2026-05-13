@@ -45,6 +45,14 @@
         "zod": "^3.24.0",
       },
     },
+    "mocks/mint-diet": {
+      "name": "@mock/mint-diet",
+      "version": "0.1.0",
+      "dependencies": {
+        "hono": "^4.8.0",
+        "mock-lib": "workspace:*",
+      },
+    },
     "mocks/shop": {
       "name": "@mock/shop",
       "version": "0.1.0",
@@ -87,6 +95,8 @@
     "@mock/email": ["@mock/email@workspace:mocks/email"],
 
     "@mock/expense": ["@mock/expense@workspace:mocks/expense"],
+
+    "@mock/mint-diet": ["@mock/mint-diet@workspace:mocks/mint-diet"],
 
     "@mock/shop": ["@mock/shop@workspace:mocks/shop"],
 

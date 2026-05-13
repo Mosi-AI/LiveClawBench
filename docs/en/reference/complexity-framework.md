@@ -59,7 +59,8 @@ single, clean environment without structural complexity.
 |      27 | conflict-repair-acb               |     E      | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |      28 | mixed-tool-memory                 |     E      | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |     M      | ✓  |    |    | ✓  | Deep Research & Report     |
-|      34 | expense-draft-delete               |     E      |    |    |    |    | Finance & Data Analytics    |
+|      31 | mint-diet-snack-log               |     E      |    |    |    |    | Health & Fitness           |
+|      34 | expense-draft-delete              |     E      |    |    |    |    | Finance & Data Analytics   |
 
 ---
 
@@ -72,15 +73,15 @@ single, clean environment without structural complexity.
 | B1     | Implicit Goal Resolution       |     4 |      12.9% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application |
 | B2     | Knowledge System Maintenance   |    11 |      35.5% | skill-creation, skill-dependency-fix, noise-filtering         |
 
-> Percentages are relative to 31 implemented cases.
+> Percentages are relative to 32 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 9 cases (29.0%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, expense-draft-delete
-- Single factor: 14 cases (46.7%)
-- Dual factor: 7 cases (23.3%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2)
-- Triple factor: 1 case (3.3%) — conflict-repair-acb (A1+A2+B2)
-- **Multi-factor (≥2 factors): 8 cases (26.7%)**
+- No factors (baseline): 10 cases (31.3%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, expense-draft-delete
+- Single factor: 14 cases (43.8%)
+- Dual factor: 7 cases (21.9%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2)
+- Triple factor: 1 case (3.1%) — conflict-repair-acb (A1+A2+B2)
+- **Multi-factor (≥2 factors): 8 cases (25.0%)**
 
 ---
 
@@ -97,6 +98,7 @@ Factor occurrence frequency per primary domain:
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |                      1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |                      2 |
 | Deep Research & Report     |  1 |  1 |  0 |  2 |                      4 |
+| Health & Fitness           |  0 |  0 |  0 |  0 |                      0 |
 | Finance & Data Analytics   |  0 |  0 |  0 |  0 |                      0 |
 
 Key observations:
@@ -104,6 +106,7 @@ Key observations:
 - **A1 is the most broadly distributed**, spanning 4 domains — cross-service coordination is a universal complexity source
 - **B1 only appears in E-commerce and Calendar**, where tasks most naturally produce implicit goals
 - **Communication & Email has no factors** — these cases serve as pure baselines
+- **Health & Fitness has no factors** — mint-diet-snack-log serves as a domain baseline
 - **Finance & Data Analytics currently has only baseline complexity** (factor-free task)
 
 ---
@@ -137,7 +140,7 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    19 |      61.3% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, expense-draft-delete |
+| Easy       |    20 |      62.5% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, mint-diet-snack-log, expense-draft-delete |
 | Medium     |     7 |      22.6% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5 |
 | Hard       |     5 |      16.1% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain |
 
@@ -151,6 +154,6 @@ Factor count vs difficulty:
 
 The empirical reclassification (based on average solve rates across models) shows that Easy
 cases dominate (61.3%). Easy cases include both baselines (42.1%) and factor-bearing tasks
-(57.9%), indicating that many structural complexity factors do not pose significant difficulty
+(62.5%), indicating that many structural complexity factors do not pose significant difficulty
 for current agents. Hard cases are concentrated in tasks requiring constraint failure handling
 (B1) or specific challenging environments (A2 in DevOps).

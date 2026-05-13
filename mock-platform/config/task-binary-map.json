@@ -3,7 +3,7 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "expense"],
+  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "expense", "mint-diet"],
   "tasks": {
     "watch-shop": {
       "binaries": ["shop"],
@@ -215,6 +215,7 @@
       "assets": [
         { "src": "tasks/expense-draft-delete/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
       ]
-    }
+    },
+    "mint-diet-snack-log": { "binaries": ["mint-diet"] }
   }
 }
