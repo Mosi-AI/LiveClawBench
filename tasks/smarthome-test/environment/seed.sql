@@ -20,18 +20,21 @@ VALUES (1, '07:00', '2026-05-09T06:00:00Z');
 INSERT OR IGNORE INTO benchmark_clock (id, clock_time)
 VALUES (1, '2026-05-09T07:30:00Z');
 
--- Inventory (some items low)
+-- Inventory (some items low, some expiring soon)
+-- Benchmark clock: 2026-05-09, expiring = within 3 days (<= 2026-05-12)
 INSERT OR IGNORE INTO inventory_item (item_name, quantity, unit, location, expiry_date, category) VALUES
-('Milk', 0.5, 'gallons', 'fridge', '2026-05-11', 'dairy'),
-('Bread', 1.0, 'loaf', 'pantry', '2026-05-12', 'bakery'),
-('Eggs', 6.0, 'pieces', 'fridge', '2026-05-15', 'dairy'),
-('Butter', 0.25, 'lbs', 'fridge', '2026-05-20', 'dairy'),
-('Orange Juice', 1.0, 'gallons', 'fridge', '2026-05-14', 'beverage'),
-('Cereal', 1.0, 'box', 'pantry', '2026-06-01', 'breakfast'),
-('Chicken Breast', 2.0, 'lbs', 'fridge', '2026-05-10', 'meat'),
-('Rice', 5.0, 'lbs', 'pantry', '2026-08-01', 'grains'),
-('Pasta', 2.0, 'lbs', 'pantry', '2026-09-01', 'grains'),
-('Tomatoes', 4.0, 'pieces', 'fridge', '2026-05-12', 'vegetables');
+('Milk', 0.5, 'gallons', 'fridge', '2026-05-11', 'dairy'),      -- expiring in 2 days
+('Bread', 1.0, 'loaf', 'pantry', '2026-05-12', 'bakery'),       -- expiring in 3 days
+('Eggs', 6.0, 'pieces', 'fridge', '2026-05-15', 'dairy'),       -- not expiring
+('Butter', 0.25, 'lbs', 'fridge', '2026-05-20', 'dairy'),       -- not expiring
+('Orange Juice', 1.0, 'gallons', 'fridge', '2026-05-14', 'beverage'), -- not expiring
+('Cereal', 1.0, 'box', 'pantry', '2026-06-01', 'breakfast'),    -- not expiring
+('Chicken Breast', 2.0, 'lbs', 'fridge', '2026-05-10', 'meat'), -- expiring in 1 day
+('Rice', 5.0, 'lbs', 'pantry', '2026-08-01', 'grains'),         -- not expiring
+('Pasta', 2.0, 'lbs', 'pantry', '2026-09-01', 'grains'),        -- not expiring
+('Tomatoes', 4.0, 'pieces', 'fridge', '2026-05-12', 'vegetables'), -- expiring in 3 days
+('Yogurt', 2.0, 'cups', 'fridge', '2026-05-10', 'dairy'),       -- expiring in 1 day
+('Cheese', 0.5, 'lbs', 'fridge', '2026-05-11', 'dairy');        -- expiring in 2 days
 
 -- Grocery Products (requirement list format: quantity + unit instead of price)
 INSERT OR IGNORE INTO grocery_product (product_id, name, quantity, unit, stock_status) VALUES

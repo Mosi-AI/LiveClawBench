@@ -9,18 +9,24 @@ Expected agent actions:
 1. View dashboard (implicit - no state change)
 2. Adjust thermostat to comfort mode at 74°F
 3. Review inventory (implicit - no state change)
-4. Check calendar (implicit - no state change)
-5. Update workout type to "walking"
-6. Add an item to the Shopping List
+4. Count expiring items (within 3 days from 2026-05-09)
+5. Check calendar (implicit - no state change)
+6. Update workout type to "walking"
+7. Add an item to the Shopping List
 """
 
 import json
+import re
 import sys
 import urllib.request
 import urllib.error
 
 # Configuration
 BASE_URL = "http://localhost:5004"
+# Benchmark date: 2026-05-09, expiring = within 3 days (<= 2026-05-12)
+BENCHMARK_DATE = "2026-05-09"
+EXPIRING_THRESHOLD_DAYS = 3
+EXPECTED_EXPIRING_COUNT = 6  # Milk, Bread, Chicken Breast, Tomatoes, Yogurt, Cheese
 
 
 def http_request(method, path, data=None):
@@ -112,9 +118,101 @@ def check_workout_update():
         return 0.0
 
 
+def check_expiring_count():
+    """Check if agent correctly counted expiring items.
+
+    Expected: 6 items expiring within 3 days from 2026-05-09:
+    - Milk (2026-05-11) - 2 days
+    - Bread (2026-05-12) - 3 days
+    - Chicken Breast (2026-05-10) - 1 day
+    - Tomatoes (2026-05-12) - 3 days
+    - Yogurt (2026-05-10) - 1 day
+    - Cheese (2026-05-11) - 2 days
+
+    This test checks the agent's response for the count.
+    """
+    print("\n=== Test 3: Expiring Items Count ===")
+
+    # Get the last assistant message from harbor.jsonl
+    response = get_last_assistant_message()
+
+    if response is None:
+        print("FAIL: Could not get agent response from harbor.jsonl")
+        return 0.0
+
+    print(f"Agent response excerpt: {response[:200]}...")
+
+    # Look for number mentions in the response
+    # Agent should report "6" expiring items
+    numbers_found = re.findall(r'\b(\d+)\b', response)
+
+    if not numbers_found:
+        print("FAIL: No number found in agent response")
+        return 0.0
+
+    # Check if any number matches the expected count
+    for num_str in numbers_found:
+        num = int(num_str)
+        if num == EXPECTED_EXPIRING_COUNT:
+            print(f"PASS: Agent reported {num} expiring items (expected {EXPECTED_EXPIRING_COUNT})")
+            return 1.0
+
+    # If no exact match, check if close (allow ±1 tolerance)
+    for num_str in numbers_found:
+        num = int(num_str)
+        if abs(num - EXPECTED_EXPIRING_COUNT) <= 1:
+            print(f"PARTIAL: Agent reported {num} expiring items (expected {EXPECTED_EXPIRING_COUNT}, ±1 tolerance)")
+            return 0.5
+
+    print(f"FAIL: Agent reported wrong count. Found numbers: {numbers_found}, expected {EXPECTED_EXPIRING_COUNT}")
+    return 0.0
+
+
+def get_last_assistant_message():
+    """Extract the last assistant message content from harbor.jsonl."""
+    import pathlib
+
+    fallback_log_paths = [
+        pathlib.Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
+        pathlib.Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
+        pathlib.Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
+    ]
+
+    actual_log_path = None
+    for path in fallback_log_paths:
+        if path.exists():
+            actual_log_path = path
+            break
+
+    if actual_log_path is None:
+        return None
+
+    last_content = None
+    with open(actual_log_path, "r") as f:
+        for line in f:
+            try:
+                entry = json.loads(line)
+                if entry.get("type") == "message" and entry.get("message", {}).get("role") == "assistant":
+                    content = entry["message"].get("content")
+                    if content is None:
+                        continue
+                    if isinstance(content, list):
+                        text_parts = [
+                            block.get("text", "")
+                            for block in content
+                            if block.get("type") == "text" and block.get("text")
+                        ]
+                        last_content = " ".join(text_parts)
+                    elif isinstance(content, str):
+                        last_content = content
+            except json.JSONDecodeError:
+                continue
+    return last_content
+
+
 def check_shopping_list():
     """Check if an item was added to the Shopping List"""
-    print("\n=== Test 3: Shopping List Update ===")
+    print("\n=== Test 4: Shopping List Update ===")
     resp, status = http_request("GET", "/api/grocery/products")
 
     if status != 200:
@@ -149,6 +247,7 @@ def main():
     tests = [
         ("Thermostat Adjustment", check_thermostat, 1.0),
         ("Workout Type Update", check_workout_update, 1.0),
+        ("Expiring Items Count", check_expiring_count, 1.0),
         ("Shopping List Update", check_shopping_list, 1.0),
     ]
 
@@ -186,7 +285,7 @@ def main():
 
     print(f"Score: {final_score:.2f}/1.0")
 
-    # Require all 3 tests to pass (thermostat, workout, shopping list)
+    # Require all 4 tests to pass (thermostat, workout, expiring count, shopping list)
     # Each test must score at least 0.8 to be considered passing
     all_passed = all(score >= max_score * 0.8 for _, score, max_score in results)
     sys.exit(0 if all_passed else 1)

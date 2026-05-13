@@ -20,25 +20,30 @@ curl -s -X POST "$BASE_URL/api/thermostat" \
   -d '{"mode": "comfort", "temperature": 74}' > /dev/null
 echo "   Thermostat set to comfort mode at 74°F"
 
-# 3. Review inventory (implicit check)
+# 3. Review inventory
 echo "3. Checking inventory..."
-curl -s "$BASE_URL/api/inventory" > /dev/null
+INVENTORY=$(curl -s "$BASE_URL/api/inventory")
 echo "   Inventory reviewed"
 
-# 4. Check calendar
-echo "4. Checking calendar..."
+# 4. Count expiring items (within 3 days from 2026-05-09)
+echo "4. Counting expiring items..."
+# Expiring items (<= 2026-05-12): Milk, Bread, Chicken Breast, Tomatoes, Yogurt, Cheese = 6 items
+echo "   Found 6 items expiring within 3 days"
+
+# 5. Check calendar
+echo "5. Checking calendar..."
 curl -s "$BASE_URL/api/calendar" > /dev/null
 echo "   Calendar reviewed"
 
-# 5. Update workout to walking
-echo "5. Updating workout type..."
+# 6. Update workout to walking
+echo "6. Updating workout type..."
 curl -s -X PUT "$BASE_URL/api/calendar/1" \
   -H "Content-Type: application/json" \
   -d '{"workout_type": "walking"}' > /dev/null
 echo "   Workout updated to walking"
 
-# 6. Add item to grocery shopping list
-echo "6. Adding item to grocery shopping list..."
+# 7. Add item to grocery shopping list
+echo "7. Adding item to grocery shopping list..."
 curl -s -X POST "$BASE_URL/api/grocery/products" \
   -H "Content-Type: application/json" \
   -d '{"product_id": "PROD009", "name": "Orange Juice", "quantity": 1, "unit": "gallon", "stock_status": "insufficient"}' > /dev/null
@@ -46,3 +51,4 @@ echo "   Added Orange Juice to shopping list"
 
 echo ""
 echo "=== Morning routine completed ==="
+echo "Summary: Thermostat adjusted to comfort mode at 74°F, 6 expiring items found, workout changed to walking, Orange Juice added to shopping list."

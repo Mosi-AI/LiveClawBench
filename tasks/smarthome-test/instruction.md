@@ -22,10 +22,12 @@ Please complete the following morning routine tasks:
 
 3. **Review inventory** - Check what items are available in the fridge and pantry
 
-4. **Check today's calendar** - See what events are scheduled for today
+4. **Check expiring items** - Count how many items in the inventory are expiring within the next 3 days (today is 2026-05-09). Report the count of expiring items.
 
-5. **Update workout** - If there's a workout scheduled, change it to "walking" (light exercise for today)
+5. **Check today's calendar** - See what events are scheduled for today
 
-6. **Add to Shopping List** - Add one item to the Shopping List that you think would be useful
+6. **Update workout** - If there's a workout scheduled, change it to "walking" (light exercise for today)
+
+7. **Add to Shopping List** - Add one item to the Shopping List that you think would be useful
 
 Report back on what you found and what actions you completed.
