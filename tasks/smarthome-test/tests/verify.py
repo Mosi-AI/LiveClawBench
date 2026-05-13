@@ -9,7 +9,7 @@ Expected agent actions:
 1. View dashboard (implicit - no state change)
 2. Adjust thermostat to comfort mode at 74°F
 3. Review inventory (implicit - no state change)
-4. Count expiring items (within 3 days from 2026-05-09)
+4. Report expiring items (within 3 days from 2026-05-09) with names
 5. Check calendar (implicit - no state change)
 6. Update workout type to "walking"
 7. Add an item to the Shopping List
@@ -20,13 +20,22 @@ import re
 import sys
 import urllib.request
 import urllib.error
+from pathlib import Path
 
 # Configuration
 BASE_URL = "http://localhost:5004"
 # Benchmark date: 2026-05-09, expiring = within 3 days (<= 2026-05-12)
 BENCHMARK_DATE = "2026-05-09"
 EXPIRING_THRESHOLD_DAYS = 3
-EXPECTED_EXPIRING_COUNT = 6  # Milk, Bread, Chicken Breast, Tomatoes, Yogurt, Cheese
+# Expected expiring items: name -> expiry_date
+EXPECTED_EXPIRING_ITEMS = {
+    "milk": "2026-05-11",
+    "bread": "2026-05-12",
+    "chicken breast": "2026-05-10",
+    "tomatoes": "2026-05-12",
+    "yogurt": "2026-05-10",
+    "cheese": "2026-05-11",
+}
 
 
 def http_request(method, path, data=None):
@@ -118,8 +127,8 @@ def check_workout_update():
         return 0.0
 
 
-def check_expiring_count():
-    """Check if agent correctly counted expiring items.
+def check_expiring_items():
+    """Check if agent correctly reported expiring items with names.
 
     Expected: 6 items expiring within 3 days from 2026-05-09:
     - Milk (2026-05-11) - 2 days
@@ -129,53 +138,81 @@ def check_expiring_count():
     - Yogurt (2026-05-10) - 1 day
     - Cheese (2026-05-11) - 2 days
 
-    This test checks the agent's response for the count.
+    This test checks the agent's response for item names.
+    Uses dual-source checking: harbor.jsonl first, response.txt as fallback.
     """
-    print("\n=== Test 3: Expiring Items Count ===")
+    print("\n=== Test 3: Expiring Items Report ===")
 
-    # Get the last assistant message from harbor.jsonl
-    response = get_last_assistant_message()
+    # Get agent response from harbor.jsonl or response.txt
+    response = get_agent_response()
 
     if response is None:
-        print("FAIL: Could not get agent response from harbor.jsonl")
+        print("FAIL: Could not get agent response")
         return 0.0
 
     print(f"Agent response excerpt: {response[:200]}...")
+    response_lower = response.lower()
 
-    # Look for number mentions in the response
-    # Agent should report "6" expiring items
-    numbers_found = re.findall(r'\b(\d+)\b', response)
+    # Check which expiring items are mentioned
+    found_items = []
+    for item_name in EXPECTED_EXPIRING_ITEMS.keys():
+        if item_name in response_lower:
+            found_items.append(item_name)
 
-    if not numbers_found:
-        print("FAIL: No number found in agent response")
+    expected_count = len(EXPECTED_EXPIRING_ITEMS)
+    found_count = len(found_items)
+
+    print(f"Found {found_count}/{expected_count} expiring items mentioned: {found_items}")
+
+    # Score based on how many items are correctly identified
+    if found_count == expected_count:
+        print(f"PASS: All {expected_count} expiring items mentioned")
+        return 1.0
+    elif found_count >= expected_count - 1:
+        print(f"PARTIAL: {found_count}/{expected_count} expiring items mentioned")
+        return 0.8
+    elif found_count >= expected_count // 2:
+        print(f"PARTIAL: {found_count}/{expected_count} expiring items mentioned")
+        return 0.5
+    else:
+        print(f"FAIL: Only {found_count}/{expected_count} expiring items mentioned")
         return 0.0
 
-    # Check if any number matches the expected count
-    for num_str in numbers_found:
-        num = int(num_str)
-        if num == EXPECTED_EXPIRING_COUNT:
-            print(f"PASS: Agent reported {num} expiring items (expected {EXPECTED_EXPIRING_COUNT})")
-            return 1.0
 
-    # If no exact match, check if close (allow ±1 tolerance)
-    for num_str in numbers_found:
-        num = int(num_str)
-        if abs(num - EXPECTED_EXPIRING_COUNT) <= 1:
-            print(f"PARTIAL: Agent reported {num} expiring items (expected {EXPECTED_EXPIRING_COUNT}, ±1 tolerance)")
-            return 0.5
+def get_agent_response():
+    """Get agent response from harbor.jsonl or response.txt fallback.
 
-    print(f"FAIL: Agent reported wrong count. Found numbers: {numbers_found}, expected {EXPECTED_EXPIRING_COUNT}")
-    return 0.0
+    Similar to grocery-reorder D4 pattern:
+    1. First try harbor.jsonl (real agent runs)
+    2. Fallback to response.txt only if no harbor.jsonl exists (oracle scenario)
+    """
+    # Try harbor.jsonl first
+    response = get_last_assistant_message()
+
+    # Fallback to response.txt only when harbor.jsonl doesn't exist
+    if response is None:
+        harbor_exists = any(
+            p.exists()
+            for p in [
+                Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
+                Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
+                Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
+            ]
+        )
+        if not harbor_exists:
+            response_path = Path("/workspace/output/response.txt")
+            if response_path.exists():
+                response = response_path.read_text()
+
+    return response
 
 
 def get_last_assistant_message():
     """Extract the last assistant message content from harbor.jsonl."""
-    import pathlib
-
     fallback_log_paths = [
-        pathlib.Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
-        pathlib.Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
-        pathlib.Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
+        Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
+        Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
+        Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
     ]
 
     actual_log_path = None
@@ -247,7 +284,7 @@ def main():
     tests = [
         ("Thermostat Adjustment", check_thermostat, 1.0),
         ("Workout Type Update", check_workout_update, 1.0),
-        ("Expiring Items Count", check_expiring_count, 1.0),
+        ("Expiring Items Report", check_expiring_items, 1.0),
         ("Shopping List Update", check_shopping_list, 1.0),
     ]
 

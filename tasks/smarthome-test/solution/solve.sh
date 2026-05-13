@@ -26,9 +26,9 @@ INVENTORY=$(curl -s "$BASE_URL/api/inventory")
 echo "   Inventory reviewed"
 
 # 4. Count expiring items (within 3 days from 2026-05-09)
-echo "4. Counting expiring items..."
-# Expiring items (<= 2026-05-12): Milk, Bread, Chicken Breast, Tomatoes, Yogurt, Cheese = 6 items
-echo "   Found 6 items expiring within 3 days"
+echo "4. Checking expiring items..."
+# Expiring items (<= 2026-05-12): Milk, Bread, Chicken Breast, Tomatoes, Yogurt, Cheese
+echo "   Expiring items: Milk, Bread, Chicken Breast, Tomatoes, Yogurt, Cheese"
 
 # 5. Check calendar
 echo "5. Checking calendar..."
@@ -51,4 +51,4 @@ echo "   Added Orange Juice to shopping list"
 
 echo ""
 echo "=== Morning routine completed ==="
-echo "Summary: Thermostat adjusted to comfort mode at 74°F, 6 expiring items found, workout changed to walking, Orange Juice added to shopping list."
+echo "Summary: Thermostat adjusted to comfort mode at 74°F, expiring items reported (Milk, Bread, Chicken Breast, Tomatoes, Yogurt, Cheese), workout changed to walking, Orange Juice added to shopping list."

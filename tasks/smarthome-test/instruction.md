@@ -22,7 +22,7 @@ Please complete the following morning routine tasks:
 
 3. **Review inventory** - Check what items are available in the fridge and pantry
 
-4. **Check expiring items** - Count how many items in the inventory are expiring within the next 3 days (today is 2026-05-09). Report the count of expiring items.
+4. **Check expiring items** - Check which items in the inventory are expiring within the next 3 days (today is 2026-05-09). Report the names of all expiring items.
 
 5. **Check today's calendar** - See what events are scheduled for today
 
