@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 31-case annotation table (31 implemented),
+It covers factor definitions, the full 32-case annotation table (32 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 31-Case Factor Annotation Table
+## 1. 32-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -60,6 +60,7 @@ single, clean environment without structural complexity.
 |      28 | mixed-tool-memory                 |     E      | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |     M      | ✓  |    |    | ✓  | Deep Research & Report     |
 |      31 | mint-diet-snack-log               |     E      |    |    |    |    | Health & Fitness           |
+|      32 | weather-aqi-report                |     E      |    |    |    |    | Deep Research & Report     |
 
 ---
 
@@ -67,20 +68,20 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    10 |      33.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb  |
-| A2     | Contaminated Initial State     |     6 |      20.0% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
-| B1     | Implicit Goal Resolution       |     4 |      13.3% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application |
-| B2     | Knowledge System Maintenance   |    11 |      36.7% | skill-creation, skill-dependency-fix, noise-filtering         |
+| A1     | Cross-Service Dependency       |    10 |      31.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb  |
+| A2     | Contaminated Initial State     |     6 |      18.8% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
+| B1     | Implicit Goal Resolution       |     4 |      12.5% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application |
+| B2     | Knowledge System Maintenance   |    11 |      34.4% | skill-creation, skill-dependency-fix, noise-filtering         |
 
-> Percentages are relative to 31 implemented cases.
+> Percentages are relative to 32 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 9 cases (29.0%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log
-- Single factor: 14 cases (45.2%)
-- Dual factor: 7 cases (22.6%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2)
-- Triple factor: 1 case (3.2%) — conflict-repair-acb (A1+A2+B2)
-- **Multi-factor (≥2 factors): 8 cases (25.8%)**
+- No factors (baseline): 10 cases (31.3%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report
+- Single factor: 14 cases (43.8%)
+- Dual factor: 7 cases (21.9%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2)
+- Triple factor: 1 case (3.1%) — conflict-repair-acb (A1+A2+B2)
+- **Multi-factor (≥2 factors): 8 cases (25.0%)**
 
 ---
 

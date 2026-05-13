@@ -1,0 +1,9 @@
+{
+  "name": "@mock/weather",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "mock-lib": "workspace:*",
+    "hono": "^4.8.0"
+  }
+}

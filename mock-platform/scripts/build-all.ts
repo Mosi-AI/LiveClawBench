@@ -91,6 +91,7 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
     todolist: "/__mock_sentinel__/todolist",
     "doc-search": "/__mock_sentinel__/doc-search",
     "mint-diet": "/__mock_sentinel__/mint-diet",
+    weather: "/__mock_sentinel__/weather",
   };
 
   const successfulMocks = results.filter((r) => r.success);

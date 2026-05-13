@@ -3,8 +3,11 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "mint-diet"],
+  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "mint-diet", "weather"],
   "tasks": {
+    "weather-aqi-report": {
+      "binaries": ["weather"]
+    },
     "watch-shop": {
       "binaries": ["shop"],
       "assets": [
