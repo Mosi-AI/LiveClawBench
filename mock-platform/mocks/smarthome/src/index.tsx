@@ -1353,4 +1353,6 @@ app.seed = () => {
   initDatabase();
 };
 
-startServer(app);
+if (import.meta.main) {
+  startServer(app);
+}

@@ -17,8 +17,8 @@ Expected agent actions:
 
 import json
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 
 # Configuration
 BASE_URL = "http://localhost:5004"
@@ -142,7 +142,7 @@ def check_meal_plan():
     try:
         days = json.loads(plan_data) if isinstance(plan_data, str) else plan_data
         if isinstance(days, list) and len(days) == 7:
-            print(f"PASS: Meal plan has 7 days")
+            print("PASS: Meal plan has 7 days")
             score += 0.4
 
             # Check each day has meals
