@@ -7,7 +7,6 @@ import sqlite3
 import sys
 from pathlib import Path
 
-
 DB_PATH = Path("/var/lib/mock-data/mint-diet/mint-diet.sqlite")
 TARGET_DATE = "2026-05-06"
 
