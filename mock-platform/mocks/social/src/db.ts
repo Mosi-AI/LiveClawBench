@@ -3,7 +3,7 @@ import { mkdirSync } from "fs";
 
 const DB_PATH = process.env.MOCK_DATA_DIR
   ? `${process.env.MOCK_DATA_DIR}/social/social.db`
-  : "/var/lib/mock-data/social/social.db";
+  : ":memory:";
 
 let db: Database | null = null;
 

@@ -1,3 +1,4 @@
+/** @jsxImportSource hono/jsx */
 /**
  * Social mock service — Social Media Platform
  *
@@ -6,7 +7,7 @@
  */
 
 import { createMockApp, startServer, sign, verify, tokenCookieOptions, authRequired, authOptional } from "mock-lib";
-import type { AppEnv } from "mock-lib";
+import type { AppEnv, MockAppV2 } from "mock-lib";
 import { Hono } from "hono";
 import { html } from "hono/html";
 import type { FC } from "hono/jsx";
@@ -1440,11 +1441,16 @@ function registerRoutes(app: Hono<AppEnv>): void {
 // App bootstrap
 // ---------------------------------------------------------------------------
 
-const app = createMockApp({
-  name: "social",
-  port: 3456,
-  healthResponse: { status: "healthy", service: "social" },
-  routes: registerRoutes,
-});
+export function createSocialApp(): MockAppV2 {
+  return createMockApp({
+    name: "social",
+    port: 3456,
+    healthResponse: { status: "healthy", service: "social" },
+    routes: registerRoutes,
+  });
+}
 
-startServer(app, { seed: () => {} });
+if (import.meta.main) {
+  const app = createSocialApp();
+  startServer(app, { seed: () => {} });
+}

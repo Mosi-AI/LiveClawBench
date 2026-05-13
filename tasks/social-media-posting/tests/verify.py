@@ -2,8 +2,8 @@
 """Verify social-media-posting: check alice's post appears in public feed"""
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 
 SCORE = 0.0
 BASE_URL = "http://127.0.0.1:5003"

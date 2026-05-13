@@ -17,8 +17,8 @@ after unlike: liked=false, like_count must be 0.
 
 import json
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 
 BASE_URL = "http://127.0.0.1:5003"
 USERNAME = "alice"
@@ -106,7 +106,7 @@ def main():
 
         # Dimension 1: liked should be false (agent unliked the post)
         dim1_score = 0.0
-        if liked == False:
+        if not liked:
             dim1_score = 0.5
             messages.append("PASS: liked=false (post unliked by agent)")
         else:
