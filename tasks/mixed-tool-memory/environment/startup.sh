@@ -8,35 +8,13 @@ set -euo pipefail
 export HOME="/home/node"
 ROOT="${HOME}/.openclaw"
 OUTPUT="${ROOT}/output"
-BROWSER_MOCK_DIR="${ROOT}/browser_mock_sidecar"
-BROWSER_MOCK_DB="${OUTPUT}/browser_mock_documents.sqlite"
-BROWSER_MOCK_LOG="${OUTPUT}/browser_mock_access.jsonl"
-BROWSER_MOCK_SERVER_LOG="${OUTPUT}/browser_mock_server.log"
 BROWSER_MOCK_BASE_URL="${BROWSER_MOCK_BASE_URL:-http://127.0.0.1:8123}"
 
 mkdir -p "${OUTPUT}"
-: > "${BROWSER_MOCK_LOG}"
 
-python3 - "${BROWSER_MOCK_DIR}/documents.sql" "${BROWSER_MOCK_DB}" <<'PY'
-import sqlite3
-import sys
-from pathlib import Path
-
-sql_path = Path(sys.argv[1])
-db_path = Path(sys.argv[2])
-if db_path.exists():
-    db_path.unlink()
-conn = sqlite3.connect(db_path)
-try:
-    conn.executescript(sql_path.read_text(encoding="utf-8"))
-    conn.commit()
-finally:
-    conn.close()
-PY
-
-# Skip starting Python sidecar if Bun mock-doc-search is already running
-# (detect healthy response from pre-started Bun binary)
-if python3 -c "
+# Verify Bun mock-doc-search is running (started by per-task image entrypoint).
+# The legacy Python browser_mock_sidecar was removed in Plan 2.5.
+if ! python3 -c "
 import urllib.request, json, sys
 try:
     r = urllib.request.urlopen('http://127.0.0.1:8123/health', timeout=1)
@@ -45,34 +23,7 @@ try:
 except SystemExit: raise
 except: sys.exit(1)
 " 2>/dev/null; then
-  echo "Bun mock-doc-search already running, skipping Python sidecar"
-else
-  python3 "${BROWSER_MOCK_DIR}/browser_mock_server.py" \
-    --database "${BROWSER_MOCK_DB}" \
-    --log "${BROWSER_MOCK_LOG}" \
-    --host "127.0.0.1" \
-    --port "8123" \
-    > "${BROWSER_MOCK_SERVER_LOG}" 2>&1 &
-
-  python3 - "${BROWSER_MOCK_BASE_URL}" <<'PY'
-import json
-import sys
-import time
-import urllib.request
-
-base_url = sys.argv[1].rstrip("/")
-deadline = time.time() + 10
-last_error = ""
-while time.time() < deadline:
-    try:
-        with urllib.request.urlopen(f"{base_url}/health", timeout=1) as resp:
-            payload = json.load(resp)
-        if payload.get("ok"):
-            sys.exit(0)
-        last_error = f"unhealthy payload: {payload!r}"
-    except Exception as exc:
-        last_error = str(exc)
-    time.sleep(0.2)
-raise SystemExit(f"browser mock server did not become ready: {last_error}")
-PY
+  echo "ERROR: Bun mock-doc-search is not running on port 8123" >&2
+  exit 1
 fi
+echo "Bun mock-doc-search is running on port 8123"

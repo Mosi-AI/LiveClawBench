@@ -1,0 +1,14 @@
+{
+  "data": {
+    "access_token": "<JWT_TOKEN>",
+    "message": "Login successful",
+    "user": {
+      "created_at": "2026-03-16T07:06:41.039450",
+      "email": "peter.griffin@email.app",
+      "id": 1,
+      "username": "peter"
+    }
+  },
+  "message": "Login successful",
+  "success": true
+}

@@ -67,12 +67,14 @@ harbor run ... \
   --ae OPENAI_API_KEY="$OPENAI_API_KEY"
 ```
 
-也可以在运行前 source `.env` 文件，使变量在 shell 中可用：
+也可以在运行前 source `.env` 文件，使变量在 shell 中可用。如果 `.env` 使用 `KEY=value` 格式（没有 `export`），使用 `set -a` 自动导出所有变量：
 
 ```bash
-source .env
+set -a && source .env && set +a
 harbor run ... --ae VOLCANO_ENGINE_API_KEY="$VOLCANO_ENGINE_API_KEY"
 ```
+
+> **运行前验证：** 如果变量为空，Harbor 会将空字符串传入容器，导致 agent 认证失败。运行前务必确认变量已设置：`echo "$CUSTOM_BASE_URL"`。
 
 ## 模型名称格式
 
@@ -173,6 +175,34 @@ harbor run -p tasks/<task> -a openclaw \
   --ae CUSTOM_API_KEY="$API_KEY" \
   --ae CUSTOM_REASONING=true
 ```
+
+> **重要提示：** 使用 `moonshot/` 配合自定义端点时，必须通过 `--ae` 提供 `CUSTOM_BASE_URL` 和 `CUSTOM_API_KEY`。`moonshot` provider 名称用于注入 `thinking.type` 参数，但它并不知道你的端点 URL 或 API key。
+>
+> 使用 `.env` 文件的完整示例：
+>
+> ```bash
+> set -a && source .env && set +a
+> harbor run -p tasks/watch-shop -a openclaw \
+>   -m moonshot/minimax-m2.5 \
+>   -n 1 -o jobs \
+>   --ae CUSTOM_BASE_URL="$OPENAI_BASE_URL" \
+>   --ae CUSTOM_API_KEY="$OPENAI_API_KEY" \
+>   --timeout-multiplier 2.0
+> ```
+>
+> 对于 LLM judge 任务，需通过 `--ee` 额外传入 judge 凭证（可使用相同端点或不同端点）：
+>
+> ```bash
+> set -a && source .env && set +a
+> harbor run -p tasks/conflict-repair-acb -a openclaw \
+>   -m moonshot/minimax-m2.5 \
+>   -n 1 -o jobs \
+>   --ae CUSTOM_BASE_URL="$OPENAI_BASE_URL" \
+>   --ae CUSTOM_API_KEY="$OPENAI_API_KEY" \
+>   --ee JUDGE_BASE_URL="$OPENAI_BASE_URL" \
+>   --ee JUDGE_API_KEY="$OPENAI_API_KEY" \
+>   --timeout-multiplier 2.0
+> ```
 
 未设置 `CUSTOM_BASE_URL` 时，`openrouter` 和 `moonshot` 会回退到各自的默认服务端点（OpenRouter 和 Moonshot）。
 

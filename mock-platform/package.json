@@ -7,7 +7,9 @@
     "build": "bun run scripts/build-all.ts",
     "build:images": "bun run scripts/build-task-images.ts",
     "create-mock": "bun run tools/create-mock/index.ts",
-    "test": "bun test"
+    "check-openapi": "bun run scripts/generate-openapi.ts && bun run scripts/check-openapi-clean.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
   },
   "devDependencies": {
     "typescript": "^5.8.0",

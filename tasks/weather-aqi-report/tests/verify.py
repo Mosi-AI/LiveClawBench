@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Verify weather-aqi-report: agent correctly reads Beijing AQI from weather service."""
 
 import json
