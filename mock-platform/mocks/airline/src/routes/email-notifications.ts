@@ -2,7 +2,7 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
 import { ok, err } from "mock-lib";
-import { paginate, parsePageParams, DEFAULT_USER_ID } from "../helpers";
+import { paginate, parsePageParams } from "../helpers";
 import {
   OkSchema,
   ErrSchema,
@@ -41,8 +41,9 @@ export function registerMockEmailRoutes(app: OpenAPIApp, db: Database, prefix: s
     const emailType = query.type;
     const unreadOnly = query.unread_only === "true";
 
+    const userId = c.get("userId")!;
     let sql = "SELECT * FROM email_notifications WHERE user_id = ?";
-    const params: (number | string)[] = [DEFAULT_USER_ID];
+    const params: (number | string)[] = [userId];
 
     if (emailType) {
       sql += " AND email_type = ?";
@@ -84,7 +85,8 @@ export function registerMockEmailRoutes(app: OpenAPIApp, db: Database, prefix: s
   app.openApiRoute(detailRoute, (c) => {
     const { email_id } = c.req.valid("param");
     const id = parseInt(email_id, 10);
-    const email = db.query("SELECT * FROM email_notifications WHERE id = ? AND user_id = ?").get(id, DEFAULT_USER_ID) as Record<string, unknown> | null;
+    const userId = c.get("userId")!;
+    const email = db.query("SELECT * FROM email_notifications WHERE id = ? AND user_id = ?").get(id, userId) as Record<string, unknown> | null;
     if (!email) return c.json(err("Email not found"), 404);
 
     db.query("UPDATE email_notifications SET is_read = 1 WHERE id = ?").run(id);

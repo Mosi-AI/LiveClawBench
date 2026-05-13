@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, paginate, parsePageParams, DEFAULT_USER_ID } from "../helpers";
+import { ok, err, paginate, parsePageParams } from "../helpers";
 
 export function registerBaggageRoutes(app: OpenAPIApp, db: Database): void {
   // GET /api/baggage
@@ -9,8 +9,9 @@ export function registerBaggageRoutes(app: OpenAPIApp, db: Database): void {
     const { page, perPage, offset } = parsePageParams(query.page, query.per_page);
     const status = query.status;
 
+    const userId = c.get("userId")!;
     let sql = "SELECT * FROM baggage_tracking WHERE user_id = ?";
-    const params: (number | string)[] = [DEFAULT_USER_ID];
+    const params: (number | string)[] = [userId];
 
     if (status) {
       sql += " AND status = ?";
@@ -40,10 +41,11 @@ export function registerBaggageRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("flight_number, flight_time, passenger_name, passenger_phone, passenger_email and baggage_description are required"), 400);
     }
 
+    const userId = c.get("userId")!;
     db.query(
       "INSERT INTO baggage_tracking (user_id, booking_id, flight_number, flight_time, passenger_name, passenger_phone, passenger_email, baggage_description, seat_number, loss_details, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'processing')"
     ).run(
-      DEFAULT_USER_ID,
+      userId,
       bookingId,
       flightNumber,
       flightTime,

@@ -28,7 +28,8 @@ describe("authRequired (direct / default JSON form)", () => {
     const res = await app.request("/protected/me");
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body.error).toBe("Authentication required");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Authentication required");
   });
 
   test("returns 401 JSON with invalid-token reason when cookie token is malformed", async () => {
@@ -38,7 +39,8 @@ describe("authRequired (direct / default JSON form)", () => {
     });
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body.error).toBe("Invalid or expired token");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Invalid or expired token");
   });
 
   test("allows valid cookie token and exposes userId via c.get", async () => {
@@ -117,7 +119,9 @@ describe("authRequired (factory form, onUnauthorized = 'json' explicit)", () => 
     const app = buildApp(authRequired({ onUnauthorized: "json" }));
     const res = await app.request("/protected/me");
     expect(res.status).toBe(401);
-    expect((await res.json()).error).toBe("Authentication required");
+    const body = await res.json();
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Authentication required");
   });
 });
 

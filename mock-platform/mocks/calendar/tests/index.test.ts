@@ -189,7 +189,8 @@ describe("calendar events API", () => {
     });
     expect(res.status).toBe(409);
     const body = await res.json();
-    expect(body.error).toBe("time_overlap");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("time_overlap");
   });
 
   test("POST /api/events allows adjacent events", async () => {

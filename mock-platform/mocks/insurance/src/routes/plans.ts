@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createRoute } from "mock-lib";
+import { createRoute, err } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ErrorResponseSchema } from "mock-lib";
@@ -89,7 +89,7 @@ export function registerPlansRoutes(app: OpenAPIApp, db: Database): void {
       .get(userId!);
 
     if (!policy) {
-      return c.json({ error: "no_active_policy" }, 404);
+      return c.json(err("no_active_policy"), 404);
     }
 
     const plan = db
@@ -167,7 +167,7 @@ export function registerPlansRoutes(app: OpenAPIApp, db: Database): void {
       .get(id);
 
     if (!plan) {
-      return c.json({ error: "Plan not found" }, 404);
+      return c.json(err("Plan not found"), 404);
     }
 
     const benefits = db
@@ -220,7 +220,7 @@ export function registerPlansRoutes(app: OpenAPIApp, db: Database): void {
       .get(id);
 
     if (!plan) {
-      return c.json({ error: "Plan not found" }, 404);
+      return c.json(err("Plan not found"), 404);
     }
 
     // Update active policy: terminate old, insert new
@@ -232,7 +232,7 @@ export function registerPlansRoutes(app: OpenAPIApp, db: Database): void {
     ).run(userId, plan.id);
 
     // Record the selection event with snapshots
-    db.query(
+    const insertResult = db.query(
       `INSERT INTO plan_selection
        (user_id, plan_id, year, plan_code_snapshot, plan_name_snapshot, deductible_snapshot, premium_snapshot)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -246,7 +246,6 @@ export function registerPlansRoutes(app: OpenAPIApp, db: Database): void {
       plan.premium_monthly,
     );
 
-    const row = db.query<{ id: number }, []>("SELECT last_insert_rowid() AS id").get();
     const selection = db
       .query<
         {
@@ -262,7 +261,7 @@ export function registerPlansRoutes(app: OpenAPIApp, db: Database): void {
         },
         [number]
       >("SELECT * FROM plan_selection WHERE id = ?")
-      .get(row!.id);
+      .get(Number(insertResult.lastInsertRowid));
 
     return c.json(selection, 201);
   }, { auth: "required" });

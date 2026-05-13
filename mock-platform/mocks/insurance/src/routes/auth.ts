@@ -1,6 +1,6 @@
 import { z } from "zod";
 import bcryptjs from "bcryptjs";
-import { createRoute, sign, tokenCookieOptions, serializeCookie, BCRYPT_SALT_ROUNDS } from "mock-lib";
+import { createRoute, sign, tokenCookieOptions, serializeCookie, BCRYPT_SALT_ROUNDS, err } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ErrorResponseSchema } from "mock-lib";
@@ -97,7 +97,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const { email, password } = c.req.valid("json");
     const user = getUserByEmail(db, email);
     if (!user || !bcryptjs.compareSync(password, user.password_hash)) {
-      return c.json({ error: "Invalid email or password" }, 401);
+      return c.json(err("Invalid email or password"), 401);
     }
 
     const token = await sign({ userId: user.id });
@@ -146,20 +146,19 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
     const existing = getUserByEmail(db, email);
     if (existing) {
-      return c.json({ error: "Email already registered" }, 400);
+      return c.json(err("Email already registered"), 400);
     }
 
     const passwordHash = bcryptjs.hashSync(password, BCRYPT_SALT_ROUNDS);
-    db.query(
+    const insertResult = db.query(
       `INSERT INTO users (email, password_hash, first_name, last_name)
        VALUES (?, ?, ?, ?)`,
     ).run(email, passwordHash, first_name, last_name);
 
-    const row = db.query<{ id: number }, []>("SELECT last_insert_rowid() AS id").get();
-    const userId = row?.id ?? 0;
+    const userId = Number(insertResult.lastInsertRowid);
     const newUser = getUserById(db, userId);
     if (!newUser) {
-      return c.json({ error: "Failed to create user" }, 500);
+      return c.json(err("Failed to create user"), 500);
     }
 
     const token = await sign({ userId: newUser.id });
@@ -190,11 +189,11 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   app.openApiRoute(meRoute, (c): any => {
     const userId = c.get("userId");
     if (!userId) {
-      return c.json({ error: "Unauthorized" }, 401);
+      return c.json(err("Unauthorized"), 401);
     }
     const user = getUserById(db, userId);
     if (!user) {
-      return c.json({ error: "User not found" }, 404);
+      return c.json(err("User not found"), 404);
     }
     return c.json(toSafeUser(user));
   }, { auth: "required" });

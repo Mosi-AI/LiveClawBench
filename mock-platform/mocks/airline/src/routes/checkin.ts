@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, DEFAULT_USER_ID } from "../helpers";
+import { ok, err } from "../helpers";
 
 export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
   // POST /api/checkin/:booking_reference
@@ -96,13 +96,14 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     const now = new Date().toISOString().replace("T", " ").slice(0, 19);
     const future24h = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().replace("T", " ").slice(0, 19);
 
+    const userId = c.get("userId")!;
     const bookings = db.query(`
       SELECT b.* FROM bookings b
       JOIN flights f ON b.flight_id = f.id
       WHERE b.user_id = ? AND b.checked_in = 0 AND b.booking_status = 'confirmed'
       AND f.departure_time >= ? AND f.departure_time <= ?
       ORDER BY f.departure_time
-    `).all(DEFAULT_USER_ID, now, future24h) as Record<string, unknown>[];
+    `).all(userId, now, future24h) as Record<string, unknown>[];
 
     return c.json(ok({ eligible_checkins: bookings }));
   });

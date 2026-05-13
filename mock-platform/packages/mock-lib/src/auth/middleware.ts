@@ -13,6 +13,7 @@
 
 import type { Context, MiddlewareHandler, Next } from "hono";
 import type { AppEnv } from "../types";
+import { err } from "../response";
 import { verify } from "./jwt";
 
 export interface AuthOptions {
@@ -60,7 +61,7 @@ function unauthorized(
   }
   const message =
     reason === "missing" ? "Authentication required" : "Invalid or expired token";
-  return c.json({ error: message }, 401);
+  return c.json(err(message), 401);
 }
 
 async function runAuthRequired(

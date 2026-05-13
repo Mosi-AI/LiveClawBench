@@ -115,7 +115,8 @@ describe("plans routes", () => {
     });
     expect(res.status).toBe(404);
     const body = await res.json();
-    expect(body.error).toBe("Plan not found");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Plan not found");
   });
 
   test("plan snapshot is immutable after source plan mutation", async () => {

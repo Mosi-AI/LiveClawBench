@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, paginate, parsePageParams, DEFAULT_USER_ID, generateBookingReference } from "../helpers";
+import { ok, err, paginate, parsePageParams, generateBookingReference } from "../helpers";
 
 export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
   // GET /api/bookings
@@ -9,8 +9,9 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const { page, perPage, offset } = parsePageParams(query.page, query.per_page);
     const status = query.status;
 
+    const userId = c.get("userId")!;
     let sql = "SELECT * FROM bookings WHERE user_id = ?";
-    const params: (number | string)[] = [DEFAULT_USER_ID];
+    const params: (number | string)[] = [userId];
 
     if (status) {
       sql += " AND booking_status = ?";
@@ -69,9 +70,10 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const insertBooking = db.query(
       "INSERT INTO bookings (booking_reference, user_id, flight_id, cabin_class, total_price, booking_status, checked_in) VALUES (?, ?, ?, ?, ?, 'pending', 0)"
     );
-    insertBooking.run(reference, DEFAULT_USER_ID, flightId, cabinClass, totalPrice);
+    const userId = c.get("userId")!;
+    const insertResult = insertBooking.run(reference, userId, flightId, cabinClass, totalPrice);
 
-    const bookingId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+    const bookingId = Number(insertResult.lastInsertRowid);
 
     // Insert passengers
     for (const p of passengers) {
@@ -97,11 +99,11 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     ).run(bookingId, totalPrice, txnId);
 
     // Create email notification side effect
-    const user = db.query("SELECT email, first_name, last_name FROM users WHERE id = ?").get(DEFAULT_USER_ID) as { email: string; first_name: string; last_name: string } | null;
+    const user = db.query("SELECT email, first_name, last_name FROM users WHERE id = ?").get(userId) as { email: string; first_name: string; last_name: string } | null;
     if (user) {
       db.query(
         "INSERT INTO email_notifications (user_id, booking_id, email_type, recipient_email, subject, body) VALUES (?, ?, 'booking_confirmation', ?, ?, ?)"
-      ).run(DEFAULT_USER_ID, bookingId, user.email, `Booking Confirmation - ${reference}`, `Dear ${user.first_name}, your booking ${reference} has been confirmed.`);
+      ).run(userId, bookingId, user.email, `Booking Confirmation - ${reference}`, `Dear ${user.first_name}, your booking ${reference} has been confirmed.`);
     }
 
     // Update booking status to confirmed
@@ -122,21 +124,19 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const bookingId = Number(booking.id);
     const flightId = Number(booking.flight_id);
 
+    // Validate all assignments before applying
     for (const assignment of assignments) {
-      // Validate passenger belongs to booking
       const passenger = db.query("SELECT * FROM passengers WHERE id = ? AND booking_id = ?").get(assignment.passenger_id, bookingId) as Record<string, unknown> | null;
       if (!passenger) {
         return c.json(err(`Passenger ${assignment.passenger_id} not found in booking`), 404);
       }
 
-      // Get seat on this flight
       const seat = db.query("SELECT * FROM seats WHERE id = ? AND flight_id = ?").get(assignment.seat_id, flightId) as Record<string, unknown> | null;
       if (!seat) {
         return c.json(err(`Seat ${assignment.seat_id} not found`), 404);
       }
 
       if (!seat.is_available) {
-        // Window seat unavailability in economy — check if upgrade fee applies
         const isEconomyWindow = seat.cabin_class === "economy" && seat.is_window;
         if (isEconomyWindow) {
           const availableEconWindow = db.query(
@@ -152,12 +152,16 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
         }
         return c.json(err(`Seat ${seat.seat_number} is not available`), 400);
       }
-
-      // Update passenger with seat
-      db.query("UPDATE passengers SET seat_id = ? WHERE id = ? AND booking_id = ?").run(assignment.seat_id, assignment.passenger_id, bookingId);
-      // Mark seat as unavailable
-      db.query("UPDATE seats SET is_available = 0 WHERE id = ?").run(assignment.seat_id);
     }
+
+    // Apply updates atomically
+    const assignSeats = db.transaction(() => {
+      for (const assignment of assignments) {
+        db.query("UPDATE passengers SET seat_id = ? WHERE id = ? AND booking_id = ?").run(assignment.seat_id, assignment.passenger_id, bookingId);
+        db.query("UPDATE seats SET is_available = 0 WHERE id = ?").run(assignment.seat_id);
+      }
+    });
+    assignSeats();
 
     const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(bookingId) as Record<string, unknown>;
     return c.json(ok(updated, "Seats assigned successfully"));
@@ -170,10 +174,12 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     if (!booking) return c.json(err("Booking not found"), 404);
     const bookingId = Number(booking.id);
 
-    // Release seats
-    db.query("UPDATE seats SET is_available = 1 WHERE id IN (SELECT seat_id FROM passengers WHERE booking_id = ? AND seat_id IS NOT NULL)").run(bookingId);
-
-    db.query("UPDATE bookings SET booking_status = 'cancelled', updated_at = datetime('now') WHERE id = ?").run(bookingId);
+    const cancelBooking = db.transaction(() => {
+      db.query("UPDATE seats SET is_available = 1 WHERE id IN (SELECT seat_id FROM passengers WHERE booking_id = ? AND seat_id IS NOT NULL)").run(bookingId);
+      db.query("UPDATE passengers SET seat_id = NULL WHERE booking_id = ?").run(bookingId);
+      db.query("UPDATE bookings SET booking_status = 'cancelled', updated_at = datetime('now') WHERE id = ?").run(bookingId);
+    });
+    cancelBooking();
 
     const updated = db.query("SELECT * FROM bookings WHERE id = ?").get(bookingId) as Record<string, unknown>;
     return c.json(ok(updated, "Booking cancelled successfully"));

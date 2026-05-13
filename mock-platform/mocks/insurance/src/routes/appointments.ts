@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createRoute } from "mock-lib";
+import { createRoute, err } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ErrorResponseSchema } from "mock-lib";
@@ -181,7 +181,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
       >("SELECT id, name, district, distance_km, network_status FROM provider WHERE id = ?")
       .get(id);
     if (!provider) {
-      return c.json({ error: "Provider not found" }, 404);
+      return c.json(err("Provider not found"), 404);
     }
 
     const services = db
@@ -239,7 +239,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
       )
       .get(serviceId, providerId);
     if (!service) {
-      return c.json({ error: "Service not found for this provider" }, 404);
+      return c.json(err("Service not found for this provider"), 404);
     }
 
     const q = c.req.query();
@@ -310,53 +310,49 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
     const userId = c.get("userId")!;
     const { slot_id } = c.req.valid("json");
 
-    // Fetch slot, service, and provider in one go for snapshots
-    const slot = db
-      .query<
-        {
-          slot_id: number;
-          start_time: string;
-          end_time: string;
-          is_available: number;
-          provider_service_id: number;
-          check_item: string;
-          service_name: string;
-          cost: number;
-          provider_id: number;
-          provider_name: string;
-          distance_km: number;
-        },
-        [number]
-      >(
-        `SELECT
-           s.id AS slot_id,
-           s.start_time, s.end_time, s.is_available,
-           s.provider_service_id,
-           ps.check_item, ps.service_name, ps.cost,
-           p.id AS provider_id,
-           p.name AS provider_name,
-           p.distance_km
-         FROM appointment_slot s
-         JOIN provider_service ps ON ps.id = s.provider_service_id
-         JOIN provider p ON p.id = ps.provider_id
-         WHERE s.id = ?`,
-      )
-      .get(slot_id);
-
-    if (!slot) {
-      return c.json({ error: "Slot not found" }, 404);
-    }
-    if (slot.is_available !== 1) {
-      return c.json({ error: "Slot is not available" }, 400);
-    }
-
-    // Mark slot as unavailable and insert appointment in a transaction
+    // Atomic: SELECT slot, UPDATE availability, INSERT appointment
     const book = db.transaction(() => {
+      const slot = db
+        .query<
+          {
+            slot_id: number;
+            start_time: string;
+            end_time: string;
+            is_available: number;
+            provider_service_id: number;
+            check_item: string;
+            service_name: string;
+            cost: number;
+            provider_id: number;
+            provider_name: string;
+            distance_km: number;
+          },
+          [number]
+        >(
+          `SELECT
+             s.id AS slot_id,
+             s.start_time, s.end_time, s.is_available,
+             s.provider_service_id,
+             ps.check_item, ps.service_name, ps.cost,
+             p.id AS provider_id,
+             p.name AS provider_name,
+             p.distance_km
+           FROM appointment_slot s
+           JOIN provider_service ps ON ps.id = s.provider_service_id
+           JOIN provider p ON p.id = ps.provider_id
+           WHERE s.id = ?`,
+        )
+        .get(slot_id);
+
+      if (!slot || slot.is_available !== 1) {
+        return null;
+      }
+
       db.query("UPDATE appointment_slot SET is_available = 0 WHERE id = ?").run(
         slot_id,
       );
 
-      db.query(
+      const insertResult = db.query(
         `INSERT INTO appointment
          (user_id, provider_id, slot_id,
           provider_name, service_name_snapshot, check_item,
@@ -376,18 +372,17 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
         slot.distance_km,
       );
 
-      const row = db
-        .query<{ id: number }, []>("SELECT last_insert_rowid() AS id")
-        .get();
-      return row!.id;
+      return db
+        .query<Record<string, unknown>, [number]>(
+          "SELECT * FROM appointment WHERE id = ?",
+        )
+        .get(Number(insertResult.lastInsertRowid));
     });
 
-    const appointmentId = book();
-    const appointment = db
-      .query<Record<string, unknown>, [number]>(
-        "SELECT * FROM appointment WHERE id = ?",
-      )
-      .get(appointmentId);
+    const appointment = book();
+    if (!appointment) {
+      return c.json(err("Slot is not available"), 400);
+    }
     return c.json(appointment, 201);
   }, { auth: "required" });
 
@@ -455,7 +450,7 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
       )
       .get(id, userId!);
     if (!appointment) {
-      return c.json({ error: "Appointment not found" }, 404);
+      return c.json(err("Appointment not found"), 404);
     }
     return c.json(appointment);
   }, { auth: "required" });

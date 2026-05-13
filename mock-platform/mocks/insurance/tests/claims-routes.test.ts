@@ -122,11 +122,23 @@ describe("claims routes", () => {
 
   test("POST /api/claims/:id/line-items adds a line item", async () => {
     const { app, token } = await createAppWithToken();
-    const listRes = await app.request("/api/claims", {
-      headers: { Authorization: `Bearer ${token}` },
+    // Create a fresh claim with a high total to accommodate the line item
+    const createRes = await app.request("/api/claims", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        claim_type: "medical",
+        total_amount: 25000,
+        service_date: "2026-05-01",
+        provider_name: "Test Clinic",
+        check_item: "general_checkup",
+      }),
     });
-    const { claims } = await listRes.json();
-    const claimId = claims[0].id;
+    const newClaim = await createRes.json();
+    const claimId = newClaim.id;
 
     const res = await app.request(`/api/claims/${claimId}/line-items`, {
       method: "POST",
@@ -144,6 +156,42 @@ describe("claims routes", () => {
     expect(body.claim_id).toBe(claimId);
     expect(body.description).toBe("New line item");
     expect(body.amount_cents).toBe(5000);
+  });
+
+  test("POST /api/claims/:id/line-items rejects if total exceeds claim amount", async () => {
+    const { app, token } = await createAppWithToken();
+    const createRes = await app.request("/api/claims", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        claim_type: "medical",
+        total_amount: 1000,
+        service_date: "2026-05-01",
+        provider_name: "Test Clinic",
+        check_item: "general_checkup",
+      }),
+    });
+    const newClaim = await createRes.json();
+    const claimId = newClaim.id;
+
+    const res = await app.request(`/api/claims/${claimId}/line-items`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        description: "Over budget",
+        amount_cents: 2000,
+      }),
+    });
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Line item total exceeds claim amount");
   });
 
   test("POST /api/claims/:id/attachments adds an attachment", async () => {

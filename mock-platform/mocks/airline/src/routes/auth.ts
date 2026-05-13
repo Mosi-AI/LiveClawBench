@@ -2,7 +2,7 @@ import bcryptjs from "bcryptjs";
 import { sign, BCRYPT_SALT_ROUNDS, tokenCookieOptions, serializeCookie } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, getUserById, DEFAULT_USER_ID } from "../helpers";
+import { ok, err, getUserById } from "../helpers";
 
 export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   // POST /api/auth/register
@@ -30,13 +30,13 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const passwordHash = bcryptjs.hashSync(password, BCRYPT_SALT_ROUNDS);
-    db.query(
+    const insertResult = db.query(
       "INSERT INTO users (email, password_hash, first_name, last_name, phone, date_of_birth, is_verified, is_active) VALUES (?, ?, ?, ?, ?, ?, 1, 1)"
     ).run(email, passwordHash, firstName, lastName, phone, dateOfBirth);
 
-    const row = db.query("SELECT last_insert_rowid() as id").get() as { id: number };
-    const user = getUserById(db, row.id);
-    const token = await sign({ userId: row.id });
+    const userId = Number(insertResult.lastInsertRowid);
+    const user = getUserById(db, userId);
+    const token = await sign({ userId });
     const cookieStr = serializeCookie("token", token, tokenCookieOptions());
     c.header("Set-Cookie", cookieStr);
     return c.json(ok({ user, access_token: token, refresh_token: token + "-refresh" }, "Registration successful"), 201);
@@ -67,19 +67,23 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
   // POST /api/auth/refresh
   app.post("/api/auth/refresh", async (c) => {
-    const token = await sign({ userId: DEFAULT_USER_ID });
+    const userId = c.get("userId");
+    if (!userId) return c.json(err("Authentication required"), 401);
+    const token = await sign({ userId });
     return c.json(ok({ access_token: token }, "Token refreshed"));
   });
 
   // GET /api/auth/profile
   app.get("/api/auth/profile", (c) => {
-    const user = getUserById(db, DEFAULT_USER_ID);
+    const userId = c.get("userId")!;
+    const user = getUserById(db, userId);
     if (!user) return c.json(err("User not found"), 404);
     return c.json(ok(user));
   });
 
   // PUT /api/auth/profile
   app.put("/api/auth/profile", async (c) => {
+    const userId = c.get("userId")!;
     let body: Record<string, unknown>;
     try {
       body = await c.req.json();
@@ -99,13 +103,14 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("No fields to update"), 400);
     }
 
-    db.query(`UPDATE users SET ${fields.join(", ")}, updated_at = datetime('now') WHERE id = ?`).run(...values, DEFAULT_USER_ID);
-    const user = getUserById(db, DEFAULT_USER_ID);
+    db.query(`UPDATE users SET ${fields.join(", ")}, updated_at = datetime('now') WHERE id = ?`).run(...values, userId);
+    const user = getUserById(db, userId);
     return c.json(ok(user, "Profile updated"));
   });
 
   // POST /api/auth/change-password
   app.post("/api/auth/change-password", async (c) => {
+    const userId = c.get("userId")!;
     let body: Record<string, unknown>;
     try {
       body = await c.req.json();
@@ -115,13 +120,13 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const oldPassword = String(body.old_password ?? "");
     const newPassword = String(body.new_password ?? "");
 
-    const row = db.query("SELECT id, password_hash FROM users WHERE id = ?").get(DEFAULT_USER_ID) as { id: number; password_hash: string } | null;
+    const row = db.query("SELECT id, password_hash FROM users WHERE id = ?").get(userId) as { id: number; password_hash: string } | null;
     if (!row || !bcryptjs.compareSync(oldPassword, row.password_hash)) {
       return c.json(err("Current password is incorrect"), 401);
     }
 
     const newHash = bcryptjs.hashSync(newPassword, BCRYPT_SALT_ROUNDS);
-    db.query("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(newHash, DEFAULT_USER_ID);
+    db.query("UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?").run(newHash, userId);
     return c.json(ok(null, "Password changed successfully"));
   });
 }

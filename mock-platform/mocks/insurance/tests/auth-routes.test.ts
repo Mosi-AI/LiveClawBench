@@ -56,7 +56,8 @@ describe("auth routes", () => {
     });
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body.error).toBe("Invalid email or password");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Invalid email or password");
     expect(res.headers.get("Set-Cookie")).toBeNull();
   });
 
@@ -96,7 +97,8 @@ describe("auth routes", () => {
     });
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.error).toBe("Email already registered");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Email already registered");
   });
 
   test("GET /api/auth/me with valid Bearer token returns user", async () => {

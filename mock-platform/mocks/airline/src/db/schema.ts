@@ -1,4 +1,5 @@
 import { getDb, resetDb, type SqliteOptions } from "mock-lib";
+import { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
@@ -11,15 +12,16 @@ export interface AirlineDbOptions {
 
 export function getAirlineDb(options?: AirlineDbOptions) {
   const path = options?.dbPath ?? AIRLINE_DB_PATH;
-  if (path !== ":memory:") {
-    try {
-      mkdirSync(dirname(path), { recursive: true });
-    } catch {
-      return getDb({
-        path: ":memory:",
-        autoMigrate: true,
-      } as SqliteOptions);
-    }
+  if (path === ":memory:") {
+    return new Database(":memory:", { create: true });
+  }
+  try {
+    mkdirSync(dirname(path), { recursive: true });
+  } catch {
+    return getDb({
+      path: ":memory:",
+      autoMigrate: true,
+    } as SqliteOptions);
   }
   return getDb({
     path,

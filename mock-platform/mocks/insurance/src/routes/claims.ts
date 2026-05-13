@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createRoute } from "mock-lib";
+import { createRoute, err } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ErrorResponseSchema } from "mock-lib";
@@ -153,7 +153,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
   app.openApiRoute(createClaimRoute, async (c): Promise<any> => {
     const userId = c.get("userId");
     const body = c.req.valid("json");
-    db.query(
+    const insertResult = db.query(
       `INSERT INTO claim
        (user_id, claim_type, total_amount, service_date, provider_name, check_item, status, notes)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -167,8 +167,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
       "submitted",
       body.notes ?? null,
     );
-    const row = db.query<{ id: number }, []>("SELECT last_insert_rowid() AS id").get();
-    const claim = getClaimById(db, row!.id, userId!);
+    const claim = getClaimById(db, Number(insertResult.lastInsertRowid), userId!);
     return c.json(claim, 201);
   }, { auth: "required" });
 
@@ -205,7 +204,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     const id = Number(c.req.param("id"));
     const claim = getClaimById(db, id, userId!);
     if (!claim) {
-      return c.json({ error: "Claim not found" }, 404);
+      return c.json(err("Claim not found"), 404);
     }
 
     const lineItems = db
@@ -262,7 +261,7 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     const id = Number(c.req.param("id"));
     const claim = getClaimById(db, id, userId!);
     if (!claim) {
-      return c.json({ error: "Claim not found" }, 404);
+      return c.json(err("Claim not found"), 404);
     }
 
     const body = c.req.valid("json");
@@ -334,21 +333,32 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     const id = Number(c.req.param("id"));
     const claim = getClaimById(db, id, userId!);
     if (!claim) {
-      return c.json({ error: "Claim not found" }, 404);
+      return c.json(err("Claim not found"), 404);
     }
 
     const body = c.req.valid("json");
-    db.query(
+
+    const existingTotal = db
+      .query<{ total: number }, [number]>(
+        "SELECT COALESCE(SUM(amount_cents), 0) as total FROM claim_line_item WHERE claim_id = ?",
+      )
+      .get(id);
+
+    const newTotal = (existingTotal?.total ?? 0) + body.amount_cents;
+    if (newTotal > (claim.total_amount as number)) {
+      return c.json(err("Line item total exceeds claim amount"), 400);
+    }
+
+    const insertResult = db.query(
       `INSERT INTO claim_line_item (claim_id, description, amount_cents)
        VALUES (?, ?, ?)`,
     ).run(id, body.description, body.amount_cents);
 
-    const row = db.query<{ id: number }, []>("SELECT last_insert_rowid() AS id").get();
     const lineItem = db
       .query<Record<string, unknown>, [number]>(
         "SELECT id, claim_id, description, amount_cents, created_at FROM claim_line_item WHERE id = ?",
       )
-      .get(row!.id);
+      .get(Number(insertResult.lastInsertRowid));
     return c.json(lineItem, 201);
   }, { auth: "required" });
 
@@ -398,21 +408,20 @@ export function registerClaimsRoutes(app: OpenAPIApp, db: Database): void {
     const id = Number(c.req.param("id"));
     const claim = getClaimById(db, id, userId!);
     if (!claim) {
-      return c.json({ error: "Claim not found" }, 404);
+      return c.json(err("Claim not found"), 404);
     }
 
     const body = c.req.valid("json");
-    db.query(
+    const insertResult = db.query(
       `INSERT INTO claim_attachment (claim_id, filename, file_path)
        VALUES (?, ?, ?)`,
     ).run(id, body.filename, body.file_path);
 
-    const row = db.query<{ id: number }, []>("SELECT last_insert_rowid() AS id").get();
     const attachment = db
       .query<Record<string, unknown>, [number]>(
         "SELECT id, claim_id, filename, file_path, created_at FROM claim_attachment WHERE id = ?",
       )
-      .get(row!.id);
+      .get(Number(insertResult.lastInsertRowid));
     return c.json(attachment, 201);
   }, { auth: "required" });
 }

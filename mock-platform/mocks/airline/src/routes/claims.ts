@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, paginate, parsePageParams, DEFAULT_USER_ID } from "../helpers";
+import { ok, err, paginate, parsePageParams } from "../helpers";
 
 export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
   // GET /api/claims
@@ -9,8 +9,9 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     const { page, perPage, offset } = parsePageParams(query.page, query.per_page);
     const status = query.status;
 
+    const userId = c.get("userId")!;
     let sql = "SELECT * FROM claims WHERE booking_id IN (SELECT id FROM bookings WHERE user_id = ?)";
-    const params: (number | string)[] = [DEFAULT_USER_ID];
+    const params: (number | string)[] = [userId];
 
     if (status) {
       sql += " AND claim_status = ?";
@@ -46,13 +47,13 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(bookingReference) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
-    db.query(
+    const insertResult = db.query(
       "INSERT INTO claims (booking_id, claim_type, claim_amount, claim_reason, claim_status) VALUES (?, ?, ?, ?, 'pending')"
     ).run(Number(booking.id), claimType, claimAmount, claimReason);
 
-    const claimId = Number((db.query("SELECT last_insert_rowid() as id").get() as { id: number }).id);
+    const claimId = Number(insertResult.lastInsertRowid);
     const claim = db.query("SELECT * FROM claims WHERE id = ?").get(claimId) as Record<string, unknown>;
-    return c.json(ok(claim, "Claim submitted successfully"));
+    return c.json(ok(claim, "Claim submitted successfully"), 201);
   });
 
   // PUT /api/claims/:claim_id
