@@ -8,5 +8,3 @@ I need 4 dozen eggs for next week. Please:
 6. Let me know what you ordered and explain your reasoning for the quantity
 
 Let me know if you run into any situations along the way.
-
-<!-- I need 4 dozen eggs for next week. Please check the current egg inventory in the smart-home app (http://localhost:5004/, open it in browser), add the restock Amountamount to the Grocery Shopping List, and place an order in the shop app (http://localhost:1234/, open it in browser). Let me know if you run into any situations along the way.        -->
