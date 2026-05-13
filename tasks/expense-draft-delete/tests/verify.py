@@ -10,8 +10,8 @@ Expected post-agent state: alice has exactly 1 draft remaining.
 
 import json
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 
 BASE_URL = "http://localhost:5004"
 EMAIL = "alice@mosi.inc"
@@ -71,9 +71,9 @@ def main() -> tuple[float, dict]:
             dimension_1_score = 0.5
             details["messages"].append(f"PASS: Exactly one seeded draft remains ({remaining_seeded})")
         elif len(remaining_seeded) == 0 and total == 1:
-            details["messages"].append(f"FAIL: Both seeded drafts deleted and replacement draft created (loophole rejected)")
+            details["messages"].append("FAIL: Both seeded drafts deleted and replacement draft created (loophole rejected)")
         elif len(remaining_seeded) == 0:
-            details["messages"].append(f"FAIL: Both seeded drafts deleted")
+            details["messages"].append("FAIL: Both seeded drafts deleted")
         elif len(non_seeded) > 0:
             details["messages"].append(f"FAIL: Non-seeded replacement draft created ({non_seeded})")
         else:
