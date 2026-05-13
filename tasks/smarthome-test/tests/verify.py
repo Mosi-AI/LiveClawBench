@@ -16,10 +16,9 @@ Expected agent actions:
 """
 
 import json
-import re
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 from pathlib import Path
 
 # Configuration
