@@ -3,15 +3,6 @@ FROM liveclawbench-email-writing-base:latest
 # Copy environment apps
 COPY . /workspace/environment/
 
-# Install email-app backend dependencies
-RUN cd /workspace/environment/email-app/backend && pip install --break-system-packages -r requirements.txt
-
-# Inject pre-defined data
-RUN cd /workspace/environment/email-app/backend && python3 scripts/inject_data.py
-
-# Install email-app frontend dependencies
-RUN cd /workspace/environment/email-app/frontend && npm install --include=dev 2>&1 | tee /tmp/email-npm-install.log
-
 # Install Playwright Chromium and symlink to /usr/bin/chromium so openclaw's
 # findChromeExecutableLinux() can detect it. openclaw only checks system paths
 # like /usr/bin/chromium — it does not scan the Playwright cache directory.

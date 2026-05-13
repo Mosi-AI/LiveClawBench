@@ -1,10 +1,12 @@
 import { z } from "zod";
-import { createRoute } from "mock-lib";
+import { createRoute, ok, err } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import {
   UserDataSchema,
+  OkSchema,
   UpdateUserBodySchema,
   GenericSuccessResponseSchema,
+  ErrSchema,
 } from "../schemas.js";
 import { loadUser, saveUser } from "../data/store.js";
 
@@ -18,7 +20,7 @@ export function registerUserRoutes(app: OpenAPIApp) {
       200: {
         content: {
           "application/json": {
-            schema: UserDataSchema,
+            schema: OkSchema(UserDataSchema),
           },
         },
         description: "OK",
@@ -27,7 +29,7 @@ export function registerUserRoutes(app: OpenAPIApp) {
   });
 
   app.openApiRoute(getUserRoute, (c) => {
-    return c.json(loadUser());
+    return c.json(ok(loadUser()));
   });
 
   // POST /api/user/update
@@ -56,7 +58,7 @@ export function registerUserRoutes(app: OpenAPIApp) {
       500: {
         content: {
           "application/json": {
-            schema: z.object({ error: z.string() }),
+            schema: ErrSchema,
           },
         },
         description: "Internal server error",
@@ -71,11 +73,11 @@ export function registerUserRoutes(app: OpenAPIApp) {
     (user as unknown as Record<string, unknown>)[field] = value;
     try {
       saveUser(user);
-    } catch (err) {
-      console.error("mock-shop: failed to save user", err);
-      return c.json({ error: "Failed to save user profile" }, 500);
+    } catch (e) {
+      console.error("mock-shop: failed to save user", e);
+      return c.json(err("Failed to save user profile"), 500);
     }
 
-    return c.json({ success: true, message: `${field} updated successfully` }, 200);
+    return c.json(ok(null, `${field} updated successfully`), 200);
   });
 }

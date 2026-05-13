@@ -39,6 +39,13 @@
       "assets": [
         { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
         { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-watch-shop/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
       ]
     },
     "email-washer-change": {
@@ -47,17 +54,135 @@
       "assets": [
         { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
         { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-washer-change/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
       ]
     },
-    "email-writing": { "binaries": ["email"] },
-    "email-reply": { "binaries": ["email"] },
-    "schedule-change-request": { "binaries": ["airline", "email", "todolist"] },
-    "flight-booking": { "binaries": ["airline"] },
-    "flight-info-change-notice": { "binaries": ["airline", "email", "todolist"] },
-    "flight-seat-selection": { "binaries": ["airline", "email"] },
-    "flight-seat-selection-failed": { "binaries": ["airline", "email"] },
-    "flight-cancel-claim": { "binaries": ["airline", "email"] },
-    "baggage-tracking-application": { "binaries": ["airline"] },
+    "email-writing": {
+      "binaries": ["email"],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "email-reply": {
+      "binaries": ["email"],
+      "frontends": [
+        {
+          "src": "tasks/email-reply/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "schedule-change-request": {
+      "binaries": ["airline", "email", "todolist"],
+      "frontends": [
+        {
+          "src": "tasks/schedule-change-request/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        },
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "flight-booking": {
+      "binaries": ["airline"],
+      "frontends": [
+        {
+          "src": "tasks/flight-booking/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    },
+    "flight-info-change-notice": {
+      "binaries": ["airline", "email", "todolist"],
+      "frontends": [
+        {
+          "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/flight-info-change-notice/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        },
+        {
+          "src": "tasks/flight-info-change-notice/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "flight-seat-selection": {
+      "binaries": ["airline", "email"],
+      "frontends": [
+        {
+          "src": "tasks/flight-seat-selection/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/flight-seat-selection/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "flight-seat-selection-failed": {
+      "binaries": ["airline", "email"],
+      "frontends": [
+        {
+          "src": "tasks/flight-seat-selection-failed/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/flight-seat-selection-failed/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "flight-cancel-claim": {
+      "binaries": ["airline", "email"],
+      "frontends": [
+        {
+          "src": "tasks/flight-cancel-claim/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/flight-cancel-claim/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "baggage-tracking-application": {
+      "binaries": ["airline"],
+      "frontends": [
+        {
+          "src": "tasks/baggage-tracking-application/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    },
     "blog-site-from-scratch": { "binaries": [] },
     "blog-site-completion-from-starter": { "binaries": [] },
     "vue-build-fix-single": { "binaries": [] },

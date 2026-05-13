@@ -108,26 +108,27 @@ describe("createShopApp — Layer 1 route tests", () => {
     const res = await app.request("/api/products");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toHaveProperty("products");
-    expect(body).toHaveProperty("total_products");
-    expect(body).toHaveProperty("total_pages");
-    expect(body).toHaveProperty("current_page");
-    expect(body).toHaveProperty("products_per_page");
-    expect(Array.isArray(body.products)).toBe(true);
-    expect(body.products.length).toBeGreaterThan(0);
-    expect(body.current_page).toBe(1);
-    expect(body.products_per_page).toBe(30);
+    expect(body.success).toBe(true);
+    expect(body.data).toHaveProperty("products");
+    expect(body.data).toHaveProperty("total_products");
+    expect(body.data).toHaveProperty("total_pages");
+    expect(body.data).toHaveProperty("current_page");
+    expect(body.data).toHaveProperty("products_per_page");
+    expect(Array.isArray(body.data.products)).toBe(true);
+    expect(body.data.products.length).toBeGreaterThan(0);
+    expect(body.data.current_page).toBe(1);
+    expect(body.data.products_per_page).toBe(30);
   });
 
   test("GET /api/products?q=watch&sort=price_asc&page=1 — search + filters", async () => {
     const res = await app.request("/api/products?q=watch&sort=price_asc&page=1");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(Array.isArray(body.products)).toBe(true);
-    expect(body.products.length).toBeGreaterThan(0);
+    expect(Array.isArray(body.data.products)).toBe(true);
+    expect(body.data.products.length).toBeGreaterThan(0);
     // Verify price_asc sorting
-    for (let i = 1; i < body.products.length; i++) {
-      expect(body.products[i].price).toBeGreaterThanOrEqual(body.products[i - 1].price);
+    for (let i = 1; i < body.data.products.length; i++) {
+      expect(body.data.products[i].price).toBeGreaterThanOrEqual(body.data.products[i - 1].price);
     }
   });
 
@@ -135,15 +136,16 @@ describe("createShopApp — Layer 1 route tests", () => {
     const res = await app.request("/api/products?page=abc");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.current_page).toBe(1);
+    expect(body.data.current_page).toBe(1);
   });
 
   test("GET /api/products?min_price=abc — 400 for invalid numeric filter", async () => {
     const res = await app.request("/api/products?min_price=abc");
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toHaveProperty("error");
-    expect(typeof body.error).toBe("string");
+    expect(body).toHaveProperty("success");
+    expect(body.success).toBe(false);
+    expect(typeof body.message).toBe("string");
   });
 
   // ---------------------------------------------------------------------------
@@ -154,17 +156,19 @@ describe("createShopApp — Layer 1 route tests", () => {
     const res = await app.request("/api/product/prod_0001");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toHaveProperty("id", "prod_0001");
-    expect(body).toHaveProperty("title");
-    expect(body).toHaveProperty("price");
-    expect(body).toHaveProperty("rating");
+    expect(body.success).toBe(true);
+    expect(body.data).toHaveProperty("id", "prod_0001");
+    expect(body.data).toHaveProperty("title");
+    expect(body.data).toHaveProperty("price");
+    expect(body.data).toHaveProperty("rating");
   });
 
   test("GET /api/product/unknown-id returns 404", async () => {
     const res = await app.request("/api/product/unknown-id");
     expect(res.status).toBe(404);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Product not found");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Product not found");
   });
 
   // ---------------------------------------------------------------------------
@@ -181,7 +185,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     const body = await res.json();
     expect(body.success).toBe(true);
     expect(body).toHaveProperty("message");
-    expect(body.cart_count).toBe(1);
+    expect(body.data.cart_count).toBe(1);
   });
 
   test("POST /api/cart/add with missing body returns 400", async () => {
@@ -192,7 +196,8 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toHaveProperty("error");
+    expect(body).toHaveProperty("success");
+    expect(body.success).toBe(false);
   });
 
   test("POST /api/cart/add with unknown product_id returns 404", async () => {
@@ -203,7 +208,8 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(404);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Product not found");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Product not found");
   });
 
   // ---------------------------------------------------------------------------
@@ -221,22 +227,23 @@ describe("createShopApp — Layer 1 route tests", () => {
     const res = await app.request("/api/cart");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toHaveProperty("items");
-    expect(body).toHaveProperty("total");
-    expect(body).toHaveProperty("count");
-    expect(Array.isArray(body.items)).toBe(true);
-    expect(body.items.length).toBe(1);
-    expect(body.count).toBe(1);
-    expect(body.total).toBeGreaterThan(0);
+    expect(body.success).toBe(true);
+    expect(body.data).toHaveProperty("items");
+    expect(body.data).toHaveProperty("total");
+    expect(body.data).toHaveProperty("count");
+    expect(Array.isArray(body.data.items)).toBe(true);
+    expect(body.data.items.length).toBe(1);
+    expect(body.data.count).toBe(1);
+    expect(body.data.total).toBeGreaterThan(0);
   });
 
   test("GET /api/cart returns empty cart initially", async () => {
     const res = await app.request("/api/cart");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.items).toEqual([]);
-    expect(body.total).toBe(0);
-    expect(body.count).toBe(0);
+    expect(body.data.items).toEqual([]);
+    expect(body.data.total).toBe(0);
+    expect(body.data.count).toBe(0);
   });
 
   // ---------------------------------------------------------------------------
@@ -257,7 +264,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
-    expect(body.cart_count).toBe(0);
+    expect(body.data.cart_count).toBe(0);
   });
 
   test("DELETE /api/cart/remove/:product_id returns 404 if not in cart", async () => {
@@ -266,7 +273,8 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(404);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Item not found in cart");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Item not found in cart");
   });
 
   // ---------------------------------------------------------------------------
@@ -289,7 +297,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
-    expect(body.cart_count).toBe(3);
+    expect(body.data.cart_count).toBe(3);
   });
 
   test("PUT /api/cart/update with quantity 0 removes item", async () => {
@@ -308,7 +316,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
-    expect(body.cart_count).toBe(0);
+    expect(body.data.cart_count).toBe(0);
   });
 
   test("PUT /api/cart/update returns 404 for item not in cart", async () => {
@@ -319,7 +327,8 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(404);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Item not found in cart");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Item not found in cart");
   });
 
   test("PUT /api/cart/update returns 400 for invalid input", async () => {
@@ -330,7 +339,8 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toHaveProperty("error");
+    expect(body).toHaveProperty("success");
+    expect(body.success).toBe(false);
   });
 
   // ---------------------------------------------------------------------------
@@ -355,7 +365,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     // Verify cart is empty
     const cartRes = await app.request("/api/cart");
     const cartBody = await cartRes.json();
-    expect(cartBody.count).toBe(0);
+    expect(cartBody.data.count).toBe(0);
   });
 
   // ---------------------------------------------------------------------------
@@ -376,13 +386,13 @@ describe("createShopApp — Layer 1 route tests", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
-    expect(body).toHaveProperty("order_id");
+    expect(body.data).toHaveProperty("order_id");
     expect(body.message).toContain("Order placed");
 
     // Verify cart is cleared after checkout
     const cartRes = await app.request("/api/cart");
     const cartBody = await cartRes.json();
-    expect(cartBody.count).toBe(0);
+    expect(cartBody.data.count).toBe(0);
   });
 
   test("POST /api/checkout returns 400 if cart is empty", async () => {
@@ -391,7 +401,8 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Cart is empty");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Cart is empty");
   });
 
   // ---------------------------------------------------------------------------
@@ -402,11 +413,12 @@ describe("createShopApp — Layer 1 route tests", () => {
     const res = await app.request("/api/user");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toHaveProperty("username", "Peter Griffin");
-    expect(body).toHaveProperty("email");
-    expect(body).toHaveProperty("address");
-    expect(body).toHaveProperty("payment_methods");
-    expect(Array.isArray(body.payment_methods)).toBe(true);
+    expect(body.success).toBe(true);
+    expect(body.data).toHaveProperty("username", "Peter Griffin");
+    expect(body.data).toHaveProperty("email");
+    expect(body.data).toHaveProperty("address");
+    expect(body.data).toHaveProperty("payment_methods");
+    expect(Array.isArray(body.data.payment_methods)).toBe(true);
   });
 
   // ---------------------------------------------------------------------------
@@ -426,7 +438,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     // Verify update persisted
     const userRes = await app.request("/api/user");
     const userBody = await userRes.json();
-    expect(userBody.username).toBe("New Name");
+    expect(userBody.data.username).toBe("New Name");
   });
 
   test("POST /api/user/update returns 400 for invalid field", async () => {
@@ -437,7 +449,8 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toHaveProperty("error");
+    expect(body).toHaveProperty("success");
+    expect(body.success).toBe(false);
   });
 
   // ---------------------------------------------------------------------------
@@ -448,11 +461,12 @@ describe("createShopApp — Layer 1 route tests", () => {
     const res = await app.request("/api/orders");
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toHaveProperty("orders");
-    expect(body).toHaveProperty("total");
-    expect(Array.isArray(body.orders)).toBe(true);
-    expect(body.orders.length).toBeGreaterThan(0);
-    expect(body.total).toBe(body.orders.length);
+    expect(body.success).toBe(true);
+    expect(body.data).toHaveProperty("orders");
+    expect(body.data).toHaveProperty("total");
+    expect(Array.isArray(body.data.orders)).toBe(true);
+    expect(body.data.orders.length).toBeGreaterThan(0);
+    expect(body.data.total).toBe(body.data.orders.length);
   });
 
   // ---------------------------------------------------------------------------
@@ -463,7 +477,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     // Get existing orders
     const ordersRes = await app.request("/api/orders");
     const ordersBody = await ordersRes.json();
-    const order = ordersBody.orders[0];
+    const order = ordersBody.data.orders[0];
 
     const res = await app.request(`/api/orders/${order.order_id}/return`, {
       method: "POST",
@@ -481,14 +495,15 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(404);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Order not found");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Order not found");
   });
 
   test("POST /api/orders/:order_id/return returns 400 for invalid status", async () => {
     // Get existing orders
     const ordersRes = await app.request("/api/orders");
     const ordersBody = await ordersRes.json();
-    const order = ordersBody.orders[0];
+    const order = ordersBody.data.orders[0];
 
     // First return it
     await app.request(`/api/orders/${order.order_id}/return`, {
@@ -503,7 +518,8 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "This order cannot be returned");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("This order cannot be returned");
   });
 
   // ---------------------------------------------------------------------------
@@ -514,7 +530,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     // Get existing orders and find a delivered one
     const ordersRes = await app.request("/api/orders");
     const ordersBody = await ordersRes.json();
-    const deliveredOrder = ordersBody.orders.find((o: any) => o.status === "Delivered");
+    const deliveredOrder = ordersBody.data.orders.find((o: any) => o.status === "Delivered");
     expect(deliveredOrder).toBeDefined();
 
     const res = await app.request(`/api/orders/${deliveredOrder.order_id}/confirm`, {
@@ -534,14 +550,15 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(404);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Order not found");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Order not found");
   });
 
   test("POST /api/orders/:order_id/confirm returns 400 for non-delivered order", async () => {
     // Get existing orders and find a non-delivered one
     const ordersRes = await app.request("/api/orders");
     const ordersBody = await ordersRes.json();
-    const nonDelivered = ordersBody.orders.find((o: any) => o.status !== "Delivered");
+    const nonDelivered = ordersBody.data.orders.find((o: any) => o.status !== "Delivered");
     expect(nonDelivered).toBeDefined();
 
     const res = await app.request(`/api/orders/${nonDelivered.order_id}/confirm`, {
@@ -550,14 +567,15 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toHaveProperty("error", "Only delivered orders can be confirmed");
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Only delivered orders can be confirmed");
   });
 
   // ---------------------------------------------------------------------------
   // Malformed JSON body
   // ---------------------------------------------------------------------------
 
-  test("Malformed JSON body returns 400 { error: 'Invalid JSON body' }", async () => {
+  test("Malformed JSON body returns 400", async () => {
     const res = await app.request("/api/cart/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -565,7 +583,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toEqual({ error: "Invalid JSON body" });
+    expect(body).toEqual({ success: false, message: "Invalid JSON body" });
   });
 
   // ---------------------------------------------------------------------------
@@ -586,13 +604,13 @@ describe("createShopApp — Layer 1 route tests", () => {
     });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.cart_count).toBe(2);
+    expect(body.data.cart_count).toBe(2);
 
     // Verify cart has one item with quantity 2
     const cartRes = await app.request("/api/cart");
     const cartBody = await cartRes.json();
-    expect(cartBody.items.length).toBe(1);
-    expect(cartBody.items[0].quantity).toBe(2);
+    expect(cartBody.data.items.length).toBe(1);
+    expect(cartBody.data.items[0].quantity).toBe(2);
   });
 
   // ---------------------------------------------------------------------------
@@ -603,8 +621,9 @@ describe("createShopApp — Layer 1 route tests", () => {
     const res = await app.request("/search?min_price=abc");
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body).toHaveProperty("error");
-    expect(body.error).toContain("min_price");
+    expect(body).toHaveProperty("success");
+    expect(body.success).toBe(false);
+    expect(body.message).toContain("min_price");
   });
 
   // ---------------------------------------------------------------------------
@@ -618,8 +637,8 @@ describe("createShopApp — Layer 1 route tests", () => {
     expect(apiRes.status).toBe(400);
     const pageBody = await pageRes.json();
     const apiBody = await apiRes.json();
-    expect(pageBody.error).toContain("sort");
-    expect(apiBody.error).toContain("sort");
+    expect(pageBody.message).toContain("sort");
+    expect(apiBody.message).toContain("sort");
   });
 
   test("GET /search with invalid page silently falls back to 1 (parity with /api/products)", async () => {
@@ -632,7 +651,7 @@ describe("createShopApp — Layer 1 route tests", () => {
     const apiRes = await app.request("/api/products?q=watch&page=abc");
     expect(apiRes.status).toBe(200);
     const apiBody = await apiRes.json();
-    expect(apiBody.current_page).toBe(1);
+    expect(apiBody.data.current_page).toBe(1);
   });
 
   test("GET /search with empty min_price returns 200 (parity with /api/products)", async () => {
@@ -660,6 +679,6 @@ describe("createShopApp — Layer 1 route tests", () => {
     const apiRes = await app.request("/api/products?q=watch");
     expect(apiRes.status).toBe(200);
     const apiBody = await apiRes.json();
-    expect(apiBody.current_page).toBe(1);
+    expect(apiBody.data.current_page).toBe(1);
   });
 });

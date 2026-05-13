@@ -18,7 +18,7 @@ function Dashboard() {
     try {
       setLoading(true)
       const response = await emailAPI.getEmails(folder)
-      setEmails(response.data.emails)
+      setEmails(response.data.data.emails)
       setError('')
     } catch (err) {
       setError('Failed to load emails')

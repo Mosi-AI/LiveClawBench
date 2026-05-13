@@ -41,3 +41,24 @@ jobs:
       - name: Skip (no validation-relevant files changed)
         if: steps.filter.outputs.relevant == 'false'
         run: echo "No task/annotation changes detected — skipping validation."
+
+  frontend-contract:
+    name: frontend-mock contract check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/check-frontend-contracts.py
+
+  verifier-tests:
+    name: verifier unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest
+      - run: bash scripts/run-verifier-tests.sh
