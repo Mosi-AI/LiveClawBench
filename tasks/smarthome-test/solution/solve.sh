@@ -4,7 +4,7 @@
 
 set -e
 
-BASE_URL="http://localhost:5003"
+BASE_URL="http://localhost:5004"
 
 echo "=== Smart Home Morning Routine Solution ==="
 

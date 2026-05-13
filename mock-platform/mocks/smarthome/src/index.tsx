@@ -15,8 +15,7 @@
  */
 
 import { createMockApp, startServer } from "mock-lib";
-import type { AppEnv } from "mock-lib";
-import { Hono } from "hono";
+import type { AppEnv, OpenAPIApp } from "mock-lib";
 import { html, raw } from "hono/html";
 import type { FC, Child } from "hono/jsx";
 import { Database } from "bun:sqlite";
@@ -163,7 +162,8 @@ function hasRequiredSeedData(): boolean {
     const coffee = db.query("SELECT id FROM coffee_schedule WHERE id = 1").get();
     const clock = db.query("SELECT id FROM benchmark_clock WHERE id = 1").get();
     return thermostat !== null && coffee !== null && clock !== null;
-  } catch {
+  } catch (err) {
+    console.error("mock-smarthome: WARNING: database error checking seed data, will re-seed:", err);
     return false;
   }
 }
@@ -402,7 +402,11 @@ function isValidWorkoutType(type: string): type is WorkoutType {
 function getBenchmarkTime(): string {
   const database = assertDb();
   const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string } | null;
-  return clock?.clock_time || "2026-05-06T08:00:00Z";
+  if (!clock) {
+    console.error("mock-smarthome: WARNING: benchmark_clock row missing, falling back to default time 2026-05-06T08:00:00Z");
+    return "2026-05-06T08:00:00Z";
+  }
+  return clock.clock_time;
 }
 
 // Derive coffee status from start_time and benchmark_clock in a timezone-stable way
@@ -415,6 +419,7 @@ function deriveCoffeeStatus(startTime: string, currentTime: string): string {
   // Format: 2026-05-06T06:45:00Z
   const timeMatch = currentTime.match(/T(\d{2}):(\d{2}):/);
   if (!timeMatch) {
+    console.warn(`mock-smarthome: WARNING: invalid time format "${currentTime}", falling back to "scheduled"`);
     return "scheduled"; // Fallback if time format is invalid
   }
   const currentHour = parseInt(timeMatch[1], 10);
@@ -444,7 +449,12 @@ function generateOrderId(): string {
   let nextSuffix = 1;
   if (existing.length > 0) {
     const lastSuffix = existing[0].order_id.substring(prefix.length);
-    nextSuffix = parseInt(lastSuffix, 36) + 1;
+    const parsed = parseInt(lastSuffix, 36);
+    if (isNaN(parsed)) {
+      console.error(`mock-smarthome: WARNING: malformed order_id "${existing[0].order_id}", resetting suffix to 1`);
+    } else {
+      nextSuffix = parsed + 1;
+    }
   }
 
   return `ORD${timestamp}-${nextSuffix.toString(36).toUpperCase().padStart(3, "0")}`;
@@ -462,7 +472,12 @@ function generatePlanId(): string {
   let nextSuffix = 1;
   if (existing.length > 0) {
     const lastSuffix = existing[0].plan_id.substring(prefix.length);
-    nextSuffix = parseInt(lastSuffix, 36) + 1;
+    const parsed = parseInt(lastSuffix, 36);
+    if (isNaN(parsed)) {
+      console.error(`mock-smarthome: WARNING: malformed plan_id "${existing[0].plan_id}", resetting suffix to 1`);
+    } else {
+      nextSuffix = parsed + 1;
+    }
   }
 
   return `PLAN${timestamp}-${nextSuffix.toString(36).toUpperCase().padStart(3, "0")}`;
@@ -821,7 +836,7 @@ const MealPlanPage: FC<{ constraints: UserConstraints; recipes: Recipe[] }> = ({
 // Route registration
 // ---------------------------------------------------------------------------
 
-function registerRoutes(app: Hono<AppEnv>): void {
+function registerRoutes(app: OpenAPIApp): void {
   // Sentinel route for binary isolation verification
   app.get("/__mock_sentinel__/smarthome", (c) =>
     c.json({ mock: "smarthome", sentinel: true }),
@@ -830,7 +845,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   // --- HTML Pages ---
 
   // Dashboard
-  app.get("/", (c) => {
+  app.page("/", (c) => {
     const database = assertDb();
     const metrics = database.query("SELECT * FROM room_metrics LIMIT 1").get() as RoomMetrics;
     const thermostat = database.query("SELECT * FROM thermostat_settings WHERE id = 1").get() as ThermostatSettings;
@@ -843,7 +858,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   // Thermostat page
-  app.get("/thermostat", (c) => {
+  app.page("/thermostat", (c) => {
     const database = assertDb();
     const thermostat = database.query("SELECT * FROM thermostat_settings WHERE id = 1").get() as ThermostatSettings;
 
@@ -855,7 +870,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   // Inventory page
-  app.get("/inventory", (c) => {
+  app.page("/inventory", (c) => {
     const database = assertDb();
     const items = database.query("SELECT * FROM inventory_item ORDER BY location, item_name").all() as InventoryItem[];
     // Inventory can be empty, no error needed
@@ -863,7 +878,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   // Grocery page
-  app.get("/grocery", (c) => {
+  app.page("/grocery", (c) => {
     const database = assertDb();
     const products = database.query("SELECT * FROM grocery_product ORDER BY name").all() as GroceryProduct[];
     // Grocery catalog can be empty, no error needed
@@ -871,7 +886,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   // Calendar page
-  app.get("/calendar", (c) => {
+  app.page("/calendar", (c) => {
     const database = assertDb();
     const events = database.query("SELECT * FROM calendar_event ORDER BY start_time").all() as CalendarEvent[];
     // Calendar can be empty, no error needed
@@ -879,7 +894,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   // Meal Plan page
-  app.get("/meal-plan", (c) => {
+  app.page("/meal-plan", (c) => {
     const database = assertDb();
     const constraints = database.query("SELECT * FROM user_constraints WHERE id = 1").get() as UserConstraints;
     const recipes = database.query("SELECT * FROM recipe ORDER BY meal_type, name").all() as Recipe[];
@@ -917,8 +932,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
     let body: { mode?: string; temperature?: number };
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
     }
 
     const mode = body.mode?.toLowerCase();
@@ -964,8 +983,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
     let body: { start_time?: string };
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
     }
 
     const startTime = body.start_time;
@@ -1014,8 +1037,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
     let body: Partial<InventoryItem>;
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
     }
 
     if (!body.item_name || typeof body.quantity !== "number" || !body.unit || !body.location) {
@@ -1039,9 +1066,13 @@ function registerRoutes(app: Hono<AppEnv>): void {
   });
 
   app.delete("/api/inventory/:id", (c) => {
-    const id = c.req.param("id");
-    const database = assertDb();
+    const idParam = c.req.param("id");
+    const id = Number(idParam);
+    if (isNaN(id) || !Number.isInteger(id) || id <= 0) {
+      return c.json({ error: "Invalid id: must be a positive integer" }, 400);
+    }
 
+    const database = assertDb();
     const existing = database.query("SELECT id FROM inventory_item WHERE id = ?").get(id);
     if (!existing) {
       return c.json({ error: "Item not found" }, 404);
@@ -1062,8 +1093,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
     let body: { items?: Array<{ product_id: string; quantity: number; substitute_for?: string }> };
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
     }
 
     const items = body.items;
@@ -1124,6 +1159,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
     }, 201);
   });
 
+  app.get("/api/grocery/orders", (c) => {
+    const database = assertDb();
+    const orders = database.query("SELECT order_id, total, created_at FROM grocery_order ORDER BY created_at DESC").all() as GroceryOrder[];
+    return c.json(orders);
+  });
+
   // Wearable/Recovery API
   app.get("/api/wearable-recovery", (c) => {
     const database = assertDb();
@@ -1158,8 +1199,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
     let body: { title?: string; start_time?: string; event_type?: string; workout_type?: string };
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
     }
 
     const database = assertDb();
@@ -1219,8 +1264,12 @@ function registerRoutes(app: Hono<AppEnv>): void {
     let body: { days?: Array<{ date: string; meals: Array<{ meal_type: string; meal_id: number }> }> };
     try {
       body = await c.req.json();
-    } catch {
-      return c.json({ error: "Invalid JSON body" }, 400);
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: Unexpected error parsing meal-plan body:", e);
+      throw e;
     }
 
     const days = body.days;
@@ -1295,7 +1344,7 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
 const app = createMockApp({
   name: "smarthome",
-  port: 5003,
+  port: 5004,
   healthResponse: { ok: true, status: "healthy", service: "smarthome" },
   routes: registerRoutes,
 });

@@ -3,8 +3,7 @@
 Verify smarthome-test task: OpenClaw agent morning routine completion
 
 This verifier checks if the OpenClaw agent successfully completed the morning
-routine tasks by examining the database state changes made through the
-smart home web interface.
+routine tasks by examining the state changes through the smart home API.
 
 Expected agent actions:
 1. View dashboard (implicit - no state change)
@@ -17,14 +16,12 @@ Expected agent actions:
 """
 
 import json
-import sqlite3
 import sys
 import urllib.request
 import urllib.error
 
 # Configuration
-BASE_URL = "http://localhost:5003"
-DB_PATH = "/tmp/mosi_smart_home.sqlite"
+BASE_URL = "http://localhost:5004"
 
 
 def http_request(method, path, data=None):
@@ -41,8 +38,12 @@ def http_request(method, path, data=None):
             return json.loads(response.read().decode("utf-8")), response.status
     except urllib.error.HTTPError as e:
         return json.loads(e.read().decode("utf-8")), e.code
+    except urllib.error.URLError as e:
+        return {"error": f"Connection failed: {e.reason}"}, 503
+    except json.JSONDecodeError as e:
+        return {"error": f"Invalid JSON response: {e}"}, 502
     except Exception as e:
-        return {"error": str(e)}, 0
+        return {"error": f"Unexpected error: {type(e).__name__}: {e}"}, 500
 
 
 def check_thermostat():
@@ -169,31 +170,21 @@ def check_grocery_order():
     """Check if grocery order was placed (optional bonus)"""
     print("\n=== Test 4: Grocery Order (Bonus) ===")
 
-    # Check if any orders exist
-    # Note: This is optional, so we don't fail if no order
-    # The agent should recognize that milk and butter are low
+    # Check if any orders exist via API
+    resp, status = http_request("GET", "/api/grocery/orders")
 
-    # Read database directly to check orders
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM grocery_order")
-        order_count = cursor.fetchone()[0]
-        conn.close()
+    if status != 200:
+        print(f"INFO: Could not check grocery orders: {status}")
+        return 0.0
 
-        if order_count > 0:
-            print(f"BONUS: {order_count} grocery order(s) placed")
-            cursor = sqlite3.connect(DB_PATH).cursor()
-            cursor.execute("SELECT order_id, total FROM grocery_order ORDER BY created_at DESC LIMIT 1")
-            row = cursor.fetchone()
-            if row:
-                print(f"  Latest order: {row[0]}, total=${row[1]:.2f}")
-            return 0.5  # Bonus points
-        else:
-            print("INFO: No grocery orders placed (optional)")
-            return 0.0
-    except Exception as e:
-        print(f"INFO: Could not check grocery orders: {e}")
+    orders = resp
+    if isinstance(orders, list) and len(orders) > 0:
+        print(f"BONUS: {len(orders)} grocery order(s) placed")
+        latest = orders[0]
+        print(f"  Latest order: {latest.get('order_id')}, total=${latest.get('total', 0):.2f}")
+        return 0.5  # Bonus points
+    else:
+        print("INFO: No grocery orders placed (optional)")
         return 0.0
 
 
@@ -242,6 +233,10 @@ def main():
     final_score = min(final_score + results[-1][1], 1.0)
 
     print(f"\nFinal Score: {final_score:.2f}/1.0")
+
+    # Write reward file for harbor
+    with open("/logs/verifier/reward.txt", "w") as f:
+        f.write(f"{final_score:.2f}\n")
 
     print(f"Score: {final_score:.2f}/1.0")
     sys.exit(0 if final_score >= 0.7 else 1)
