@@ -1,23 +1,30 @@
 import type { AppEnv } from "mock-lib";
 import type { Context } from "hono";
 import { LOG_SLOTS, PLAN_SLOTS } from "../constants";
-import { Layout } from "../components";
 import type { MealSlot, PlanMealSlot } from "../queries";
 
 export function isResponse(value: unknown): value is Response {
   return value instanceof Response;
 }
 
-export function renderMessage(c: Context<AppEnv>, title: string, message: string, status: 400 | 500) {
-  return c.html(<Layout title={title}><p>{message}</p></Layout>, status) as Response;
+/**
+ * Render a JSON error response.
+ * Returns { success: false, message: string } for API consistency across mocks.
+ */
+export function jsonError(c: Context<AppEnv>, message: string, status: 400 | 404 | 500) {
+  return c.json({ success: false, message }, status);
 }
 
+/**
+ * Run a database mutation with error handling.
+ * Returns JSON error response on failure for API consistency.
+ */
 export function runDbMutation<T>(c: Context<AppEnv>, action: () => T): T | Response {
   try {
     return action();
   } catch (err) {
     console.error("Database mutation failed", err);
-    return renderMessage(c, "Server Error", "Could not save changes. Please try again.", 500);
+    return jsonError(c, "Could not save changes. Please try again.", 500);
   }
 }
 

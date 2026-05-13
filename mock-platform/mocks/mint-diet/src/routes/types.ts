@@ -5,4 +5,5 @@ export interface RouteDeps {
   getDatabase: () => Database;
 }
 
+// Alias for OpenAPIApp - use the framework type directly per mock conventions
 export type MintDietApp = OpenAPIApp;
