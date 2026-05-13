@@ -5,6 +5,8 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "hono": "^4.8.0"
+    "@hono/zod-openapi": "^0.18.3",
+    "hono": "^4.8.0",
+    "zod": "^3.22.0"
   }
 }

@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { createMockApp, startServer } from "mock-lib";
-import type { AppEnv } from "mock-lib";
+import type { AppEnv, MockAppV2 } from "mock-lib";
 import { db, initDb, seedDate, cstDateStr } from "./seed.js";
 import type { Location, WeatherDaily, WeatherHourly, AirQualitySnapshot, HealthActivityTip } from "./types.js";
 
@@ -286,5 +286,12 @@ ${tomorrowHours.length > 0 ? `
   });
 }
 
-const mockApp = createMockApp({ name: "weather", port: 3000, routes: registerRoutes });
-startServer(mockApp, { seed: initDb });
+export function createWeatherApp(): MockAppV2 {
+  const mockApp = createMockApp({ name: "weather", port: 3000, routes: registerRoutes });
+  mockApp.seed = initDb;
+  return mockApp;
+}
+
+if (import.meta.main) {
+  startServer(createWeatherApp());
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "prod_0001",
+    "title": "Test Product One",
+    "price": 10.99,
+    "rating": 4.5,
+    "rating_count": "100 ratings",
+    "image_url": "https://example.com/1.jpg",
+    "sponsored": false,
+    "best_seller": false,
+    "overall_pick": false,
+    "limited_time": false,
+    "discounted": false,
+    "low_stock": false,
+    "stock_quantity": 50
+  },
+  {
+    "id": "prod_0002",
+    "title": "Test Product Two",
+    "price": 25.5,
+    "rating": 4.0,
+    "rating_count": "50 ratings",
+    "image_url": "https://example.com/2.jpg",
+    "sponsored": false,
+    "best_seller": false,
+    "overall_pick": false,
+    "limited_time": false,
+    "discounted": false,
+    "low_stock": false,
+    "stock_quantity": 30
+  }
+]
