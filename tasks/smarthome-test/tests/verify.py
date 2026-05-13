@@ -161,7 +161,9 @@ def check_expiring_items():
     expected_count = len(EXPECTED_EXPIRING_ITEMS)
     found_count = len(found_items)
 
-    print(f"Found {found_count}/{expected_count} expiring items mentioned: {found_items}")
+    print(
+        f"Found {found_count}/{expected_count} expiring items mentioned: {found_items}"
+    )
 
     # Score based on how many items are correctly identified
     if found_count == expected_count:
@@ -182,20 +184,20 @@ def get_agent_response():
     """Get agent response from harbor.jsonl or response.txt fallback.
 
     Similar to grocery-reorder D4 pattern:
-    1. First try harbor.jsonl (real agent runs)
+    1. First try harbor.jsonl (real agent runs) - collect ALL assistant messages
     2. Fallback to response.txt only if no harbor.jsonl exists (oracle scenario)
     """
-    # Try harbor.jsonl first
-    response = get_last_assistant_message()
+    # Try harbor.jsonl first - get ALL assistant messages, not just the last one
+    response = get_all_assistant_messages()
 
     # Fallback to response.txt only when harbor.jsonl doesn't exist
     if response is None:
         harbor_exists = any(
             p.exists()
             for p in [
+                Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
                 Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
                 Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
-                Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
             ]
         )
         if not harbor_exists:
@@ -206,12 +208,16 @@ def get_agent_response():
     return response
 
 
-def get_last_assistant_message():
-    """Extract the last assistant message content from harbor.jsonl."""
+def get_all_assistant_messages():
+    """Extract all assistant message contents from harbor.jsonl.
+
+    Returns concatenated text from all assistant messages, or None if not found.
+    This ensures we don't miss expiring items mentioned in earlier messages.
+    """
     fallback_log_paths = [
+        Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
         Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
         Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
-        Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
     ]
 
     actual_log_path = None
@@ -223,12 +229,15 @@ def get_last_assistant_message():
     if actual_log_path is None:
         return None
 
-    last_content = None
+    all_contents = []
     with open(actual_log_path, "r") as f:
         for line in f:
             try:
                 entry = json.loads(line)
-                if entry.get("type") == "message" and entry.get("message", {}).get("role") == "assistant":
+                if (
+                    entry.get("type") == "message"
+                    and entry.get("message", {}).get("role") == "assistant"
+                ):
                     content = entry["message"].get("content")
                     if content is None:
                         continue
@@ -238,12 +247,14 @@ def get_last_assistant_message():
                             for block in content
                             if block.get("type") == "text" and block.get("text")
                         ]
-                        last_content = " ".join(text_parts)
+                        if text_parts:
+                            all_contents.append(" ".join(text_parts))
                     elif isinstance(content, str):
-                        last_content = content
+                        all_contents.append(content)
             except json.JSONDecodeError:
                 continue
-    return last_content
+
+    return " ".join(all_contents) if all_contents else None
 
 
 def check_shopping_list():
@@ -264,11 +275,15 @@ def check_shopping_list():
     current_count = len(products)
 
     if current_count > initial_count:
-        print(f"PASS: Shopping list has {current_count} items (added {current_count - initial_count} new item(s))")
+        print(
+            f"PASS: Shopping list has {current_count} items (added {current_count - initial_count} new item(s))"
+        )
         # Show the new items
         new_items = products[initial_count:]
         for item in new_items:
-            print(f"  New item: {item.get('name')} ({item.get('quantity')} {item.get('unit')})")
+            print(
+                f"  New item: {item.get('name')} ({item.get('quantity')} {item.get('unit')})"
+            )
         return 1.0
     else:
         print(f"INFO: Shopping list has {current_count} items (no new items added)")
@@ -305,7 +320,13 @@ def main():
     total_score = 0.0
     total_max = 0.0
     for name, score, max_score in results:
-        status = "PASS" if score >= max_score * 0.8 else "PARTIAL" if score >= max_score * 0.5 else "FAIL"
+        status = (
+            "PASS"
+            if score >= max_score * 0.8
+            else "PARTIAL"
+            if score >= max_score * 0.5
+            else "FAIL"
+        )
         print(f"  {name}: {score:.2f}/{max_score:.2f} [{status}]")
         total_score += score
         total_max += max_score

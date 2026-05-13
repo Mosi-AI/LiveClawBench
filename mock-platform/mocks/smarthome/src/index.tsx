@@ -839,13 +839,14 @@ window.onclick = function(event) {
     <button class="btn" onclick="openAddModal('pantry')" style="margin-bottom:15px;">Add Item</button>
     {pantryItems.length > 0 ? (
       <table>
-        <thead><tr><th>Item</th><th>Quantity</th><th>Unit</th><th>Category</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Item</th><th>Quantity</th><th>Unit</th><th>Expiry</th><th>Category</th><th>Actions</th></tr></thead>
         <tbody>
           {pantryItems.map(item => (
             <tr>
               <td>{item.item_name}</td>
               <td>{item.quantity}</td>
               <td>{item.unit}</td>
+              <td>{item.expiry_date || "-"}</td>
               <td>{item.category || "-"}</td>
               <td>
                 <button class="btn btn-secondary" onclick={`openEditModal(${item.id}, '${escJs(item.item_name)}', ${item.quantity}, '${escJs(item.unit)}', 'pantry', '${item.expiry_date || ''}', '${escJs(item.category || '')}')`}>Edit</button>
