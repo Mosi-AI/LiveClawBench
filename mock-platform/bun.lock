@@ -53,6 +53,14 @@
         "zod": "^3.22.0",
       },
     },
+    "mocks/social": {
+      "name": "@mock/social",
+      "version": "0.1.0",
+      "dependencies": {
+        "hono": "^4.8.0",
+        "mock-lib": "workspace:*",
+      },
+    },
     "mocks/todolist": {
       "name": "@mock/todolist",
       "version": "0.1.0",
@@ -96,6 +104,8 @@
     "@mock/mint-diet": ["@mock/mint-diet@workspace:mocks/mint-diet"],
 
     "@mock/shop": ["@mock/shop@workspace:mocks/shop"],
+
+    "@mock/social": ["@mock/social@workspace:mocks/social"],
 
     "@mock/todolist": ["@mock/todolist@workspace:mocks/todolist"],
 

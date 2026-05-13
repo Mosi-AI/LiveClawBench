@@ -3,7 +3,7 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "mint-diet", "weather"],
+  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "mint-diet", "weather", "social"],
   "tasks": {
     "weather-aqi-report": {
       "binaries": ["weather"]
@@ -213,6 +213,8 @@
       ]
     },
     "skill-combination": { "binaries": [] },
-    "mint-diet-snack-log": { "binaries": ["mint-diet"] }
+    "mint-diet-snack-log": { "binaries": ["mint-diet"] },
+    "social-media-posting": { "binaries": ["social"] },
+    "social-unlike-post": { "binaries": ["social"] }
   }
 }
