@@ -1,31 +1,22 @@
 import { Database } from "bun:sqlite";
 import { mkdirSync } from "fs";
+import { dirname } from "node:path";
 
 const DB_PATH = process.env.MOCK_DATA_DIR
   ? `${process.env.MOCK_DATA_DIR}/social/social.db`
-  : ":memory:";
+  : "./data/social.db";
 
 let db: Database | null = null;
 
 export function getDb(): Database {
   if (db) return db;
 
-  // Ensure directory exists
-  const dir = DB_PATH.substring(0, DB_PATH.lastIndexOf("/"));
+  // Ensure directory exists for file-backed DB
+  const dir = dirname(DB_PATH);
   try {
     mkdirSync(dir, { recursive: true });
   } catch (err) {
     console.error("[social] Failed to create DB directory:", err);
-    // fallback to local data dir
-    const fallbackPath = "./data/social.db";
-    const fallbackDir = fallbackPath.substring(0, fallbackPath.lastIndexOf("/"));
-    mkdirSync(fallbackDir, { recursive: true });
-    db = new Database(fallbackPath, { create: true });
-    db.exec("PRAGMA journal_mode = WAL;");
-    db.exec("PRAGMA foreign_keys = ON;");
-    initSchema(db);
-    seedData(db);
-    return db;
   }
 
   try {
