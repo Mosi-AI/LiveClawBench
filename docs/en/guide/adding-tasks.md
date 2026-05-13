@@ -106,7 +106,7 @@ bun run scripts/build-task-images.ts
 docker build -t liveclawbench-{task}:latest tasks/{task}/environment/
 ```
 
-There are four patterns in use across the 30 tasks — pick the one that matches your task type:
+There are four patterns in use across the 32 tasks — pick the one that matches your task type:
 
 ### Pattern 1: Static file drop (skill-\*, blog-site-\*, vue-project-\*)
 

@@ -19,22 +19,43 @@ SQL
 # Step 2: Place order in shop for 3 dozen eggs
 # The shop mock stores orders in JSON format
 
-# Read existing orders
-EXISTING_ORDERS=$(cat /tmp/mosi_shop_orders.json)
+# Generate new order ID dynamically from existing orders
+NEW_ORDER_ID=$(python3 << 'PYTHON'
+import json
 
-# Generate new order ID (next sequential)
-NEW_ORDER_ID="ORD000003"
+with open('/tmp/mosi_shop_orders.json', 'r') as f:
+    orders = json.load(f)
+
+# Find the highest order_id and increment
+max_num = 0
+for order in orders:
+    order_id = order.get('order_id', '')
+    if order_id.startswith('ORD'):
+        try:
+            num = int(order_id[3:])
+            max_num = max(max_num, num)
+        except ValueError:
+            pass
+
+new_num = max_num + 1
+print(f"ORD{new_num:06d}")
+PYTHON
+)
+
+echo "Generated new order ID: $NEW_ORDER_ID"
 
 # Create new order with 3 dozen eggs using correct Order schema
-python3 << 'PYTHON'
+python3 << PYTHON
 import json
 from datetime import datetime
+
+new_order_id = "$NEW_ORDER_ID"
 
 with open('/tmp/mosi_shop_orders.json', 'r') as f:
     orders = json.load(f)
 
 new_order = {
-    "order_id": "ORD000003",
+    "order_id": new_order_id,
     "user_id": "Peter Griffin",
     "items": [
         {
@@ -55,19 +76,17 @@ orders.append(new_order)
 
 with open('/tmp/mosi_shop_orders.json', 'w') as f:
     json.dump(orders, f, indent=2)
+
+print(f"Created order: {new_order_id}")
 PYTHON
 
 # Step 3: Update Shopping List reference with order_id
-sqlite3 /tmp/mosi_smart_home.sqlite << 'SQL'
-UPDATE grocery_product
-SET reference = 'ORD000003'
-WHERE product_id = 'PROD_eggs';
-SQL
+sqlite3 /tmp/mosi_smart_home.sqlite "UPDATE grocery_product SET reference = '$NEW_ORDER_ID' WHERE product_id = 'PROD_eggs';"
 
 # Step 4: Write D4 rounding explanation evidence
 # This simulates the agent's final response containing rounding/conversion reasoning
 mkdir -p /workspace/output
-cat > /workspace/output/response.txt << 'EOF'
+cat > /workspace/output/response.txt << EOF
 I've completed the egg ordering task. Here's what I did:
 
 1. Checked egg inventory in the smart-home app:
@@ -85,15 +104,15 @@ I've completed the egg ordering task. Here's what I did:
 
 4. Added 36 pieces (3 dozen) to the Shopping List
 
-5. Placed order ORD000003 for 3 dozen eggs in the shop
+5. Placed order $NEW_ORDER_ID for 3 dozen eggs in the shop
 
-6. Updated the Shopping List entry with order reference ORD000003
+6. Updated the Shopping List entry with order reference $NEW_ORDER_ID
 
 The rounding up from 2.5 to 3 dozen ensures we don't fall short of the target quantity.
 EOF
 
 echo "Reference solution completed:"
 echo "- Added Eggs (36 pieces) to Shopping List"
-echo "- Placed order ORD000003 for 3 dozen eggs"
+echo "- Placed order $NEW_ORDER_ID for 3 dozen eggs"
 echo "- Linked order reference to Shopping List entry"
 echo "- Wrote rounding explanation to /workspace/output/response.txt"
