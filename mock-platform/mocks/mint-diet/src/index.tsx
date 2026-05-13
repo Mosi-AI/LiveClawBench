@@ -1,11 +1,10 @@
 import { createMockApp, startServer } from "mock-lib";
-import type { MockAppV2 } from "mock-lib";
+import type { MockAppV2, OpenAPIApp } from "mock-lib";
 import { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import { createTables } from "./schema";
 import { seedFoodCatalog } from "./seeds";
 import { registerRoutes } from "./routes";
-import type { MintDietApp } from "./routes/types";
 
 export function createMintDietApp(): MockAppV2 {
   let db: Database | undefined;
@@ -18,13 +17,14 @@ export function createMintDietApp(): MockAppV2 {
   const mockApp = createMockApp({
     name: "mint-diet",
     port: 5003,
+    healthResponse: { status: "healthy", service: "mint-diet" },
     openApi: {
       enabled: true,
       title: "Mint Diet Mock API",
       version: "1.0.0",
     },
-    routes: (app) => {
-      registerRoutes(app as MintDietApp, { getDatabase });
+    routes: (app: OpenAPIApp) => {
+      registerRoutes(app, { getDatabase });
     },
   });
 
