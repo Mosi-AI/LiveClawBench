@@ -12,7 +12,7 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 
 | Repository | Role | URL |
 |---|---|---|
-| **LiveClawBench** (this repo) | Task corpus — 32 harbor-format benchmark tasks | — |
+| **LiveClawBench** (this repo) | Task corpus — 37 harbor-format benchmark tasks | — |
 | **claw-harbor** | Evaluation framework (fork of harbor with OpenClaw support) | https://github.com/Mosi-AI/claw-harbor |
 | **OpenClaw** | Agent platform running inside task containers | https://github.com/openclaw/openclaw |
 
@@ -230,6 +230,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `live-web-research-sqlite-fts5` | Deep Research & Report | medium | **llm_judge** |
 | `conflict-repair-acb` | Documents & Knowledge | easy | **llm_judge** |
 | `skill-combination` | Documents & Knowledge | easy | evaluate.py |
+| `mint-diet-snack-log` | Health & Fitness | easy | verify.py |
+| `weather-aqi-report` | Deep Research & Report | easy | verify.py |
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
 
@@ -385,8 +387,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-32 implemented tasks: A1=11, A2=6, B1=4, B2=11.
-Difficulty: Easy=19, Medium=8, Hard=5.
+37 implemented tasks: A1=12, A2=6, B1=4, B2=11.
+Difficulty: Easy=23, Medium=8, Hard=5.
 
 ## Known Issues
 
