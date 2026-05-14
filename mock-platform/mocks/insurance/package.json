@@ -1,0 +1,14 @@
+{
+  "name": "@mock/insurance",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "mock-lib": "workspace:*",
+    "hono": "^4.8.0",
+    "zod": "^3.24.0",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6"
+  }
+}

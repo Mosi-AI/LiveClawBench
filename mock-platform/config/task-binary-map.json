@@ -3,8 +3,11 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "mint-diet", "smarthome"],
+  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "insurance", "calendar", "mint-diet", "weather", "social", "expense", "health"],
   "tasks": {
+    "weather-aqi-report": {
+      "binaries": ["weather"]
+    },
     "watch-shop": {
       "binaries": ["shop"],
       "assets": [
@@ -210,20 +213,28 @@
       ]
     },
     "skill-combination": { "binaries": [] },
-    "mint-diet-snack-log": { "binaries": ["mint-diet"] },
-    "smarthome-test": {
-      "binaries": ["smarthome"],
+    "insurance-deductible-selection": {
+      "binaries": ["insurance"],
       "assets": [
-        { "src": "tasks/smarthome-test/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
+        { "src": "mock-platform/static/insurance/css/style.css", "dest": "/opt/mock/static/insurance/css/style.css" }
       ]
     },
-    "grocery-reorder": {
-      "binaries": ["smarthome", "shop"],
-      "startup_extra": "tasks/grocery-reorder/environment/startup.sh",
+    "health-insurance-optimization": {
+      "binaries": ["insurance", "calendar"],
       "assets": [
-        { "src": "tasks/grocery-reorder/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" },
-        { "src": "tasks/grocery-reorder/environment/products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/insurance/css/style.css", "dest": "/opt/mock/static/insurance/css/style.css" },
+        { "src": "mock-platform/static/calendar/css/style.css", "dest": "/opt/mock/static/calendar/css/style.css" }
       ]
-    }
+    },
+    "mint-diet-snack-log": { "binaries": ["mint-diet"] },
+    "social-media-posting": { "binaries": ["social"] },
+    "social-unlike-post": { "binaries": ["social"] },
+    "expense-draft-delete": {
+      "binaries": ["expense"],
+      "assets": [
+        { "src": "tasks/expense-draft-delete/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+      ]
+    },
+    "health-daily-record": { "binaries": ["health"] }
   }
 }

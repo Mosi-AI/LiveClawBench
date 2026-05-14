@@ -37,8 +37,13 @@ const BINARY_PORTS: Record<string, number> = {
   shop: 1234,
   todolist: 5002,
   "doc-search": 8123,
+  insurance: 6000,
+  calendar: 5006,
   "mint-diet": 5003,
-  smarthome: 5004,
+  weather: 3000,
+  social: 5004,
+  expense: 5005,
+  health: 5007,
 };
 
 function portProxyLines(listenPort: number, targetPort: number): string[] {
@@ -71,7 +76,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 30 benchmark task names (canonical source of truth)
+// All 38 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -82,8 +87,10 @@ const ALL_TASK_NAMES = new Set([
   "skill-creation", "skill-repository-curation", "skill-supplementation",
   "skill-conflict-resolution", "skill-dependency-fix", "noise-filtering",
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
-"conflict-repair-acb", "skill-combination", "mint-diet-snack-log",
-  "smarthome-test", "grocery-reorder",
+  "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
+  "mint-diet-snack-log", "weather-aqi-report",
+  "social-media-posting", "social-unlike-post", "expense-draft-delete",
+  "health-daily-record",
 ]);
 
 interface AssetMapping {
@@ -340,18 +347,6 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("");
   }
 
-// Step 0b: Data directory initialization for smarthome tasks
-  // The smarthome binary stores data at /var/lib/mock-data/smarthome/ and verifiers
-  // read from /tmp/mosi_smart_home.sqlite via symlink.
-  if (binaries.includes("smarthome")) {
-    lines.push("# Initialize smarthome data directory and verifier-compatible symlinks");
-    lines.push("mkdir -p /var/lib/mock-data/smarthome");
-    lines.push("chown mock:mock /var/lib/mock-data/smarthome");
-    lines.push("chmod 700 /var/lib/mock-data/smarthome");
-    lines.push("ln -sf /var/lib/mock-data/smarthome/smarthome.db /tmp/mosi_smart_home.sqlite");
-    lines.push("");
-  }
-
   // Step 1: Launch Bun mock binaries
   if (binaries.length > 0) {
     lines.push("# Start Bun mock binaries");
@@ -419,6 +414,13 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/todolist-npm-install.log`);
         // Proxy port 3000 to Bun todolist port for legacy URL compatibility
         lines.push(...portProxyLines(3000, port));
+      } else if (bin === "expense") {
+        lines.push(`export EXPENSE_MOCK_DB_PATH=/var/lib/mock-data/expense/expense.db`);
+        lines.push(`export EXPENSE_MOCK_ATTACHMENTS_DIR=/var/lib/mock-data/expense/attachments`);
+        lines.push(`mkdir -p /var/lib/mock-data/expense/attachments`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/expense-backend.log 2>&1 &`);
+        lines.push(`echo "Expense frontend served by Bun on port ${port}" > /tmp/expense-frontend.log`);
+        lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/expense-npm-install.log`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }
@@ -605,17 +607,6 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       lines.push("");
     }
   }
-  // python-fastapi: The following block was added to support tasks with binaries: []
-  // that still need to run startup.sh for Python FastAPI services. Now that smarthome
-  // tasks use Bun mock (binaries: ["smarthome"]), this block is no longer necessary
-  // for smarthome_test but is kept for potential future use.
-  // else if (binaries.length === 0) {
-  //   lines.push("# No mock binaries — check for task-specific startup.sh");
-  //   lines.push("if [ -f /workspace/environment/startup.sh ]; then");
-  //   lines.push("  bash /workspace/environment/startup.sh");
-  //   lines.push("fi");
-  //   lines.push("");
-  // }
 
   // Step 3: Final wait for all services to be ready
   if (binaries.length > 0 || startupExtra) {

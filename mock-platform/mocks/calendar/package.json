@@ -1,0 +1,14 @@
+{
+  "name": "@mock/calendar",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "hono": "^4.8.0",
+    "mock-lib": "workspace:*",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6"
+  }
+}
