@@ -1,0 +1,1 @@
+Please help me post a message on the Mosi Social platform (http://localhost:5004/). First, log in with username "alice" and password "demo123". Then create a new post with the content "Hello from the test!" with status "published" and visibility "public". After posting, verify that your post appears in the public feed at http://localhost:5004/api/posts.
