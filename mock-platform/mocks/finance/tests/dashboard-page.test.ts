@@ -1,27 +1,20 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { _resetSecret } from "mock-lib";
-import { createFinanceApp } from "../src/index";
-import { login } from "./helpers";
+import { login, setupFinanceTest } from "./helpers";
 
 describe("dashboard page", () => {
-  let app: ReturnType<typeof createFinanceApp>["app"];
-  let finance: ReturnType<typeof createFinanceApp>;
+  const t = setupFinanceTest();
 
   beforeEach(async () => {
-    process.env.MOCK_FINANCE_DB_PATH = ":memory:";
-    _resetSecret();
-    finance = createFinanceApp();
-    app = finance.app;
-    await finance.seed!();
+    await t.init();
   });
 
   afterEach(() => {
-    delete process.env.MOCK_FINANCE_DB_PATH;
+    t.teardown();
   });
 
   it("GET /dashboard renders KPI cards", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/dashboard", { headers: { Cookie: cookie } });
+    const cookie = await login(t.app);
+    const res = await t.app.request("/dashboard", { headers: { Cookie: cookie } });
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain("Revenue");
@@ -30,8 +23,8 @@ describe("dashboard page", () => {
   });
 
   it("GET /dashboard renders charts", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/dashboard", { headers: { Cookie: cookie } });
+    const cookie = await login(t.app);
+    const res = await t.app.request("/dashboard", { headers: { Cookie: cookie } });
     const html = await res.text();
     expect(html).toContain("Revenue Trend");
     expect(html).toContain("P&amp;L Breakdown");
@@ -39,8 +32,8 @@ describe("dashboard page", () => {
   });
 
   it("GET /dashboard renders monthly table", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/dashboard", { headers: { Cookie: cookie } });
+    const cookie = await login(t.app);
+    const res = await t.app.request("/dashboard", { headers: { Cookie: cookie } });
     const html = await res.text();
     expect(html).toContain("Monthly Breakdown");
     expect(html).toContain(">Month<");
@@ -50,8 +43,8 @@ describe("dashboard page", () => {
   });
 
   it("GET /dashboard shows Config Panel for admin", async () => {
-    const cookie = await login(app);
-    const res = await app.request("/dashboard", { headers: { Cookie: cookie } });
+    const cookie = await login(t.app);
+    const res = await t.app.request("/dashboard", { headers: { Cookie: cookie } });
     const html = await res.text();
     expect(html).toContain("Admin Configuration");
     expect(html).toContain("Formula JSON");
@@ -60,7 +53,7 @@ describe("dashboard page", () => {
   });
 
   it("GET /dashboard hides Config Panel for non-admin", async () => {
-    const loginRes = await app.request("/api/auth/login", {
+    const loginRes = await t.app.request("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "john", password: "user123" }),
@@ -68,20 +61,20 @@ describe("dashboard page", () => {
     expect(loginRes.status).toBe(200);
     const cookie = loginRes.headers.get("set-cookie") ?? "";
 
-    const res = await app.request("/dashboard", { headers: { Cookie: cookie } });
+    const res = await t.app.request("/dashboard", { headers: { Cookie: cookie } });
     const html = await res.text();
     expect(html).not.toContain("Admin Configuration");
     expect(html).not.toContain('action="/api/dashboard/config"');
   });
 
   it("GET /dashboard without auth returns 401", async () => {
-    const res = await app.request("/dashboard");
+    const res = await t.app.request("/dashboard");
     expect(res.status).toBe(401);
   });
 
   it("dashboard page uses admin config fallback for non-admin", async () => {
-    const adminCookie = await login(app);
-    await app.request("/api/dashboard/config", {
+    const adminCookie = await login(t.app);
+    await t.app.request("/api/dashboard/config", {
       method: "POST",
       headers: { Cookie: adminCookie, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -92,14 +85,14 @@ describe("dashboard page", () => {
       }),
     });
 
-    const johnLogin = await app.request("/api/auth/login", {
+    const johnLogin = await t.app.request("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: "john", password: "user123" }),
     });
     const johnCookie = johnLogin.headers.get("set-cookie") ?? "";
 
-    const res = await app.request("/dashboard", { headers: { Cookie: johnCookie } });
+    const res = await t.app.request("/dashboard", { headers: { Cookie: johnCookie } });
     const html = await res.text();
     // With admin config limiting to 3 months, page should show 3 monthly rows
     const monthMatches = html.match(/2026-01/g);
