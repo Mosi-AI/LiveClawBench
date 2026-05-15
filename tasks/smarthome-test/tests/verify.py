@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-Verify smarthome-test task: OpenClaw agent morning routine completion
+Verify smarthome-test task: 8-dimension scoring.
 
-This verifier checks if the OpenClaw agent successfully completed the morning
-routine tasks by examining the state changes through the smart home API
-and checking the agent's report for each task.
+Dimensions (each 0.125 pts):
+- D1: Dashboard report — mentions temperature (68.5°F), humidity (52%), initial thermostat mode (eco)
+- D2: Coffee report — mentions start_time (07:00) AND status (ready/brewing)
+- D3: Thermostat state — DB: mode='comfort' AND target_temperature=74 (HARD REQUIRED)
+- D4: Inventory report — mentions fridge count (8) AND pantry count (5)
+- D5: Expiring items report — mentions all 6 items: milk, bread, chicken breast, tomatoes, yogurt, cheese
+- D6: Calendar report — mentions event count (4) AND all 4 titles
+- D7: Workout state — DB: event='Morning Workout' AND workout_type='walking' (HARD REQUIRED)
+- D8: Shopping list with reasoning — DB: COUNT(*) > 8 AND new items correspond to expiring inventory
 
-Expected agent actions:
-1. View dashboard and report temperature, humidity, thermostat mode
-2. Check coffee schedule and report start time and status
-3. Adjust thermostat to comfort mode at 74°F and report new settings
-4. Review inventory and report item counts in fridge/pantry
-5. Report expiring items (within 3 days from 2026-05-09) with names
-6. Check calendar and report event count and titles
-7. Update workout type to "walking" and report
-8. Add an item to the Shopping List and report
+Pass threshold: ≥ 0.75 (6 of 8 dimensions passed)
+D3 and D7 are hard required (DB state must match regardless of overall score).
 """
 
 import json
 import re
+import sqlite3
 import sys
 import urllib.error
 import urllib.request
@@ -26,10 +26,9 @@ from pathlib import Path
 
 # Configuration
 BASE_URL = "http://localhost:5004"
-# Benchmark date: 2026-05-09, expiring = within 3 days (<= 2026-05-12)
-BENCHMARK_DATE = "2026-05-09"
-EXPIRING_THRESHOLD_DAYS = 3
-# Expected expiring items: name -> expiry_date
+SQLITE_DB = "/tmp/mosi_smart_home.sqlite"
+
+# Expected values
 EXPECTED_EXPIRING_ITEMS = {
     "milk": "2026-05-11",
     "bread": "2026-05-12",
@@ -38,19 +37,13 @@ EXPECTED_EXPIRING_ITEMS = {
     "yogurt": "2026-05-10",
     "cheese": "2026-05-11",
 }
-# Expected initial inventory counts
-EXPECTED_FRIDGE_COUNT = (
-    8  # Milk, Eggs, Butter, Orange Juice, Chicken Breast, Tomatoes, Yogurt, Cheese
-)
-EXPECTED_PANTRY_COUNT = 5  # Bread, Cereal, Rice, Pasta, Blue Mountain Coffee Beans
-# Expected calendar events for 2026-05-09
-EXPECTED_EVENT_COUNT = 4
 EXPECTED_EVENT_TITLES = [
     "Morning Workout",
     "Team Standup",
     "Lunch with Client",
     "Project Review",
 ]
+INITIAL_SHOPPING_LIST_COUNT = 8
 
 
 def http_request(method, path, data=None):
@@ -76,16 +69,9 @@ def http_request(method, path, data=None):
 
 
 def get_agent_response():
-    """Get agent response from harbor.jsonl or response.txt fallback.
-
-    Similar to grocery-reorder D4 pattern:
-    1. First try harbor.jsonl (real agent runs) - collect ALL assistant messages
-    2. Fallback to response.txt only if no harbor.jsonl exists (oracle scenario)
-    """
-    # Try harbor.jsonl first - get ALL assistant messages, not just the last one
+    """Get agent response from harbor.jsonl or response.txt fallback."""
     response = get_all_assistant_messages()
 
-    # Fallback to response.txt only when harbor.jsonl doesn't exist
     if response is None:
         harbor_exists = any(
             p.exists()
@@ -104,11 +90,7 @@ def get_agent_response():
 
 
 def get_all_assistant_messages():
-    """Extract all assistant message contents from harbor.jsonl.
-
-    Returns concatenated text from all assistant messages, or None if not found.
-    This ensures we don't miss expiring items mentioned in earlier messages.
-    """
+    """Extract all assistant message contents from harbor.jsonl."""
     fallback_log_paths = [
         Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
         Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
@@ -152,191 +134,165 @@ def get_all_assistant_messages():
     return " ".join(all_contents) if all_contents else None
 
 
-def check_dashboard_report():
-    """Check if agent reported dashboard status (temperature, humidity, thermostat mode)"""
-    print("\n=== Test 1: Dashboard Status Report ===")
+def check_d1_dashboard_report(response):
+    """D1: Dashboard report — mentions temperature (68.5°F), humidity (52%), initial thermostat mode (eco)"""
+    print("\n=== D1: Dashboard Report ===")
 
-    response = get_agent_response()
     if response is None:
         print("FAIL: Could not get agent response")
         return 0.0
 
     response_lower = response.lower()
-    score = 0.0
+    found = 0
 
-    # Check for temperature mention (should be around 68.5°F)
-    temp_patterns = ["68.5", "68", "temperature", "temp"]
-    if any(p in response_lower for p in temp_patterns):
-        print("PASS: Temperature mentioned in report")
-        score += 0.33
+    # Check temperature (68.5°F)
+    if "68.5" in response_lower or ("68" in response_lower and "temperature" in response_lower):
+        print("PASS: Temperature mentioned")
+        found += 1
     else:
-        print("FAIL: Temperature not mentioned in report")
+        print("FAIL: Temperature not mentioned")
 
-    # Check for humidity mention (should be around 52%)
-    humidity_patterns = ["humidity", "52", "humid"]
-    if any(p in response_lower for p in humidity_patterns):
-        print("PASS: Humidity mentioned in report")
-        score += 0.33
+    # Check humidity (52%)
+    if "52" in response_lower and ("humidity" in response_lower or "humid" in response_lower):
+        print("PASS: Humidity mentioned")
+        found += 1
     else:
-        print("FAIL: Humidity not mentioned in report")
+        print("FAIL: Humidity not mentioned")
 
-    # Check for thermostat mode mention (should be eco initially)
-    mode_patterns = ["eco", "mode", "thermostat"]
-    if any(p in response_lower for p in mode_patterns):
-        print("PASS: Thermostat mode mentioned in report")
-        score += 0.34
+    # Check initial thermostat mode (eco)
+    if "eco" in response_lower:
+        print("PASS: Initial thermostat mode (eco) mentioned")
+        found += 1
     else:
-        print("FAIL: Thermostat mode not mentioned in report")
+        print("FAIL: Initial thermostat mode not mentioned")
 
-    return score
+    if found == 3:
+        print("D1: PASS (full 0.125)")
+        return 0.125
+    elif found == 2:
+        print("D1: PARTIAL (0.083)")
+        return 0.083
+    else:
+        print("D1: FAIL (0.0)")
+        return 0.0
 
 
-def check_coffee_schedule_report():
-    """Check if agent reported coffee schedule (start time and status)"""
-    print("\n=== Test 2: Coffee Schedule Report ===")
+def check_d2_coffee_report(response):
+    """D2: Coffee report — mentions start_time (07:00) AND status (ready/brewing)"""
+    print("\n=== D2: Coffee Report ===")
 
-    response = get_agent_response()
     if response is None:
         print("FAIL: Could not get agent response")
         return 0.0
 
     response_lower = response.lower()
-    score = 0.0
+    found = 0
 
-    # Check for start time mention (should be 07:00)
-    time_patterns = ["07:00", "7:00", "7am", "coffee", "schedule"]
-    if any(p in response_lower for p in time_patterns):
-        print("PASS: Coffee schedule/start time mentioned in report")
-        score += 0.5
+    # Check start time (07:00)
+    if "07:00" in response_lower or "7:00" in response_lower or "7am" in response_lower:
+        print("PASS: Coffee start time mentioned")
+        found += 1
     else:
-        print("FAIL: Coffee schedule not mentioned in report")
+        print("FAIL: Coffee start time not mentioned")
 
-    # Check for status mention (brewing/preparing/scheduled/ready)
-    status_patterns = ["brewing", "preparing", "scheduled", "ready", "status"]
-    if any(p in response_lower for p in status_patterns):
-        print("PASS: Coffee status mentioned in report")
-        score += 0.5
+    # Check status (ready/brewing)
+    if any(word in response_lower for word in ["ready", "brewing", "preparing", "scheduled"]):
+        print("PASS: Coffee status mentioned")
+        found += 1
     else:
-        print("FAIL: Coffee status not mentioned in report")
+        print("FAIL: Coffee status not mentioned")
 
-    return score
-
-
-def check_thermostat():
-    """Check if thermostat was adjusted to comfort mode at 74°F and reported"""
-    print("\n=== Test 3: Thermostat Adjustment ===")
-    resp, status = http_request("GET", "/api/thermostat")
-
-    if status != 200:
-        print(f"FAIL: Could not get thermostat status: {status}")
+    if found == 2:
+        print("D2: PASS (full 0.125)")
+        return 0.125
+    elif found == 1:
+        print("D2: PARTIAL (0.083)")
+        return 0.083
+    else:
+        print("D2: FAIL (0.0)")
         return 0.0
 
-    mode = resp.get("mode")
-    temp = resp.get("temperature")
 
-    print(f"Current thermostat: mode={mode}, temperature={temp}")
+def check_d3_thermostat_state():
+    """D3: Thermostat state — DB: mode='comfort' AND target_temperature=74 (HARD REQUIRED)"""
+    print("\n=== D3: Thermostat State (HARD REQUIRED) ===")
 
-    score = 0.0
+    try:
+        conn = sqlite3.connect(SQLITE_DB)
+        cursor = conn.cursor()
+        cursor.execute("SELECT mode, temperature FROM thermostat WHERE id = 1")
+        row = cursor.fetchone()
+        conn.close()
 
-    # Check mode is comfort
-    if mode == "comfort":
-        print("PASS: Thermostat mode is 'comfort'")
-        score += 0.4
-    else:
-        print(f"FAIL: Expected mode 'comfort', got '{mode}'")
+        if row is None:
+            print("FAIL: No thermostat record found")
+            return 0.0
 
-    # Check temperature is 74°F (allow small tolerance)
-    if temp is not None and abs(temp - 74.0) < 0.5:
-        print("PASS: Thermostat temperature is 74°F")
-        score += 0.4
-    else:
-        print(f"FAIL: Expected temperature 74°F, got {temp}°F")
+        mode, temp = row
+        print(f"Current thermostat: mode={mode}, temperature={temp}")
 
-    # Check if agent reported the new settings
-    response = get_agent_response()
-    if response:
-        response_lower = response.lower()
-        if "comfort" in response_lower and (
-            "74" in response_lower or "74°" in response_lower
-        ):
-            print("PASS: Agent reported thermostat adjustment")
-            score += 0.2
+        if mode == "comfort" and temp == 74:
+            print("D3: PASS (0.125)")
+            return 0.125
         else:
-            print("FAIL: Agent did not report thermostat adjustment")
+            print(f"D3: FAIL - Expected mode='comfort' AND temperature=74, got mode='{mode}' AND temperature={temp}")
+            return 0.0
+    except sqlite3.Error as e:
+        print(f"FAIL: Database error: {e}")
+        return 0.0
 
-    return score
 
+def check_d4_inventory_report(response):
+    """D4: Inventory report — mentions fridge count (8) AND pantry count (5)"""
+    print("\n=== D4: Inventory Report ===")
 
-def check_inventory_report():
-    """Check if agent reported inventory counts for fridge and pantry"""
-    print("\n=== Test 4: Inventory Report ===")
-
-    response = get_agent_response()
     if response is None:
         print("FAIL: Could not get agent response")
         return 0.0
 
     response_lower = response.lower()
-    score = 0.0
+    found = 0
 
-    # Check for fridge mention
-    if "fridge" in response_lower:
-        print("PASS: Fridge mentioned in report")
-        score += 0.25
+    # Check fridge count (8)
+    fridge_patterns = [r"8\s*items?\s*(in\s*)?(the\s*)?fridge", r"fridge[^\d]*8"]
+    if any(re.search(p, response_lower) for p in fridge_patterns) or \
+       ("fridge" in response_lower and "8" in response_lower):
+        print("PASS: Fridge count (8) mentioned")
+        found += 1
     else:
-        print("FAIL: Fridge not mentioned in report")
+        print("FAIL: Fridge count not mentioned")
 
-    # Check for pantry mention
-    if "pantry" in response_lower:
-        print("PASS: Pantry mentioned in report")
-        score += 0.25
+    # Check pantry count (5)
+    pantry_patterns = [r"5\s*items?\s*(in\s*)?(the\s*)?pantry", r"pantry[^\d]*5"]
+    if any(re.search(p, response_lower) for p in pantry_patterns) or \
+       ("pantry" in response_lower and "5" in response_lower):
+        print("PASS: Pantry count (5) mentioned")
+        found += 1
     else:
-        print("FAIL: Pantry not mentioned in report")
+        print("FAIL: Pantry count not mentioned")
 
-    # Check for item count mention (numbers like 9, 4, 13, etc.)
-    count_patterns = [
-        r"\b\d+\s*items",
-        r"\b\d+\s*item",
-        r"total.*\d+",
-        r"\d+\s*in\s*(fridge|pantry)",
-    ]
-    if any(re.search(p, response_lower) for p in count_patterns):
-        print("PASS: Item count mentioned in report")
-        score += 0.5
+    if found == 2:
+        print("D4: PASS (full 0.125)")
+        return 0.125
+    elif found == 1:
+        print("D4: PARTIAL (0.083)")
+        return 0.083
     else:
-        print("FAIL: Item count not mentioned in report")
+        print("D4: FAIL (0.0)")
+        return 0.0
 
-    return score
 
-
-def check_expiring_items():
-    """Check if agent correctly reported expiring items with names.
-
-    Expected: 6 items expiring within 3 days from 2026-05-09:
-    - Milk (2026-05-11) - 2 days
-    - Bread (2026-05-12) - 3 days
-    - Chicken Breast (2026-05-10) - 1 day
-    - Tomatoes (2026-05-12) - 3 days
-    - Yogurt (2026-05-10) - 1 day
-    - Cheese (2026-05-11) - 2 days
-
-    This test checks the agent's response for item names.
-    Uses dual-source checking: harbor.jsonl first, response.txt as fallback.
-    """
-    print("\n=== Test 5: Expiring Items Report ===")
-
-    # Get agent response from harbor.jsonl or response.txt
-    response = get_agent_response()
+def check_d5_expiring_items_report(response):
+    """D5: Expiring items report — mentions all 6 items by name"""
+    print("\n=== D5: Expiring Items Report ===")
 
     if response is None:
         print("FAIL: Could not get agent response")
         return 0.0
 
-    print(f"Agent response excerpt: {response[:200]}...")
     response_lower = response.lower()
-
-    # Check which expiring items are mentioned
     found_items = []
+
     for item_name in EXPECTED_EXPIRING_ITEMS.keys():
         if item_name in response_lower:
             found_items.append(item_name)
@@ -344,230 +300,224 @@ def check_expiring_items():
     expected_count = len(EXPECTED_EXPIRING_ITEMS)
     found_count = len(found_items)
 
-    print(
-        f"Found {found_count}/{expected_count} expiring items mentioned: {found_items}"
-    )
+    print(f"Found {found_count}/{expected_count} expiring items: {found_items}")
 
-    # Score based on how many items are correctly identified
     if found_count == expected_count:
-        print(f"PASS: All {expected_count} expiring items mentioned")
-        return 1.0
-    elif found_count >= expected_count - 1:
-        print(f"PARTIAL: {found_count}/{expected_count} expiring items mentioned")
-        return 0.8
-    elif found_count >= expected_count // 2:
-        print(f"PARTIAL: {found_count}/{expected_count} expiring items mentioned")
-        return 0.5
+        print("D5: PASS (full 0.125)")
+        return 0.125
+    elif found_count >= 4:
+        print("D5: PARTIAL (0.083)")
+        return 0.083
     else:
-        print(f"FAIL: Only {found_count}/{expected_count} expiring items mentioned")
+        print("D5: FAIL (0.0)")
         return 0.0
 
 
-def check_calendar_report():
-    """Check if agent reported calendar events (count and titles)"""
-    print("\n=== Test 6: Calendar Report ===")
+def check_d6_calendar_report(response):
+    """D6: Calendar report — mentions event count (4) AND all 4 titles"""
+    print("\n=== D6: Calendar Report ===")
 
-    response = get_agent_response()
     if response is None:
         print("FAIL: Could not get agent response")
         return 0.0
 
     response_lower = response.lower()
-    score = 0.0
+    found = 0
 
-    # Check for event count mention
-    count_patterns = [
-        r"\b4\s*events",
-        r"\bfour\s*events",
-        r"\d+\s*events",
-        r"\d+\s*scheduled",
-    ]
+    # Check event count (4)
+    count_patterns = [r"\b4\s*events?", r"\bfour\s*events?", r"\d+\s*events?"]
     if any(re.search(p, response_lower) for p in count_patterns):
-        print("PASS: Event count mentioned in report")
-        score += 0.3
+        print("PASS: Event count (4) mentioned")
+        found += 1
     else:
-        print("FAIL: Event count not mentioned in report")
+        print("FAIL: Event count not mentioned")
 
-    # Check for event titles mention
+    # Check event titles
     found_titles = []
     for title in EXPECTED_EVENT_TITLES:
         title_lower = title.lower()
         if title_lower in response_lower or any(
-            word in response_lower for word in title_lower.split()
+            word in response_lower for word in title_lower.split() if len(word) > 3
         ):
             found_titles.append(title)
 
-    if len(found_titles) >= 2:
-        print(f"PASS: Event titles mentioned: {found_titles}")
-        score += 0.7
-    elif len(found_titles) >= 1:
-        print(f"PARTIAL: Some event titles mentioned: {found_titles}")
-        score += 0.4
+    print(f"Found titles: {found_titles}")
+
+    if len(found_titles) == len(EXPECTED_EVENT_TITLES):
+        print("PASS: All 4 event titles mentioned")
+        found += 1
+    elif len(found_titles) >= 3:
+        print("PARTIAL: ≥ 3 event titles mentioned")
+        # Still counts as partial pass
+
+    if found == 2:
+        print("D6: PASS (full 0.125)")
+        return 0.125
+    elif found == 1 or len(found_titles) >= 3:
+        print("D6: PARTIAL (0.083)")
+        return 0.083
     else:
-        print("FAIL: Event titles not mentioned in report")
-
-    return score
-
-
-def check_workout_update():
-    """Check if workout type was updated to walking and reported"""
-    print("\n=== Test 7: Workout Type Update ===")
-    resp, status = http_request("GET", "/api/calendar")
-
-    if status != 200:
-        print(f"FAIL: Could not get calendar events: {status}")
+        print("D6: FAIL (0.0)")
         return 0.0
 
-    events = resp
-    print(f"Found {len(events)} calendar events")
 
-    # Find the workout event (event_type = 'workout')
-    workout_event = None
-    for event in events:
-        if event.get("event_type") == "workout":
-            workout_event = event
-            break
+def check_d7_workout_state():
+    """D7: Workout state — DB: event='Morning Workout' AND workout_type='walking' (HARD REQUIRED)"""
+    print("\n=== D7: Workout State (HARD REQUIRED) ===")
 
-    if not workout_event:
-        print("FAIL: No workout event found in calendar")
-        return 0.0
+    try:
+        conn = sqlite3.connect(SQLITE_DB)
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT title, workout_type FROM calendar_event
+            WHERE date = '2026-05-09' AND event_type = 'workout'
+        """)
+        row = cursor.fetchone()
+        conn.close()
 
-    workout_type = workout_event.get("workout_type")
-    print(f"Workout event: id={workout_event.get('id')}, workout_type={workout_type}")
+        if row is None:
+            print("FAIL: No workout event found for 2026-05-09")
+            return 0.0
 
-    score = 0.0
+        title, workout_type = row
+        print(f"Workout event: title={title}, workout_type={workout_type}")
 
-    if workout_type == "walking":
-        print("PASS: Workout type updated to 'walking'")
-        score += 0.7
-    else:
-        print(f"FAIL: Expected workout_type 'walking', got '{workout_type}'")
-
-    # Check if agent reported the update
-    response = get_agent_response()
-    if response:
-        response_lower = response.lower()
-        if "walking" in response_lower:
-            print("PASS: Agent reported workout update to walking")
-            score += 0.3
+        if title == "Morning Workout" and workout_type == "walking":
+            print("D7: PASS (0.125)")
+            return 0.125
         else:
-            print("FAIL: Agent did not report workout update")
-
-    return score
-
-
-def check_shopping_list():
-    """Check if an item was added to the Shopping List and reported"""
-    print("\n=== Test 8: Shopping List Update ===")
-    resp, status = http_request("GET", "/api/grocery/products")
-
-    if status != 200:
-        print(f"FAIL: Could not get shopping list: {status}")
+            print(f"D7: FAIL - Expected title='Morning Workout' AND workout_type='walking', got title='{title}' AND workout_type='{workout_type}'")
+            return 0.0
+    except sqlite3.Error as e:
+        print(f"FAIL: Database error: {e}")
         return 0.0
 
-    products = resp
-    print(f"Found {len(products)} items in Shopping List")
 
-    # Initial seed has 8 items (PROD001-PROD008)
-    # If agent added an item, there should be more than 8
-    initial_count = 8
-    current_count = len(products)
+def check_d8_shopping_list_with_reasoning(response):
+    """D8: Shopping list with reasoning — DB: COUNT(*) > 8 AND new items correspond to expiring inventory"""
+    print("\n=== D8: Shopping List with Reasoning ===")
 
-    score = 0.0
+    try:
+        conn = sqlite3.connect(SQLITE_DB)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM grocery_product")
+        count = cursor.fetchone()[0]
 
-    if current_count > initial_count:
-        print(
-            f"PASS: Shopping list has {current_count} items (added {current_count - initial_count} new item(s))"
-        )
-        # Show the new items
-        new_items = products[initial_count:]
-        for item in new_items:
-            print(
-                f"  New item: {item.get('name')} ({item.get('quantity')} {item.get('unit')})"
-            )
-        score += 0.7
-    else:
-        print(f"FAIL: Shopping list has {current_count} items (no new items added)")
+        # Get new items (beyond initial 8)
+        cursor.execute("SELECT name FROM grocery_product LIMIT -1 OFFSET 8")
+        new_items = [row[0].lower() for row in cursor.fetchall()]
+        conn.close()
 
-    # Check if agent reported the added item
-    response = get_agent_response()
-    if response and current_count > initial_count:
+        print(f"Shopping list count: {count} (initial: {INITIAL_SHOPPING_LIST_COUNT})")
+        print(f"New items: {new_items}")
+
+        if count <= INITIAL_SHOPPING_LIST_COUNT:
+            print("D8: FAIL - No new items added to shopping list")
+            return 0.0
+
+        # Check if new items correspond to expiring inventory
+        expiring_names = set(EXPECTED_EXPIRING_ITEMS.keys())
+        matching_items = [item for item in new_items if any(exp in item for exp in expiring_names)]
+
+        print(f"New items matching expiring inventory: {matching_items}")
+
+        if not matching_items:
+            print("D8: FAIL - New items don't correspond to expiring inventory")
+            return 0.0
+
+        # Check agent response for reasoning
+        if response is None:
+            print("D8: FAIL - Could not get agent response for reasoning")
+            return 0.0
+
         response_lower = response.lower()
-        # Check if any of the new items are mentioned
-        new_items = products[initial_count:]
-        mentioned = any(
-            item.get("name", "").lower() in response_lower for item in new_items
-        )
-        if mentioned or "shopping list" in response_lower or "added" in response_lower:
-            print("PASS: Agent reported shopping list update")
-            score += 0.3
-        else:
-            print("FAIL: Agent did not report shopping list update")
+        reasoning_patterns = ["expir", "need", "running low", "shopping list", "add"]
+        has_reasoning = any(p in response_lower for p in reasoning_patterns)
 
-    return score
+        if has_reasoning:
+            print("PASS: Shopping list updated with items from expiring inventory and reasoning provided")
+            print("D8: PASS (0.125)")
+            return 0.125
+        else:
+            print("D8: FAIL - No reasoning found in agent response")
+            return 0.0
+
+    except sqlite3.Error as e:
+        print(f"FAIL: Database error: {e}")
+        return 0.0
 
 
 def main():
     print("=" * 60)
-    print("Smart Home Morning Routine Verification")
+    print("Smart Home Morning Check Verification")
     print("=" * 60)
 
-    tests = [
-        ("Dashboard Status Report", check_dashboard_report, 1.0),
-        ("Coffee Schedule Report", check_coffee_schedule_report, 1.0),
-        ("Thermostat Adjustment", check_thermostat, 1.0),
-        ("Inventory Report", check_inventory_report, 1.0),
-        ("Expiring Items Report", check_expiring_items, 1.0),
-        ("Calendar Report", check_calendar_report, 1.0),
-        ("Workout Type Update", check_workout_update, 1.0),
-        ("Shopping List Update", check_shopping_list, 1.0),
-    ]
+    # Get agent response once
+    response = get_agent_response()
 
-    results = []
-    for name, test_func, max_score in tests:
-        try:
-            score = test_func()
-            # Cap score at max_score
-            score = min(score, max_score)
-            results.append((name, score, max_score))
-        except Exception as e:
-            print(f"ERROR in {name}: {e}")
-            results.append((name, 0.0, max_score))
+    # Run all dimension checks
+    results = {}
+
+    results["D1"] = check_d1_dashboard_report(response)
+    results["D2"] = check_d2_coffee_report(response)
+    results["D3"] = check_d3_thermostat_state()
+    results["D4"] = check_d4_inventory_report(response)
+    results["D5"] = check_d5_expiring_items_report(response)
+    results["D6"] = check_d6_calendar_report(response)
+    results["D7"] = check_d7_workout_state()
+    results["D8"] = check_d8_shopping_list_with_reasoning(response)
 
     print("\n" + "=" * 60)
     print("Summary")
     print("=" * 60)
 
     total_score = 0.0
-    total_max = 0.0
-    for name, score, max_score in results:
-        status = (
-            "PASS"
-            if score >= max_score * 0.8
-            else "PARTIAL"
-            if score >= max_score * 0.5
-            else "FAIL"
-        )
-        print(f"  {name}: {score:.2f}/{max_score:.2f} [{status}]")
+    passed_count = 0
+
+    for dim, score in results.items():
+        status = "PASS" if score >= 0.125 else "PARTIAL" if score >= 0.083 else "FAIL"
+        hard_req = " (HARD REQUIRED)" if dim in ["D3", "D7"] else ""
+        print(f"  {dim}: {score:.3f}/0.125 [{status}]{hard_req}")
         total_score += score
-        total_max += max_score
+        if score >= 0.125:
+            passed_count += 1
 
-    # Normalize to 0.0-1.0 scale
-    final_score = total_score / total_max if total_max > 0 else 0.0
+    print(f"\nTotal Score: {total_score:.3f}/1.0")
+    print(f"Dimensions passed: {passed_count}/8")
 
-    print(f"\nFinal Score: {final_score:.2f}/1.0")
+    # Check hard requirements
+    d3_pass = results["D3"] >= 0.125
+    d7_pass = results["D7"] >= 0.125
+    hard_req_pass = d3_pass and d7_pass
 
-    # Write reward file for harbor
+    print(f"Hard requirements: D3={'PASS' if d3_pass else 'FAIL'}, D7={'PASS' if d7_pass else 'FAIL'}")
+
+    # Write reward file
     with open("/logs/verifier/reward.txt", "w") as f:
-        f.write(f"{final_score:.2f}\n")
+        f.write(f"{total_score:.3f}\n")
 
-    print(f"Score: {final_score:.2f}/1.0")
+    # Write detailed results
+    results_json = {
+        "reward": total_score,
+        "_meta_D1": results["D1"],
+        "_meta_D2": results["D2"],
+        "_meta_D3": results["D3"],
+        "_meta_D4": results["D4"],
+        "_meta_D5": results["D5"],
+        "_meta_D6": results["D6"],
+        "_meta_D7": results["D7"],
+        "_meta_D8": results["D8"],
+        "_meta_passed_count": passed_count,
+        "_meta_hard_required_pass": hard_req_pass,
+    }
+    with open("/logs/verifier/reward.json", "w") as f:
+        json.dump(results_json, f, indent=2)
 
-    # Require at least 6 tests to pass (score >= 0.8)
-    passing_count = sum(
-        1 for _, score, max_score in results if score >= max_score * 0.8
-    )
-    sys.exit(0 if passing_count >= 6 else 1)
+    print(f"Score: {total_score:.3f}/1.0")
+
+    # Pass threshold: ≥ 0.75 (6 of 8 dimensions) AND hard requirements met
+    threshold_pass = total_score >= 0.75 and hard_req_pass
+    sys.exit(0 if threshold_pass else 1)
 
 
 if __name__ == "__main__":
