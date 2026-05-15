@@ -44,6 +44,7 @@ const BINARY_PORTS: Record<string, number> = {
   social: 5004,
   expense: 5005,
   health: 5007,
+  smarthome: 5004,
 };
 
 function portProxyLines(listenPort: number, targetPort: number): string[] {
@@ -76,7 +77,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 38 benchmark task names (canonical source of truth)
+// All 40 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -90,7 +91,7 @@ const ALL_TASK_NAMES = new Set([
   "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
   "mint-diet-snack-log", "weather-aqi-report",
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
-  "health-daily-record",
+  "health-daily-record", "smarthome-test", "grocery-reorder",
 ]);
 
 interface AssetMapping {

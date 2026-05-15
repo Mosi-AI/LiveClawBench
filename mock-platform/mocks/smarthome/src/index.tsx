@@ -182,6 +182,8 @@ function initDatabase(): void {
     CREATE TABLE IF NOT EXISTS coffee_schedule (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       start_time TEXT NOT NULL,
+      beans_grams INTEGER DEFAULT 20,
+      cancelled INTEGER DEFAULT 0,
       updated_at TEXT NOT NULL
     );
 
@@ -524,36 +526,61 @@ const ErrorPage: FC<{ title: string; message: string }> = ({ title, message }) =
 };
 
 // Coffee Schedule page
-const CoffeePage: FC<{ schedule: { start_time: string; status: string; updated_at: string } }> = ({ schedule }) => {
+const CoffeePage: FC<{ schedule: { start_time: string; status: string; beans_grams: number; cancelled: boolean; updated_at: string } }> = ({ schedule }) => {
+  const displayStartTime = schedule.cancelled ? "-" : schedule.start_time;
+  const displayStatus = schedule.cancelled ? "-" : schedule.status.toUpperCase();
+  const displayBeans = schedule.cancelled ? "-" : `${schedule.beans_grams}g`;
+  const statusBadgeClass = schedule.cancelled ? "" : schedule.status === 'ready' ? 'status-ready' : schedule.status === 'brewing' ? 'status-brewing' : 'status-scheduled';
+
   return <Layout title="Coffee Schedule" scripts={`
 async function updateSchedule() {
   const startTime = document.getElementById('start-time').value;
+  const beansGrams = parseInt(document.getElementById('beans-grams').value) || 20;
   if (!startTime) { alert('Please enter a start time'); return; }
+  if (beansGrams < 5 || beansGrams > 100) { alert('Beans amount must be between 5g and 100g'); return; }
   try {
     const response = await fetch('/api/coffee-schedule', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ start_time: startTime })
+      body: JSON.stringify({ start_time: startTime, beans_grams: beansGrams, cancelled: false })
     });
     const data = await response.json();
     if (data.error) alert('Error: ' + data.error);
     else location.reload();
   } catch (err) { alert('Failed to update schedule'); }
 }
+
+async function cancelSchedule() {
+  if (!confirm('Are you sure you want to cancel the coffee schedule?')) return;
+  try {
+    const response = await fetch('/api/coffee-schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cancelled: true })
+    });
+    const data = await response.json();
+    if (data.error) alert('Error: ' + data.error);
+    else location.reload();
+  } catch (err) { alert('Failed to cancel schedule'); }
+}
 `}>
     <h1>Coffee Schedule</h1>
     <div class="card">
       <div class="metric">
         <span class="metric-label">Start Time</span>
-        <span class="metric-value">{schedule.start_time}</span>
+        <span class="metric-value">{displayStartTime}</span>
       </div>
       <div class="metric">
         <span class="metric-label">Status</span>
         <span class="metric-value">
-          <span class={`status-badge ${schedule.status === 'ready' ? 'status-ready' : schedule.status === 'brewing' ? 'status-brewing' : 'status-scheduled'}`}>
-            {schedule.status.toUpperCase()}
+          <span class={`status-badge ${statusBadgeClass}`}>
+            {displayStatus}
           </span>
         </span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Beans</span>
+        <span class="metric-value">{displayBeans}</span>
       </div>
       <div class="metric">
         <span class="metric-label">Last Updated</span>
@@ -563,8 +590,18 @@ async function updateSchedule() {
 
     <h2>Update Schedule</h2>
     <div class="card">
-      <input type="time" id="start-time" value={schedule.start_time} />
-      <button class="btn" onclick="updateSchedule()">Update</button>
+      <div style="margin-bottom:12px;">
+        <label style="display:block; margin-bottom:4px; font-weight:500;">Start Time</label>
+        <input type="time" id="start-time" value={schedule.start_time} style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="display:block; margin-bottom:4px; font-weight:500;">Beans (grams)</label>
+        <input type="number" id="beans-grams" value={schedule.beans_grams} min="5" max="100" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button class="btn btn-danger" onclick="cancelSchedule()">Cancel Schedule</button>
+        <button class="btn" onclick="updateSchedule()">Update</button>
+      </div>
     </div>
 
     <p style="color: #666; font-size: 14px; margin-top: 16px;">Brewing takes approximately 30 minutes.</p>
@@ -1411,7 +1448,7 @@ function registerRoutes(app: OpenAPIApp): void {
   // Coffee page
   app.page("/coffee", (c) => {
     const database = assertDb();
-    const schedule = database.query("SELECT start_time, updated_at FROM coffee_schedule WHERE id = 1").get() as { start_time: string; updated_at: string };
+    const schedule = database.query("SELECT start_time, beans_grams, cancelled, updated_at FROM coffee_schedule WHERE id = 1").get() as { start_time: string; beans_grams: number; cancelled: number; updated_at: string };
     const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string };
 
     if (!schedule) {
@@ -1419,7 +1456,7 @@ function registerRoutes(app: OpenAPIApp): void {
     }
 
     const status = clock ? deriveCoffeeStatus(schedule.start_time, clock.clock_time) : "scheduled";
-    return c.html(<CoffeePage schedule={{ start_time: schedule.start_time, status, updated_at: schedule.updated_at }} />);
+    return c.html(<CoffeePage schedule={{ start_time: schedule.start_time, status, beans_grams: schedule.beans_grams, cancelled: schedule.cancelled === 1, updated_at: schedule.updated_at }} />);
   });
 
   // Inventory page
@@ -1533,7 +1570,7 @@ function registerRoutes(app: OpenAPIApp): void {
   // Coffee Schedule API
   app.get("/api/coffee-schedule", (c) => {
     const database = assertDb();
-    const schedule = database.query("SELECT start_time, updated_at FROM coffee_schedule WHERE id = 1").get() as { start_time: string; updated_at: string };
+    const schedule = database.query("SELECT start_time, beans_grams, cancelled, updated_at FROM coffee_schedule WHERE id = 1").get() as { start_time: string; beans_grams: number; cancelled: number; updated_at: string };
     const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string };
 
     if (!schedule) {
@@ -1541,11 +1578,11 @@ function registerRoutes(app: OpenAPIApp): void {
     }
 
     const status = clock ? deriveCoffeeStatus(schedule.start_time, clock.clock_time) : "scheduled";
-    return c.json({ start_time: schedule.start_time, status, updated_at: schedule.updated_at });
+    return c.json({ start_time: schedule.start_time, status, beans_grams: schedule.beans_grams, cancelled: schedule.cancelled === 1, updated_at: schedule.updated_at });
   });
 
   app.post("/api/coffee-schedule", async (c) => {
-    let body: { start_time?: string };
+    let body: { start_time?: string; beans_grams?: number; cancelled?: boolean };
     try {
       body = await c.req.json();
     } catch (err) {
@@ -1554,17 +1591,6 @@ function registerRoutes(app: OpenAPIApp): void {
       }
       console.error("mock-smarthome: ERROR parsing request body:", err);
       return c.json({ error: "Internal server error" }, 500);
-    }
-
-    const startTime = body.start_time;
-    if (!startTime || !/^\d{2}:\d{2}$/.test(startTime)) {
-      return c.json({ error: "Invalid start_time format. Use HH:MM format" }, 400);
-    }
-
-    // Validate HH:MM bounds (reject invalid times like 29:99)
-    const [hour, min] = startTime.split(":").map(Number);
-    if (hour < 0 || hour > 23 || min < 0 || min > 59) {
-      return c.json({ error: "Invalid time value. Hour must be 0-23, minute must be 0-59" }, 400);
     }
 
     const database = assertDb();
@@ -1576,9 +1602,33 @@ function registerRoutes(app: OpenAPIApp): void {
     }
 
     const now = getBenchmarkTime();
-    database.query("UPDATE coffee_schedule SET start_time = ?, updated_at = ? WHERE id = 1").run(startTime, now);
 
-    return c.json({ start_time: startTime, updated_at: now });
+    // Handle cancellation
+    if (body.cancelled === true) {
+      database.query("UPDATE coffee_schedule SET cancelled = 1, updated_at = ? WHERE id = 1").run(now);
+      return c.json({ cancelled: true, updated_at: now });
+    }
+
+    // Handle update
+    const startTime = body.start_time;
+    if (!startTime || !/^\d{2}:\d{2}$/.test(startTime)) {
+      return c.json({ error: "Invalid start_time format. Use HH:MM format" }, 400);
+    }
+
+    // Validate HH:MM bounds (reject invalid times like 29:99)
+    const [hour, min] = startTime.split(":").map(Number);
+    if (hour < 0 || hour > 23 || min < 0 || min > 59) {
+      return c.json({ error: "Invalid time value. Hour must be 0-23, minute must be 0-59" }, 400);
+    }
+
+    const beansGrams = body.beans_grams ?? 20;
+    if (typeof beansGrams !== "number" || beansGrams < 5 || beansGrams > 100) {
+      return c.json({ error: "Beans amount must be between 5g and 100g" }, 400);
+    }
+
+    database.query("UPDATE coffee_schedule SET start_time = ?, beans_grams = ?, cancelled = 0, updated_at = ? WHERE id = 1").run(startTime, beansGrams, now);
+
+    return c.json({ start_time: startTime, beans_grams: beansGrams, cancelled: false, updated_at: now });
   });
 
   // Inventory API

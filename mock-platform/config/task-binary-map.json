@@ -3,7 +3,7 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "insurance", "calendar", "mint-diet", "weather", "social", "expense", "health"],
+  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "insurance", "calendar", "mint-diet", "weather", "social", "expense", "health", "smarthome"],
   "tasks": {
     "weather-aqi-report": {
       "binaries": ["weather"]
@@ -235,6 +235,20 @@
         { "src": "tasks/expense-draft-delete/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
       ]
     },
-    "health-daily-record": { "binaries": ["health"] }
+    "health-daily-record": { "binaries": ["health"] },
+    "smarthome-test": {
+      "binaries": ["smarthome"],
+      "assets": [
+        { "src": "tasks/smarthome-test/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
+      ]
+    },
+    "grocery-reorder": {
+      "binaries": ["smarthome", "shop"],
+      "assets": [
+        { "src": "tasks/grocery-reorder/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" },
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ]
+    }
   }
 }
