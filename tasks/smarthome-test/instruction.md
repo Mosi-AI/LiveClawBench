@@ -8,4 +8,4 @@ You are helping the user with their smart home system. The control panel is avai
 
 I'm feeling cold this morning, can you set the thermostat to make it comfortable — I usually feel best at 74°F. I'm also not feeling great today, if I have any workouts planned, switch them to something easy on the body. Can you check on things at home and make sure everything is in order? Based on what you find, make sure the shopping list includes what we actually need.
 
-Give me a full rundown of what the home looks like right now and everything you did.
+Give me a full rundown of what you found and any issues or items that need attention.
