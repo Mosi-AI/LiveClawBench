@@ -193,7 +193,7 @@ describe("createWorkspaceApp", () => {
     const res = await app.request("/api/notes");
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body.error).toBe("Authentication required");
+    expect(body.message).toBe("Authentication required");
   });
 
   test("API with invalid token returns 401", async () => {
@@ -202,7 +202,7 @@ describe("createWorkspaceApp", () => {
     });
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body.error).toBe("Invalid or expired token");
+    expect(body.message).toBe("Invalid or expired token");
   });
 
   test("logout redirects to / and clears cookie", async () => {
@@ -222,7 +222,7 @@ describe("createWorkspaceApp", () => {
     });
     expect(res.status).toBe(415);
     const body = await res.json();
-    expect(body.error).toBe("Content-Type must be application/json");
+    expect(body.message).toBe("Content-Type must be application/json");
   });
 
   // ---------------------------------------------------------------------------

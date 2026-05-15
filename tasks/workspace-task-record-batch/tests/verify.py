@@ -7,13 +7,13 @@ import http.cookiejar
 BASE_URL = "http://localhost:5003"
 
 EXPECTED = {
-    1: {"record_type": "summary", "source_channel": "meeting"},
-    2: {"record_type": "summary", "source_channel": "manual"},
-    3: {"record_type": "tracker_update", "source_channel": "manual"},
-    4: {"record_type": "summary", "source_channel": "meeting"},
-    5: {"record_type": "tracker_update", "source_channel": "incident"},
-    6: {"record_type": "communication", "source_channel": "email"},
-    7: {"record_type": "tracker_update", "source_channel": "incident"},
+    1: {"title": "Project Kickoff Meeting Notes", "record_type": "summary", "source_channel": "meeting"},
+    2: {"title": "Weekly Report Template", "record_type": "summary", "source_channel": "manual"},
+    3: {"title": "Q2 OKR Tracker", "record_type": "tracker_update", "source_channel": "manual"},
+    4: {"title": "Q3 Product Strategy Brief", "record_type": "summary", "source_channel": "meeting"},
+    5: {"title": "Incident Report #42", "record_type": "tracker_update", "source_channel": "incident"},
+    6: {"title": "Customer Complaint — Refund Delay", "record_type": "communication", "source_channel": "email"},
+    7: {"title": "Deployment Incident — DB Latency Spike", "record_type": "tracker_update", "source_channel": "incident"},
 }
 
 
@@ -46,6 +46,19 @@ def main():
     # Get seeded notes
     notes = api_request("/api/notes?seeded=1", cookiejar=cj)
 
+    # Build ID -> title map from fetched notes and verify titles
+    notes_by_id = {note.get("id"): note for note in notes}
+    title_mismatches = []
+    for nid, exp in EXPECTED.items():
+        note = notes_by_id.get(nid)
+        if note is None:
+            title_mismatches.append(nid)
+        elif note.get("title") != exp["title"]:
+            title_mismatches.append(nid)
+
+    if title_mismatches:
+        print(f"Title mismatch or missing for note IDs: {title_mismatches}")
+
     all_records_exist = 0.0
     record_types_correct = 0.0
     source_channels_correct = 0.0
@@ -61,6 +74,9 @@ def main():
     for note in notes:
         nid = note.get("id")
         if nid not in EXPECTED:
+            continue
+        # Skip notes with wrong titles — treat as missing for scoring
+        if nid in title_mismatches:
             continue
         matched += 1
         tr = api_request(f"/api/notes/{nid}/task-record", cookiejar=cj)

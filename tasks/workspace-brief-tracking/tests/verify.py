@@ -55,7 +55,17 @@ def main():
         if brief is not None:
             ku = brief.get("key_updates", "")
             if isinstance(ku, str) and ku.strip():
-                brief_key_updates = 1.0
+                ku_lower = ku.lower()
+                anchors = [
+                    "api v2 migration completed",
+                    "lcp dropped from 2.8s to 1.4s",
+                    "lazy-loading refactor",
+                    "99th-percentile latency under 120ms",
+                    "load-test report",
+                ]
+                matched = sum(1 for a in anchors if a in ku_lower)
+                if matched >= 2:
+                    brief_key_updates = 1.0
 
             evidence = brief.get("evidence_bullets", [])
             if isinstance(evidence, list) and len(evidence) >= 1:
