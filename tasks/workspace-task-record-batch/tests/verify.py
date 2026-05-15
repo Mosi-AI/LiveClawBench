@@ -59,12 +59,6 @@ def main():
     if title_mismatches:
         print(f"Title mismatch or missing for note IDs: {title_mismatches}")
 
-    all_records_exist = 0.0
-    record_types_correct = 0.0
-    source_channels_correct = 0.0
-    summaries_non_empty = 0.0
-    all_status_done = 0.0
-
     matched = 0
     rt_ok = 0
     sc_ok = 0
@@ -73,10 +67,7 @@ def main():
 
     for note in notes:
         nid = note.get("id")
-        if nid not in EXPECTED:
-            continue
-        # Skip notes with wrong titles — treat as missing for scoring
-        if nid in title_mismatches:
+        if nid not in EXPECTED or nid in title_mismatches:
             continue
         tr = api_request(f"/api/notes/{nid}/task-record", cookiejar=cj)
         if tr is None:
@@ -94,11 +85,11 @@ def main():
             status_ok += 1
 
     total = len(EXPECTED)
-    all_records_exist = matched / total if total else 0.0
-    record_types_correct = rt_ok / total if total else 0.0
-    source_channels_correct = sc_ok / total if total else 0.0
-    summaries_non_empty = sum_ok / total if total else 0.0
-    all_status_done = status_ok / total if total else 0.0
+    all_records_exist = matched / total
+    record_types_correct = rt_ok / total
+    source_channels_correct = sc_ok / total
+    summaries_non_empty = sum_ok / total
+    all_status_done = status_ok / total
 
     reward = (
         0.3 * all_records_exist

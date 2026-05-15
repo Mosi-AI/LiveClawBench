@@ -176,25 +176,18 @@ export function seed(db: Database): void {
   );
 
   // 7. Insert initial revisions for notes 4, 5, 6, and 7
-  db.run(
-    `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
-     VALUES (?, ?, 1, ?, 1)`,
-    [4, 4, note4Content],
-  );
-  db.run(
-    `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
-     VALUES (?, ?, 1, ?, 1)`,
-    [5, 5, note5Content],
-  );
-  db.run(
-    `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
-     VALUES (?, ?, 1, ?, 1)`,
-    [6, 6, note6Content],
-  );
-  db.run(
-    `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
-     VALUES (?, ?, 1, ?, 1)`,
-    [7, 7, note7Content],
-  );
+  const phase2Revisions = [
+    { id: 4, content: note4Content },
+    { id: 5, content: note5Content },
+    { id: 6, content: note6Content },
+    { id: 7, content: note7Content },
+  ];
+  for (const rev of phase2Revisions) {
+    db.run(
+      `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
+       VALUES (?, ?, 1, ?, 1)`,
+      [rev.id, rev.id, rev.content],
+    );
+  }
 }
 

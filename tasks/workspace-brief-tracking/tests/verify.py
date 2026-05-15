@@ -68,11 +68,10 @@ def main():
                     brief_key_updates = 1.0
 
             evidence = brief.get("evidence_bullets", [])
-            if isinstance(evidence, list) and len(evidence) >= 1:
-                for item in evidence:
-                    if isinstance(item, dict) and item.get("source"):
-                        brief_evidence = 1.0
-                        break
+            if isinstance(evidence, list) and any(
+                isinstance(item, dict) and item.get("source") for item in evidence
+            ):
+                brief_evidence = 1.0
 
             actions = brief.get("action_items", [])
             if isinstance(actions, list) and len(actions) >= 2:

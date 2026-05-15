@@ -92,7 +92,6 @@ export function registerTaskRecordRoutes(app: OpenAPIApp, db: Database): void {
       body.summary_text ?? existing?.summary_text ?? "",
       body.status ?? existing?.status ?? "open",
     );
-
     return c.json(record, 200);
   });
 }
