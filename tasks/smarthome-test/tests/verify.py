@@ -220,7 +220,7 @@ def check_d3_thermostat_state():
     try:
         conn = sqlite3.connect(SQLITE_DB)
         cursor = conn.cursor()
-        cursor.execute("SELECT mode, temperature FROM thermostat WHERE id = 1")
+        cursor.execute("SELECT mode, temperature FROM thermostat_settings WHERE id = 1")
         row = cursor.fetchone()
         conn.close()
 
@@ -368,9 +368,10 @@ def check_d7_workout_state():
     try:
         conn = sqlite3.connect(SQLITE_DB)
         cursor = conn.cursor()
+        # calendar_event table uses start_time (ISO format), not a separate date field
         cursor.execute("""
             SELECT title, workout_type FROM calendar_event
-            WHERE date = '2026-05-09' AND event_type = 'workout'
+            WHERE start_time LIKE '2026-05-09%' AND event_type = 'workout'
         """)
         row = cursor.fetchone()
         conn.close()
