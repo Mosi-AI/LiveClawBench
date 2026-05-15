@@ -49,6 +49,8 @@ interface ThermostatSettings {
 interface CoffeeSchedule {
   id: number;
   start_time: string;
+  beans_grams: number;
+  cancelled: boolean;
   updated_at: string;
 }
 

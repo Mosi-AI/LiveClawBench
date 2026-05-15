@@ -39,7 +39,8 @@ INSERT OR IGNORE INTO inventory_item (item_name, quantity, unit, location, expir
 ('Eggs', 7.0, 'pieces', 'pantry', '2026-05-22', 'dairy'),
 ('Milk', 0.5, 'gallons', 'fridge', '2026-05-15', 'dairy'),
 ('Bread', 1.0, 'loaf', 'pantry', '2026-05-18', 'bakery'),
-('Butter', 0.25, 'lbs', 'fridge', '2026-05-25', 'dairy');
+('Butter', 0.25, 'lbs', 'fridge', '2026-05-25', 'dairy'),
+('Blue Mountain Coffee Beans', 500.0, 'grams', 'pantry', '2026-12-01', 'coffee');  -- coffee beans stock
 
 -- Grocery Products (Shopping List with existing order references)
 INSERT OR IGNORE INTO grocery_product (product_id, name, quantity, unit, stock_status, reference) VALUES

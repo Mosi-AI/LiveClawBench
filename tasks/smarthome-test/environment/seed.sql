@@ -34,7 +34,8 @@ INSERT OR IGNORE INTO inventory_item (item_name, quantity, unit, location, expir
 ('Pasta', 2.0, 'lbs', 'pantry', '2026-09-01', 'grains'),        -- not expiring
 ('Tomatoes', 4.0, 'pieces', 'fridge', '2026-05-12', 'vegetables'), -- expiring in 3 days
 ('Yogurt', 2.0, 'cups', 'fridge', '2026-05-10', 'dairy'),       -- expiring in 1 day
-('Cheese', 0.5, 'lbs', 'fridge', '2026-05-11', 'dairy');        -- expiring in 2 days
+('Cheese', 0.5, 'lbs', 'fridge', '2026-05-11', 'dairy'),        -- expiring in 2 days
+('Blue Mountain Coffee Beans', 500.0, 'grams', 'pantry', '2026-12-01', 'coffee');  -- coffee beans stock
 
 -- Grocery Products (requirement list format: quantity + unit instead of price)
 INSERT OR IGNORE INTO grocery_product (product_id, name, quantity, unit, stock_status) VALUES
