@@ -36,8 +36,8 @@ describe("createWorkspaceApp", () => {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
     const body2 = await res2.json();
-    expect(body1.length).toBe(5);
-    expect(body2.length).toBe(5);
+    expect(body1.length).toBe(7);
+    expect(body2.length).toBe(7);
   });
 
   test("seed populates all 5 tables", async () => {
@@ -54,10 +54,10 @@ describe("createWorkspaceApp", () => {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
     const notes = await notesRes.json();
-    expect(notes.length).toBe(5);
+    expect(notes.length).toBe(7);
 
     // Verify note_revision table has 5 initial revisions
-    for (const id of [1, 2, 3, 4, 5]) {
+    for (const id of [1, 2, 3, 4, 5, 6, 7]) {
       const revRes = await app.request(`/api/notes/${id}/revisions`, {
         headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
       });
@@ -75,7 +75,7 @@ describe("createWorkspaceApp", () => {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
     const body = await res.json();
-    expect(body.length).toBe(5);
+    expect(body.length).toBe(7);
   });
 
   test("unseeded factory yields empty tables", async () => {
@@ -105,11 +105,11 @@ describe("createWorkspaceApp", () => {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
     const body = await res.json();
-    expect(body.map((n: any) => n.id)).toEqual([1, 2, 3, 4, 5]);
+    expect(body.map((n: any) => n.id)).toEqual([1, 2, 3, 4, 5, 6, 7]);
   });
 
   test("each seeded note has exactly one revision", async () => {
-    for (const id of [1, 2, 3, 4, 5]) {
+    for (const id of [1, 2, 3, 4, 5, 6, 7]) {
       const res = await app.request(`/api/notes/${id}/revisions`, {
         headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
       });
@@ -244,14 +244,14 @@ describe("createWorkspaceApp", () => {
     expect(body.title).toBe("Test Note");
     expect(body.content).toBe("Hello world");
     expect(body.save_count).toBe(0);
-    expect(body.id).toBeGreaterThan(5);
+    expect(body.id).toBeGreaterThan(7);
   });
 
   test("GET /api/notes returns all notes", async () => {
     const res = await app.request("/api/notes", { headers: await authHeaders() });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.length).toBe(5);
+    expect(body.length).toBe(7);
   });
 
   test("GET /api/notes?seeded=1 returns only seeded notes", async () => {
@@ -262,7 +262,7 @@ describe("createWorkspaceApp", () => {
     });
     const res = await app.request("/api/notes?seeded=1", { headers: await authHeaders() });
     const body = await res.json();
-    expect(body.length).toBe(5);
+    expect(body.length).toBe(7);
     expect(body.every((n: any) => n.is_seeded === 1)).toBe(true);
   });
 
@@ -705,7 +705,7 @@ describe("createWorkspaceApp", () => {
     const notes1 = await res1.json();
     const notes2 = await res2.json();
 
-    expect(notes1.length).toBe(5);
+    expect(notes1.length).toBe(7);
     expect(notes1.length).toBe(notes2.length);
     for (let i = 0; i < notes1.length; i++) {
       expect(notes1[i].id).toBe(notes2[i].id);
@@ -870,17 +870,11 @@ describe("createWorkspaceApp", () => {
   // Phase 2: Task Record CRUD
   // ---------------------------------------------------------------------------
 
-  test("GET /api/notes/5/task-record returns seeded record", async () => {
+  test("GET /api/notes/5/task-record returns null after seed removal", async () => {
     const res = await app.request("/api/notes/5/task-record", { headers: await authHeaders() });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).not.toBeNull();
-    expect(body.id).toBe(1);
-    expect(body.note_id).toBe(5);
-    expect(body.record_type).toBe("tracker_update");
-    expect(body.source_channel).toBe("incident");
-    expect(body.summary_text).toBe("Service degradation on 2024-07-15 due to DB connection pool exhaustion.");
-    expect(body.status).toBe("done");
+    expect(body).toBeNull();
   });
 
   test("GET /api/notes/2/task-record returns null for valid note without record", async () => {
@@ -959,7 +953,7 @@ describe("createWorkspaceApp", () => {
   // Phase 2: HTML Pages
   // ---------------------------------------------------------------------------
 
-  test("GET /note/5/task-record returns HTML with seeded data", async () => {
+  test("GET /note/5/task-record returns HTML with defaults after seed removal", async () => {
     const token = await sign({ userId: 1 });
     const res = await app.request("/note/5/task-record", {
       headers: { Authorization: "Bearer " + token },
@@ -967,10 +961,10 @@ describe("createWorkspaceApp", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/html");
     const text = await res.text();
-    expect(text).toContain("Service degradation on 2024-07-15 due to DB connection pool exhaustion.");
-    expect(text).toContain('value="tracker_update"');
-    expect(text).toContain('value="incident"');
-    expect(text).toContain('value="done"');
+    // Default values since seed task_record was removed
+    expect(text).toContain('value="summary"');
+    expect(text).toContain('value="manual"');
+    expect(text).toContain('value="open"');
   });
 
   test("GET /note/2/task-record returns HTML with defaults when no record exists", async () => {
@@ -1115,14 +1109,6 @@ describe("createWorkspaceApp", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.preview_text).toBe("1. Launch mobile app v2. 2. Expand to EU market.");
-  });
-
-  test("seeded note 5 has task record with tracker_update", async () => {
-    const res = await app.request("/api/notes/5/task-record", { headers: await authHeaders() });
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.record_type).toBe("tracker_update");
-    expect(body.source_channel).toBe("incident");
   });
 
   test("seeded note 4 revision snapshot matches flattened brief content", async () => {

@@ -267,5 +267,8 @@
     },
     "weather-city-travel-pick": { "binaries": ["weather"] },
     "weather-outdoor-window": { "binaries": ["weather"] }
+    "skill-combination": { "binaries": [] },
+    "workspace-task-record-batch": { "binaries": ["workspace"] },
+    "workspace-brief-tracking": { "binaries": ["workspace"] }
   }
 }

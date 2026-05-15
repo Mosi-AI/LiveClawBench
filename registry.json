@@ -49,6 +49,9 @@
       {"name": "weather-aqi-report", "path": "tasks/weather-aqi-report"},
       {"name": "grocery-reorder", "path": "tasks/grocery-reorder"},
       {"name": "morning-comfort-setup", "path": "tasks/morning-comfort-setup"}
+      {"name": "live-web-research-sqlite-fts5", "path": "tasks/live-web-research-sqlite-fts5"},
+      {"name": "workspace-task-record-batch", "path": "tasks/workspace-task-record-batch"},
+      {"name": "workspace-brief-tracking", "path": "tasks/workspace-brief-tracking"}
     ]
   }
 ]

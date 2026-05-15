@@ -76,6 +76,9 @@ single, clean environment without structural complexity.
 |      45 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    | Health & Fitness           |
 |      46 | weather-city-travel-pick          |     M      |    |    |    |    | Health & Wellness          |
 |      47 | weather-outdoor-window            |     H      |    |    |    |    | Health & Wellness          |
+|      30 | skill-combination                 |     E      |    |    |    | ✓  | Documents & Knowledge      |
+|      31 | workspace-task-record-batch       |     M      |    |    |    |    | Calendar & Task Mgmt       |
+|      32 | workspace-brief-tracking          |     M      |    |    |    |    | Documents & Knowledge      |
 
 ---
 
@@ -87,6 +90,10 @@ single, clean environment without structural complexity.
 | A2     | Contaminated Initial State     |     7 |      15.6% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup |
 | B1     | Implicit Goal Resolution       |     7 |      15.6% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, grocery-reorder, smarthome-test, morning-comfort-setup |
 | B2     | Knowledge System Maintenance   |    11 |      24.4% | skill-creation, skill-dependency-fix, noise-filtering         |
+| A1     | Cross-Service Dependency       |    10 |      31.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb  |
+| A2     | Contaminated Initial State     |     6 |      18.8% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
+| B1     | Implicit Goal Resolution       |     4 |      12.5% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application |
+| B2     | Knowledge System Maintenance   |    11 |      34.4% | skill-creation, skill-dependency-fix, noise-filtering         |
 
 > Percentages are relative to 45 implemented cases.
 

@@ -151,7 +151,7 @@ export function seed(db: Database): void {
     ["1. Launch mobile app v2. 2. Expand to EU market.".slice(0, 300)],
   );
 
-  // 4. Insert seeded note id=5 (plain_text with task record)
+  // 4. Insert seeded note id=5 (plain_text, no pre-existing task record)
   const note5Content = "Service degradation on 2024-07-15 due to DB connection pool exhaustion. Root cause: max_connections set too low. Mitigation: raised pool size; added monitoring alert.";
   db.run(
     `INSERT OR IGNORE INTO note (id, owner_user_id, title, content, content_type, preview_text, is_seeded)
@@ -159,14 +159,23 @@ export function seed(db: Database): void {
     [5, "Incident Report #42", note5Content, "plain_text", generatePreviewText(note5Content)],
   );
 
-  // 5. Insert task_record row id=1 for note_id=5
+  // 5. Insert seeded note id=6 (plain_text)
+  const note6Content = "Customer emailed support complaining that their refund for order #8821 has not been processed after 14 business days. They requested escalation to the billing team.";
   db.run(
-    `INSERT OR IGNORE INTO task_record (id, note_id, record_type, source_channel, summary_text, status)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [1, 5, "tracker_update", "incident", "Service degradation on 2024-07-15 due to DB connection pool exhaustion.", "done"],
+    `INSERT OR IGNORE INTO note (id, owner_user_id, title, content, content_type, preview_text, is_seeded)
+     VALUES (?, 1, ?, ?, ?, ?, 1)`,
+    [6, "Customer Complaint — Refund Delay", note6Content, "plain_text", generatePreviewText(note6Content)],
   );
 
-  // 6. Insert initial revisions for notes 4 and 5
+  // 6. Insert seeded note id=7 (plain_text)
+  const note7Content = "On 2024-08-01, production DB latency spiked to 4.2s average. Root cause: missing index on the events table. Mitigation: index added at 14:30 UTC; monitoring alert created.";
+  db.run(
+    `INSERT OR IGNORE INTO note (id, owner_user_id, title, content, content_type, preview_text, is_seeded)
+     VALUES (?, 1, ?, ?, ?, ?, 1)`,
+    [7, "Deployment Incident — DB Latency Spike", note7Content, "plain_text", generatePreviewText(note7Content)],
+  );
+
+  // 7. Insert initial revisions for notes 4, 5, 6, and 7
   db.run(
     `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
      VALUES (?, ?, 1, ?, 1)`,
@@ -176,6 +185,16 @@ export function seed(db: Database): void {
     `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
      VALUES (?, ?, 1, ?, 1)`,
     [5, 5, note5Content],
+  );
+  db.run(
+    `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
+     VALUES (?, ?, 1, ?, 1)`,
+    [6, 6, note6Content],
+  );
+  db.run(
+    `INSERT OR IGNORE INTO note_revision (id, note_id, revision_no, content_snapshot, edited_by_user_id)
+     VALUES (?, ?, 1, ?, 1)`,
+    [7, 7, note7Content],
   );
 }
 

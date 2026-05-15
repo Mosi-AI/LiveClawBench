@@ -97,6 +97,7 @@ const ALL_TASK_NAMES = new Set([
   "health-daily-record", "smarthome-test", "grocery-reorder",
   "morning-comfort-setup",
   "weather-city-travel-pick", "weather-outdoor-window",
+  "workspace-task-record-batch", "workspace-brief-tracking",
 ]);
 
 interface AssetMapping {
