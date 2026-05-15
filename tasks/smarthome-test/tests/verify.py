@@ -40,9 +40,9 @@ EXPECTED_EXPIRING_ITEMS = {
 }
 # Expected initial inventory counts
 EXPECTED_FRIDGE_COUNT = (
-    9  # Milk, Eggs, Butter, Orange Juice, Chicken Breast, Tomatoes, Yogurt, Cheese
+    8  # Milk, Eggs, Butter, Orange Juice, Chicken Breast, Tomatoes, Yogurt, Cheese
 )
-EXPECTED_PANTRY_COUNT = 4  # Bread, Cereal, Rice, Pasta
+EXPECTED_PANTRY_COUNT = 5  # Bread, Cereal, Rice, Pasta, Blue Mountain Coffee Beans
 # Expected calendar events for 2026-05-09
 EXPECTED_EVENT_COUNT = 4
 EXPECTED_EVENT_TITLES = [
