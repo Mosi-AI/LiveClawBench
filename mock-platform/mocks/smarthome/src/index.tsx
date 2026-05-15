@@ -14,12 +14,13 @@
  * Uses SQLite for persistence with verifier-readable symlink.
  */
 
-import { createMockApp, startServer } from "mock-lib";
+import { createMockApp, createRoute, startServer } from "mock-lib";
 import type { AppEnv, OpenAPIApp } from "mock-lib";
 import { html, raw } from "hono/html";
 import type { FC, Child } from "hono/jsx";
 import { Database } from "bun:sqlite";
 import { mkdirSync, existsSync, readFileSync } from "node:fs";
+import { z } from "zod";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -436,6 +437,166 @@ function generatePlanId(): string {
   return `PLAN${timestamp}-${nextSuffix.toString(36).toUpperCase().padStart(3, "0")}`;
 }
 
+const LegacyErrorSchema = z.object({
+  error: z.string(),
+});
+
+const DeleteSuccessSchema = z.object({
+  success: z.literal(true),
+});
+
+const RoomMetricsSchema = z.object({
+  temperature: z.number(),
+  humidity: z.number(),
+  unit_temp: z.string(),
+  noise: z.number().optional(),
+  light: z.number().optional(),
+  air_quality: z.number().optional(),
+});
+
+const ThermostatResponseSchema = z.object({
+  mode: z.enum(["comfort", "eco", "off"]),
+  temperature: z.number(),
+  updated_at: z.string(),
+});
+
+const ThermostatRequestSchema = z.object({
+  mode: z.any().optional(),
+  temperature: z.any().optional(),
+});
+
+const CoffeeScheduleReadSchema = z.object({
+  start_time: z.string(),
+  status: z.string(),
+  beans_grams: z.number(),
+  cancelled: z.boolean(),
+  updated_at: z.string(),
+});
+
+const CoffeeScheduleUpdateSchema = z.object({
+  start_time: z.string(),
+  beans_grams: z.number(),
+  cancelled: z.boolean(),
+  updated_at: z.string(),
+});
+
+const CoffeeScheduleCancelSchema = z.object({
+  cancelled: z.literal(true),
+  updated_at: z.string(),
+});
+
+const CoffeeScheduleRequestSchema = z.object({
+  start_time: z.any().optional(),
+  beans_grams: z.any().optional(),
+  cancelled: z.any().optional(),
+});
+
+const InventoryItemSchema = z.object({
+  id: z.number(),
+  item_name: z.string(),
+  quantity: z.number(),
+  unit: z.string(),
+  location: z.string(),
+  expiry_date: z.string().nullable().optional(),
+  category: z.string().nullable().optional(),
+});
+
+const InventoryRequestSchema = z.object({
+  item_name: z.any().optional(),
+  quantity: z.any().optional(),
+  unit: z.any().optional(),
+  location: z.any().optional(),
+  expiry_date: z.any().optional(),
+  category: z.any().optional(),
+});
+
+const GroceryProductSchema = z.object({
+  product_id: z.string(),
+  name: z.string(),
+  quantity: z.number(),
+  unit: z.string(),
+  stock_status: z.enum(["sufficient", "insufficient", "unavailable"]),
+  substitute_for: z.string().nullable().optional(),
+  reference: z.string().nullable().optional(),
+});
+
+const GroceryRequestSchema = z.object({
+  product_id: z.any().optional(),
+  name: z.any().optional(),
+  quantity: z.any().optional(),
+  unit: z.any().optional(),
+  stock_status: z.any().optional(),
+  substitute_for: z.any().optional(),
+  reference: z.any().optional(),
+});
+
+const WearableRecoverySchema = z.object({
+  sleep_hours: z.number(),
+  sleep_score: z.number(),
+  readiness: z.number(),
+  resting_heart_rate: z.number(),
+});
+
+const CalendarEventSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  start_time: z.string(),
+  event_type: z.string().nullable().optional(),
+  workout_type: z
+    .enum([
+      "hiit",
+      "yoga",
+      "walking",
+      "cycling",
+      "strength",
+      "stretching",
+      "swimming",
+      "rest",
+    ])
+    .nullable()
+    .optional(),
+  updated_at: z.string(),
+});
+
+const CalendarUpdateRequestSchema = z.object({
+  title: z.any().optional(),
+  start_time: z.any().optional(),
+  event_type: z.any().optional(),
+  workout_type: z.any().optional(),
+});
+
+const UserConstraintsSchema = z.object({
+  calorie_target: z.number(),
+  macro_targets: z.string(),
+  allergy_constraints: z.string(),
+  weekly_budget_limit: z.number(),
+});
+
+const RecipeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  meal_type: z.enum(["breakfast", "lunch", "dinner"]),
+  ingredients: z.string(),
+  calories_total: z.number(),
+  allergens: z.string().nullable().optional(),
+});
+
+const MealPlanRecordSchema = z.object({
+  plan_id: z.string(),
+  created_at: z.string(),
+  plan_data: z.string(),
+});
+
+const MealPlanCreateResponseSchema = z.object({
+  success: z.literal(true),
+  plan_id: z.string(),
+  created_at: z.string(),
+});
+
+const MealPlanRequestSchema = z.object({
+  days: z.any().optional(),
+});
+
 // ---------------------------------------------------------------------------
 // HTML helpers
 // ---------------------------------------------------------------------------
@@ -547,7 +708,8 @@ async function updateSchedule() {
       body: JSON.stringify({ start_time: startTime, beans_grams: beansGrams, cancelled: false })
     });
     const data = await response.json();
-    if (data.error) alert('Error: ' + data.error);
+    const errorMessage = data.error || data.message;
+    if (errorMessage) alert('Error: ' + errorMessage);
     else location.reload();
   } catch (err) { alert('Failed to update schedule'); }
 }
@@ -561,7 +723,8 @@ async function cancelSchedule() {
       body: JSON.stringify({ cancelled: true })
     });
     const data = await response.json();
-    if (data.error) alert('Error: ' + data.error);
+    const errorMessage = data.error || data.message;
+    if (errorMessage) alert('Error: ' + errorMessage);
     else location.reload();
   } catch (err) { alert('Failed to cancel schedule'); }
 }
@@ -699,7 +862,8 @@ async function updateThermostat() {
       body: JSON.stringify({ mode, temperature })
     });
     const data = await response.json();
-    if (data.error) { alert('Error: ' + data.error); }
+    const errorMessage = data.error || data.message;
+    if (errorMessage) { alert('Error: ' + errorMessage); }
     else { location.reload(); }
   } catch (err) { alert('Failed to update thermostat'); }
 }
@@ -792,7 +956,8 @@ async function saveItem() {
       body: JSON.stringify(body)
     });
     const data = await response.json();
-    if (data.error) alert('Error: ' + data.error);
+    const errorMessage = data.error || data.message;
+    if (errorMessage) alert('Error: ' + errorMessage);
     else { closeModal(); window.location.reload(); }
   } catch (err) { alert('Failed to save item'); }
 }
@@ -802,7 +967,8 @@ async function deleteItem(id) {
   try {
     const response = await fetch('/api/inventory/' + id, { method: 'DELETE' });
     const data = await response.json();
-    if (data.error) alert('Error: ' + data.error);
+    const errorMessage = data.error || data.message;
+    if (errorMessage) alert('Error: ' + errorMessage);
     else location.reload();
   } catch (err) { alert('Failed to delete item'); }
 }
@@ -958,7 +1124,8 @@ async function saveItem() {
       body: JSON.stringify(body)
     });
     const data = await response.json();
-    if (data.error) alert('Error: ' + data.error);
+    const errorMessage = data.error || data.message;
+    if (errorMessage) alert('Error: ' + errorMessage);
     else { closeModal(); location.reload(); }
   } catch (err) { alert('Failed to save item'); }
 }
@@ -968,7 +1135,8 @@ async function deleteItem(id) {
   try {
     const response = await fetch('/api/grocery/products/' + id, { method: 'DELETE' });
     const data = await response.json();
-    if (data.error) alert('Error: ' + data.error);
+    const errorMessage = data.error || data.message;
+    if (errorMessage) alert('Error: ' + errorMessage);
     else location.reload();
   } catch (err) { alert('Failed to delete item'); }
 }
@@ -1087,7 +1255,8 @@ async function saveEvent() {
       body: JSON.stringify(body)
     });
     const data = await response.json();
-    if (data.error) alert('Error: ' + data.error);
+    const errorMessage = data.error || data.message;
+    if (errorMessage) alert('Error: ' + errorMessage);
     else { closeModal(); location.reload(); }
   } catch (err) { alert('Failed to save event'); }
 }
@@ -1270,7 +1439,8 @@ function savePlan() {
   })
   .then(r => r.json())
   .then(data => {
-    if (data.error) alert('Error: ' + data.error);
+    const errorMessage = data.error || data.message;
+    if (errorMessage) alert('Error: ' + errorMessage);
     else { closePlanModal(); location.reload(); }
   })
   .catch(err => alert('Failed to save plan'));
@@ -1282,7 +1452,8 @@ function deletePlan() {
   fetch('/api/meal-plan', { method: 'DELETE' })
     .then(r => r.json())
     .then(data => {
-      if (data.error) alert('Error: ' + data.error);
+      const errorMessage = data.error || data.message;
+      if (errorMessage) alert('Error: ' + errorMessage);
       else location.reload();
     })
     .catch(err => alert('Failed to delete plan'));
@@ -1414,6 +1585,479 @@ window.onclick = function(event) {
 // Route registration
 // ---------------------------------------------------------------------------
 
+const roomMetricsRoute = createRoute({
+  method: "get",
+  path: "/api/room-metrics",
+  tags: ["room-metrics"],
+  responses: {
+    200: {
+      description: "Current room metrics",
+      content: { "application/json": { schema: RoomMetricsSchema } },
+    },
+    503: {
+      description: "Room metrics unavailable",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const thermostatReadRoute = createRoute({
+  method: "get",
+  path: "/api/thermostat",
+  tags: ["thermostat"],
+  responses: {
+    200: {
+      description: "Current thermostat settings",
+      content: { "application/json": { schema: ThermostatResponseSchema } },
+    },
+    404: {
+      description: "Thermostat settings not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const thermostatUpdateRoute = createRoute({
+  method: "post",
+  path: "/api/thermostat",
+  tags: ["thermostat"],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: ThermostatRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Updated thermostat settings",
+      content: { "application/json": { schema: ThermostatResponseSchema } },
+    },
+    400: {
+      description: "Invalid thermostat settings",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+    503: {
+      description: "Thermostat settings unavailable",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const coffeeScheduleReadRoute = createRoute({
+  method: "get",
+  path: "/api/coffee-schedule",
+  tags: ["coffee-schedule"],
+  responses: {
+    200: {
+      description: "Current coffee schedule",
+      content: { "application/json": { schema: CoffeeScheduleReadSchema } },
+    },
+    404: {
+      description: "Coffee schedule not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const coffeeScheduleUpdateRoute = createRoute({
+  method: "post",
+  path: "/api/coffee-schedule",
+  tags: ["coffee-schedule"],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: CoffeeScheduleRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Updated or cancelled coffee schedule",
+      content: {
+        "application/json": {
+          schema: z.union([CoffeeScheduleUpdateSchema, CoffeeScheduleCancelSchema]),
+        },
+      },
+    },
+    400: {
+      description: "Invalid coffee schedule request",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+    503: {
+      description: "Coffee schedule unavailable",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const inventoryListRoute = createRoute({
+  method: "get",
+  path: "/api/inventory",
+  tags: ["inventory"],
+  request: {
+    query: z.object({
+      location: z.string().optional(),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Inventory items",
+      content: { "application/json": { schema: z.array(InventoryItemSchema) } },
+    },
+  },
+});
+
+const inventoryCreateRoute = createRoute({
+  method: "post",
+  path: "/api/inventory",
+  tags: ["inventory"],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: InventoryRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Created inventory item",
+      content: { "application/json": { schema: InventoryItemSchema } },
+    },
+    400: {
+      description: "Invalid inventory item",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const inventoryUpdateRoute = createRoute({
+  method: "put",
+  path: "/api/inventory/{id}",
+  tags: ["inventory"],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: {
+        "application/json": {
+          schema: InventoryRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Updated inventory item",
+      content: { "application/json": { schema: InventoryItemSchema } },
+    },
+    400: {
+      description: "Invalid inventory item update",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+    404: {
+      description: "Inventory item not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const inventoryDeleteRoute = createRoute({
+  method: "delete",
+  path: "/api/inventory/{id}",
+  tags: ["inventory"],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Deleted inventory item",
+      content: { "application/json": { schema: DeleteSuccessSchema } },
+    },
+    400: {
+      description: "Invalid inventory item id",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+    404: {
+      description: "Inventory item not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const groceryListRoute = createRoute({
+  method: "get",
+  path: "/api/grocery/products",
+  tags: ["grocery-products"],
+  responses: {
+    200: {
+      description: "Shopping list products",
+      content: { "application/json": { schema: z.array(GroceryProductSchema) } },
+    },
+  },
+});
+
+const groceryCreateRoute = createRoute({
+  method: "post",
+  path: "/api/grocery/products",
+  tags: ["grocery-products"],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: GroceryRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Created shopping list product",
+      content: { "application/json": { schema: GroceryProductSchema } },
+    },
+    400: {
+      description: "Invalid shopping list product",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const groceryUpdateRoute = createRoute({
+  method: "put",
+  path: "/api/grocery/products/{id}",
+  tags: ["grocery-products"],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: {
+        "application/json": {
+          schema: GroceryRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Updated shopping list product",
+      content: { "application/json": { schema: GroceryProductSchema } },
+    },
+    400: {
+      description: "Invalid shopping list product update",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+    404: {
+      description: "Shopping list product not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const groceryDeleteRoute = createRoute({
+  method: "delete",
+  path: "/api/grocery/products/{id}",
+  tags: ["grocery-products"],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Deleted shopping list product",
+      content: { "application/json": { schema: DeleteSuccessSchema } },
+    },
+    400: {
+      description: "Invalid shopping list product id",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+    404: {
+      description: "Shopping list product not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const wearableRecoveryRoute = createRoute({
+  method: "get",
+  path: "/api/wearable-recovery",
+  tags: ["wearable-recovery"],
+  responses: {
+    200: {
+      description: "Wearable recovery data",
+      content: { "application/json": { schema: WearableRecoverySchema } },
+    },
+    503: {
+      description: "Wearable data unavailable",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const calendarListRoute = createRoute({
+  method: "get",
+  path: "/api/calendar",
+  tags: ["calendar"],
+  responses: {
+    200: {
+      description: "Calendar events",
+      content: { "application/json": { schema: z.array(CalendarEventSchema) } },
+    },
+  },
+});
+
+const calendarReadRoute = createRoute({
+  method: "get",
+  path: "/api/calendar/{id}",
+  tags: ["calendar"],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Calendar event",
+      content: { "application/json": { schema: CalendarEventSchema } },
+    },
+    404: {
+      description: "Calendar event not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const calendarUpdateRoute = createRoute({
+  method: "put",
+  path: "/api/calendar/{id}",
+  tags: ["calendar"],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: {
+        "application/json": {
+          schema: CalendarUpdateRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Updated calendar event",
+      content: { "application/json": { schema: CalendarEventSchema } },
+    },
+    400: {
+      description: "Invalid calendar event update",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+    404: {
+      description: "Calendar event not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const constraintsRoute = createRoute({
+  method: "get",
+  path: "/api/constraints",
+  tags: ["meal-planning"],
+  responses: {
+    200: {
+      description: "User meal-planning constraints",
+      content: { "application/json": { schema: UserConstraintsSchema } },
+    },
+    404: {
+      description: "Constraints not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const recipesRoute = createRoute({
+  method: "get",
+  path: "/api/recipes",
+  tags: ["meal-planning"],
+  responses: {
+    200: {
+      description: "Recipes",
+      content: { "application/json": { schema: z.array(RecipeSchema) } },
+    },
+  },
+});
+
+const mealPlanReadRoute = createRoute({
+  method: "get",
+  path: "/api/meal-plan",
+  tags: ["meal-planning"],
+  responses: {
+    200: {
+      description: "Current meal plan",
+      content: { "application/json": { schema: MealPlanRecordSchema } },
+    },
+    404: {
+      description: "Meal plan not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const mealPlanCreateRoute = createRoute({
+  method: "post",
+  path: "/api/meal-plan",
+  tags: ["meal-planning"],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: MealPlanRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Created meal plan",
+      content: { "application/json": { schema: MealPlanCreateResponseSchema } },
+    },
+    400: {
+      description: "Invalid meal plan",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+    404: {
+      description: "Referenced recipe not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const mealPlanDeleteRoute = createRoute({
+  method: "delete",
+  path: "/api/meal-plan",
+  tags: ["meal-planning"],
+  responses: {
+    200: {
+      description: "Deleted latest meal plan",
+      content: { "application/json": { schema: DeleteSuccessSchema } },
+    },
+    404: {
+      description: "No meal plan to delete",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
 function registerRoutes(app: OpenAPIApp): void {
   // Sentinel route for binary isolation verification
   app.get("/__mock_sentinel__/smarthome", (c) =>
@@ -1513,7 +2157,7 @@ function registerRoutes(app: OpenAPIApp): void {
   // --- API Routes ---
 
   // Room Metrics API
-  app.get("/api/room-metrics", (c) => {
+  app.openApiRoute(roomMetricsRoute, (c) => {
     const database = assertDb();
     const metrics = database.query("SELECT temperature, humidity, unit_temp, noise, light, air_quality FROM room_metrics LIMIT 1").get();
     if (!metrics) {
@@ -1523,7 +2167,7 @@ function registerRoutes(app: OpenAPIApp): void {
   });
 
   // Thermostat API
-  app.get("/api/thermostat", (c) => {
+  app.openApiRoute(thermostatReadRoute, (c) => {
     const database = assertDb();
     const thermostat = database.query("SELECT mode, temperature, updated_at FROM thermostat_settings WHERE id = 1").get();
     if (!thermostat) {
@@ -1532,7 +2176,7 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.json(thermostat);
   });
 
-  app.post("/api/thermostat", async (c) => {
+  app.openApiRoute(thermostatUpdateRoute, async (c) => {
     let body: { mode?: string; temperature?: number };
     try {
       body = await c.req.json();
@@ -1570,7 +2214,7 @@ function registerRoutes(app: OpenAPIApp): void {
   });
 
   // Coffee Schedule API
-  app.get("/api/coffee-schedule", (c) => {
+  app.openApiRoute(coffeeScheduleReadRoute, (c) => {
     const database = assertDb();
     const schedule = database.query("SELECT start_time, beans_grams, cancelled, updated_at FROM coffee_schedule WHERE id = 1").get() as { start_time: string; beans_grams: number; cancelled: number; updated_at: string };
     const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string };
@@ -1583,7 +2227,7 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.json({ start_time: schedule.start_time, status, beans_grams: schedule.beans_grams, cancelled: schedule.cancelled === 1, updated_at: schedule.updated_at });
   });
 
-  app.post("/api/coffee-schedule", async (c) => {
+  app.openApiRoute(coffeeScheduleUpdateRoute, async (c) => {
     let body: { start_time?: string; beans_grams?: number; cancelled?: boolean };
     try {
       body = await c.req.json();
@@ -1634,7 +2278,7 @@ function registerRoutes(app: OpenAPIApp): void {
   });
 
   // Inventory API
-  app.get("/api/inventory", (c) => {
+  app.openApiRoute(inventoryListRoute, (c) => {
     const database = assertDb();
     const location = c.req.query("location");
 
@@ -1650,7 +2294,7 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.json(items);
   });
 
-  app.post("/api/inventory", async (c) => {
+  app.openApiRoute(inventoryCreateRoute, async (c) => {
     let body: Partial<InventoryItem>;
     try {
       body = await c.req.json();
@@ -1682,7 +2326,7 @@ function registerRoutes(app: OpenAPIApp): void {
     }, 201);
   });
 
-  app.put("/api/inventory/:id", async (c) => {
+  app.openApiRoute(inventoryUpdateRoute, async (c) => {
     const idParam = c.req.param("id");
     const id = Number(idParam);
     if (isNaN(id) || !Number.isInteger(id) || id <= 0) {
@@ -1725,7 +2369,7 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.json(updated);
   });
 
-  app.delete("/api/inventory/:id", (c) => {
+  app.openApiRoute(inventoryDeleteRoute, (c) => {
     const idParam = c.req.param("id");
     const id = Number(idParam);
     if (isNaN(id) || !Number.isInteger(id) || id <= 0) {
@@ -1743,13 +2387,13 @@ function registerRoutes(app: OpenAPIApp): void {
   });
 
   // Shopping List API
-  app.get("/api/grocery/products", (c) => {
+  app.openApiRoute(groceryListRoute, (c) => {
     const database = assertDb();
     const products = database.query("SELECT product_id, name, quantity, unit, stock_status, substitute_for, reference FROM grocery_product ORDER BY name").all();
     return c.json(products);
   });
 
-  app.post("/api/grocery/products", async (c) => {
+  app.openApiRoute(groceryCreateRoute, async (c) => {
     let body: Partial<GroceryProduct>;
     try {
       body = await c.req.json();
@@ -1791,7 +2435,7 @@ function registerRoutes(app: OpenAPIApp): void {
     }, 201);
   });
 
-  app.put("/api/grocery/products/:id", async (c) => {
+  app.openApiRoute(groceryUpdateRoute, async (c) => {
     const idParam = c.req.param("id");
     if (!idParam) {
       return c.json({ error: "Product ID required" }, 400);
@@ -1835,7 +2479,7 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.json(updated);
   });
 
-  app.delete("/api/grocery/products/:id", (c) => {
+  app.openApiRoute(groceryDeleteRoute, (c) => {
     const idParam = c.req.param("id");
     if (!idParam) {
       return c.json({ error: "Product ID required" }, 400);
@@ -1852,7 +2496,7 @@ function registerRoutes(app: OpenAPIApp): void {
   });
 
   // Wearable/Recovery API
-  app.get("/api/wearable-recovery", (c) => {
+  app.openApiRoute(wearableRecoveryRoute, (c) => {
     const database = assertDb();
     const data = database.query("SELECT sleep_hours, sleep_score, readiness, resting_heart_rate FROM wearable_recovery_state WHERE id = 1").get();
     if (!data) {
@@ -1862,13 +2506,13 @@ function registerRoutes(app: OpenAPIApp): void {
   });
 
   // Calendar/Workout API
-  app.get("/api/calendar", (c) => {
+  app.openApiRoute(calendarListRoute, (c) => {
     const database = assertDb();
     const events = database.query("SELECT id, title, start_time, event_type, workout_type, updated_at FROM calendar_event ORDER BY start_time").all();
     return c.json(events);
   });
 
-  app.get("/api/calendar/:id", (c) => {
+  app.openApiRoute(calendarReadRoute, (c) => {
     const id = c.req.param("id");
     const database = assertDb();
     const event = database.query("SELECT id, title, start_time, event_type, workout_type, updated_at FROM calendar_event WHERE id = ?").get(id);
@@ -1880,7 +2524,7 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.json(event);
   });
 
-  app.put("/api/calendar/:id", async (c) => {
+  app.openApiRoute(calendarUpdateRoute, async (c) => {
     const id = c.req.param("id");
     let body: { title?: string; start_time?: string; event_type?: string; workout_type?: string };
     try {
@@ -1919,7 +2563,7 @@ function registerRoutes(app: OpenAPIApp): void {
   });
 
   // Constraints API
-  app.get("/api/constraints", (c) => {
+  app.openApiRoute(constraintsRoute, (c) => {
     const database = assertDb();
     const constraints = database.query("SELECT calorie_target, macro_targets, allergy_constraints, weekly_budget_limit FROM user_constraints WHERE id = 1").get();
     if (!constraints) {
@@ -1929,14 +2573,14 @@ function registerRoutes(app: OpenAPIApp): void {
   });
 
   // Recipes API
-  app.get("/api/recipes", (c) => {
+  app.openApiRoute(recipesRoute, (c) => {
     const database = assertDb();
     const recipes = database.query("SELECT id, name, meal_type, ingredients, calories_total, allergens FROM recipe ORDER BY meal_type, name").all();
     return c.json(recipes);
   });
 
   // Meal Plan API
-  app.get("/api/meal-plan", (c) => {
+  app.openApiRoute(mealPlanReadRoute, (c) => {
     const database = assertDb();
     // Use id DESC as tie-breaker for deterministic retrieval when multiple plans share the same created_at
     const plan = database.query("SELECT plan_id, created_at, plan_data FROM meal_plan ORDER BY created_at DESC, id DESC LIMIT 1").get();
@@ -1946,7 +2590,7 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.json(plan);
   });
 
-  app.post("/api/meal-plan", async (c) => {
+  app.openApiRoute(mealPlanCreateRoute, async (c) => {
     let body: { days?: Array<{ date: string; meals: Array<{ meal_type: string; meal_id: number }> }> };
     try {
       body = await c.req.json();
@@ -2023,7 +2667,7 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.json({ success: true, plan_id: planId, created_at: now }, 201);
   });
 
-  app.delete("/api/meal-plan", (c) => {
+  app.openApiRoute(mealPlanDeleteRoute, (c) => {
     const database = assertDb();
     // Delete the most recent meal plan
     const result = database.query("DELETE FROM meal_plan WHERE id = (SELECT id FROM meal_plan ORDER BY created_at DESC, id DESC LIMIT 1)").run();
