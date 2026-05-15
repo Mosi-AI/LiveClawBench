@@ -42,25 +42,7 @@ if not cookie or cookie == "token=":
     # Try to extract from Set-Cookie header
     print("Warning: no session_token in login response")
 
-# Step 2: Create post "Hello from the test!"
-status, body = api(
-    "/api/posts",
-    "POST",
-    {"content": "Hello from the test!", "status": "published", "visibility": "public"},
-    cookie,
-)
-
-if status != 201:
-    print(f"Score: {SCORE}/1.0")
-    print(f"FAIL: post creation returned {status}")
-    exit(0 if SCORE >= 0.5 else 1)
-
-post_id = body.get("post_id")
-if not post_id:
-    print("FAIL: no post_id in response")
-    exit(0 if SCORE >= 0.5 else 1)
-
-# Step 3: Verify post appears in public feed
+# Step 2: Verify post appears in public feed (agent should have created it)
 status, body = api("/api/posts")
 if status != 200:
     print(f"Score: {SCORE}/1.0")
