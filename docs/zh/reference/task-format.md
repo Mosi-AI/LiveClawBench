@@ -101,7 +101,6 @@ LiveClawBench 任务分为以下主要领域：
 | DevOps & Env Repair | 构建修复和环境修复 | vue-build-fix-single, vue-build-fix-chain |
 | Deep Research & Report | 研究综合和报告 | noise-filtering, live-web-research-sqlite-fts5 |
 | Health & Fitness | 饮食和健康追踪 | mint-diet-snack-log |
-| Smart Home | 智能家居和物联网控制 | smarthome-test |
 | Social Media | 社交平台互动 | social-media-posting, social-unlike-post |
 | Finance & Data Analytics | 费用和金融数据管理 | expense-draft-delete |
 | Health & Wellness | 健康记录和健康追踪 | health-daily-record |

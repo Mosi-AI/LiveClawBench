@@ -93,7 +93,6 @@ LiveClawBench tasks are classified into the following primary domains:
 | DevOps & Env Repair | Build fixes and environment repair | vue-build-fix-single, vue-build-fix-chain |
 | Deep Research & Report | Research synthesis and reporting | noise-filtering, live-web-research-sqlite-fts5 |
 | Health & Fitness | Diet and health tracking | mint-diet-snack-log |
-| Smart Home | Home automation and IoT control | smarthome-test |
 | Social Media | Social platform interactions | social-media-posting, social-unlike-post |
 | Finance & Data Analytics | Expense and financial data management | expense-draft-delete |
 | Health & Wellness | Health records and wellness tracking | health-daily-record |

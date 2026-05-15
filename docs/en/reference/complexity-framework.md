@@ -67,7 +67,7 @@ single, clean environment without structural complexity.
 |      36 | insurance-deductible-selection    |     E      |    |    |    |    | E-commerce & Daily Svcs    |
 |      37 | health-insurance-optimization     |     M      | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |      38 | health-daily-record               |     E      |    |    |    |    | Health & Wellness          |
-|      39 | smarthome-test                    |     M      |    |    | ✓  |    | Smart Home                 |
+|      39 | smarthome-test                    |     M      |    |    | ✓  |    | E-commerce & Daily Svcs    |
 |      40 | weather-aqi-report                |     E      |    |    |    |    | Deep Research & Report     |
 
 ---
@@ -101,23 +101,21 @@ Factor occurrence frequency per primary domain:
 |----------------------------|----|----|----|----|-----------------------:|
 | Documents & Knowledge      |  2 |  2 |  0 | 10 |                     14 |
 | Communication & Email      |  0 |  0 |  0 |  0 |                      0 |
-| E-commerce & Daily Svcs    |  7 |  0 |  3 |  0 |                     10 |
+| E-commerce & Daily Svcs    |  7 |  0 |  4 |  0 |                     11 |
 | Calendar & Task Mgmt       |  2 |  0 |  1 |  0 |                      3 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |                      1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |                      2 |
 | Deep Research & Report     |  1 |  1 |  0 |  2 |                      4 |
 | Health & Fitness           |  0 |  0 |  0 |  0 |                      0 |
-| Smart Home                 |  0 |  0 |  1 |  0 |                      1 |
 | Social Media               |  0 |  0 |  0 |  0 |                      0 |
 | Finance & Data Analytics   |  0 |  0 |  0 |  0 |                      0 |
 
 Key observations:
 - **B2 is highly concentrated in Documents & Knowledge** (10/11), reflecting the nature of knowledge management tasks
 - **A1 is the most broadly distributed**, spanning 5 domains — cross-service coordination is a universal complexity source
-- **B1 appears in E-commerce, Calendar, and Smart Home**, where tasks most naturally produce implicit goals
+- **B1 appears in E-commerce and Calendar**, where tasks most naturally produce implicit goals
 - **Communication & Email has no factors** — these cases serve as pure baselines
 - **Health & Fitness has no factors** — mint-diet-snack-log serves as a domain baseline
-- **Smart Home has B1 factor** — smarthome-test involves implicit goal resolution
 - **Social Media has no factors** — the two social tasks serve as domain baselines
 - **Finance & Data Analytics has no factors** — expense-draft-delete serves as a domain baseline
 
