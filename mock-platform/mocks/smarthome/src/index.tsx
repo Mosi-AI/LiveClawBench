@@ -566,6 +566,8 @@ async function updateSchedule() {
       <input type="time" id="start-time" value={schedule.start_time} />
       <button class="btn" onclick="updateSchedule()">Update</button>
     </div>
+
+    <p style="color: #666; font-size: 14px; margin-top: 16px;">Brewing takes approximately 30 minutes.</p>
   </Layout>;
 };
 

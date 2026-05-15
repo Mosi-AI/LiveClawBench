@@ -46,7 +46,10 @@ def get_last_assistant_message():
         for line in f:
             try:
                 entry = json.loads(line)
-                if entry.get("type") == "message" and entry.get("message", {}).get("role") == "assistant":
+                if (
+                    entry.get("type") == "message"
+                    and entry.get("message", {}).get("role") == "assistant"
+                ):
                     content = entry["message"].get("content")
                     if content is None:
                         continue
@@ -138,8 +141,7 @@ def check_dimension_3(conn, egg_product_id, expected_order_id):
 
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT reference FROM grocery_product WHERE product_id = ?",
-        (egg_product_id,)
+        "SELECT reference FROM grocery_product WHERE product_id = ?", (egg_product_id,)
     )
     row = cursor.fetchone()
     if row is None:
@@ -299,7 +301,9 @@ def main():
     if egg_product_id and egg_order_id:
         print(f"    -> Row {egg_product_id} reference must equal {egg_order_id}")
     print(f"D4 (Rounding explanation): {'PASS' if d4_pass else 'FAIL'}")
-    print(f"D5 (Existing entries unchanged): {'PASS' if d5_pass else 'FAIL' if d1_pass and d2_pass and d3_pass else 'SKIPPED (D1-3 not all pass)'}")
+    print(
+        f"D5 (Existing entries unchanged): {'PASS' if d5_pass else 'FAIL' if d1_pass and d2_pass and d3_pass else 'SKIPPED (D1-3 not all pass)'}"
+    )
     print(f"Score: {score:.2f}/1.0")
 
     # D3 (reference match) and D4 (rounding explanation) are mandatory

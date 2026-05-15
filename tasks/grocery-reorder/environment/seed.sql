@@ -36,7 +36,7 @@ VALUES (1, 2000.0, '{"protein": 150, "carbs": 250, "fat": 65}', '[]', 150.0);
 -- Inventory Items (eggs split across fridge and pantry)
 INSERT OR IGNORE INTO inventory_item (item_name, quantity, unit, location, expiry_date, category) VALUES
 ('Eggs', 11.0, 'pieces', 'fridge', '2026-05-20', 'dairy'),
-('Eggs', 7.0, 'pieces', 'pantry', NULL, 'dairy'),
+('Eggs', 7.0, 'pieces', 'pantry', '2026-05-22', 'dairy'),
 ('Milk', 0.5, 'gallons', 'fridge', '2026-05-15', 'dairy'),
 ('Bread', 1.0, 'loaf', 'pantry', '2026-05-18', 'bakery'),
 ('Butter', 0.25, 'lbs', 'fridge', '2026-05-25', 'dairy');
