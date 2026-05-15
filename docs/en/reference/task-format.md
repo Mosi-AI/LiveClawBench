@@ -71,13 +71,32 @@ allow_internet = true   # required if the agent needs LLM API access
 | Field | Description |
 |-------|-------------|
 | `case_id` | Unique integer identifier; check `../../metadata/cases_registry.csv` before assigning |
-| `domain` | Primary task domain (e.g., `E-commerce & Daily Svcs`) |
+| `domain` | Primary task domain (see [Available Domains](#available-domains) below) |
 | `domains_multi` | All domains the task touches, including primary |
 | `factor_a1` .. `factor_b2` | Complexity factor flags per the Triple-Axis Framework |
 | `verifier.timeout_sec` | Maximum execution time for the verification script |
 | `agent.timeout_sec` | Maximum time the agent has to complete the task |
 | `environment.build_timeout_sec` | Docker environment build timeout |
 | `allow_internet` | Set to `true` if the agent must call external LLM APIs |
+
+### Available Domains
+
+LiveClawBench tasks are classified into the following primary domains:
+
+| Domain | Description | Example Tasks |
+|--------|-------------|---------------|
+| Documents & Knowledge | Skill/knowledge repository management | skill-creation, skill-conflict-resolution |
+| Communication & Email | Email composition and management | email-writing, email-reply |
+| E-commerce & Daily Svcs | Shopping, orders, daily services | watch-shop, flight-booking |
+| Calendar & Task Mgmt | Scheduling and task coordination | schedule-change-request, flight-info-change-notice |
+| Coding & Software Dev | Full-stack development tasks | blog-site-from-scratch, blog-site-completion-from-starter |
+| DevOps & Env Repair | Build fixes and environment repair | vue-build-fix-single, vue-build-fix-chain |
+| Deep Research & Report | Research synthesis and reporting | noise-filtering, live-web-research-sqlite-fts5 |
+| Health & Fitness | Diet and health tracking | mint-diet-snack-log |
+| Smart Home | Home automation and IoT control | smarthome-test |
+| Social Media | Social platform interactions | social-media-posting, social-unlike-post |
+| Finance & Data Analytics | Expense and financial data management | expense-draft-delete |
+| Health & Wellness | Health records and wellness tracking | health-daily-record |
 
 **Complexity factor fields** (set to `1` when the factor applies, `0` when absent):
 
