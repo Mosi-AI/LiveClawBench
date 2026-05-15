@@ -76,10 +76,10 @@ export const BriefResponseSchema = BriefPayloadSchema.extend({
 });
 
 export const TaskRecordPayloadSchema = z.object({
-  record_type: z.enum(["communication", "summary", "tracker_update"]).default("summary"),
-  source_channel: z.enum(["manual", "email", "meeting", "incident"]).default("manual"),
-  summary_text: z.string().default(""),
-  status: z.enum(["open", "in_progress", "done", "cancelled"]).default("open"),
+  record_type: z.enum(["communication", "summary", "tracker_update"]).optional(),
+  source_channel: z.enum(["manual", "email", "meeting", "incident"]).optional(),
+  summary_text: z.string().optional(),
+  status: z.enum(["open", "in_progress", "done", "cancelled"]).optional(),
 });
 
 export const TaskRecordResponseSchema = TaskRecordPayloadSchema.extend({

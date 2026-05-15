@@ -78,10 +78,10 @@ def main():
         # Skip notes with wrong titles — treat as missing for scoring
         if nid in title_mismatches:
             continue
-        matched += 1
         tr = api_request(f"/api/notes/{nid}/task-record", cookiejar=cj)
         if tr is None:
             continue
+        matched += 1
         exp = EXPECTED[nid]
         if tr.get("record_type") == exp["record_type"]:
             rt_ok += 1
