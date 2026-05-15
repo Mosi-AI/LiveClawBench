@@ -145,22 +145,30 @@ def check_d1_dashboard_report(response):
     response_lower = response.lower()
     found = 0
 
-    # Check temperature (68.5°F)
-    if "68.5" in response_lower or ("68" in response_lower and "temperature" in response_lower):
-        print("PASS: Temperature mentioned")
+    # Check temperature (68.5°F) - must mention 68.5 or 68 with temperature context
+    temp_patterns = [
+        r"68\.5",           # "68.5"
+        r"68\s*°",          # "68°" or "68 °"
+        r"68\s*degrees",    # "68 degrees"
+        r"68\s*f",          # "68F" or "68 F"
+    ]
+    if any(re.search(p, response_lower) for p in temp_patterns):
+        print("PASS: Temperature (68.5°F) mentioned")
         found += 1
     else:
         print("FAIL: Temperature not mentioned")
 
-    # Check humidity (52%)
-    if "52" in response_lower and ("humidity" in response_lower or "humid" in response_lower):
-        print("PASS: Humidity mentioned")
+    # Check humidity (52%) - must have 52 with humidity context
+    if re.search(r"52\s*%", response_lower) or \
+       re.search(r"humidity[^\d]*52", response_lower) or \
+       re.search(r"52[^\d]*humidity", response_lower):
+        print("PASS: Humidity (52%) mentioned")
         found += 1
     else:
         print("FAIL: Humidity not mentioned")
 
-    # Check initial thermostat mode (eco)
-    if "eco" in response_lower:
+    # Check initial thermostat mode (eco) - must mention eco mode
+    if re.search(r"\beco\b", response_lower) or "eco mode" in response_lower:
         print("PASS: Initial thermostat mode (eco) mentioned")
         found += 1
     else:
@@ -253,20 +261,26 @@ def check_d4_inventory_report(response):
     response_lower = response.lower()
     found = 0
 
-    # Check fridge count (8)
-    fridge_patterns = [r"8\s*items?\s*(in\s*)?(the\s*)?fridge", r"fridge[^\d]*8"]
-    if any(re.search(p, response_lower) for p in fridge_patterns) or \
-       ("fridge" in response_lower and "8" in response_lower):
-        print("PASS: Fridge count (8) mentioned")
+    # Check fridge count (8) - must have 8 items in fridge context
+    fridge_patterns = [
+        r"8\s*items?\s*(in\s*)?(the\s*)?fridge",
+        r"fridge[^\d]*8\s*items?",
+        r"fridge[^\d.]*:\s*8",
+    ]
+    if any(re.search(p, response_lower) for p in fridge_patterns):
+        print("PASS: Fridge count (8 items) mentioned")
         found += 1
     else:
         print("FAIL: Fridge count not mentioned")
 
-    # Check pantry count (5)
-    pantry_patterns = [r"5\s*items?\s*(in\s*)?(the\s*)?pantry", r"pantry[^\d]*5"]
-    if any(re.search(p, response_lower) for p in pantry_patterns) or \
-       ("pantry" in response_lower and "5" in response_lower):
-        print("PASS: Pantry count (5) mentioned")
+    # Check pantry count (5) - must have 5 items in pantry context
+    pantry_patterns = [
+        r"5\s*items?\s*(in\s*)?(the\s*)?pantry",
+        r"pantry[^\d]*5\s*items?",
+        r"pantry[^\d.]*:\s*5",
+    ]
+    if any(re.search(p, response_lower) for p in pantry_patterns):
+        print("PASS: Pantry count (5 items) mentioned")
         found += 1
     else:
         print("FAIL: Pantry count not mentioned")
@@ -324,22 +338,26 @@ def check_d6_calendar_report(response):
     response_lower = response.lower()
     found = 0
 
-    # Check event count (4)
-    count_patterns = [r"\b4\s*events?", r"\bfour\s*events?", r"\d+\s*events?"]
+    # Check event count (4) - must have "4 events" or "four events"
+    count_patterns = [r"\b4\s*events?", r"\bfour\s*events?"]
     if any(re.search(p, response_lower) for p in count_patterns):
         print("PASS: Event count (4) mentioned")
         found += 1
     else:
         print("FAIL: Event count not mentioned")
 
-    # Check event titles
+    # Check event titles - must match full title or significant words
     found_titles = []
     for title in EXPECTED_EVENT_TITLES:
         title_lower = title.lower()
-        if title_lower in response_lower or any(
-            word in response_lower for word in title_lower.split() if len(word) > 3
-        ):
+        # Check for full title match
+        if title_lower in response_lower:
             found_titles.append(title)
+        else:
+            # For partial match, require significant words (length > 4) to be present
+            words = [w for w in title_lower.split() if len(w) > 4]
+            if words and all(w in response_lower for w in words):
+                found_titles.append(title)
 
     print(f"Found titles: {found_titles}")
 
@@ -348,7 +366,6 @@ def check_d6_calendar_report(response):
         found += 1
     elif len(found_titles) >= 3:
         print("PARTIAL: ≥ 3 event titles mentioned")
-        # Still counts as partial pass
 
     if found == 2:
         print("D6: PASS (full 0.125)")
@@ -426,14 +443,20 @@ def check_d8_shopping_list_with_reasoning(response):
             print("D8: FAIL - New items don't correspond to expiring inventory")
             return 0.0
 
-        # Check agent response for reasoning
+        # Check agent response for reasoning - must mention expiring items or inventory-based decision
         if response is None:
             print("D8: FAIL - Could not get agent response for reasoning")
             return 0.0
 
         response_lower = response.lower()
-        reasoning_patterns = ["expir", "need", "running low", "shopping list", "add"]
-        has_reasoning = any(p in response_lower for p in reasoning_patterns)
+        # Must mention expiring items as the reason for adding to shopping list
+        reasoning_patterns = [
+            r"expir",           # "expiring" or "expire"
+            r"running\s*low",   # "running low"
+            r"need.*shop",      # "need to shop" or "needed for shopping"
+            r"shop.*need",      # "shopping list needs"
+        ]
+        has_reasoning = any(re.search(p, response_lower) for p in reasoning_patterns)
 
         if has_reasoning:
             print("PASS: Shopping list updated with items from expiring inventory and reasoning provided")
