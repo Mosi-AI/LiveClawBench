@@ -83,13 +83,14 @@ export function registerTaskRecordRoutes(app: OpenAPIApp, db: Database): void {
     if (!note) return c.json({ error: "Note not found" }, 404);
 
     const body = c.req.valid("json");
+    const existing = getTaskRecord(db, id);
     const record = upsertTaskRecord(
       db,
       id,
-      body.record_type,
-      body.source_channel,
-      body.summary_text,
-      body.status,
+      body.record_type ?? existing?.record_type ?? "summary",
+      body.source_channel ?? existing?.source_channel ?? "manual",
+      body.summary_text ?? existing?.summary_text ?? "",
+      body.status ?? existing?.status ?? "open",
     );
 
     return c.json(record, 200);
