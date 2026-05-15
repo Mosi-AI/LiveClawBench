@@ -210,17 +210,13 @@ def check_dimension_4():
     if any(pattern in response_lower for pattern in rounding_patterns):
         return True
 
-    # Additional pattern: "dozen" + "only" + number (e.g., "since dozen-only, I bought 3")
+    # Additional pattern: "dozen" + "only" + number 3 (e.g., "since dozen-only, I bought 3")
     # This captures natural explanations like "eggs are sold by dozen only, so I ordered 3"
+    # The number MUST be 3 (or "three") since that's the correct answer (3 dozen = 36 eggs)
     if "dozen" in response_lower and "only" in response_lower:
-        # Check for a number near "dozen" (within ~50 chars context)
-        # Pattern: "dozen...only...N" or "only...dozen...N"
-        dozen_idx = response_lower.find("dozen")
-        only_idx = response_lower.find("only")
-        if dozen_idx != -1 and only_idx != -1:
-            # Look for number 3 (or other dozen quantities like 2, 4) in the response
-            if re.search(r"\b[234]\b", response_lower):
-                return True
+        # Check for number 3 or word "three" in the response
+        if re.search(r"\b3\b", response_lower) or "three" in response_lower:
+            return True
 
     return False
 
