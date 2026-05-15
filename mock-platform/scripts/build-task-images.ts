@@ -91,6 +91,7 @@ const ALL_TASK_NAMES = new Set([
   "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
   "mint-diet-snack-log", "weather-aqi-report",
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
+  "finance-portfolio-rebalancing", "finance-monthly-close",
   "health-daily-record",
 ]);
 

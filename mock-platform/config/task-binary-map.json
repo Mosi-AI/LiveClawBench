@@ -235,6 +235,12 @@
         { "src": "tasks/expense-draft-delete/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
       ]
     },
+    "finance-portfolio-rebalancing": {
+      "binaries": ["finance"]
+    },
+    "finance-monthly-close": {
+      "binaries": ["finance"]
+    },
     "health-daily-record": { "binaries": ["health"] }
   }
 }

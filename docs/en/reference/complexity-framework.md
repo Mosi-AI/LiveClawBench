@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 35-case annotation table (35 implemented),
+It covers factor definitions, the full 37-case annotation table (37 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -79,15 +79,15 @@ single, clean environment without structural complexity.
 | B1     | Implicit Goal Resolution       |     4 |      10.8% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application |
 | B2     | Knowledge System Maintenance   |    11 |      29.7% | skill-creation, skill-dependency-fix, noise-filtering         |
 
-> Percentages are relative to 37 implemented cases.
+> Percentages are relative to 35 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 14 cases (37.8%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection
-- Single factor: 15 cases (40.5%)
-- Dual factor: 7 cases (18.9%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2)
-- Triple factor: 1 case (2.7%) — conflict-repair-acb (A1+A2+B2)
-- **Multi-factor (≥2 factors): 8 cases (21.6%)**
+- No factors (baseline): 13 cases (37.1%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete
+- Single factor: 14 cases (40.0%)
+- Dual factor: 7 cases (20.0%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2)
+- Triple factor: 1 case (2.9%) — conflict-repair-acb (A1+A2+B2)
+- **Multi-factor (≥2 factors): 8 cases (22.9%)**
 
 ---
 
@@ -115,7 +115,7 @@ Key observations:
 - **Communication & Email has no factors** — these cases serve as pure baselines
 - **Health & Fitness has no factors** — mint-diet-snack-log serves as a domain baseline
 - **Social Media has no factors** — the two social tasks serve as domain baselines
-- **Finance & Data Analytics has no factors** — expense-draft-delete serves as a domain baseline
+- **Finance & Data Analytics has no factors** — expense-draft-delete, finance-portfolio-rebalancing, and finance-monthly-close serve as domain baselines
 
 ---
 
