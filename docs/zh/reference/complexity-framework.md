@@ -54,7 +54,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      28 | mixed-tool-memory                 |  E   | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |  M   | ✓  |    |    | ✓  | Deep Research & Report     |
 |      31 | smarthome-test                    |  M   |    |    | ✓  |    | Smart Home                 |
-|      32 | grocery-reorder                   |  M   | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
+|      41 | grocery-reorder                   |  M   | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
 
 ---
 

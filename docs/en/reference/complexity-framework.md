@@ -60,7 +60,7 @@ single, clean environment without structural complexity.
 |      28 | mixed-tool-memory                 |     E      | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |     M      | ✓  |    |    | ✓  | Deep Research & Report     |
 |      31 | mint-diet-snack-log               |     E      |    |    |    |    | Health & Fitness           |
-|      32 | grocery-reorder                   |     M      | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
+|      41 | grocery-reorder                   |     M      | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
 |      33 | social-media-posting              |     E      |    |    |    |    | Social Media               |
 |      34 | social-unlike-post                |     E      |    |    |    |    | Social Media               |
 |      35 | expense-draft-delete              |     E      |    |    |    |    | Finance & Data Analytics   |
