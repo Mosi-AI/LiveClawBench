@@ -60,7 +60,7 @@ new_order = {
     "items": [
         {
             "product_id": "prod_eggs",
-            "title": "One Dozen of Eggs, Fresh Farm Eggs, 12 Pieces",
+            "title": "One Dozen of Eggs, Fresh Farm Eggs, 1 Dozen",
             "price": 5.99,
             "quantity": 3,
             "image_url": "https://example.com/eggs.jpg"
