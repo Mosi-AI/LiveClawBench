@@ -2,4 +2,6 @@ I received an email from the content team with a new content brief. Please check
 
 Login credentials for all services: peter.griffin@work.mosi.inc / password123
 
+Social media platform (localhost:5004) uses a separate account: mosi_brand / demo123
+
 Let me know when everything is set up.

@@ -439,8 +439,8 @@ const INBOX_MEETING_RESCHEDULE = {
 
 Your weekly project sync meeting has been rescheduled. Here are the updated details:
 
-Original: Thursday, May 22, 2026, 2:00 PM - 3:00 PM
-New Time: Friday, May 23, 2026, 10:00 AM - 11:00 AM
+Original: Friday, May 22, 2026, 2:00 PM - 3:00 PM
+New Time: Saturday, May 23, 2026, 10:00 AM - 11:00 AM
 
 Please update your calendar accordingly. The meeting will still be held in Conference Room B.
 
@@ -461,7 +461,7 @@ We have a candidate coming in for the Senior Developer position interview. Pleas
 
 Candidate: Alex Thompson
 Position: Senior Developer
-Date: Monday, May 26, 2026
+Date: Tuesday, May 26, 2026
 Time: 2:00 PM - 3:00 PM
 Location: Conference Room A
 

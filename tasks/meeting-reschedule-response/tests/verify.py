@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify meeting-reschedule-response task:
-1. Old meeting event (Thursday May 22 2:00-3:00 PM) deleted from calendar.
-2. New meeting event (Friday May 23 10:00-11:00 AM) exists in calendar.
+1. Old meeting event (Friday May 22 2:00-3:00 PM) deleted from calendar.
+2. New meeting event (Saturday May 23 10:00-11:00 AM) exists in calendar.
 3. Confirmation email sent to hr.department.
 """
 

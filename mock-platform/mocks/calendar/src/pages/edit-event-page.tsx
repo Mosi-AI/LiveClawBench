@@ -59,7 +59,7 @@ export const EditEventPage: FC<EditEventPageProps> = ({ user, event, error }) =>
             </label>
             <label>
               Description:
-              <textarea name="description" rows="2">{event.description ?? ""}</textarea>
+              <textarea name="description" rows={2}>{event.description ?? ""}</textarea>
             </label>
             <label>
               Event Type:

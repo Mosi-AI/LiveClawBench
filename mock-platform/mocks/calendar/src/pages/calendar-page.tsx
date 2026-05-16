@@ -59,7 +59,7 @@ export const CalendarPage: FC<CalendarPageProps> = ({ user, events, error }) => 
             </label>
             <label>
               Description:
-              <textarea name="description" rows="2"></textarea>
+              <textarea name="description" rows={2}></textarea>
             </label>
             <label>
               Event Type:
