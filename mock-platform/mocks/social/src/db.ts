@@ -110,7 +110,7 @@ function initSchema(database: Database) {
     CREATE TABLE IF NOT EXISTS post_action_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       post_id INTEGER NOT NULL REFERENCES post(id) ON DELETE CASCADE,
-      actor_account_id INTEGER NOT NULL REFERENCES account(id) ON DELETE SET NULL,
+      actor_account_id INTEGER REFERENCES account(id) ON DELETE SET NULL,
       action_type TEXT NOT NULL CHECK (action_type IN ('created', 'updated', 'scheduled', 'published', 'deleted', 'pinned', 'unpinned', 'moderation_changed')),
       old_value TEXT,
       new_value TEXT,

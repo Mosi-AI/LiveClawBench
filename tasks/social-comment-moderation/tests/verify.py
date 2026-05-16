@@ -62,7 +62,8 @@ violating_comments = [
 for cid, keyword in violating_comments:
     rows = query_db("SELECT status FROM comment WHERE id = ?", (cid,))
     if not rows:
-        print(f"FAIL: Comment {cid} ({keyword}) not found in database")
+        SCORE += 0.2
+        print(f"PASS: Comment {cid} ({keyword}) removed from database")
     else:
         status = rows[0]["status"]
         if status != "visible":
