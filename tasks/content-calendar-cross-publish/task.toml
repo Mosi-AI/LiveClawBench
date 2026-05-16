@@ -3,10 +3,10 @@ version = "1.0"
 [metadata]
 difficulty = "hard"
 category = "open-world"
-tags = ["calendar_task_mgmt", "communication_email"]
+tags = ["calendar_task_mgmt", "communication_email", "social_media"]
 
 domain = "Calendar & Task Mgmt"
-domains_multi = ["Calendar & Task Mgmt", "Communication & Email"]
+domains_multi = ["Calendar & Task Mgmt", "Communication & Email", "Social Media"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 1   # Cross-Service Dependency

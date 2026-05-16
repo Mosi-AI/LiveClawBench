@@ -7,7 +7,7 @@ import { CalendarPage } from "./pages/calendar-page";
 import { EditEventPage } from "./pages/edit-event-page";
 import { LoginPage } from "./pages/login-page";
 import type { Hono } from "hono";
-import { updateEvent } from "./routes/events";
+import { createEvent, updateEvent } from "./routes/events";
 
 interface CalEvent {
   id: number;
@@ -128,41 +128,29 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
       );
     }
 
-    const startUtc = new Date(startTime).toISOString();
-    const endUtc = new Date(endTime).toISOString();
-
-    if (new Date(startUtc) >= new Date(endUtc)) {
+    // createEvent() validates event_type through CreateEventSchema and parses
+    // start_time/end_time internally, so crafted form data (e.g. event_type=bad)
+    // or malformed dates are rejected before any database mutation.
+    const result = createEvent(db, userId, {
+      title,
+      description: description || undefined,
+      event_type: eventType,
+      start_time: startTime,
+      end_time: endTime,
+    });
+    if (!result.ok) {
       const events = listEvents(db, userId);
+      const errorMessages: Record<string, string> = {
+        invalid_time_range: "End time must be after start time",
+        time_overlap: "Time overlaps with an existing event",
+      };
+      const display = result.error.startsWith("invalid_request:")
+        ? "Invalid field value (event_type or date format)"
+        : (errorMessages[result.error] ?? result.error);
       return c.html(
-        <CalendarPage
-          user={user}
-          events={events}
-          error="End time must be after start time"
-        />,
+        <CalendarPage user={user} events={events} error={display} />,
       );
     }
-
-    const overlap = db
-      .query<{ count: number }, [number, string, string]>(
-        "SELECT COUNT(*) as count FROM calendar_event WHERE user_id = ? AND start_time < ? AND end_time > ?",
-      )
-      .get(userId, endUtc, startUtc);
-
-    if (overlap && overlap.count > 0) {
-      const events = listEvents(db, userId);
-      return c.html(
-        <CalendarPage
-          user={user}
-          events={events}
-          error="Time overlaps with an existing event"
-        />,
-      );
-    }
-
-    db.run(
-      "INSERT INTO calendar_event (user_id, title, description, event_type, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?)",
-      [userId, title, description || null, eventType, startUtc, endUtc],
-    );
 
     return c.redirect("/");
   });
@@ -215,12 +203,15 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
     const eventType = String(body.event_type ?? "personal");
     const description = String(body.description ?? "");
 
+    // Pass raw start_time/end_time strings to updateEvent so the helper's
+    // try/catch returns "invalid_request: ..." on malformed dates instead of
+    // letting RangeError escape from new Date(...).toISOString() here.
     const updateData: Record<string, unknown> = {
       title,
       description: description || null,
       event_type: eventType,
-      start_time: new Date(startTime).toISOString(),
-      end_time: new Date(endTime).toISOString(),
+      start_time: startTime,
+      end_time: endTime,
     };
 
     const result = updateEvent(db, userId, id, updateData);

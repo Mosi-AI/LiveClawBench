@@ -40,6 +40,84 @@ const UpdateEventBodySchema = z.object({
 });
 
 /**
+ * Shared create logic used by both POST /api/events and POST /events.
+ *
+ * Validates raw input through CreateEventSchema so the page-route form bridge
+ * cannot bypass the event_type enum or date validation. All date parsing
+ * happens inside the helper, so callers must pass raw start_time/end_time
+ * strings (not pre-normalized ISO strings). Returns a discriminated result
+ * that maps directly onto HTTP status codes.
+ */
+export function createEvent(
+  db: Database,
+  userId: number,
+  rawData: Record<string, unknown>,
+): { ok: true; event: Record<string, unknown> } | { ok: false; error: string; status: number } {
+  const parse = CreateEventSchema.safeParse(rawData);
+  if (!parse.success) {
+    const issues = parse.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+    return { ok: false, error: `invalid_request: ${issues}`, status: 400 };
+  }
+  const { title, description, event_type, start_time, end_time, source, source_ref } = parse.data;
+
+  let startUtc: string;
+  let endUtc: string;
+  try {
+    startUtc = new Date(start_time).toISOString();
+    endUtc = new Date(end_time).toISOString();
+  } catch {
+    return {
+      ok: false,
+      error: "invalid_request: start_time or end_time is not a valid date",
+      status: 400,
+    };
+  }
+
+  if (new Date(startUtc) >= new Date(endUtc)) {
+    return { ok: false, error: "invalid_time_range", status: 400 };
+  }
+
+  db.run("BEGIN IMMEDIATE");
+  try {
+    const overlap = db
+      .query<{ count: number }, [number, string, string]>(
+        `SELECT COUNT(*) as count FROM calendar_event
+         WHERE user_id = ? AND start_time < ? AND end_time > ?`,
+      )
+      .get(userId, endUtc, startUtc);
+
+    if (overlap && overlap.count > 0) {
+      db.run("ROLLBACK");
+      return { ok: false, error: "time_overlap", status: 409 };
+    }
+
+    const result = db.run(
+      `INSERT INTO calendar_event (user_id, title, description, event_type, start_time, end_time, source, source_ref)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
+        title,
+        description ?? null,
+        event_type,
+        startUtc,
+        endUtc,
+        source ?? null,
+        source_ref ?? null,
+      ],
+    );
+
+    const event = db
+      .query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?")
+      .get(result.lastInsertRowid, userId);
+    db.run("COMMIT");
+    return { ok: true, event: event as Record<string, unknown> };
+  } catch (e) {
+    db.run("ROLLBACK");
+    throw e;
+  }
+}
+
+/**
  * Shared update logic used by both PUT /api/events/:id and POST /events/:id/edit.
  *
  * Validates raw input through UpdateEventBodySchema, so callers cannot bypass
@@ -207,50 +285,13 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("invalid_request: Malformed JSON"), 400);
     }
 
-    const parse = CreateEventSchema.safeParse(body);
-    if (!parse.success) {
-      const issues = parse.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
-      return c.json(err(`invalid_request: ${issues}`), 400);
+    // createEvent() validates input through CreateEventSchema internally,
+    // so both API and page-route callers share a single validated create path.
+    const result = createEvent(db, userId, body);
+    if (!result.ok) {
+      return c.json(err(result.error), result.status);
     }
-
-    const { title, description, event_type, start_time, end_time, source, source_ref } = parse.data;
-
-    const startUtc = new Date(start_time).toISOString();
-    const endUtc = new Date(end_time).toISOString();
-
-    if (new Date(startUtc) >= new Date(endUtc)) {
-      return c.json(err("invalid_time_range"), 400);
-    }
-
-    db.run("BEGIN IMMEDIATE");
-    try {
-      const overlap = db
-        .query<{ count: number }, [number, string, string]>(
-          `SELECT COUNT(*) as count FROM calendar_event
-           WHERE user_id = ? AND start_time < ? AND end_time > ?`,
-        )
-        .get(userId, endUtc, startUtc);
-
-      if (overlap && overlap.count > 0) {
-        db.run("ROLLBACK");
-        return c.json(err("time_overlap"), 409);
-      }
-
-      const result = db.run(
-        `INSERT INTO calendar_event (user_id, title, description, event_type, start_time, end_time, source, source_ref)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [userId, title, description ?? null, event_type, startUtc, endUtc, source ?? null, source_ref ?? null],
-      );
-
-      const event = db
-        .query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?")
-        .get(result.lastInsertRowid, userId);
-      db.run("COMMIT");
-      return c.json(event, 201);
-    } catch (e) {
-      db.run("ROLLBACK");
-      throw e;
-    }
+    return c.json(result.event, 201);
   });
 
   // GET /api/events/:id

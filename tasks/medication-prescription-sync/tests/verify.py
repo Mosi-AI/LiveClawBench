@@ -8,9 +8,28 @@
 
 import sqlite3
 import sys
+from datetime import datetime
 
 HEALTH_DB_PATH = "/workspace/health.db"
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
+
+
+def parse_iso(s):
+    """Parse ISO-8601 datetime tolerating T/space separators and optional 'Z' suffix.
+
+    The calendar mock stores whatever timestamp string the agent submits, so
+    the verifier must accept both '2026-05-17T08:00:00' and '2026-05-17T08:00:00Z'.
+    Returns a naive datetime; both sides of any comparison go through the same
+    normalization so the implicit UTC offset cancels.
+    """
+    if not s:
+        raise ValueError("empty timestamp")
+    s = s.strip()
+    if " " in s and "T" not in s:
+        s = s.replace(" ", "T", 1)
+    if s.endswith("Z"):
+        s = s[:-1]
+    return datetime.fromisoformat(s)
 
 
 def check_old_medications_archived():
@@ -63,7 +82,13 @@ def check_new_medication_created():
 
 
 def check_calendar_new_med_events():
-    """Calendar events for new medication intake should exist."""
+    """Calendar events for new medication intake should exist at 08:00 and 18:00.
+
+    The active medication (Metformin) is taken twice daily, so the verifier
+    expects two reminder events whose start_time hours match the intake
+    schedule the agent recorded in the health DB. Timestamps are parsed
+    via parse_iso() so trailing 'Z' or naive UTC strings both match.
+    """
     try:
         conn = sqlite3.connect(CALENDAR_DB_PATH)
         conn.row_factory = sqlite3.Row
@@ -73,19 +98,40 @@ def check_calendar_new_med_events():
         return 0.0
 
     cursor.execute(
-        "SELECT id, title, event_type FROM calendar_event WHERE user_id = 1 AND event_type = 'medication'"
+        "SELECT id, title, start_time FROM calendar_event WHERE user_id = 1 AND event_type = 'medication'"
     )
     rows = cursor.fetchall()
     conn.close()
 
-    titles_lower = [(r["title"] or "").lower() for r in rows]
-    has_metformin = any("metformin" in t for t in titles_lower)
+    metformin_rows = [r for r in rows if "metformin" in (r["title"] or "").lower()]
+    if not metformin_rows:
+        print(f"FAIL: No Metformin calendar events found ({len(rows)} medication events)")
+        return 0.0
 
-    if has_metformin:
-        print(f"PASS: Calendar medication events include Metformin ({len(rows)} medication events total)")
+    hours_present = set()
+    for r in metformin_rows:
+        try:
+            dt = parse_iso(r["start_time"])
+        except Exception as e:
+            print(f"WARN: could not parse start_time '{r['start_time']}': {e}")
+            continue
+        hours_present.add(dt.hour)
+
+    needed = {8, 18}
+    matched = needed & hours_present
+    if matched == needed:
+        print(f"PASS: Metformin calendar events at both 08:00 and 18:00 ({len(metformin_rows)} events)")
         return 0.25
-
-    print(f"FAIL: No Metformin calendar events found ({len(rows)} medication events)")
+    if matched:
+        print(
+            f"PARTIAL: Metformin events found but missing intake time(s) "
+            f"{sorted(needed - matched)} (got hours {sorted(hours_present)})"
+        )
+        return 0.1
+    print(
+        f"FAIL: Metformin events do not match required intake times 08:00/18:00 "
+        f"(found hours {sorted(hours_present)})"
+    )
     return 0.0
 
 

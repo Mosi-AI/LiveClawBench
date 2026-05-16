@@ -29,6 +29,16 @@ if [ ! -f "$CALENDAR_DB" ]; then
     echo "       The calendar mock must be running and have initialized its database before this script runs." >&2
     exit 1
 fi
-sqlite3 "$CALENDAR_DB" "INSERT OR IGNORE INTO calendar_event (user_id, title, start_time, end_time, description, event_type) VALUES (1, 'Spring Collection Post', '2026-03-15T09:00:00', '2026-03-15T09:30:00', 'Social media post for spring collection', 'content');"
-sqlite3 "$CALENDAR_DB" "INSERT OR IGNORE INTO calendar_event (user_id, title, start_time, end_time, description, event_type) VALUES (1, 'Flash Sale Post', '2026-04-01T10:00:00', '2026-04-01T10:30:00', 'Social media post for flash sale', 'content');"
-echo "Injected orphan calendar events"
+# Fixed IDs (200, 201) make INSERT OR IGNORE idempotent across container
+# restarts. The calendar_event table only enforces PK uniqueness, so without
+# explicit ids each re-run would append duplicate orphans and skew the
+# verifier's "remaining orphan" count.
+sqlite3 "$CALENDAR_DB" "INSERT OR IGNORE INTO calendar_event (id, user_id, title, start_time, end_time, description, event_type) VALUES (200, 1, 'Spring Collection Post', '2026-03-15T09:00:00', '2026-03-15T09:30:00', 'Social media post for spring collection', 'content');"
+sqlite3 "$CALENDAR_DB" "INSERT OR IGNORE INTO calendar_event (id, user_id, title, start_time, end_time, description, event_type) VALUES (201, 1, 'Flash Sale Post', '2026-04-01T10:00:00', '2026-04-01T10:30:00', 'Social media post for flash sale', 'content');"
+
+ORPHAN_COUNT=$(sqlite3 "$CALENDAR_DB" "SELECT COUNT(*) FROM calendar_event WHERE id IN (200, 201);")
+if [ "$ORPHAN_COUNT" -ne 2 ]; then
+    echo "ERROR: Expected 2 orphan calendar events after seeding, found ${ORPHAN_COUNT}" >&2
+    exit 1
+fi
+echo "Injected ${ORPHAN_COUNT} orphan calendar events"

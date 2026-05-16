@@ -8,11 +8,9 @@ PASSWORD="password123"
 
 # Health mock has no auth — all endpoints are open
 
-# Archive old medications (PUT with archived=1)
+# Archive old medications (DELETE sets archived=1)
 for MED_ID in 100 101; do
-    curl -s -X PUT "${HEALTH_API}/api/medications/${MED_ID}" \
-      -H "Content-Type: application/json" \
-      -d '{"archived": true}' > /dev/null
+    curl -s -X DELETE "${HEALTH_API}/api/medications/${MED_ID}" > /dev/null
 done
 echo "Archived old medications"
 

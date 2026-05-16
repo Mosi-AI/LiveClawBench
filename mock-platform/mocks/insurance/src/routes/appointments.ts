@@ -488,34 +488,55 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
     const userId = c.get("userId")!;
     const id = Number(c.req.param("id"));
 
-    const cancel = db.transaction(() => {
-      const appointment = db
-        .query<Record<string, unknown>, [number, number]>(
-          "SELECT * FROM appointment WHERE id = ? AND user_id = ?",
-        )
-        .get(id, userId);
-
-      if (!appointment) return null;
-
-      const slotId = Number(appointment.slot_id);
-
-      db.query(
-        "UPDATE appointment SET status = 'cancelled', updated_at = datetime('now') WHERE id = ?",
-      ).run(id);
-
-      db.query("UPDATE appointment_slot SET is_available = 1 WHERE id = ?").run(slotId);
-
-      return db
-        .query<Record<string, unknown>, [number]>(
-          "SELECT * FROM appointment WHERE id = ?",
-        )
-        .get(id);
-    });
-
-    const result = cancel();
-    if (!result) {
+    const result = cancelAppointment(db, userId, id);
+    if (!result.ok) {
       return c.json(err("Appointment not found"), 404);
     }
-    return c.json(result);
+    return c.json(result.appointment);
   }, { auth: "required" });
+}
+
+/**
+ * Shared appointment cancellation logic used by both DELETE /api/appointments/:id
+ * and the SSR POST /appointments/:id/cancel page route.
+ *
+ * Atomically marks the appointment as cancelled and frees its slot inside a single
+ * transaction, then returns the updated appointment row. Returns a discriminated
+ * result so callers can map onto either HTTP JSON or an SSR redirect/error page
+ * without duplicating SQL.
+ */
+export function cancelAppointment(
+  db: Database,
+  userId: number,
+  id: number,
+): { ok: true; appointment: Record<string, unknown> } | { ok: false; error: "not_found" } {
+  const cancel = db.transaction(() => {
+    const appointment = db
+      .query<Record<string, unknown>, [number, number]>(
+        "SELECT * FROM appointment WHERE id = ? AND user_id = ?",
+      )
+      .get(id, userId);
+
+    if (!appointment) return null;
+
+    const slotId = Number(appointment.slot_id);
+
+    db.query(
+      "UPDATE appointment SET status = 'cancelled', updated_at = datetime('now') WHERE id = ?",
+    ).run(id);
+
+    db.query("UPDATE appointment_slot SET is_available = 1 WHERE id = ?").run(slotId);
+
+    return db
+      .query<Record<string, unknown>, [number]>(
+        "SELECT * FROM appointment WHERE id = ?",
+      )
+      .get(id);
+  });
+
+  const updated = cancel();
+  if (!updated) {
+    return { ok: false, error: "not_found" };
+  }
+  return { ok: true, appointment: updated };
 }

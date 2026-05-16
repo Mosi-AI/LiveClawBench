@@ -7,11 +7,31 @@
 
 import sqlite3
 import sys
+from datetime import datetime, timedelta
 
 INSURANCE_DB_PATH = "/var/lib/mock-data/insurance/insurance.db"
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
 
 OUT_OF_NETWORK_PROVIDER = "Summit Out-of-Network Clinic"
+
+
+def parse_iso(s):
+    """Parse ISO-8601 datetime tolerating T/space separators and optional 'Z' suffix.
+
+    The calendar mock stores whatever timestamp string the agent submits, so
+    the verifier must accept both raw appointment slot strings (no offset)
+    and calendar events written with a trailing 'Z'. Returns a naive
+    datetime; both sides of any comparison go through the same normalization
+    so the implicit UTC offset cancels.
+    """
+    if not s:
+        raise ValueError("empty timestamp")
+    s = s.strip()
+    if " " in s and "T" not in s:
+        s = s.replace(" ", "T", 1)
+    if s.endswith("Z"):
+        s = s[:-1]
+    return datetime.fromisoformat(s)
 
 
 def check_out_of_network_cancelled():
@@ -75,7 +95,14 @@ def check_in_network_booked():
 
 
 def check_calendar_event():
-    """Calendar event should match the new in-network appointment."""
+    """Calendar event must match the new in-network appointment time.
+
+    Comparison uses parsed datetimes (parse_iso) rather than raw string
+    equality so trailing 'Z' or naive UTC are both accepted, and only
+    event_type='appointment' rows count - a coincidental personal event
+    cannot satisfy the requirement. A delta within 1 minute on both
+    endpoints is treated as a match.
+    """
     try:
         ins_conn = sqlite3.connect(INSURANCE_DB_PATH)
         ins_conn.row_factory = sqlite3.Row
@@ -101,25 +128,49 @@ def check_calendar_event():
         return 0.0
 
     try:
+        appt_start = parse_iso(appt["slot_start_time"])
+        appt_end = parse_iso(appt["slot_end_time"])
+    except Exception as e:
+        print(
+            f"FAIL: Could not parse appointment times "
+            f"({appt['slot_start_time']} - {appt['slot_end_time']}): {e}"
+        )
+        return 0.0
+
+    try:
         cal_conn = sqlite3.connect(CALENDAR_DB_PATH)
         cal_conn.row_factory = sqlite3.Row
         cal_cursor = cal_conn.cursor()
+        cal_cursor.execute(
+            "SELECT id, title, start_time, end_time, event_type FROM calendar_event "
+            "WHERE user_id = 1 AND event_type = 'appointment'"
+        )
+        events = cal_cursor.fetchall()
+        cal_conn.close()
     except Exception as e:
         print(f"FAIL: Could not open calendar database: {e}")
         return 0.0
 
-    cal_cursor.execute(
-        "SELECT id, title, start_time, end_time FROM calendar_event WHERE user_id = 1 AND start_time = ? AND end_time = ?",
-        (appt["slot_start_time"], appt["slot_end_time"]),
+    tolerance = timedelta(minutes=1)
+    for evt in events:
+        try:
+            ev_start = parse_iso(evt["start_time"])
+            ev_end = parse_iso(evt["end_time"])
+        except Exception as e:
+            print(f"WARN: could not parse event {evt['id']} times: {e}")
+            continue
+        if abs(ev_start - appt_start) <= tolerance and abs(ev_end - appt_end) <= tolerance:
+            print(
+                f"PASS: Appointment calendar event matches "
+                f"(title='{evt['title']}', start={evt['start_time']})"
+            )
+            return 0.33
+
+    print(
+        f"FAIL: No event_type='appointment' calendar event within 1 min of "
+        f"appointment ({appt['slot_start_time']} - {appt['slot_end_time']}); "
+        f"checked {len(events)} appointment events"
     )
-    evt = cal_cursor.fetchone()
-    cal_conn.close()
-
-    if evt:
-        print(f"PASS: Calendar event matches appointment (title='{evt['title']}', time={evt['start_time']})")
-        return 0.33
-
-    print(f"FAIL: No calendar event matching appointment time ({appt['slot_start_time']} - {appt['slot_end_time']})")
     return 0.0
 
 

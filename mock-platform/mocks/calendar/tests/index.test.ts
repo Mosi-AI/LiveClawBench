@@ -535,6 +535,48 @@ describe("calendar IDOR protection", () => {
     });
     expect(res.status).toBe(401);
   });
+
+  test("PUT /api/events/:id by another authenticated user returns 404 without mutating", async () => {
+    // beforeEach already logged in as Peter (user 1); create the target event.
+    const peterToken = token;
+    const createRes = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(peterToken) },
+      body: JSON.stringify({
+        title: "Peter's Event",
+        description: "Original",
+        event_type: "personal",
+        start_time: "2026-05-10T09:00:00Z",
+        end_time: "2026-05-10T10:00:00Z",
+      }),
+    });
+    expect(createRes.status).toBe(201);
+    const created = await createRes.json();
+    expect(created.user_id).toBe(1);
+
+    // Log in as Lois (user 2 — seeded by seedDatabase).
+    const loisToken = await login(app, "lois.griffin@work.mosi.inc", "password123");
+    expect(loisToken).not.toBe(peterToken);
+
+    // updateEvent() filters by (id, user_id) so Lois's PUT against Peter's
+    // row never finds it and returns not_found → 404 (cross-user IDOR).
+    const putRes = await app.request(`/api/events/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeaders(loisToken) },
+      body: JSON.stringify({ title: "Hijacked", description: "Mutated by Lois" }),
+    });
+    expect([403, 404]).toContain(putRes.status);
+
+    // Verify Peter's event row is unchanged.
+    const getRes = await app.request(`/api/events/${created.id}`, {
+      headers: authHeaders(peterToken),
+    });
+    expect(getRes.status).toBe(200);
+    const body = await getRes.json();
+    expect(body.title).toBe("Peter's Event");
+    expect(body.description).toBe("Original");
+    expect(body.event_type).toBe("personal");
+  });
 });
 
 describe("calendar edit form page route", () => {
@@ -610,6 +652,40 @@ describe("calendar edit form page route", () => {
     expect(body.description).toBe("Original desc");
   });
 
+  test("POST /events/:id/edit with malformed date rejects with friendly UI (no 500)", async () => {
+    const created = await createEvent();
+
+    // Crafted unparseable date strings. updateEvent() catches the date
+    // parse failure and returns "invalid_request: ..."; the page route
+    // surfaces it as a 200 page with friendly copy instead of leaking
+    // a RangeError 500.
+    const form = new URLSearchParams();
+    form.set("title", "Should Not Update");
+    form.set("description", "");
+    form.set("event_type", "personal");
+    form.set("start_time", "garbage-not-a-date");
+    form.set("end_time", "also-garbage");
+    const res = await app.request(`/events/${created.id}/edit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", ...authHeaders(token) },
+      body: form.toString(),
+      redirect: "manual",
+    });
+    // Must NOT be 500 — must be a friendly 200 page
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html.toLowerCase()).toContain("invalid");
+
+    // Verify nothing was written
+    const getRes = await app.request(`/api/events/${created.id}`, {
+      headers: authHeaders(token),
+    });
+    const body = await getRes.json();
+    expect(body.title).toBe("PageRouteEvent");
+    expect(body.event_type).toBe("appointment");
+    expect(body.description).toBe("Original desc");
+  });
+
   test("POST /events/:id/edit with invalid time range rejects and does NOT write", async () => {
     const created = await createEvent();
 
@@ -664,5 +740,75 @@ describe("calendar edit form page route", () => {
     expect(body.title).toBe("Updated Via Form");
     expect(body.event_type).toBe("medication");
     expect(body.description).toBe("New desc");
+  });
+});
+
+describe("calendar create form page route", () => {
+  let app: ReturnType<typeof createCalendarApp>["app"];
+  let token: string;
+
+  beforeEach(async () => {
+    process.env.CALENDAR_DB_PATH = ":memory:";
+    app = createCalendarApp().app;
+    token = await login(app);
+  });
+
+  test("POST /events with crafted invalid event_type rejects and does NOT write", async () => {
+    const form = new URLSearchParams();
+    form.set("title", "Crafted Bad Type");
+    form.set("description", "Tampered");
+    form.set("event_type", "bad_type"); // crafted invalid value
+    form.set("start_time", "2026-10-01T09:00");
+    form.set("end_time", "2026-10-01T10:00");
+    const res = await app.request("/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", ...authHeaders(token) },
+      body: form.toString(),
+      redirect: "manual",
+    });
+    // Page form returns 200 with error message, NOT a 302 redirect
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html.toLowerCase()).toContain("invalid");
+
+    // Verify no row was inserted: the events list must not contain our title.
+    const listRes = await app.request("/api/events", {
+      headers: authHeaders(token),
+    });
+    const list = await listRes.json();
+    expect(Array.isArray(list.events)).toBe(true);
+    const titles = list.events.map((e: { title: string }) => e.title);
+    expect(titles).not.toContain("Crafted Bad Type");
+  });
+
+  test("POST /events with malformed date rejects with friendly UI (no 500)", async () => {
+    // Crafted unparseable date strings. createEvent() catches the date
+    // parse failure and returns "invalid_request: ..."; the page route
+    // surfaces it as a 200 page with friendly copy instead of leaking
+    // a RangeError 500.
+    const form = new URLSearchParams();
+    form.set("title", "Malformed Date Create");
+    form.set("description", "");
+    form.set("event_type", "personal");
+    form.set("start_time", "garbage-not-a-date");
+    form.set("end_time", "also-garbage");
+    const res = await app.request("/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", ...authHeaders(token) },
+      body: form.toString(),
+      redirect: "manual",
+    });
+    // Must NOT be 500 — must be a friendly 200 page
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html.toLowerCase()).toContain("invalid");
+
+    // Verify no row was inserted.
+    const listRes = await app.request("/api/events", {
+      headers: authHeaders(token),
+    });
+    const list = await listRes.json();
+    const titles = list.events.map((e: { title: string }) => e.title);
+    expect(titles).not.toContain("Malformed Date Create");
   });
 });
