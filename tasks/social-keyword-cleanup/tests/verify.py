@@ -18,9 +18,14 @@ Other published posts from Layer 0 (1, 2, 4) do not contain the keywords and mus
 
 Scoring:
   - Dimension 1 (0.6): Deletions — 0.2 per target post deleted (posts 9, 101, 102)
-  - Dimension 2 (0.4): Preservation — post 103 still published (only awarded if dim1 > 0)
+  - Dimension 2 (0.4): Preservation — post 103 still published. Only awarded when
+    ALL three target posts have been deleted (deleted_count == 3). This prevents a
+    partial cleanup (e.g. one target deleted plus untouched post 103) from crossing
+    the 0.5 threshold via preservation credit alone.
 
 On untouched seed: dim1 = 0.0 (no deletions), dim2 blocked → total 0.0
+Partial deletions (1 or 2 of 3 targets) cap at 0.4 (below threshold) because
+preservation credit requires complete deletion of all keyword-matching posts.
 """
 
 import json
@@ -113,9 +118,12 @@ def main() -> tuple[float, dict]:
                 f"FAIL: No target posts deleted, still present: {sorted(still_present)}"
             )
 
-        # Dimension 2: Non-matching post 103 preserved (0.4 pts, only if dim1 > 0)
+        # Dimension 2: Non-matching post 103 preserved (0.4 pts).
+        # Gated on COMPLETE deletion of all keyword-target posts (deleted_count == 3).
+        # A partial deletion (e.g. 1 of 3) plus an untouched post 103 must not be
+        # able to cross the 0.5 success threshold via preservation credit alone.
         dim2_score = 0.0
-        if dim1_score > 0:
+        if deleted_count == len(SHOULD_DELETE):
             surviving = SHOULD_SURVIVE & published_ids
             missing = SHOULD_SURVIVE - published_ids
             if surviving == SHOULD_SURVIVE:
@@ -129,7 +137,9 @@ def main() -> tuple[float, dict]:
                 )
         else:
             details["messages"].append(
-                "SKIP: Preservation check blocked — no deletions performed"
+                "SKIP: Preservation check blocked — partial or no deletions "
+                f"({deleted_count}/{len(SHOULD_DELETE)} targets removed); "
+                "preservation credit requires complete cleanup"
             )
 
         score = dim1_score + dim2_score

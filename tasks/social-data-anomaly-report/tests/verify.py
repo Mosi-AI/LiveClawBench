@@ -12,6 +12,17 @@ Seeded anomalies:
   1. Post 101: status=published but published_at=NULL
   2. Post 101 metrics: 0 impressions but 50000 likes (impossible)
   3. Post 6: status=draft in DB but action_log says "published" (contradictory)
+
+Single-row guarantee: recipient/subject/body are all scored against the SAME
+sent email row. We pick one row that best matches the expected recipient and
+subject (preferring full matches), then read all three fields from it. This
+prevents cross-row stitching where the recipient-match row and the
+subject-match row are different emails.
+
+Completion gate: the anomaly report body is the required workflow artifact.
+When fewer than 2 anomalies are mentioned (anomalies_found < 2), the final
+score is capped at 0.4 — below the 0.5 success threshold. A correctly
+addressed email with an empty or off-topic body must not pass.
 """
 
 import sqlite3
@@ -83,21 +94,29 @@ def main():
             print(f"  {msg}")
         sys.exit(1)
 
+    # Single-row lookup: find the best-matching sent email and score all three
+    # dimensions (recipient, subject, body) against it. Prefer rows that match
+    # BOTH the expected recipient AND subject, then recipient-only, then any
+    # sent email whose subject contains the expected subject. This guarantees
+    # recipient/subject/body credit cannot be stitched together from different
+    # sent emails.
+    subject_like = f"%{EXPECTED_SUBJECT}%"
     row = email_db.execute(
         "SELECT subject, body, recipient_email FROM emails "
-        "WHERE recipient_email = ? AND folder = 'sent' "
-        "ORDER BY id DESC LIMIT 1",
-        (EXPECTED_RECIPIENT,),
+        "WHERE folder = 'sent' "
+        "  AND (recipient_email = ? OR subject LIKE ?) "
+        "ORDER BY "
+        "  (recipient_email = ? AND subject LIKE ?) DESC, "
+        "  (recipient_email = ?) DESC, "
+        "  id DESC LIMIT 1",
+        (
+            EXPECTED_RECIPIENT,
+            subject_like,
+            EXPECTED_RECIPIENT,
+            subject_like,
+            EXPECTED_RECIPIENT,
+        ),
     ).fetchone()
-
-    if row is None:
-        # Also check for any email with matching subject in sent folder
-        row = email_db.execute(
-            "SELECT subject, body, recipient_email FROM emails "
-            "WHERE subject = ? AND folder = 'sent' "
-            "ORDER BY id DESC LIMIT 1",
-            (EXPECTED_SUBJECT,),
-        ).fetchone()
 
     if row is None:
         messages.append("FAIL: No sent email found matching recipient or subject")
@@ -152,6 +171,21 @@ def main():
         messages.append("FAIL: No anomalies mentioned in email body")
 
     email_db.close()
+
+    # Completion gate: the anomaly report body is the required workflow artifact.
+    # Recipient (0.3) + subject (0.3) = 0.6 alone reaches the 0.5 success
+    # threshold even with an empty or off-topic body. Cap the final score at 0.4
+    # whenever fewer than 2 anomalies are mentioned, so a correctly-addressed
+    # but content-empty email cannot pass.
+    if anomalies_found < 2:
+        capped = min(score, 0.4)
+        if capped < score:
+            messages.append(
+                f"GATE: Required workflow artifact missing — score capped from "
+                f"{score:.1f} to {capped:.1f} "
+                f"(need >= 2 anomalies mentioned, got {anomalies_found})"
+            )
+        score = capped
 
     print(f"Score: {score}/1.0")
     for msg in messages:

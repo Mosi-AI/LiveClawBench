@@ -8,6 +8,11 @@ Scoring (total 1.0):
   - Comment 104 (spam) deleted/hidden:        0.2
   - Comment 102 still visible:                0.2
   - Reply posted to comment 102:              0.2
+
+Completion gate: the reply to comment 102 is the required workflow artifact for
+this task. When no reply is found, the final score is capped at 0.4 — below the
+0.5 success threshold. Moderation-only solutions (hiding the three violating
+comments without replying) cannot pass.
 """
 
 import json
@@ -78,6 +83,8 @@ else:
 
 # --- Check 5: A reply was posted to comment 102 from mosi_brand ---
 
+reply_found = False
+
 # Find replies to comment 102 (parent_comment_id = 102)
 replies = query_db(
     "SELECT c.*, a.username FROM comment c "
@@ -86,6 +93,7 @@ replies = query_db(
 )
 
 if replies:
+    reply_found = True
     SCORE += 0.2
     reply_info = ", ".join(
         f"'{r['body'][:50]}' by {r.get('username', 'unknown')}" for r in replies
@@ -114,6 +122,7 @@ else:
 
             api_replies = find_replies(comments, 102)
             if api_replies:
+                reply_found = True
                 SCORE += 0.2
                 print(
                     f"PASS: Reply found via API to comment 102: "
@@ -123,6 +132,19 @@ else:
                 print("FAIL: No reply found to comment 102")
     else:
         print("FAIL: Could not login as mosi_brand to check replies")
+
+# Completion gate: the reply-to-comment-102 workflow is the required artifact.
+# Moderation-only solutions (hiding the three violating comments without replying)
+# accumulate 0.6 from the hide checks alone — cap at 0.4 so they cannot cross
+# the 0.5 success threshold without completing the required reply step.
+if not reply_found:
+    capped = min(SCORE, 0.4)
+    if capped < SCORE:
+        print(
+            f"GATE: Required workflow artifact missing — score capped from "
+            f"{SCORE:.1f} to {capped:.1f} (reply to comment 102 not posted)"
+        )
+    SCORE = capped
 
 print(f"Score: {SCORE}/1.0")
 sys.exit(0 if SCORE >= 0.5 else 1)

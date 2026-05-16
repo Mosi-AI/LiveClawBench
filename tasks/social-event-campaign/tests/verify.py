@@ -11,6 +11,11 @@ The agent must:
 Scoring:
   - Dimension 1 (0.5): Post 101 is now "published" (was "draft")
   - Dimension 2 (0.5): Confirmation email sent to events@mosi.inc with correct subject
+
+Completion gate: when either dimension is 0.0 (post-only or email-only solutions),
+the final score is capped at 0.4 — below the 0.5 success threshold. The task
+explicitly requires BOTH the publish action AND the confirmation email; a
+one-service partial solution must not pass.
 """
 
 import json
@@ -129,6 +134,19 @@ def main() -> tuple[float, dict]:
         "post_published": dim1_score,
         "email_sent": dim2_score,
     }
+
+    # Completion gate: a one-service partial state (post-only or email-only) must
+    # not reach the 0.5 success threshold. The task requires BOTH artifacts, so
+    # cap the score at 0.4 whenever either dimension is missing.
+    if dim1_score == 0.0 or dim2_score == 0.0:
+        capped = min(score, 0.4)
+        if capped < score:
+            details["messages"].append(
+                f"GATE: Required workflow artifact missing — score capped from "
+                f"{score:.1f} to {capped:.1f} (need BOTH post publish AND "
+                f"confirmation email)"
+            )
+        score = capped
 
     return score, details
 
