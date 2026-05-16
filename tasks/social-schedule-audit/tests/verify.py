@@ -8,9 +8,9 @@ Each anomaly is worth 0.2 points, total 1.0.
 Anomalies:
   1. Post 101: status=published but published_at=NULL -> fixed if published_at set OR status changed
   2. Post 102: status=scheduled with past date -> fixed if now published
-  3. Post 103: status=published but no action_log -> fixed if action_log exists or post deleted
+  3. Post 103: status=published but no action_log -> fixed if action_log exists or status changed
   4. Post 104: status=draft but action_log says published -> fixed if status matches log (published)
-  5. Post 101 metrics: 0 impressions but 50000 likes (implausible) -> fixed if metric corrected/deleted
+  5. Post 101 metrics: 0 impressions but 50000 likes (implausible) -> fixed if metric corrected
 
 Verification uses direct SQLite access for fields not reliably exposed via the API.
 """
@@ -72,8 +72,7 @@ def main():
     # --- Anomaly 1: Post 101 — published but published_at is NULL ---
     p101 = get_post(db, 101)
     if p101 is None:
-        messages.append("ANOMALY 1 (post 101): Post deleted — accepted fix")
-        score += 0.2
+        messages.append("ANOMALY 1 (post 101): FAIL — post deleted (task requires repair, not deletion)")
     elif p101["status"] != "published" and p101["published_at"] is None:
         messages.append(
             f"ANOMALY 1 (post 101): PASS — status changed to '{p101['status']}' "
@@ -94,8 +93,7 @@ def main():
     # --- Anomaly 2: Post 102 — scheduled with past date, should now be published ---
     p102 = get_post(db, 102)
     if p102 is None:
-        messages.append("ANOMALY 2 (post 102): Post deleted — accepted fix")
-        score += 0.2
+        messages.append("ANOMALY 2 (post 102): FAIL — post deleted (task requires repair, not deletion)")
     elif p102["status"] == "published":
         messages.append(
             "ANOMALY 2 (post 102): PASS — status is now 'published'"
@@ -116,8 +114,7 @@ def main():
     p103 = get_post(db, 103)
     p103_has_log = has_action_log(db, 103, "published")
     if p103 is None:
-        messages.append("ANOMALY 3 (post 103): Post deleted — accepted fix")
-        score += 0.2
+        messages.append("ANOMALY 3 (post 103): FAIL — post deleted (task requires repair, not deletion)")
     elif p103_has_log:
         messages.append("ANOMALY 3 (post 103): PASS — action_log entry now exists")
         score += 0.2
@@ -135,8 +132,7 @@ def main():
     # --- Anomaly 4: Post 104 — status=draft but action_log says published ---
     p104_status = get_post_status(db, 104)
     if p104_status is None:
-        messages.append("ANOMALY 4 (post 104): Post deleted — accepted fix")
-        score += 0.2
+        messages.append("ANOMALY 4 (post 104): FAIL — post deleted (task requires repair, not deletion)")
     elif p104_status == "published":
         messages.append(
             "ANOMALY 4 (post 104): PASS — status now matches action_log ('published')"
@@ -158,8 +154,7 @@ def main():
         "SELECT impressions, likes FROM post_metric WHERE post_id = 101",
     ).fetchone()
     if metric_row is None:
-        messages.append("ANOMALY 5 (post 101 metrics): Metric row deleted — accepted fix")
-        score += 0.2
+        messages.append("ANOMALY 5 (post 101 metrics): FAIL — metric row deleted (task requires correction, not deletion)")
     elif metric_row[0] == 0 and metric_row[1] > 0:
         messages.append(
             f"ANOMALY 5 (post 101 metrics): FAIL — still implausible "
