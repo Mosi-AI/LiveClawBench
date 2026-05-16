@@ -33,43 +33,39 @@ import sys
 import urllib.error
 import urllib.request
 
-SOCIAL_URL = "http://localhost:5004"
+SOCIAL_URL = "http://127.0.0.1:5004"
 
 SOCIAL_USERNAME = "mosi_brand"
 SOCIAL_PASSWORD = "demo123"
 
-KEYWORDS = ["giveaway", "milestone"]
 
 MOSI_BRAND_ACCOUNT_ID = 1
 SHOULD_DELETE = {9, 101, 102}
 SHOULD_SURVIVE = {103}
 
 
-def api_call(
+def api(
     method: str,
     path: str,
     data: dict | None = None,
-    token: str | None = None,
-) -> dict:
+    cookie: str | None = None,
+) -> tuple[int, dict]:
     url = f"{SOCIAL_URL}{path}"
     headers = {"Content-Type": "application/json"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
+    if cookie:
+        headers["Cookie"] = cookie
 
     body = json.dumps(data).encode("utf-8") if data else None
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
 
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            return resp.status, json.loads(resp.read())
     except urllib.error.HTTPError as e:
-        error_body = e.read().decode("utf-8") if e.fp else ""
-        raise Exception(f"HTTP {e.code}: {error_body}")
-
-
-def content_matches_keywords(content: str) -> bool:
-    lower = content.lower()
-    return any(kw in lower for kw in KEYWORDS)
+        error_body = e.read()
+        return e.code, json.loads(error_body) if error_body else {}
+    except Exception as e:
+        return 0, {"error": str(e)}
 
 
 def main() -> tuple[float, dict]:
@@ -77,21 +73,24 @@ def main() -> tuple[float, dict]:
     details: dict = {"dimension_scores": {}, "messages": []}
 
     try:
-        login_resp = api_call(
+        status, login_body = api(
             "POST",
             "/api/auth/login",
             {"username": SOCIAL_USERNAME, "password": SOCIAL_PASSWORD},
         )
-        token = login_resp.get("session_token")
-        if not token:
-            raise Exception(f"No session_token in login response: {login_resp}")
+        if status != 200 or not login_body.get("success"):
+            raise Exception(f"Login failed: status={status}, body={login_body}")
+
+        cookie = f"token={login_body.get('session_token', '')}"
         details["messages"].append(f"Logged in as {SOCIAL_USERNAME}")
 
-        posts_resp = api_call(
+        posts_status, posts_resp = api(
             "GET",
             f"/api/posts?author_id={MOSI_BRAND_ACCOUNT_ID}&include_deleted=true&limit=100",
-            token=token,
+            cookie=cookie,
         )
+        if posts_status != 200:
+            raise Exception(f"Feed retrieval returned {posts_status}")
         all_posts = posts_resp.get("posts", [])
 
         # Verify actual deletion (status='deleted'), not just absence from feed
@@ -113,9 +112,7 @@ def main() -> tuple[float, dict]:
         dim1_score = deleted_count * 0.2
 
         if deleted_count == len(SHOULD_DELETE):
-            details["messages"].append(
-                "PASS: All keyword-matching posts deleted"
-            )
+            details["messages"].append("PASS: All keyword-matching posts deleted")
         elif deleted_count > 0:
             details["messages"].append(
                 f"PARTIAL: {deleted_count}/{len(SHOULD_DELETE)} target posts deleted, "
@@ -162,6 +159,7 @@ def main() -> tuple[float, dict]:
     except Exception as e:
         details["messages"].append(f"ERROR: {str(e)}")
         import traceback
+
         details["messages"].append(traceback.format_exc())
 
     return score, details

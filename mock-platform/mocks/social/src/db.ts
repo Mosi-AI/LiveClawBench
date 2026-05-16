@@ -335,6 +335,8 @@ function loadLayer1Seed(database: Database): void {
   const dataDir = process.env.MOCK_DATA_DIR || "/opt/mock/data";
   const seedPath = join(dataDir, "seed.json");
 
+  const nowISO = () => new Date().toISOString().replace("T", " ").replace(/\.\d+Z$/, "");
+
   if (!existsSync(seedPath)) return;
 
   console.log(`[social] Loading Layer 1 seed from ${seedPath}`);
@@ -424,7 +426,7 @@ function loadLayer1Seed(database: Database): void {
       database.prepare(
         `INSERT INTO comment (${cols}post_id, author_account_id, author_name, body, status, parent_comment_id, created_at)
          VALUES (${placeholders}?, ?, ?, ?, ?, ?, ?)`
-      ).run(...params, c.post_id, authorId, c.author_name, c.body, c.status || "visible", c.parent_comment_id ?? null, c.created_at ?? new Date().toISOString().replace("T", " ").replace(/\.\d+Z$/, ""));
+      ).run(...params, c.post_id, authorId, c.author_name, c.body, c.status || "visible", c.parent_comment_id ?? null, c.created_at ?? nowISO());
     }
   }
 
@@ -459,7 +461,7 @@ function loadLayer1Seed(database: Database): void {
       database.prepare(
         `INSERT INTO post_metric (post_id, impressions, likes, replies, reposts, clicks, profile_visits, new_followers, last_synced_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(m.post_id, m.impressions ?? 0, m.likes ?? 0, m.replies ?? 0, m.reposts ?? 0, m.clicks ?? 0, m.profile_visits ?? 0, m.new_followers ?? 0, m.last_synced_at ?? new Date().toISOString().replace("T", " ").replace(/\.\d+Z$/, ""));
+      ).run(m.post_id, m.impressions ?? 0, m.likes ?? 0, m.replies ?? 0, m.reposts ?? 0, m.clicks ?? 0, m.profile_visits ?? 0, m.new_followers ?? 0, m.last_synced_at ?? nowISO());
     }
   }
 
@@ -480,7 +482,7 @@ function loadLayer1Seed(database: Database): void {
       database.prepare(
         `INSERT INTO post_action_log (post_id, actor_account_id, action_type, old_value, new_value, note, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`
-      ).run(al.post_id, actorId, al.action_type, al.old_value ?? null, al.new_value ?? null, al.note ?? null, al.created_at ?? new Date().toISOString().replace("T", " ").replace(/\.\d+Z$/, ""));
+      ).run(al.post_id, actorId, al.action_type, al.old_value ?? null, al.new_value ?? null, al.note ?? null, al.created_at ?? nowISO());
     }
   }
 

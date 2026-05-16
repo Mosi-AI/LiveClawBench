@@ -36,7 +36,9 @@ def get_post(db: sqlite3.Connection, post_id: int) -> dict | None:
     }
 
 
-def has_action_log(db: sqlite3.Connection, post_id: int, action_type: str | None = None) -> bool:
+def has_action_log(
+    db: sqlite3.Connection, post_id: int, action_type: str | None = None
+) -> bool:
     if action_type:
         row = db.execute(
             "SELECT COUNT(*) FROM post_action_log WHERE post_id = ? AND action_type = ?",
@@ -72,9 +74,13 @@ def main():
     # --- Anomaly 1: Post 101 — published but published_at is NULL ---
     p101 = get_post(db, 101)
     if p101 is None:
-        messages.append("ANOMALY 1 (post 101): FAIL — post deleted (task requires repair, not deletion)")
+        messages.append(
+            "ANOMALY 1 (post 101): FAIL — post deleted (task requires repair, not deletion)"
+        )
     elif p101["status"] == "deleted":
-        messages.append("ANOMALY 1 (post 101): FAIL — post soft-deleted (task requires repair, not deletion)")
+        messages.append(
+            "ANOMALY 1 (post 101): FAIL — post soft-deleted (task requires repair, not deletion)"
+        )
     elif p101["status"] != "published" and p101["published_at"] is None:
         messages.append(
             f"ANOMALY 1 (post 101): PASS — status changed to '{p101['status']}' "
@@ -95,13 +101,21 @@ def main():
     # --- Anomaly 2: Post 102 — scheduled with past date, should now be published ---
     p102 = get_post(db, 102)
     if p102 is None:
-        messages.append("ANOMALY 2 (post 102): FAIL — post deleted (task requires repair, not deletion)")
+        messages.append(
+            "ANOMALY 2 (post 102): FAIL — post deleted (task requires repair, not deletion)"
+        )
     elif p102["status"] == "deleted":
-        messages.append("ANOMALY 2 (post 102): FAIL — post soft-deleted (task requires repair, not deletion)")
+        messages.append(
+            "ANOMALY 2 (post 102): FAIL — post soft-deleted (task requires repair, not deletion)"
+        )
     elif p102["status"] == "published":
         messages.append(
             "ANOMALY 2 (post 102): PASS — status is now 'published'"
-            + (f", published_at='{p102['published_at']}'" if p102["published_at"] else "")
+            + (
+                f", published_at='{p102['published_at']}'"
+                if p102["published_at"]
+                else ""
+            )
         )
         score += 0.2
     elif p102["status"] == "draft":
@@ -118,9 +132,13 @@ def main():
     p103 = get_post(db, 103)
     p103_has_log = has_action_log(db, 103, "published")
     if p103 is None:
-        messages.append("ANOMALY 3 (post 103): FAIL — post deleted (task requires repair, not deletion)")
+        messages.append(
+            "ANOMALY 3 (post 103): FAIL — post deleted (task requires repair, not deletion)"
+        )
     elif p103["status"] == "deleted":
-        messages.append("ANOMALY 3 (post 103): FAIL — post soft-deleted (task requires repair, not deletion)")
+        messages.append(
+            "ANOMALY 3 (post 103): FAIL — post soft-deleted (task requires repair, not deletion)"
+        )
     elif p103_has_log:
         messages.append("ANOMALY 3 (post 103): PASS — action_log entry now exists")
         score += 0.2
@@ -138,9 +156,13 @@ def main():
     # --- Anomaly 4: Post 104 — status=draft but action_log says published ---
     p104_status = get_post_status(db, 104)
     if p104_status is None:
-        messages.append("ANOMALY 4 (post 104): FAIL — post deleted (task requires repair, not deletion)")
+        messages.append(
+            "ANOMALY 4 (post 104): FAIL — post deleted (task requires repair, not deletion)"
+        )
     elif p104_status == "deleted":
-        messages.append("ANOMALY 4 (post 104): FAIL — post soft-deleted (task requires repair, not deletion)")
+        messages.append(
+            "ANOMALY 4 (post 104): FAIL — post soft-deleted (task requires repair, not deletion)"
+        )
     elif p104_status == "published":
         messages.append(
             "ANOMALY 4 (post 104): PASS — status now matches action_log ('published')"
@@ -162,7 +184,9 @@ def main():
         "SELECT impressions, likes FROM post_metric WHERE post_id = 101",
     ).fetchone()
     if metric_row is None:
-        messages.append("ANOMALY 5 (post 101 metrics): PASS — implausible metric row deleted")
+        messages.append(
+            "ANOMALY 5 (post 101 metrics): PASS — implausible metric row deleted"
+        )
         score += 0.2
     elif metric_row[0] == 0 and metric_row[1] > 0:
         messages.append(

@@ -215,6 +215,7 @@ def main():
     except Exception as e:
         messages.append(f"ERROR: {str(e)}")
         import traceback
+
         messages.append(traceback.format_exc())
 
     print(f"Score: {score:.1f}/1.0")

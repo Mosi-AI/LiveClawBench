@@ -111,7 +111,9 @@ def main():
                 "FAIL: no post found mentioning 'tech summit' or 'summer tech'"
             )
             for p in new_posts:
-                messages.append(f"  Post id={p.get('id')}: {p.get('content', '')[:80]}...")
+                messages.append(
+                    f"  Post id={p.get('id')}: {p.get('content', '')[:80]}..."
+                )
             print(f"Score: {score}/1.0")
             for msg in messages:
                 print(f"  {msg}")
@@ -156,7 +158,9 @@ def main():
         # Dimension 4: Email-specified hashtags (0.2)
         dim4_score = 0.0
         tags = target_post.get("tags", [])
-        tag_labels = [t.get("label_text", "") if isinstance(t, dict) else str(t) for t in tags]
+        tag_labels = [
+            t.get("label_text", "") if isinstance(t, dict) else str(t) for t in tags
+        ]
         combined = content_lower + " " + " ".join(tag_labels).lower()
 
         found_hashtags = [h for h in EMAIL_HASHTAGS if h in combined]
@@ -174,9 +178,7 @@ def main():
         found_date = [d for d in CALENDAR_DATE_PHRASES if d in content_lower]
         if found_date:
             dim5_score = 0.2
-            messages.append(
-                f"PASS: calendar-derived event date found: {found_date}"
-            )
+            messages.append(f"PASS: calendar-derived event date found: {found_date}")
         else:
             messages.append(
                 "FAIL: no calendar-derived event date "
@@ -188,9 +190,7 @@ def main():
         # Gate: without calendar-derived content, cap below pass threshold
         if dim5_score == 0:
             score = min(score, 0.4)
-            messages.append(
-                "GATE: calendar dimension missing — score capped at 0.4"
-            )
+            messages.append("GATE: calendar dimension missing — score capped at 0.4")
 
         # Gate: the task requires a PUBLISHED post. A draft or scheduled post
         # with all other content can reach 0.8 via the other four dimensions —
@@ -207,6 +207,7 @@ def main():
     except Exception as e:
         messages.append(f"ERROR: {str(e)}")
         import traceback
+
         messages.append(traceback.format_exc())
 
     print(f"Score: {score:.1f}/1.0")

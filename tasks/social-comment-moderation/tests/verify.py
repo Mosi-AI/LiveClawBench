@@ -124,7 +124,8 @@ else:
             api_replies = find_replies(comments, 102)
             # Only accept replies from mosi_brand (the brand account)
             mosi_replies = [
-                r for r in api_replies
+                r
+                for r in api_replies
                 if r.get("author_username") == "mosi_brand"
                 or r.get("author_account_id") == 1
             ]

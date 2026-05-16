@@ -35,7 +35,9 @@ TARGET_EMAIL_RECIPIENT = "events@mosi.inc"
 TARGET_SUBJECT_PATTERN = "Event Campaign Published"
 
 
-def social_api(method: str, path: str, data: dict | None = None, cookie: str | None = None) -> tuple[int, dict]:
+def api(
+    method: str, path: str, data: dict | None = None, cookie: str | None = None
+) -> tuple[int, dict]:
     """Call the social media API and return (status_code, response_body)."""
     url = f"{SOCIAL_URL}{path}"
     headers = {"Content-Type": "application/json"}
@@ -83,7 +85,7 @@ def main() -> tuple[float, dict]:
     dim1_score = 0.0
     try:
         # Login as mosi_brand
-        status, body = social_api(
+        status, body = api(
             "POST",
             "/api/auth/login",
             {"username": SOCIAL_USERNAME, "password": SOCIAL_PASSWORD},
@@ -96,7 +98,7 @@ def main() -> tuple[float, dict]:
         details["messages"].append(f"Logged in as {SOCIAL_USERNAME}")
 
         # Get post 101
-        status, post = social_api("GET", f"/api/posts/{TARGET_POST_ID}", cookie=cookie)
+        status, post = api("GET", f"/api/posts/{TARGET_POST_ID}", cookie=cookie)
         if status != 200:
             raise Exception(f"Post {TARGET_POST_ID} not found: status={status}")
 
@@ -107,7 +109,9 @@ def main() -> tuple[float, dict]:
             dim1_score = 0.5
             details["messages"].append("PASS: Post 101 is published")
         else:
-            details["messages"].append(f"FAIL: Post 101 status is '{post_status}', expected 'published'")
+            details["messages"].append(
+                f"FAIL: Post 101 status is '{post_status}', expected 'published'"
+            )
 
     except Exception as e:
         details["messages"].append(f"ERROR (social check): {e}")
