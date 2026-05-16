@@ -99,7 +99,7 @@ def check_confirmation_email():
     body_lower = (row["body"] or "").lower()
 
     has_interview = "interview" in subject_lower or "interview" in body_lower or "confirm" in subject_lower
-    has_date = "may 26" in body_lower or "2:00" in body_lower or "monday" in body_lower or "3:00" in body_lower
+    has_date = "may 26" in body_lower or "2:00" in body_lower or "tuesday" in body_lower or "3:00" in body_lower
 
     if has_interview and has_date:
         print(f"PASS: Confirmation email sent (subject='{row['subject']}')")

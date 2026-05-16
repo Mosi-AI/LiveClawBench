@@ -113,7 +113,7 @@ def check_confirmation_email():
     body_lower = (row["body"] or "").lower()
 
     has_reschedule = "reschedule" in subject_lower or "reschedule" in body_lower or "confirm" in subject_lower
-    has_new_time = "may 23" in body_lower or "10:00" in body_lower or "friday" in body_lower
+    has_new_time = "may 23" in body_lower or "10:00" in body_lower or "saturday" in body_lower
 
     if has_reschedule and has_new_time:
         print(f"PASS: Confirmation email sent (subject='{row['subject']}')")

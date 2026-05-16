@@ -35,7 +35,7 @@ curl -s -X POST "http://localhost:5001/api/emails" \
   -d '{
     "recipient": "hr@work.mosi.inc",
     "subject": "Re: Interview Confirmation - Senior Developer Candidate",
-    "body": "Hi HR Team,\n\nI have added the interview for Alex Thompson (Senior Developer) to my calendar:\n- Date: Monday, May 26, 2026\n- Time: 2:00 PM - 3:00 PM\n- Location: Conference Room A\n\nConfirmed.\n\nBest regards,\nPeter Griffin",
+    "body": "Hi HR Team,\n\nI have added the interview for Alex Thompson (Senior Developer) to my calendar:\n- Date: Tuesday, May 26, 2026\n- Time: 2:00 PM - 3:00 PM\n- Location: Conference Room A\n\nConfirmed.\n\nBest regards,\nPeter Griffin",
     "send_now": true
   }'
 

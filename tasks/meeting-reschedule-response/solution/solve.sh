@@ -51,7 +51,7 @@ curl -s -X POST "http://localhost:5001/api/emails" \
   -d '{
     "recipient": "hr@work.mosi.inc",
     "subject": "Re: Meeting Reschedule - Project Sync",
-    "body": "Hi HR Team,\n\nI confirm the meeting has been rescheduled to Friday, May 23, 2026, 10:00 AM - 11:00 AM in Conference Room B.\n\nBest regards,\nPeter Griffin",
+    "body": "Hi HR Team,\n\nI confirm the meeting has been rescheduled to Saturday, May 23, 2026, 10:00 AM - 11:00 AM in Conference Room B.\n\nBest regards,\nPeter Griffin",
     "send_now": true
   }'
 
