@@ -384,7 +384,7 @@ function loadLayer1Seed(database: Database): void {
       database.prepare(
         `INSERT INTO post (${cols}author_account_id, content, status, visibility, scheduled_for, published_at, is_pinned, has_event_cta)
          VALUES (${placeholders}?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(...params, authorId, p.content, p.status, p.visibility || "public", p.scheduled_for ?? null, p.published_at ?? null, p.is_pinned || 0, p.has_event_cta || 0);
+      ).run(...params, authorId, p.content, p.status, p.visibility || "public", p.scheduled_for ?? null, p.published_at ?? null, p.is_pinned ?? 0, p.has_event_cta ?? 0);
     }
   }
 
@@ -405,7 +405,7 @@ function loadLayer1Seed(database: Database): void {
     for (const pt of seed.post_tags) {
       const existing = database.query("SELECT 1 FROM post_tag WHERE post_id = ? AND tag_id = ?").get(pt.post_id, pt.tag_id);
       if (existing) continue;
-      database.prepare("INSERT INTO post_tag (post_id, tag_id, sort_order) VALUES (?, ?, ?)").run(pt.post_id, pt.tag_id, pt.sort_order || 0);
+      database.prepare("INSERT INTO post_tag (post_id, tag_id, sort_order) VALUES (?, ?, ?)").run(pt.post_id, pt.tag_id, pt.sort_order ?? 0);
     }
   }
 
@@ -424,7 +424,7 @@ function loadLayer1Seed(database: Database): void {
       database.prepare(
         `INSERT INTO comment (${cols}post_id, author_account_id, author_name, body, status, parent_comment_id, created_at)
          VALUES (${placeholders}?, ?, ?, ?, ?, ?, ?)`
-      ).run(...params, c.post_id, authorId, c.author_name, c.body, c.status || "visible", c.parent_comment_id ?? null, c.created_at || "datetime('now')");
+      ).run(...params, c.post_id, authorId, c.author_name, c.body, c.status || "visible", c.parent_comment_id ?? null, c.created_at ?? "datetime('now')");
     }
   }
 
@@ -459,7 +459,7 @@ function loadLayer1Seed(database: Database): void {
       database.prepare(
         `INSERT INTO post_metric (post_id, impressions, likes, replies, reposts, clicks, profile_visits, new_followers, last_synced_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(m.post_id, m.impressions || 0, m.likes || 0, m.replies || 0, m.reposts || 0, m.clicks || 0, m.profile_visits || 0, m.new_followers || 0, m.last_synced_at || "datetime('now')");
+      ).run(m.post_id, m.impressions ?? 0, m.likes ?? 0, m.replies ?? 0, m.reposts ?? 0, m.clicks ?? 0, m.profile_visits ?? 0, m.new_followers ?? 0, m.last_synced_at ?? null);
     }
   }
 
@@ -470,7 +470,7 @@ function loadLayer1Seed(database: Database): void {
       database.prepare(
         `INSERT INTO event_campaign (post_id, event_title, start_at, end_at, registration_url, registrations_count, attendance_goal, status)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(ec.post_id, ec.event_title, ec.start_at, ec.end_at ?? null, ec.registration_url, ec.registrations_count || 0, ec.attendance_goal || 0, ec.status || "draft");
+      ).run(ec.post_id, ec.event_title, ec.start_at, ec.end_at ?? null, ec.registration_url, ec.registrations_count ?? 0, ec.attendance_goal ?? 0, ec.status || "draft");
     }
   }
 
@@ -480,7 +480,7 @@ function loadLayer1Seed(database: Database): void {
       database.prepare(
         `INSERT INTO post_action_log (post_id, actor_account_id, action_type, old_value, new_value, note, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`
-      ).run(al.post_id, actorId, al.action_type, al.old_value ?? null, al.new_value ?? null, al.note ?? null, al.created_at || "datetime('now')");
+      ).run(al.post_id, actorId, al.action_type, al.old_value ?? null, al.new_value ?? null, al.note ?? null, al.created_at ?? null);
     }
   }
 
@@ -518,6 +518,8 @@ function seedData(database: Database) {
         console.log("[social] Restored alice's post_like seed (post_id=1, account_id=2)");
       }
     }
+    // Layer 1 seeds must load even when Layer 0 accounts already exist.
+    loadLayer1Seed(database);
     return;
   }
   console.log("[social] Seeding fresh demo data into empty social.db...");
