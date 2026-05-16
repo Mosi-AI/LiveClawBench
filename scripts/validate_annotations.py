@@ -130,7 +130,7 @@ def compare_sources(
     """Compare annotations across all three sources, return list of errors."""
     errors: list[str] = []
     factor_keys = ["factor_a1", "factor_a2", "factor_b1", "factor_b2"]
-    check_keys = ["case_id", "difficulty"] + factor_keys
+    check_keys = ["case_id", "difficulty", "domain"] + factor_keys
 
     # Check toml tasks against framework
     for task_name, toml_ann in toml_data.items():
@@ -236,7 +236,7 @@ def main() -> int:
             if case_name not in framework_data_zh:
                 all_errors.append(f"[EN↔ZH] {case_name}: missing from ZH complexity-framework.md")
             else:
-                for key in ["case_id", "difficulty", "factor_a1", "factor_a2", "factor_b1", "factor_b2"]:
+                for key in ["case_id", "difficulty", "domain", "factor_a1", "factor_a2", "factor_b1", "factor_b2"]:
                     if framework_data[case_name].get(key) != framework_data_zh[case_name].get(key):
                         all_errors.append(
                             f"[EN↔ZH] {case_name}.{key}: "
