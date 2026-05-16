@@ -250,6 +250,12 @@
         { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
         { "src": "tasks/grocery-reorder/environment/products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
+    },
+    "morning-comfort-setup": {
+      "binaries": ["smarthome"],
+      "assets": [
+        { "src": "tasks/morning-comfort-setup/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
+      ]
     }
   }
 }
