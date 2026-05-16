@@ -4,22 +4,34 @@ Verifier for social-pinned-post-update task (case_id=45).
 
 The agent must:
   1. Read email with pinned post update instructions
-  2. Find verification code SM-Q2-7842 from calendar event
-  3. Unpin post 1, pin post 9
-  4. Send a confirmation email to social-team@mosi.inc with the verification code
+  2. Find verification code SM-Q2-7842 from the calendar event source_ref
+  3. Unpin post 1 (launch announcement), pin post 9 (10K followers giveaway)
+  4. Send a confirmation email to social-team@mosi.inc that contains the
+     verification code AND confirms the pin change for both the old launch
+     announcement post (unpinned) and the new 10K followers giveaway post (pinned)
 
 Scoring:
   - 0.2 for post_id=1 unpinned
   - 0.2 for post_id=9 pinned
-  - 0.6 for sent email to social-team@mosi.inc containing verification code SM-Q2-7842
-    (binary: requires folder='sent' AND recipient_email='social-team@mosi.inc'
-     AND subject_or_body contains 'SM-Q2-7842'; otherwise 0.0)
+  - 0.6 for the confirmation email — binary check, requires ALL of:
+      * folder = 'sent'
+      * lower(recipient_email) = 'social-team@mosi.inc'
+      * subject_or_body contains the verification code 'SM-Q2-7842'
+      * subject_or_body contains a new-pin cue: '10k' OR 'giveaway'
+        (case-insensitive)
+      * subject_or_body contains an old-unpin cue: BOTH 'launch' AND 'unpinned'
+        (case-insensitive)
+    Any missing condition → dim3 = 0.0.
 
 On untouched seed: 0.0
 After pin swap only: 0.4 (fails — must also send confirmation email)
 After pin swap + email to wrong recipient: 0.4 (fails — recipient must match)
-After pin swap + email to correct recipient without code: 0.4 (fails — code required)
-After full solution: 1.0
+After pin swap + email to correct recipient missing the code: 0.4 (fails — code required)
+After pin swap + email with code only (no pin-change cues): 0.4 (fails — must
+  confirm both the new pin and the unpin per instruction)
+After pin swap + email with code + only new-pin cue (no unpin confirmation): 0.4
+After pin swap + email with code + only unpin confirmation (no new-pin cue): 0.4
+After full solution (pin swap + code + new-pin cue + unpin cue): 1.0
 """
 
 import json
@@ -115,7 +127,9 @@ def main():
         else:
             messages.append("FAIL: post_id=9 not pinned or not found")
 
-        # Dimension 3: Confirmation email sent to social-team@mosi.inc with code (0.6)
+        # Dimension 3: Confirmation email sent to social-team@mosi.inc (0.6)
+        # Binary check — must match ALL of: folder='sent', recipient, code,
+        # new-pin cue ('10k' or 'giveaway'), old-unpin cue ('launch' AND 'unpinned').
         dim3_score = 0.0
         try:
             email_db = sqlite3.connect(EMAIL_DB)
@@ -134,26 +148,51 @@ def main():
                 )
             else:
                 found_email = None
+                fail_reasons: list[str] = []
                 for r in rows:
                     subject = r[1] or ""
                     body = r[2] or ""
-                    if VERIFICATION_CODE in subject or VERIFICATION_CODE in body:
+                    combined = f"{subject}\n{body}"
+                    combined_lower = combined.lower()
+
+                    has_code = VERIFICATION_CODE in combined
+                    has_new_pin_cue = (
+                        "10k" in combined_lower or "giveaway" in combined_lower
+                    )
+                    has_old_unpin_cue = (
+                        "launch" in combined_lower and "unpinned" in combined_lower
+                    )
+
+                    if has_code and has_new_pin_cue and has_old_unpin_cue:
                         found_email = r
                         break
+
+                    missing = []
+                    if not has_code:
+                        missing.append(f"code '{VERIFICATION_CODE}'")
+                    if not has_new_pin_cue:
+                        missing.append("new-pin cue ('10k' or 'giveaway')")
+                    if not has_old_unpin_cue:
+                        missing.append("old-unpin cue ('launch' AND 'unpinned')")
+                    fail_reasons.append(
+                        f"email_id={r[0]} missing: {', '.join(missing)}"
+                    )
 
                 if found_email:
                     dim3_score = 0.6
                     messages.append(
                         f"PASS: sent email to '{CONFIRMATION_RECIPIENT}' contains "
-                        f"verification code '{VERIFICATION_CODE}' "
-                        f"(email_id={found_email[0]})"
+                        f"code '{VERIFICATION_CODE}', a new-pin cue, and an "
+                        f"old-unpin cue (email_id={found_email[0]})"
                     )
                 else:
                     messages.append(
-                        f"FAIL: sent email(s) to '{CONFIRMATION_RECIPIENT}' found but "
-                        f"none contain verification code '{VERIFICATION_CODE}' "
-                        f"(checked {len(rows)} message(s))"
+                        f"FAIL: {len(rows)} sent email(s) to "
+                        f"'{CONFIRMATION_RECIPIENT}' found but none satisfy all "
+                        "of (code, new-pin cue, old-unpin cue)"
                     )
+                    for fr in fail_reasons[:5]:
+                        messages.append(f"  - {fr}")
         except Exception as e:
             messages.append(f"FAIL: cannot check email DB: {e}")
 

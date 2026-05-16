@@ -98,13 +98,13 @@ def main():
         score += 0.2
     elif p102["status"] == "published":
         messages.append(
-            f"ANOMALY 2 (post 102): PASS — status is now 'published'"
+            "ANOMALY 2 (post 102): PASS — status is now 'published'"
             + (f", published_at='{p102['published_at']}'" if p102["published_at"] else "")
         )
         score += 0.2
     elif p102["status"] == "draft":
         messages.append(
-            f"ANOMALY 2 (post 102): PASS — status changed to 'draft' (removed stale schedule)"
+            "ANOMALY 2 (post 102): PASS — status changed to 'draft' (removed stale schedule)"
         )
         score += 0.2
     else:
@@ -140,7 +140,7 @@ def main():
         score += 0.2
     elif p104_status == "published":
         messages.append(
-            f"ANOMALY 4 (post 104): PASS — status now matches action_log ('published')"
+            "ANOMALY 4 (post 104): PASS — status now matches action_log ('published')"
         )
         score += 0.2
     elif not has_action_log(db, 104, "published"):
