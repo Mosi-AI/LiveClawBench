@@ -71,5 +71,14 @@ export function initSchema(db: Database): void {
   db.run(`CREATE INDEX IF NOT EXISTS idx_event_user ON calendar_event(user_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_event_time ON calendar_event(start_time, end_time)`);
 
+  // Migrate pre-existing databases that lack the new columns
+  for (const col of [
+    "description TEXT",
+    "event_type TEXT NOT NULL DEFAULT 'personal'",
+    "updated_at TEXT DEFAULT (datetime('now'))",
+  ]) {
+    try { db.exec(`ALTER TABLE calendar_event ADD COLUMN ${col}`); } catch (_) {}
+  }
+
   console.log("calendar: schema initialized with WAL mode");
 }

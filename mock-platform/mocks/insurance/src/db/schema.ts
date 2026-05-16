@@ -201,6 +201,11 @@ export function initSchema(db: Database): void {
     `CREATE INDEX IF NOT EXISTS idx_appointment_slot ON appointment(slot_id)`,
   );
 
+  // Migrate pre-existing databases that lack the status column
+  try {
+    db.exec(`ALTER TABLE appointment ADD COLUMN status TEXT NOT NULL DEFAULT 'confirmed'`);
+  } catch (_) {}
+
   // ─── Plan domain ────────────────────────────────────────────────────────
   db.run(`
     CREATE TABLE IF NOT EXISTS insurance_plan (
