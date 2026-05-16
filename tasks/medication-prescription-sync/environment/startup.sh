@@ -17,12 +17,12 @@ fi
 sqlite3 "$HEALTH_DB" "INSERT OR IGNORE INTO medication (id, user_id, name, display_name, frequency, dose_amount, dose_unit, start_date, end_date, notes, archived, created_at, updated_at) VALUES (100, 1, 'Glipizide', 'Glipizide 5mg', 'daily', 5.0, 'mg', '2026-01-01', '2026-04-30', 'Blood sugar control', 0, datetime('now'), datetime('now'));"
 sqlite3 "$HEALTH_DB" "INSERT OR IGNORE INTO medication (id, user_id, name, display_name, frequency, dose_amount, dose_unit, start_date, end_date, notes, archived, created_at, updated_at) VALUES (101, 1, 'Acarbose', 'Acarbose 50mg', 'daily', 50.0, 'mg', '2026-02-01', '2026-04-15', 'Diabetes management', 0, datetime('now'), datetime('now'));"
 
-MED_COUNT=$(sqlite3 "$HEALTH_DB" "SELECT COUNT(*) FROM medication WHERE id IN (100, 101);")
+MED_COUNT=$(sqlite3 "$HEALTH_DB" "SELECT COUNT(*) FROM medication WHERE id IN (100, 101) AND archived = 0;")
 if [ "$MED_COUNT" -ne 2 ]; then
-    echo "ERROR: Expected 2 stale medications after seeding, found ${MED_COUNT}" >&2
+    echo "ERROR: Expected 2 active (archived=0) medications after seeding, found ${MED_COUNT}" >&2
     exit 1
 fi
-echo "Injected ${MED_COUNT} outdated medications into health DB"
+echo "Injected ${MED_COUNT} active outdated medications into health DB"
 
 # Inject stale calendar reminders for the old medications
 CALENDAR_DB="/var/lib/mock-data/calendar/calendar.db"

@@ -9,6 +9,7 @@
 import sqlite3
 import sys
 import os
+import re
 from datetime import datetime, timedelta
 
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
@@ -128,6 +129,30 @@ def check_new_posts_scheduled():
     return 0.0
 
 
+STOPWORDS = {
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+    "of", "with", "by", "is", "it", "this", "that", "from", "be", "was",
+    "are", "has", "have", "will", "do", "not", "no", "so", "if", "as",
+    "we", "our", "your", "my", "their", "its", "up", "out", "can", "all",
+    "just", "about", "into", "over", "after", "been", "some", "them",
+    "new", "get", "make", "like", "time", "only", "more", "very", "also",
+    "how", "post", "posts",
+}
+
+
+def _tokenize(text):
+    """Tokenize text into lowercase words, ignoring short tokens and stopwords."""
+    words = re.findall(r"[a-z]{3,}", (text or "").lower())
+    return set(w for w in words if w not in STOPWORDS)
+
+
+def _has_keyword_overlap(post_content, event_title, event_description, min_shared=1):
+    """Check if a social post and calendar event share meaningful keywords."""
+    post_tokens = _tokenize(post_content)
+    event_tokens = _tokenize((event_title or "") + " " + (event_description or ""))
+    return len(post_tokens & event_tokens) >= min_shared
+
+
 def check_calendar_content_events():
     """Calendar content events must pair with scheduled social posts.
 
@@ -135,7 +160,8 @@ def check_calendar_content_events():
     and a matching calendar event for each. The verifier pairs each
     event_type='content' calendar event with the closest unmatched
     scheduled post by absolute time delta, counts the pair when within
-    5 minutes, and awards full credit for >= 3 matched pairs.
+    5 minutes AND sharing at least one meaningful campaign keyword, and
+    awards full credit for >= 3 matched pairs.
     """
     if SOCIAL_DB_PATH is None:
         print("SKIP: Could not find social database for content event matching")
@@ -165,7 +191,7 @@ def check_calendar_content_events():
         cal_conn.row_factory = sqlite3.Row
         cal_cursor = cal_conn.cursor()
         cal_cursor.execute(
-            "SELECT id, title, start_time FROM calendar_event WHERE user_id = 1 AND event_type = 'content'"
+            "SELECT id, title, description, start_time FROM calendar_event WHERE user_id = 1 AND event_type = 'content'"
         )
         event_rows = cal_cursor.fetchall()
         cal_conn.close()
@@ -183,7 +209,7 @@ def check_calendar_content_events():
     post_times = []
     for p in post_rows:
         try:
-            post_times.append((p["id"], parse_iso(p["scheduled_for"])))
+            post_times.append((p["id"], parse_iso(p["scheduled_for"]), p["content"]))
         except Exception as e:
             print(f"WARN: skipping post {p['id']} due to bad scheduled_for '{p['scheduled_for']}': {e}")
 
@@ -197,24 +223,26 @@ def check_calendar_content_events():
             print(f"WARN: skipping event {ev['id']} due to bad start_time '{ev['start_time']}': {e}")
             continue
         best = None
-        for pid, pdt in post_times:
+        for pid, pdt, pcontent in post_times:
             if pid in matched_post_ids:
                 continue
             delta = abs(pdt - ev_dt)
-            if delta <= tolerance and (best is None or delta < best[1]):
-                best = (pid, delta)
+            ev_desc = ev["description"] or ""
+            if delta <= tolerance and _has_keyword_overlap(pcontent, ev["title"], ev_desc):
+                if best is None or delta < best[1]:
+                    best = (pid, delta)
         if best is not None:
             matched_post_ids.add(best[0])
             matched_events += 1
 
     if matched_events >= 3:
-        print(f"PASS: {matched_events} content calendar events paired with scheduled posts")
+        print(f"PASS: {matched_events} content calendar events paired with scheduled posts (time + keyword)")
         return 0.25
     if matched_events > 0:
-        print(f"PARTIAL: {matched_events}/3 content calendar events paired with scheduled posts")
+        print(f"PARTIAL: {matched_events}/3 content calendar events paired with scheduled posts (time + keyword)")
         return 0.1
     print(
-        f"FAIL: 0 content calendar events match scheduled posts within 5 minutes "
+        f"FAIL: 0 content calendar events match scheduled posts within 5 minutes with keyword overlap "
         f"({len(event_rows)} events, {len(post_rows)} posts)"
     )
     return 0.0

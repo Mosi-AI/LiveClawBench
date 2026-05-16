@@ -45,9 +45,19 @@ WHERE id = (
 );
 "
 
-APPT_COUNT=$(sqlite3 "$INSURANCE_DB" "SELECT COUNT(*) FROM appointment WHERE user_id = 1 AND provider_name = 'Summit Out-of-Network Clinic';")
+APPT_COUNT=$(sqlite3 "$INSURANCE_DB" "SELECT COUNT(*) FROM appointment WHERE user_id = 1 AND provider_name = 'Summit Out-of-Network Clinic' AND status = 'confirmed';")
 if [ "$APPT_COUNT" -ne 1 ]; then
-    echo "ERROR: Expected exactly 1 out-of-network appointment after seeding, found ${APPT_COUNT}" >&2
+    echo "ERROR: Expected exactly 1 confirmed out-of-network appointment after seeding, found ${APPT_COUNT}" >&2
     exit 1
 fi
-echo "Injected ${APPT_COUNT} out-of-network appointment into insurance DB"
+
+SLOT_AVAIL=$(sqlite3 "$INSURANCE_DB" "
+SELECT COUNT(*) FROM appointment a
+JOIN appointment_slot s ON a.slot_id = s.id
+WHERE a.user_id = 1 AND a.provider_name = 'Summit Out-of-Network Clinic' AND a.status = 'confirmed'
+AND s.is_available = 0;")
+if [ "$SLOT_AVAIL" -ne 1 ]; then
+    echo "ERROR: Seeded appointment slot should be unavailable (is_available=0), but count=${SLOT_AVAIL}" >&2
+    exit 1
+fi
+echo "Injected ${APPT_COUNT} confirmed out-of-network appointment (slot unavailable) into insurance DB"

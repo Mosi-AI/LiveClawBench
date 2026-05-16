@@ -13,6 +13,8 @@ from datetime import datetime
 HEALTH_DB_PATH = "/workspace/health.db"
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
 
+ACTIVE_MED_SLOTS = []
+
 
 def parse_iso(s):
     """Parse ISO-8601 datetime tolerating T/space separators and optional 'Z' suffix.
@@ -56,7 +58,8 @@ def check_old_medications_archived():
 
 
 def check_new_medication_created():
-    """Metformin should be created and active."""
+    """Metformin should be created and active with correct intake slots."""
+    global ACTIVE_MED_SLOTS
     try:
         conn = sqlite3.connect(HEALTH_DB_PATH)
         conn.row_factory = sqlite3.Row
@@ -67,28 +70,48 @@ def check_new_medication_created():
 
     cursor.execute("SELECT id, name, frequency, dose_amount, dose_unit, archived FROM medication WHERE name LIKE '%Metformin%' AND archived = 0")
     row = cursor.fetchone()
-    conn.close()
 
     if not row:
+        conn.close()
         print("FAIL: Metformin not found in active medications")
         return 0.0
 
-    if row["frequency"] == "daily" and row["dose_amount"] == 500.0 and row["dose_unit"] == "mg":
-        print(f"PASS: Metformin 500mg created (id={row['id']}, frequency={row['frequency']})")
-        return 0.25
+    med_id = row["id"]
 
+    cursor.execute("SELECT time_hhmm FROM medication_intake_slot WHERE medication_id = ?", (med_id,))
+    slot_rows = cursor.fetchall()
+    conn.close()
+
+    slot_times = sorted(r["time_hhmm"] for r in slot_rows)
+    ACTIVE_MED_SLOTS = slot_times
+
+    dose_ok = row["frequency"] == "daily" and row["dose_amount"] == 500.0 and row["dose_unit"] == "mg"
+    needed = {"08:00", "18:00"}
+    slots_ok = needed.issubset(set(slot_times))
+
+    if dose_ok and slots_ok:
+        print(f"PASS: Metformin 500mg created with intake slots {slot_times} (id={med_id})")
+        return 0.25
+    if dose_ok:
+        print(f"PARTIAL: Metformin 500mg created but intake slots {slot_times} missing {sorted(needed - set(slot_times))}")
+        return 0.15
     print(f"PARTIAL: Metformin found but details differ (freq={row['frequency']}, dose={row['dose_amount']} {row['dose_unit']})")
     return 0.1
 
 
 def check_calendar_new_med_events():
-    """Calendar events for new medication intake should exist at 08:00 and 18:00.
+    """Calendar events for new medication must match health intake slots.
 
-    The active medication (Metformin) is taken twice daily, so the verifier
-    expects two reminder events whose start_time hours match the intake
-    schedule the agent recorded in the health DB. Timestamps are parsed
-    via parse_iso() so trailing 'Z' or naive UTC strings both match.
+    Reads the active Metformin's medication_intake_slot rows from the health
+    DB (populated by check_new_medication_created) and requires one
+    event_type='medication' calendar event whose start_time HH:MM matches
+    each slot. This ties calendar credit to the health service's recorded
+    intake schedule rather than hard-coded hours.
     """
+    if not ACTIVE_MED_SLOTS:
+        print("FAIL: No intake slots from health DB to match calendar against")
+        return 0.0
+
     try:
         conn = sqlite3.connect(CALENDAR_DB_PATH)
         conn.row_factory = sqlite3.Row
@@ -108,29 +131,29 @@ def check_calendar_new_med_events():
         print(f"FAIL: No Metformin calendar events found ({len(rows)} medication events)")
         return 0.0
 
-    hours_present = set()
+    event_hhmm = set()
     for r in metformin_rows:
         try:
             dt = parse_iso(r["start_time"])
+            event_hhmm.add(f"{dt.hour:02d}:{dt.minute:02d}")
         except Exception as e:
             print(f"WARN: could not parse start_time '{r['start_time']}': {e}")
             continue
-        hours_present.add(dt.hour)
 
-    needed = {8, 18}
-    matched = needed & hours_present
+    needed = set(ACTIVE_MED_SLOTS)
+    matched = needed & event_hhmm
     if matched == needed:
-        print(f"PASS: Metformin calendar events at both 08:00 and 18:00 ({len(metformin_rows)} events)")
+        print(f"PASS: Metformin calendar events match health intake slots {sorted(matched)} ({len(metformin_rows)} events)")
         return 0.25
     if matched:
         print(
-            f"PARTIAL: Metformin events found but missing intake time(s) "
-            f"{sorted(needed - matched)} (got hours {sorted(hours_present)})"
+            f"PARTIAL: Metformin calendar events match {sorted(matched)} but missing "
+            f"{sorted(needed - matched)} (got {sorted(event_hhmm)})"
         )
         return 0.1
     print(
-        f"FAIL: Metformin events do not match required intake times 08:00/18:00 "
-        f"(found hours {sorted(hours_present)})"
+        f"FAIL: Metformin events do not match intake slots {sorted(needed)} "
+        f"(found {sorted(event_hhmm)})"
     )
     return 0.0
 
