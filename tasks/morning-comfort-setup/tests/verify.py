@@ -5,15 +5,15 @@ Verify morning-comfort-setup task: 8-dimension scoring.
 Dimensions (each 0.125 pts):
 - D1: Thermostat state — DB: mode='comfort' AND temperature in 72-77 range (HARD REQUIRED)
 - D2: Coffee state — DB: start_time <= '06:30' (HARD REQUIRED)
-- D3: Grocery Blue Mountain — DB: entry exists with quantity=20g (±2g tolerance)
-- D4: Grocery Kenya AA — DB: entry exists with quantity=8g (±1g tolerance)
-- D5: Response environmental — mentions humidity anomaly (999%) AND thermostat correction
-- D6: Response coffee timing — mentions brew_duration reasoning AND start_time adjustment
-- D7: Response inventory — mentions Blue Mountain expired AND Kenya AA insufficient
-- D8: Response cross-reference — mentions Kenya AA is coffee bean (cross-referenced)
+- D3: Grocery Blue Mountain — DB: entry with quantity=20g AND reference='expired' (HARD REQUIRED)
+- D4: Grocery Kenya AA — DB: entry with quantity=8g AND reference='insufficient/shortage' (HARD REQUIRED)
+- D5: Response environmental — humidity anomaly AND humidity→thermostat causal link AND thermostat correction
+- D6: Response coffee timing — 30-min brew AND 06:30 AND 7am/departure inference (all three required)
+- D7: Response inventory — Blue Mountain expired AND Kenya AA insufficient
+- D8: Response cross-reference — Kenya AA is coffee bean (cross-referenced)
 
 Pass threshold: >= 0.75 (6 of 8 dimensions passed)
-D1 and D2 are hard required (DB state must match regardless of overall score).
+D1, D2, D3, D4 are hard required (DB state must match regardless of overall score).
 """
 
 import json
@@ -173,7 +173,6 @@ def check_d2_coffee_state():
         start_time = row[0]
         print(f"Current coffee start_time: {start_time}")
 
-        # Compare time strings (HH:MM format)
         if start_time <= EXPECTED_COFFEE_START_TIME_MAX:
             print("D2: PASS (0.125)")
             return 0.125
@@ -186,8 +185,8 @@ def check_d2_coffee_state():
 
 
 def check_d3_grocery_blue_mountain():
-    """D3: Grocery Blue Mountain — DB: entry exists with quantity=20g (±2g tolerance) AND has reason in reference field"""
-    print("\n=== D3: Grocery Blue Mountain ===")
+    """D3: Grocery Blue Mountain — DB: entry with quantity=20g AND reference='expired' (HARD REQUIRED)"""
+    print("\n=== D3: Grocery Blue Mountain (HARD REQUIRED) ===")
 
     try:
         conn = sqlite3.connect(SQLITE_DB)
@@ -198,7 +197,6 @@ def check_d3_grocery_blue_mountain():
 
         print(f"Grocery entries: {[(r[0], r[1], r[2]) for r in rows]}")
 
-        # Check for Blue Mountain entry with valid reason
         for name, quantity, reference in rows:
             name_lower = name.lower()
             if "blue mountain" in name_lower and "coffee" in name_lower:
@@ -207,12 +205,9 @@ def check_d3_grocery_blue_mountain():
                 if qty_ok and reason_ok:
                     print(f"D3: PASS - Found Blue Mountain entry with quantity={quantity}g and reason='{reference}'")
                     return 0.125
-                elif qty_ok:
-                    print(f"D3: PARTIAL - Found Blue Mountain with correct quantity={quantity}g but missing/invalid reason")
-                    return 0.0625
                 else:
-                    print(f"D3: PARTIAL - Found Blue Mountain but quantity={quantity}g outside tolerance")
-                    return 0.0625
+                    print(f"D3: FAIL - Blue Mountain found but quantity={quantity}g (expected 20±2) or reason='{reference}' (expected 'expired')")
+                    return 0.0
 
         print("D3: FAIL - No Blue Mountain coffee entry found")
         return 0.0
@@ -222,8 +217,8 @@ def check_d3_grocery_blue_mountain():
 
 
 def check_d4_grocery_kenya_aa():
-    """D4: Grocery Kenya AA — DB: entry exists with quantity=8g (±1g tolerance) AND has reason in reference field"""
-    print("\n=== D4: Grocery Kenya AA ===")
+    """D4: Grocery Kenya AA — DB: entry with quantity=8g AND reference='insufficient/shortage' (HARD REQUIRED)"""
+    print("\n=== D4: Grocery Kenya AA (HARD REQUIRED) ===")
 
     try:
         conn = sqlite3.connect(SQLITE_DB)
@@ -232,7 +227,6 @@ def check_d4_grocery_kenya_aa():
         rows = cursor.fetchall()
         conn.close()
 
-        # Check for Kenya AA entry with valid reason
         for name, quantity, reference in rows:
             name_lower = name.lower()
             if "kenya" in name_lower:
@@ -241,12 +235,9 @@ def check_d4_grocery_kenya_aa():
                 if qty_ok and reason_ok:
                     print(f"D4: PASS - Found Kenya AA entry with quantity={quantity}g and reason='{reference}'")
                     return 0.125
-                elif qty_ok:
-                    print(f"D4: PARTIAL - Found Kenya AA with correct quantity={quantity}g but missing/invalid reason")
-                    return 0.0625
                 else:
-                    print(f"D4: PARTIAL - Found Kenya AA but quantity={quantity}g outside tolerance")
-                    return 0.0625
+                    print(f"D4: FAIL - Kenya AA found but quantity={quantity}g (expected 8±1) or reason='{reference}' (expected 'insufficient/shortage')")
+                    return 0.0
 
         print("D4: FAIL - No Kenya AA entry found")
         return 0.0
@@ -256,7 +247,7 @@ def check_d4_grocery_kenya_aa():
 
 
 def check_d5_response_environmental(response):
-    """D5: Response environmental — mentions humidity anomaly (999%) AND causal link to thermostat corruption AND thermostat correction"""
+    """D5: Response environmental — humidity anomaly AND humidity→thermostat causal link AND thermostat correction"""
     print("\n=== D5: Response Environmental ===")
 
     if response is None:
@@ -267,29 +258,28 @@ def check_d5_response_environmental(response):
     found = 0
 
     # Check humidity anomaly mention (999% or sensor malfunction)
-    if "999" in response_lower or ("humidity" in response_lower and ("anomaly" in response_lower or "malfunction" in response_lower or "sensor" in response_lower)):
+    has_humidity = "999" in response_lower or ("humidity" in response_lower and ("anomaly" in response_lower or "malfunction" in response_lower or "sensor" in response_lower))
+    if has_humidity:
         print("PASS: Humidity anomaly mentioned")
         found += 1
     else:
         print("FAIL: Humidity anomaly not mentioned")
 
-    # Check causal link: humidity/sensor caused thermostat corruption
-    causal_patterns = [
-        "caused", "cause", "trigger", "triggered", "led to", "resulted in",
-        "because", "due to", "from the", "protection mode", "corrupted"
-    ]
-    has_causal = False
-    if "humidity" in response_lower or "sensor" in response_lower or "999" in response_lower:
-        if "thermostat" in response_lower:
-            for pattern in causal_patterns:
-                if pattern in response_lower:
-                    has_causal = True
-                    break
-    if has_causal:
-        print("PASS: Causal link between humidity/sensor and thermostat mentioned")
+    # Check causal link: humidity/sensor caused thermostat corruption (must be in same context)
+    # Pattern: humidity/sensor + causal word + thermostat (within ~50 chars)
+    has_causal_link = False
+    sentences = re.split(r'[.!?\n]', response_lower)
+    for sentence in sentences:
+        if ("humidity" in sentence or "sensor" in sentence or "999" in sentence) and "thermostat" in sentence:
+            causal_words = ["caused", "cause", "trigger", "triggered", "led to", "resulted in", "protection mode", "corrupted", "because of", "due to"]
+            if any(word in sentence for word in causal_words):
+                has_causal_link = True
+                break
+    if has_causal_link:
+        print("PASS: Causal link between humidity/sensor and thermostat in same sentence")
         found += 1
     else:
-        print("FAIL: Causal link between humidity/sensor and thermostat not mentioned")
+        print("FAIL: Causal link between humidity/sensor and thermostat not in same sentence")
 
     # Check thermostat correction mention
     if "thermostat" in response_lower and ("comfort" in response_lower or "corrected" in response_lower or "fix" in response_lower or "adjust" in response_lower):
@@ -301,10 +291,10 @@ def check_d5_response_environmental(response):
     if found == 3:
         print("D5: PASS (0.125)")
         return 0.125
-    elif found == 2:
+    elif found >= 2:
         print("D5: PARTIAL (0.083)")
         return 0.083
-    elif found == 1:
+    elif found >= 1:
         print("D5: PARTIAL (0.042)")
         return 0.042
     else:
@@ -313,7 +303,7 @@ def check_d5_response_environmental(response):
 
 
 def check_d6_response_coffee_timing(response):
-    """D6: Response coffee timing — mentions explicit 30-minute brew_duration reasoning AND start_time adjustment with inference"""
+    """D6: Response coffee timing — 30-min brew AND 06:30 AND 7am/departure inference (all three required for full credit)"""
     print("\n=== D6: Response Coffee Timing ===")
 
     if response is None:
@@ -323,41 +313,51 @@ def check_d6_response_coffee_timing(response):
     response_lower = response.lower()
     found = 0
 
-    # Check explicit 30-minute brew duration reasoning (must mention 30 min/minutes)
-    if "30" in response_lower and ("min" in response_lower or "minute" in response_lower):
+    # Check explicit 30-minute brew duration
+    has_30min = "30" in response_lower and ("min" in response_lower or "minute" in response_lower)
+    if has_30min:
         print("PASS: Explicit 30-minute brew duration mentioned")
         found += 1
     else:
         print("FAIL: Explicit 30-minute brew duration not mentioned")
 
-    # Check start_time adjustment with reasoning (must mention 06:30 or inference from brew time)
-    if "06:30" in response_lower or "6:30" in response_lower:
+    # Check 06:30 start time
+    has_0630 = "06:30" in response_lower or "6:30" in response_lower
+    if has_0630:
         print("PASS: Start time 06:30 mentioned")
         found += 1
-    elif "start" in response_lower and "time" in response_lower and ("adjust" in response_lower or "change" in response_lower or "earlier" in response_lower):
-        # Also check for inference reasoning (brew time -> departure time)
-        if "brew" in response_lower and ("7" in response_lower or "07:" in response_lower or "leave" in response_lower or "departure" in response_lower or "ready" in response_lower):
-            print("PASS: Start time adjustment with brew timing inference mentioned")
-            found += 1
-        else:
-            print("PARTIAL: Start time adjustment mentioned but without clear inference")
-            found += 0.5
     else:
-        print("FAIL: Start time adjustment not mentioned")
+        print("FAIL: Start time 06:30 not mentioned")
 
-    if found >= 2:
+    # Check 7am/departure inference (must tie brew time to departure)
+    has_departure_inference = False
+    sentences = re.split(r'[.!?\n]', response_lower)
+    for sentence in sentences:
+        if ("30" in sentence or "brew" in sentence) and ("7" in sentence or "07:" in sentence or "leave" in sentence or "departure" in sentence or "ready by" in sentence):
+            has_departure_inference = True
+            break
+    if has_departure_inference:
+        print("PASS: 7am/departure inference tied to brew time")
+        found += 1
+    else:
+        print("FAIL: 7am/departure inference not tied to brew time")
+
+    if found == 3:
         print("D6: PASS (0.125)")
         return 0.125
+    elif found >= 2:
+        print("D6: PARTIAL (0.083)")
+        return 0.083
     elif found >= 1:
-        print("D6: PARTIAL (0.0625)")
-        return 0.0625
+        print("D6: PARTIAL (0.042)")
+        return 0.042
     else:
         print("D6: FAIL (0.0)")
         return 0.0
 
 
 def check_d7_response_inventory(response):
-    """D7: Response inventory — mentions Blue Mountain expired AND Kenya AA insufficient"""
+    """D7: Response inventory — Blue Mountain expired AND Kenya AA insufficient"""
     print("\n=== D7: Response Inventory ===")
 
     if response is None:
@@ -367,14 +367,12 @@ def check_d7_response_inventory(response):
     response_lower = response.lower()
     found = 0
 
-    # Check Blue Mountain expired
     if "blue mountain" in response_lower and ("expired" in response_lower or "expire" in response_lower):
         print("PASS: Blue Mountain expired mentioned")
         found += 1
     else:
         print("FAIL: Blue Mountain expired not mentioned")
 
-    # Check Kenya AA insufficient
     if "kenya" in response_lower and ("insufficient" in response_lower or "shortage" in response_lower or "12" in response_lower or "not enough" in response_lower):
         print("PASS: Kenya AA insufficient mentioned")
         found += 1
@@ -393,7 +391,7 @@ def check_d7_response_inventory(response):
 
 
 def check_d8_response_cross_reference(response):
-    """D8: Response cross-reference — mentions Kenya AA is coffee bean (cross-referenced)"""
+    """D8: Response cross-reference — Kenya AA is coffee bean (cross-referenced)"""
     print("\n=== D8: Response Cross-Reference ===")
 
     if response is None:
@@ -402,7 +400,6 @@ def check_d8_response_cross_reference(response):
 
     response_lower = response.lower()
 
-    # Check cross-reference reasoning (Kenya AA identified as coffee bean)
     if "kenya" in response_lower and "coffee" in response_lower:
         if "cross" in response_lower or "reference" in response_lower or "machine" in response_lower or "bean" in response_lower:
             print("PASS: Kenya AA cross-referenced as coffee bean")
@@ -423,12 +420,9 @@ def main():
     print("Morning Comfort Setup Verification")
     print("=" * 60)
 
-    # Get agent response once
     response = get_agent_response()
 
-    # Run all dimension checks
     results = {}
-
     results["D1"] = check_d1_thermostat_state()
     results["D2"] = check_d2_coffee_state()
     results["D3"] = check_d3_grocery_blue_mountain()
@@ -446,8 +440,8 @@ def main():
     passed_count = 0
 
     for dim, score in results.items():
-        status = "PASS" if score >= 0.125 else "PARTIAL" if score >= 0.0625 else "FAIL"
-        hard_req = " (HARD REQUIRED)" if dim in ["D1", "D2"] else ""
+        status = "PASS" if score >= 0.125 else "PARTIAL" if score >= 0.042 else "FAIL"
+        hard_req = " (HARD REQUIRED)" if dim in ["D1", "D2", "D3", "D4"] else ""
         print(f"  {dim}: {score:.3f}/0.125 [{status}]{hard_req}")
         total_score += score
         if score >= 0.125:
@@ -456,18 +450,13 @@ def main():
     print(f"\nTotal Score: {total_score:.3f}/1.0")
     print(f"Dimensions passed: {passed_count}/8")
 
-    # Check hard requirements
-    d1_pass = results["D1"] >= 0.125
-    d2_pass = results["D2"] >= 0.125
-    hard_req_pass = d1_pass and d2_pass
+    # Check hard requirements (D1, D2, D3, D4)
+    hard_req_pass = all(results[d] >= 0.125 for d in ["D1", "D2", "D3", "D4"])
+    print(f"Hard requirements: D1={results['D1']>=0.125}, D2={results['D2']>=0.125}, D3={results['D3']>=0.125}, D4={results['D4']>=0.125}")
 
-    print(f"Hard requirements: D1={'PASS' if d1_pass else 'FAIL'}, D2={'PASS' if d2_pass else 'FAIL'}")
-
-    # Write reward file
     with open("/logs/verifier/reward.txt", "w") as f:
         f.write(f"{total_score:.3f}\n")
 
-    # Write detailed results
     results_json = {
         "reward": total_score,
         "_meta_D1": results["D1"],
@@ -486,7 +475,7 @@ def main():
 
     print(f"Score: {total_score:.3f}/1.0")
 
-    # Pass threshold: >= 0.75 (6 of 8 dimensions) AND hard requirements met
+    # Pass threshold: >= 0.75 AND all hard requirements met
     threshold_pass = total_score >= 0.75 and hard_req_pass
     sys.exit(0 if threshold_pass else 1)
 
