@@ -53,7 +53,15 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      27 | conflict-repair-acb               |  E   | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |      28 | mixed-tool-memory                 |  E   | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |  M   | ✓  |    |    | ✓  | Deep Research & Report     |
+|      31 | mint-diet-snack-log               |  E   |    |    |    |    | Health & Fitness           |
+|      33 | social-media-posting              |  E   |    |    |    |    | Social Media               |
+|      34 | social-unlike-post                |  E   |    |    |    |    | Social Media               |
+|      35 | expense-draft-delete              |  E   |    |    |    |    | Finance & Data Analytics   |
+|      36 | insurance-deductible-selection    |  E   |    |    |    |    | E-commerce & Daily Svcs    |
+|      37 | health-insurance-optimization     |  M   | ✓  |    |    |    | E-commerce & Daily Svcs    |
+|      38 | health-daily-record               |  E   |    |    |    |    | Health & Wellness          |
 |      39 | smarthome-test                    |  M   |    |    | ✓  |    | E-commerce & Daily Svcs    |
+|      40 | weather-aqi-report                |  E   |    |    |    |    | Deep Research & Report     |
 |      41 | grocery-reorder                   |  M   | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
 |      42 | morning-comfort-setup             |  M   |    | ✓  | ✓  |    | Health & Fitness           |
 
