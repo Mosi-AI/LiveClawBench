@@ -129,7 +129,11 @@ def main() -> tuple[float, dict]:
             "SELECT id, vendor_id, vendor_name, invoice_number, invoice_date FROM invoice WHERE invoice_number = ?",
             ("INV-2026-004",),
         ).fetchone()
-        if inv_row and inv_row["vendor_id"] == 2 and inv_row["invoice_date"] == "2026-03-01":
+        if (
+            inv_row
+            and inv_row["vendor_id"] == 2
+            and inv_row["invoice_date"] == "2026-03-01"
+        ):
             score += record_score(
                 details,
                 "invoice_created",
