@@ -17,12 +17,8 @@ ACTIVE_MED_SLOTS = []
 
 
 def parse_iso(s):
-    """Parse ISO-8601 datetime tolerating T/space separators and optional 'Z' suffix.
-
-    The calendar mock stores whatever timestamp string the agent submits, so
-    the verifier must accept both '2026-05-17T08:00:00' and '2026-05-17T08:00:00Z'.
-    Returns a naive datetime; both sides of any comparison go through the same
-    normalization so the implicit UTC offset cancels.
+    """Parse ISO-8601 datetime into a naive UTC datetime, tolerating T/space
+    separators and optional 'Z' suffix. Raises ValueError on failure.
     """
     if not s:
         raise ValueError("empty timestamp")
@@ -34,15 +30,23 @@ def parse_iso(s):
     return datetime.fromisoformat(s)
 
 
+def open_db(path: str) -> sqlite3.Connection | None:
+    """Open a SQLite database with Row factory, or None on failure."""
+    try:
+        conn = sqlite3.connect(path)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except Exception as e:
+        print(f"FAIL: Could not open database {path}: {e}")
+        return None
+
+
 def check_old_medications_archived():
     """Old medications should be archived."""
-    try:
-        conn = sqlite3.connect(HEALTH_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open health database: {e}")
+    conn = open_db(HEALTH_DB_PATH)
+    if not conn:
         return 0.0
+    cursor = conn.cursor()
 
     score = 0.0
     for med_name in ["Glipizide", "Acarbose"]:
@@ -60,13 +64,10 @@ def check_old_medications_archived():
 def check_new_medication_created():
     """Metformin should be created and active with correct intake slots."""
     global ACTIVE_MED_SLOTS
-    try:
-        conn = sqlite3.connect(HEALTH_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open health database: {e}")
+    conn = open_db(HEALTH_DB_PATH)
+    if not conn:
         return 0.0
+    cursor = conn.cursor()
 
     cursor.execute("SELECT id, name, frequency, dose_amount, dose_unit, archived FROM medication WHERE name LIKE '%Metformin%' AND archived = 0")
     row = cursor.fetchone()
@@ -100,26 +101,15 @@ def check_new_medication_created():
 
 
 def check_calendar_new_med_events():
-    """Calendar events for new medication must match health intake slots.
-
-    Reads the active Metformin's medication_intake_slot rows from the health
-    DB (populated by check_new_medication_created) and requires one
-    event_type='medication' calendar event whose start_time HH:MM matches
-    each slot. This ties calendar credit to the health service's recorded
-    intake schedule rather than hard-coded hours.
-    """
+    """Calendar events for new medication must match health intake slots."""
     if not ACTIVE_MED_SLOTS:
         print("FAIL: No intake slots from health DB to match calendar against")
         return 0.0
 
-    try:
-        conn = sqlite3.connect(CALENDAR_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open calendar database: {e}")
+    conn = open_db(CALENDAR_DB_PATH)
+    if not conn:
         return 0.0
-
+    cursor = conn.cursor()
     cursor.execute(
         "SELECT id, title, start_time FROM calendar_event WHERE user_id = 1 AND event_type = 'medication'"
     )
@@ -160,14 +150,10 @@ def check_calendar_new_med_events():
 
 def check_stale_events_cleaned():
     """Stale calendar reminders for old medications should be deleted."""
-    try:
-        conn = sqlite3.connect(CALENDAR_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open calendar database: {e}")
+    conn = open_db(CALENDAR_DB_PATH)
+    if not conn:
         return 0.0
-
+    cursor = conn.cursor()
     cursor.execute(
         "SELECT id, title FROM calendar_event WHERE user_id = 1 AND (title LIKE '%Glipizide%' OR title LIKE '%Acarbose%')"
     )
@@ -183,12 +169,12 @@ def check_stale_events_cleaned():
 
 
 def main():
-    scores = []
-    scores.append(check_old_medications_archived())
-    scores.append(check_new_medication_created())
-    scores.append(check_calendar_new_med_events())
-    scores.append(check_stale_events_cleaned())
-
+    scores = [
+        check_old_medications_archived(),
+        check_new_medication_created(),
+        check_calendar_new_med_events(),
+        check_stale_events_cleaned(),
+    ]
     total = sum(scores)
     print(f"Score: {total:.2f}/1.0")
     sys.exit(0 if total >= 0.9 else 1)

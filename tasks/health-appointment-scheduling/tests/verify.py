@@ -16,13 +16,8 @@ OUT_OF_NETWORK_PROVIDER = "Summit Out-of-Network Clinic"
 
 
 def parse_iso(s):
-    """Parse ISO-8601 datetime tolerating T/space separators and optional 'Z' suffix.
-
-    The calendar mock stores whatever timestamp string the agent submits, so
-    the verifier must accept both raw appointment slot strings (no offset)
-    and calendar events written with a trailing 'Z'. Returns a naive
-    datetime; both sides of any comparison go through the same normalization
-    so the implicit UTC offset cancels.
+    """Parse ISO-8601 datetime into a naive UTC datetime, tolerating T/space
+    separators and optional 'Z' suffix. Raises ValueError on failure.
     """
     if not s:
         raise ValueError("empty timestamp")
@@ -34,16 +29,23 @@ def parse_iso(s):
     return datetime.fromisoformat(s)
 
 
+def open_db(path: str) -> sqlite3.Connection | None:
+    """Open a SQLite database with Row factory, or None on failure."""
+    try:
+        conn = sqlite3.connect(path)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except Exception as e:
+        print(f"FAIL: Could not open database {path}: {e}")
+        return None
+
+
 def check_out_of_network_cancelled():
     """Out-of-network appointment should be cancelled."""
-    try:
-        conn = sqlite3.connect(INSURANCE_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open insurance database: {e}")
+    conn = open_db(INSURANCE_DB_PATH)
+    if not conn:
         return 0.0
-
+    cursor = conn.cursor()
     cursor.execute(
         "SELECT id, provider_name, status FROM appointment WHERE user_id = 1 AND provider_name = ?",
         (OUT_OF_NETWORK_PROVIDER,),
@@ -66,14 +68,10 @@ def check_out_of_network_cancelled():
 
 def check_in_network_booked():
     """New in-network appointment should exist and be confirmed."""
-    try:
-        conn = sqlite3.connect(INSURANCE_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open insurance database: {e}")
+    conn = open_db(INSURANCE_DB_PATH)
+    if not conn:
         return 0.0
-
+    cursor = conn.cursor()
     cursor.execute(
         """
         SELECT a.id, a.provider_name, a.service_name_snapshot, a.slot_start_time, a.slot_end_time, a.status
@@ -98,19 +96,14 @@ def check_calendar_event():
     """Calendar event must match the new in-network appointment time.
 
     Comparison uses parsed datetimes (parse_iso) rather than raw string
-    equality so trailing 'Z' or naive UTC are both accepted, and only
-    event_type='appointment' rows count - a coincidental personal event
-    cannot satisfy the requirement. A delta within 1 minute on both
+    equality so trailing 'Z' or naive UTC are both accepted. Only
+    event_type='appointment' rows count. A delta within 1 minute on both
     endpoints is treated as a match.
     """
-    try:
-        ins_conn = sqlite3.connect(INSURANCE_DB_PATH)
-        ins_conn.row_factory = sqlite3.Row
-        ins_cursor = ins_conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open insurance database: {e}")
+    ins_conn = open_db(INSURANCE_DB_PATH)
+    if not ins_conn:
         return 0.0
-
+    ins_cursor = ins_conn.cursor()
     ins_cursor.execute(
         """
         SELECT a.slot_start_time, a.slot_end_time, a.service_name_snapshot
@@ -137,19 +130,16 @@ def check_calendar_event():
         )
         return 0.0
 
-    try:
-        cal_conn = sqlite3.connect(CALENDAR_DB_PATH)
-        cal_conn.row_factory = sqlite3.Row
-        cal_cursor = cal_conn.cursor()
-        cal_cursor.execute(
-            "SELECT id, title, start_time, end_time, event_type FROM calendar_event "
-            "WHERE user_id = 1 AND event_type = 'appointment'"
-        )
-        events = cal_cursor.fetchall()
-        cal_conn.close()
-    except Exception as e:
-        print(f"FAIL: Could not open calendar database: {e}")
+    cal_conn = open_db(CALENDAR_DB_PATH)
+    if not cal_conn:
         return 0.0
+    cal_cursor = cal_conn.cursor()
+    cal_cursor.execute(
+        "SELECT id, title, start_time, end_time, event_type FROM calendar_event "
+        "WHERE user_id = 1 AND event_type = 'appointment'"
+    )
+    events = cal_cursor.fetchall()
+    cal_conn.close()
 
     tolerance = timedelta(minutes=1)
     for evt in events:
@@ -175,11 +165,11 @@ def check_calendar_event():
 
 
 def main():
-    scores = []
-    scores.append(check_out_of_network_cancelled())
-    scores.append(check_in_network_booked())
-    scores.append(check_calendar_event())
-
+    scores = [
+        check_out_of_network_cancelled(),
+        check_in_network_booked(),
+        check_calendar_event(),
+    ]
     total = sum(scores)
     print(f"Score: {total:.2f}/1.0")
     sys.exit(0 if total >= 0.9 else 1)

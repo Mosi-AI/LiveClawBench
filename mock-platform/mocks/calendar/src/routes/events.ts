@@ -3,7 +3,7 @@ import { createRoute, ErrorResponseSchema, authRequired, err } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 
-const EVENT_TYPE_VALUES = ["personal", "medication", "appointment", "content"] as const;
+export const EVENT_TYPE_VALUES = ["personal", "medication", "appointment", "content"] as const;
 
 const EventSchema = z.object({
   id: z.number(),

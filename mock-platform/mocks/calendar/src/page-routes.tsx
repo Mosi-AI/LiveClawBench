@@ -18,6 +18,17 @@ interface CalEvent {
   end_time: string;
 }
 
+function formatEventError(error: string): string {
+  const messages: Record<string, string> = {
+    not_found: "Event not found",
+    invalid_time_range: "End time must be after start time",
+    time_overlap: "Time overlaps with an existing event",
+  };
+  return error.startsWith("invalid_request:")
+    ? "Invalid field value (event_type or date format)"
+    : (messages[error] ?? error);
+}
+
 function getCurrentUser(
   db: Database,
   userId: number,
@@ -140,15 +151,8 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
     });
     if (!result.ok) {
       const events = listEvents(db, userId);
-      const errorMessages: Record<string, string> = {
-        invalid_time_range: "End time must be after start time",
-        time_overlap: "Time overlaps with an existing event",
-      };
-      const display = result.error.startsWith("invalid_request:")
-        ? "Invalid field value (event_type or date format)"
-        : (errorMessages[result.error] ?? result.error);
       return c.html(
-        <CalendarPage user={user} events={events} error={display} />,
+        <CalendarPage user={user} events={events} error={formatEventError(result.error)} />,
       );
     }
 
@@ -235,16 +239,8 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
           <CalendarPage user={user} events={events} error="Event not found" />,
         );
       }
-      const errorMessages: Record<string, string> = {
-        not_found: "Event not found",
-        invalid_time_range: "End time must be after start time",
-        time_overlap: "Time overlaps with another event",
-      };
-      const display = result.error.startsWith("invalid_request:")
-        ? "Invalid field value (event_type or date format)"
-        : (errorMessages[result.error] ?? result.error);
       return c.html(
-        <EditEventPage user={user} event={event} error={display} />,
+        <EditEventPage user={user} event={event} error={formatEventError(result.error)} />,
       );
     }
 

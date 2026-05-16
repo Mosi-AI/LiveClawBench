@@ -1,5 +1,6 @@
 /** @jsxImportSource hono/jsx */
 import type { FC } from "hono/jsx";
+import { EVENT_TYPE_VALUES } from "../routes/events";
 
 interface CalendarEvent {
   id: number;
@@ -21,8 +22,6 @@ function toDatetimeLocal(iso: string): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-
-const EVENT_TYPES = ["personal", "medication", "appointment", "content"];
 
 export const EditEventPage: FC<EditEventPageProps> = ({ user, event, error }) => {
   return (
@@ -64,7 +63,7 @@ export const EditEventPage: FC<EditEventPageProps> = ({ user, event, error }) =>
             <label>
               Event Type:
               <select name="event_type">
-                {EVENT_TYPES.map((t) => (
+                {EVENT_TYPE_VALUES.map((t) => (
                   <option value={t} selected={t === event.event_type}>{t}</option>
                 ))}
               </select>

@@ -7,32 +7,39 @@
 
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import datetime
 
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
 EMAIL_DB_PATH = "/var/lib/mock-data/email/email.db"
 
 # Wall-clock instants the agent must produce in the calendar (UTC).
-# The mock stores ISO 8601 with ".000Z" suffix via Date.toISOString(); we compare
-# as parsed datetimes to be robust to format differences (Z vs +00:00, ms suffix).
-OLD_START = datetime(2026, 5, 22, 14, 0, 0, tzinfo=timezone.utc)
-OLD_END = datetime(2026, 5, 22, 15, 0, 0, tzinfo=timezone.utc)
-NEW_START = datetime(2026, 5, 23, 10, 0, 0, tzinfo=timezone.utc)
-NEW_END = datetime(2026, 5, 23, 11, 0, 0, tzinfo=timezone.utc)
+OLD_START = datetime(2026, 5, 22, 14, 0, 0)
+OLD_END = datetime(2026, 5, 22, 15, 0, 0)
+NEW_START = datetime(2026, 5, 23, 10, 0, 0)
+NEW_END = datetime(2026, 5, 23, 11, 0, 0)
 
 
 def parse_iso(value: str) -> datetime | None:
-    """Parse an ISO 8601 string into a UTC datetime, or None on failure."""
+    """Parse an ISO 8601 string into a naive UTC datetime, or None on failure."""
     if not value:
         return None
     try:
-        # Accept both "...Z" and "...+00:00" forms.
-        normalized = value.replace("Z", "+00:00")
-        dt = datetime.fromisoformat(normalized)
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return dt.astimezone(timezone.utc)
+        s = value.strip()
+        if s.endswith("Z"):
+            s = s[:-1]
+        return datetime.fromisoformat(s)
     except (ValueError, TypeError):
+        return None
+
+
+def open_db(path: str) -> sqlite3.Connection | None:
+    """Open a SQLite database with Row factory, or None on failure."""
+    try:
+        conn = sqlite3.connect(path)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except Exception as e:
+        print(f"FAIL: Could not open database {path}: {e}")
         return None
 
 
@@ -42,24 +49,17 @@ def find_event(cursor, start: datetime, end: datetime):
         "SELECT id, title, start_time, end_time, event_type FROM calendar_event WHERE user_id = 1",
     )
     for row in cursor.fetchall():
-        row_start = parse_iso(row["start_time"])
-        row_end = parse_iso(row["end_time"])
-        if row_start == start and row_end == end:
+        if parse_iso(row["start_time"]) == start and parse_iso(row["end_time"]) == end:
             return row
     return None
 
 
 def check_old_event_deleted():
     """Old meeting event should no longer exist."""
-    try:
-        conn = sqlite3.connect(CALENDAR_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open calendar database: {e}")
+    conn = open_db(CALENDAR_DB_PATH)
+    if not conn:
         return 0.0
-
-    row = find_event(cursor, OLD_START, OLD_END)
+    row = find_event(conn.cursor(), OLD_START, OLD_END)
     conn.close()
 
     if row is None:
@@ -71,15 +71,10 @@ def check_old_event_deleted():
 
 def check_new_event_created():
     """New rescheduled meeting event should exist."""
-    try:
-        conn = sqlite3.connect(CALENDAR_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open calendar database: {e}")
+    conn = open_db(CALENDAR_DB_PATH)
+    if not conn:
         return 0.0
-
-    row = find_event(cursor, NEW_START, NEW_END)
+    row = find_event(conn.cursor(), NEW_START, NEW_END)
     conn.close()
 
     if row:
@@ -91,14 +86,10 @@ def check_new_event_created():
 
 def check_confirmation_email():
     """Confirmation email should be sent to HR."""
-    try:
-        conn = sqlite3.connect(EMAIL_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-    except Exception as e:
-        print(f"FAIL: Could not open email database: {e}")
+    conn = open_db(EMAIL_DB_PATH)
+    if not conn:
         return 0.0
-
+    cursor = conn.cursor()
     cursor.execute(
         "SELECT id, subject, body, folder FROM emails WHERE sender_id = 1 AND folder = 'sent' AND recipient_email = 'hr@work.mosi.inc' ORDER BY id DESC LIMIT 1",
     )
@@ -128,11 +119,11 @@ def check_confirmation_email():
 
 
 def main():
-    scores = []
-    scores.append(check_old_event_deleted())
-    scores.append(check_new_event_created())
-    scores.append(check_confirmation_email())
-
+    scores = [
+        check_old_event_deleted(),
+        check_new_event_created(),
+        check_confirmation_email(),
+    ]
     total = sum(scores)
     print(f"Score: {total:.2f}/1.0")
     sys.exit(0 if total >= 0.9 else 1)
