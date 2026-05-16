@@ -165,7 +165,7 @@ Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
-| Easy       |             0.46 |          14          |       6       |       4      |
+| Easy       |             0.46 |          13          |       7       |       5      |
 | Medium     |             1.27 |          1           |       6       |       4      |
 | Hard       |             2.11 |          0           |       3       |       6      |
 

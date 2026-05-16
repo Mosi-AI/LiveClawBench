@@ -145,9 +145,8 @@ def main():
                 f"PASS: published post with topic match (id={target_post.get('id')})"
             )
         else:
-            dim1_score = 0.1
             messages.append(
-                f"PARTIAL: topic match but status='{target_post.get('status')}'"
+                f"FAIL: topic match but status='{target_post.get('status')}', expected 'published'"
             )
 
         # Dimension 2: Correct author (0.2)
@@ -212,6 +211,18 @@ def main():
             messages.append(
                 "GATE: calendar dimension missing — score capped at 0.4"
             )
+
+        # Gate: the task requires a PUBLISHED post. A draft or scheduled post
+        # with all other content can reach 0.8 via the other four dimensions —
+        # cap at 0.4 so non-published solutions cannot pass.
+        if dim1_score == 0.0:
+            capped = min(score, 0.4)
+            if capped < score:
+                messages.append(
+                    f"GATE: post not published — score capped from "
+                    f"{score:.1f} to {capped:.1f}"
+                )
+            score = capped
 
     except Exception as e:
         messages.append(f"ERROR: {str(e)}")

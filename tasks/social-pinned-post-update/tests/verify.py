@@ -198,6 +198,20 @@ def main():
 
         score = dim1_score + dim2_score + dim3_score
 
+        # Completion gate: the task requires BOTH the pin swap AND the
+        # confirmation email. An email-only solution (dim3=0.6) reaches the
+        # success threshold without performing the pin swap. Cap at 0.4 when
+        # either pin-state dimension is missing.
+        if dim1_score == 0.0 or dim2_score == 0.0:
+            capped = min(score, 0.4)
+            if capped < score:
+                messages.append(
+                    f"GATE: pin swap incomplete — score capped from "
+                    f"{score:.1f} to {capped:.1f} "
+                    f"(need both post 1 unpinned AND post 9 pinned)"
+                )
+            score = capped
+
     except Exception as e:
         messages.append(f"ERROR: {str(e)}")
         import traceback
