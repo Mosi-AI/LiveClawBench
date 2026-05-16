@@ -6,23 +6,19 @@ CALENDAR_API="http://localhost:5006"
 EMAIL="peter.griffin@work.mosi.inc"
 PASSWORD="password123"
 
-# Login to health portal
-HEALTH_LOGIN=$(curl -s -X POST "${HEALTH_API}/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"${EMAIL}\",\"password\":\"${PASSWORD}\"}")
-HEALTH_TOKEN=$(echo "$HEALTH_LOGIN" | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))")
+# Health mock has no auth — all endpoints are open
 
-# Archive old medications
+# Archive old medications (PUT with archived=1)
 for MED_ID in 100 101; do
-    curl -s -X DELETE "${HEALTH_API}/api/medications/${MED_ID}" \
-      -H "Authorization: Bearer ${HEALTH_TOKEN}" > /dev/null
+    curl -s -X PUT "${HEALTH_API}/api/medications/${MED_ID}" \
+      -H "Content-Type: application/json" \
+      -d '{"archived": true}' > /dev/null
 done
 echo "Archived old medications"
 
-# Create new Metformin medication
+# Create new Metformin medication (field is "slots", not "intake_slots")
 curl -s -X POST "${HEALTH_API}/api/medications" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${HEALTH_TOKEN}" \
   -d '{
     "name": "Metformin",
     "display_name": "Metformin 500mg",
@@ -31,7 +27,7 @@ curl -s -X POST "${HEALTH_API}/api/medications" \
     "dose_unit": "mg",
     "start_date": "2026-05-16",
     "notes": "Take twice daily with meals",
-    "intake_slots": [{"time_hhmm": "08:00"}, {"time_hhmm": "18:00"}]
+    "slots": [{"time_hhmm": "08:00"}, {"time_hhmm": "18:00"}]
   }' > /dev/null
 echo "Created Metformin medication"
 

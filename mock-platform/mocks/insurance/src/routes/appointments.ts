@@ -43,6 +43,7 @@ const AppointmentSchema = z.object({
   slot_end_time: z.string(),
   cost_snapshot: z.number(),
   distance_km_snapshot: z.number(),
+  status: z.string(),
   created_at: z.string(),
 });
 
@@ -453,5 +454,68 @@ export function registerAppointmentRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("Appointment not found"), 404);
     }
     return c.json(appointment);
+  }, { auth: "required" });
+
+  // DELETE /api/appointments/:id — cancel appointment and free slot
+  const cancelAppointmentRoute = createRoute({
+    method: "delete",
+    path: "/api/appointments/{id}",
+    summary: "Cancel an appointment (marks cancelled, frees slot)",
+    request: {
+      params: z.object({ id: IdParamSchema }),
+    },
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: AppointmentSchema,
+          },
+        },
+        description: "Appointment cancelled",
+      },
+      404: {
+        content: {
+          "application/json": {
+            schema: ErrorResponseSchema,
+          },
+        },
+        description: "Appointment not found",
+      },
+    },
+  });
+
+  app.openApiRoute(cancelAppointmentRoute, (c): any => {
+    const userId = c.get("userId")!;
+    const id = Number(c.req.param("id"));
+
+    const cancel = db.transaction(() => {
+      const appointment = db
+        .query<Record<string, unknown>, [number, number]>(
+          "SELECT * FROM appointment WHERE id = ? AND user_id = ?",
+        )
+        .get(id, userId);
+
+      if (!appointment) return null;
+
+      const slotId = Number(appointment.slot_id);
+
+      db.query(
+        "UPDATE appointment SET status = 'cancelled', updated_at = datetime('now') WHERE id = ?",
+      ).run(id);
+
+      db.query("UPDATE appointment_slot SET is_available = 1 WHERE id = ?").run(slotId);
+
+      return db
+        .query<Record<string, unknown>, [number]>(
+          "SELECT * FROM appointment WHERE id = ?",
+        )
+        .get(id);
+    });
+
+    const result = cancel();
+    if (!result) {
+      return c.json(err("Appointment not found"), 404);
+    }
+    return c.json(result);
   }, { auth: "required" });
 }

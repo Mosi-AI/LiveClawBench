@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Verify health-appointment-scheduling task:
-1. Out-of-network appointment cancelled/replaced in insurance DB.
+1. Out-of-network appointment cancelled in insurance DB.
 2. New in-network appointment booked in insurance DB.
 3. Calendar event matches the new in-network appointment time.
 """
@@ -15,7 +15,7 @@ OUT_OF_NETWORK_PROVIDER = "Summit Out-of-Network Clinic"
 
 
 def check_out_of_network_cancelled():
-    """Out-of-network appointment should be cancelled or no longer active."""
+    """Out-of-network appointment should be cancelled."""
     try:
         conn = sqlite3.connect(INSURANCE_DB_PATH)
         conn.row_factory = sqlite3.Row
@@ -45,7 +45,7 @@ def check_out_of_network_cancelled():
 
 
 def check_in_network_booked():
-    """New in-network appointment should exist."""
+    """New in-network appointment should exist and be confirmed."""
     try:
         conn = sqlite3.connect(INSURANCE_DB_PATH)
         conn.row_factory = sqlite3.Row
@@ -56,10 +56,9 @@ def check_in_network_booked():
 
     cursor.execute(
         """
-        SELECT a.id, a.provider_name, a.service_name_snapshot, a.slot_start_time, a.slot_end_time, a.status, p.network_status
+        SELECT a.id, a.provider_name, a.service_name_snapshot, a.slot_start_time, a.slot_end_time, a.status
         FROM appointment a
-        JOIN provider_service ps ON a.provider_service_id = ps.id
-        JOIN provider p ON ps.provider_id = p.id
+        JOIN provider p ON a.provider_id = p.id
         WHERE a.user_id = 1 AND p.network_status = 'in_network' AND a.status = 'confirmed'
         ORDER BY a.id DESC LIMIT 1
         """
@@ -89,8 +88,7 @@ def check_calendar_event():
         """
         SELECT a.slot_start_time, a.slot_end_time, a.service_name_snapshot
         FROM appointment a
-        JOIN provider_service ps ON a.provider_service_id = ps.id
-        JOIN provider p ON ps.provider_id = p.id
+        JOIN provider p ON a.provider_id = p.id
         WHERE a.user_id = 1 AND p.network_status = 'in_network' AND a.status = 'confirmed'
         ORDER BY a.id DESC LIMIT 1
         """

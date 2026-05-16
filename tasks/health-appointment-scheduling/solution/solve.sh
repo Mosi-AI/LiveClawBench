@@ -38,7 +38,7 @@ PROVIDERS=$(curl -s "${INSURANCE_API}/api/providers?check_item=general_checkup" 
 IN_NET_SERVICE=$(echo "$PROVIDERS" | python3 -c "
 import sys, json
 for p in json.load(sys.stdin).get('providers', []):
-    if p.get('network_status') == 'in_network' and p.get('name') != 'Summit Out-of-Network Clinic':
+    if p.get('network_status') == 'in_network':
         for s in p.get('services', []):
             print(f\"{p['id']}:{s['id']}\")
             break

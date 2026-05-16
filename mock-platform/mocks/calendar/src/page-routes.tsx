@@ -7,6 +7,7 @@ import { CalendarPage } from "./pages/calendar-page";
 import { EditEventPage } from "./pages/edit-event-page";
 import { LoginPage } from "./pages/login-page";
 import type { Hono } from "hono";
+import { updateEvent } from "./routes/events";
 
 interface CalEvent {
   id: number;
@@ -182,7 +183,7 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
     return c.html(<EditEventPage user={user} event={event} />);
   });
 
-  // Edit form submission (POST bridge to PUT API)
+  // Edit form submission (POST bridge — delegates to shared update logic)
   app.post("/events/:id/edit", pageAuth, async (c) => {
     const userId = c.get("userId")!;
     const user = getCurrentUser(db, userId);
@@ -201,8 +202,6 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
     }
 
     const title = String(body.title ?? "");
-    const description = String(body.description ?? "");
-    const eventType = String(body.event_type ?? "personal");
     const startTime = String(body.start_time ?? "");
     const endTime = String(body.end_time ?? "");
 
@@ -213,34 +212,29 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
       );
     }
 
-    const startUtc = new Date(startTime).toISOString();
-    const endUtc = new Date(endTime).toISOString();
+    const eventType = String(body.event_type ?? "personal");
+    const description = String(body.description ?? "");
 
-    if (new Date(startUtc) >= new Date(endUtc)) {
+    const updateData: Record<string, unknown> = {
+      title,
+      description: description || null,
+      event_type: eventType,
+      start_time: new Date(startTime).toISOString(),
+      end_time: new Date(endTime).toISOString(),
+    };
+
+    const result = updateEvent(db, userId, id, updateData);
+    if (!result.ok) {
       const event = getEvent(db, userId, id);
+      const errorMessages: Record<string, string> = {
+        not_found: "Event not found",
+        invalid_time_range: "End time must be after start time",
+        time_overlap: "Time overlaps with another event",
+      };
       return c.html(
-        <EditEventPage user={user} event={event!} error="End time must be after start time" />,
+        <EditEventPage user={user} event={event!} error={errorMessages[result.error] ?? result.error} />,
       );
     }
-
-    // Overlap check excluding self
-    const overlap = db
-      .query<{ count: number }, [number, string, string, number]>(
-        "SELECT COUNT(*) as count FROM calendar_event WHERE user_id = ? AND start_time < ? AND end_time > ? AND id != ?",
-      )
-      .get(userId, endUtc, startUtc, id);
-
-    if (overlap && overlap.count > 0) {
-      const event = getEvent(db, userId, id);
-      return c.html(
-        <EditEventPage user={user} event={event!} error="Time overlaps with another event" />,
-      );
-    }
-
-    db.run(
-      "UPDATE calendar_event SET title = ?, description = ?, event_type = ?, start_time = ?, end_time = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?",
-      [title, description || null, eventType, startUtc, endUtc, id, userId],
-    );
 
     return c.redirect("/");
   });

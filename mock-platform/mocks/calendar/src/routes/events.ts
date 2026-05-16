@@ -39,6 +39,65 @@ const UpdateEventBodySchema = z.object({
   source_ref: z.string().nullable().optional(),
 });
 
+/** Shared update logic used by both PUT /api/events/:id and POST /events/:id/edit */
+export function updateEvent(
+  db: Database,
+  userId: number,
+  id: number,
+  data: Record<string, unknown>,
+): { ok: true; event: Record<string, unknown> } | { ok: false; error: string; status: number } {
+  const existing = db.query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?").get(id, userId) as Record<string, unknown> | null;
+  if (!existing) return { ok: false, error: "not_found", status: 404 };
+
+  if (Object.keys(data).length === 0) return { ok: true, event: existing };
+
+  const validFields = ["title", "description", "event_type", "start_time", "end_time", "source", "source_ref"] as const;
+  const updates: string[] = [];
+  const values: (string | number | null)[] = [];
+
+  for (const field of validFields) {
+    if (field in data) {
+      const val = data[field as keyof typeof data];
+      updates.push(`${field} = ?`);
+      values.push(val === undefined ? null : val === null ? null : String(val));
+    }
+  }
+
+  if (updates.length === 0) return { ok: true, event: existing };
+
+  const newStart = data.start_time !== undefined ? new Date(data.start_time as string).toISOString() : String(existing.start_time);
+  const newEnd = data.end_time !== undefined ? new Date(data.end_time as string).toISOString() : String(existing.end_time);
+
+  if (new Date(newStart) >= new Date(newEnd)) {
+    return { ok: false, error: "invalid_time_range", status: 400 };
+  }
+
+  db.run("BEGIN IMMEDIATE");
+  try {
+    const overlap = db
+      .query<{ count: number }, [number, string, string, number]>(
+        `SELECT COUNT(*) as count FROM calendar_event
+         WHERE user_id = ? AND start_time < ? AND end_time > ? AND id != ?`,
+      )
+      .get(userId, newEnd, newStart, id);
+
+    if (overlap && overlap.count > 0) {
+      db.run("ROLLBACK");
+      return { ok: false, error: "time_overlap", status: 409 };
+    }
+
+    updates.push("updated_at = datetime('now')");
+    db.query(`UPDATE calendar_event SET ${updates.join(", ")} WHERE id = ?`).run(...values, id);
+
+    const updated = db.query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?").get(id, userId);
+    db.run("COMMIT");
+    return { ok: true, event: updated as Record<string, unknown> };
+  } catch (e) {
+    db.run("ROLLBACK");
+    throw e;
+  }
+}
+
 export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
   // All API routes require authentication
   app.use("/api/*", authRequired);
@@ -304,66 +363,10 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err(`invalid_request: ${issues}`), 400);
     }
 
-    const data = parse.data;
-
-    const existing = db.query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?").get(id, userId) as Record<string, unknown> | null;
-    if (!existing) {
-      return c.json(err("not_found"), 404);
+    const result = updateEvent(db, userId, id, parse.data as Record<string, unknown>);
+    if (!result.ok) {
+      return c.json(err(result.error), result.status);
     }
-
-    // If no fields to update, return existing
-    if (Object.keys(data).length === 0) {
-      return c.json(existing);
-    }
-
-    const validFields = ["title", "description", "event_type", "start_time", "end_time", "source", "source_ref"] as const;
-    const updates: string[] = [];
-    const values: (string | number | null)[] = [];
-
-    for (const field of validFields) {
-      if (field in data) {
-        const val = data[field as keyof typeof data];
-        updates.push(`${field} = ?`);
-        values.push(val === undefined ? null : val === null ? null : String(val));
-      }
-    }
-
-    if (updates.length === 0) {
-      return c.json(existing);
-    }
-
-    // Check for time overlap if start_time or end_time changed
-    const newStart = data.start_time !== undefined ? new Date(data.start_time).toISOString() : String(existing.start_time);
-    const newEnd = data.end_time !== undefined ? new Date(data.end_time).toISOString() : String(existing.end_time);
-
-    if (new Date(newStart) >= new Date(newEnd)) {
-      return c.json(err("invalid_time_range"), 400);
-    }
-
-    db.run("BEGIN IMMEDIATE");
-    try {
-      // Overlap check excluding self
-      const overlap = db
-        .query<{ count: number }, [number, string, string, number]>(
-          `SELECT COUNT(*) as count FROM calendar_event
-           WHERE user_id = ? AND start_time < ? AND end_time > ? AND id != ?`,
-        )
-        .get(userId, newEnd, newStart, id);
-
-      if (overlap && overlap.count > 0) {
-        db.run("ROLLBACK");
-        return c.json(err("time_overlap"), 409);
-      }
-
-      updates.push("updated_at = datetime('now')");
-      db.query(`UPDATE calendar_event SET ${updates.join(", ")} WHERE id = ?`).run(...values, id);
-
-      const updated = db.query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?").get(id, userId);
-      db.run("COMMIT");
-      return c.json(updated);
-    } catch (e) {
-      db.run("ROLLBACK");
-      throw e;
-    }
+    return c.json(result.event);
   });
 }

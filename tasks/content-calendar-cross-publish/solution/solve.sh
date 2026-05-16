@@ -6,9 +6,10 @@ SOCIAL_API="http://localhost:5004"
 EMAIL="peter.griffin@work.mosi.inc"
 PASSWORD="password123"
 
-# Login to social platform
-curl -s -c /tmp/social_cookie -X POST "${SOCIAL_API}/login" \
-  -d "username=mosi_brand&password=demo123" -L > /dev/null
+# Login to social platform (JSON POST to /api/auth/login)
+curl -s -c /tmp/social_cookie -X POST "${SOCIAL_API}/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"mosi_brand","password":"demo123"}' -L > /dev/null
 
 # Delete stale scheduled posts (IDs 100, 101, 102)
 for PID in 100 101 102; do

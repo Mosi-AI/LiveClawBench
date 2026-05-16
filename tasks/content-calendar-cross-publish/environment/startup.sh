@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Delegate to Bun mock startup (per-task base image provides /opt/mock/startup.d/${TASK_NAME}.sh)
-sh /opt/mock/startup.d/${TASK_NAME}.sh
-
-# A2 data injection: seed stale social posts (scheduled in the past) and orphan calendar events
-# Social DB is at the relative path resolved by getDb()
-SOCIAL_DB=$(find / -name "social.db" -path "*/mock*" 2>/dev/null | head -1 || echo "")
-if [ -n "$SOCIAL_DB" ]; then
-    # Insert stale scheduled posts (past dates, should have been published)
+# A2 data injection: seed stale social posts and orphan calendar events
+# Social mock uses ./data/social.db by default when no MOCK_DATA_DIR is set
+SOCIAL_DB="/workspace/data/social.db"
+if [ ! -f "$SOCIAL_DB" ]; then
+    echo "WARNING: Social DB not found at $SOCIAL_DB, skipping stale post injection"
+else
     sqlite3 "$SOCIAL_DB" "INSERT OR IGNORE INTO post (id, author_account_id, content, status, visibility, scheduled_for, is_pinned) VALUES (100, 1, 'Spring Collection Preview - Coming Soon! #SpringFashion', 'scheduled', 'public', '2026-03-15 09:00:00', 0);"
     sqlite3 "$SOCIAL_DB" "INSERT OR IGNORE INTO post (id, author_account_id, content, status, visibility, scheduled_for, is_pinned) VALUES (101, 1, 'Flash Sale: 20% off this weekend only! #FlashSale', 'scheduled', 'public', '2026-04-01 10:00:00', 0);"
     sqlite3 "$SOCIAL_DB" "INSERT OR IGNORE INTO post (id, author_account_id, content, status, visibility, scheduled_for, is_pinned) VALUES (102, 1, 'Behind the scenes of our new product line #BTS', 'scheduled', 'public', '2026-04-20 14:00:00', 0);"
-    echo "Injected stale social posts"
+
+    # Verify injection
+    STALE_COUNT=$(sqlite3 "$SOCIAL_DB" "SELECT COUNT(*) FROM post WHERE id IN (100, 101, 102);")
+    echo "Injected ${STALE_COUNT} stale social posts"
 fi
 
 # Inject orphan calendar events from a failed previous sync
