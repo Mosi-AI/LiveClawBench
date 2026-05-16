@@ -100,25 +100,25 @@ Factor occurrence frequency per primary domain:
 
 | Primary Domain             | A1 | A2 | B1 | B2 | Total Factor Instances |
 |----------------------------|----|----|----|----|-----------------------:|
-| Documents & Knowledge      |  2 |  2 |  0 | 10 |                     14 |
+| Documents & Knowledge      |  2 |  2 |  0 |  9 |                     13 |
 | Communication & Email      |  0 |  0 |  0 |  0 |                      0 |
-| E-commerce & Daily Svcs    |  7 |  0 |  4 |  0 |                     11 |
+| E-commerce & Daily Svcs    |  7 |  0 |  5 |  0 |                     12 |
 | Calendar & Task Mgmt       |  2 |  0 |  1 |  0 |                      3 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |                      1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |                      2 |
 | Deep Research & Report     |  1 |  1 |  0 |  2 |                      4 |
 | Health & Fitness           |  0 |  1 |  1 |  0 |                      2 |
+| Health & Wellness          |  0 |  0 |  0 |  0 |                      0 |
 | Social Media               |  0 |  0 |  0 |  0 |                      0 |
 | Finance & Data Analytics   |  0 |  0 |  0 |  0 |                      0 |
 
 Key observations:
-- **B2 is highly concentrated in Documents & Knowledge** (10/11), reflecting the nature of knowledge management tasks
+- **B2 is highly concentrated in Documents & Knowledge** (9/11), reflecting the nature of knowledge management tasks
 - **A1 is the most broadly distributed**, spanning 5 domains — cross-service coordination is a universal complexity source
 - **B1 appears in E-commerce, Calendar, and Health & Fitness**, where tasks most naturally produce implicit goals
 - **Communication & Email has no factors** — these cases serve as pure baselines
 - **Health & Fitness now has factors** — morning-comfort-setup introduces A2+B1, moving from baseline to multi-factor
-- **Social Media has no factors** — the two social tasks serve as domain baselines
-- **Finance & Data Analytics has no factors** — expense-draft-delete serves as a domain baseline
+- **Health & Wellness, Social Media, and Finance & Data Analytics have no factors** — these domains serve as baselines
 
 ---
 

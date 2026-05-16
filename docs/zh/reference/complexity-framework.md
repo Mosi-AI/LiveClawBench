@@ -86,21 +86,25 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 主要领域                   | A1 | A2 | B1 | B2 | 因子实例总数 |
 |----------------------------|----|----|----|----|:------------:|
-| Documents & Knowledge      |  2 |  2 |  0 | 10 |           14 |
+| Documents & Knowledge      |  2 |  2 |  0 |  9 |           13 |
 | Communication & Email      |  0 |  0 |  0 |  0 |            0 |
-| E-commerce & Daily Svcs    |  7 |  0 |  4 |  0 |           11 |
+| E-commerce & Daily Svcs    |  7 |  0 |  5 |  0 |           12 |
 | Calendar & Task Mgmt       |  2 |  0 |  1 |  0 |            3 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |            1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |            2 |
 | Deep Research & Report     |  1 |  1 |  0 |  2 |            4 |
 | Health & Fitness           |  0 |  1 |  1 |  0 |            2 |
+| Health & Wellness          |  0 |  0 |  0 |  0 |            0 |
+| Social Media               |  0 |  0 |  0 |  0 |            0 |
+| Finance & Data Analytics   |  0 |  0 |  0 |  0 |            0 |
 
 关键观察：
-- **B2 高度集中在 Documents & Knowledge**（10/11），反映了知识管理任务的本质
+- **B2 高度集中在 Documents & Knowledge**（9/11），反映了知识管理任务的本质
 - **A1 分布最广**，横跨 5 个领域——跨服务协调是普遍的复杂度来源
 - **B1 出现在 E-commerce、Calendar 和 Health & Fitness** ——这些领域最自然地产生隐式目标
 - **Communication & Email 没有任何因子** ——这些 case 作为纯基准
 - **Health & Fitness 现在有了因子** ——morning-comfort-setup 引入 A2+B1，从基准变为多因子任务
+- **Health & Wellness、Social Media 和 Finance & Data Analytics 没有因子** ——这些领域作为基准
 
 ---
 
