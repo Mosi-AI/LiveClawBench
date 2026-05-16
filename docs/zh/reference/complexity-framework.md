@@ -72,11 +72,11 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 因子组合分布：
 
-- 无因子（基准）：14 个 case（34.1%）— email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record
-- 单因子：17 个 case（41.5%）
-- 双因子：8 个 case（19.5%）— flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), grocery-reorder (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), morning-comfort-setup (A2+B1)
+- 无因子（基准）：15 个 case（36.6%）— email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record
+- 单因子：16 个 case（39.0%）
+- 双因子：9 个 case（22.0%）— flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), grocery-reorder (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), morning-comfort-setup (A2+B1)
 - 三因子：1 个 case（2.4%）— conflict-repair-acb (A1+A2+B2)
-- **多因子（≥2 个因子）：9 个 case（22.0%）**
+- **多因子（≥2 个因子）：10 个 case（24.4%）**
 
 ---
 
@@ -139,9 +139,9 @@ LiveClawBench 包含 2 个经验证具有有效难度梯度的控制对。
 
 | 难度 | 平均因子数 | 基准（0 因子） | 单因子 | 多因子 |
 |:----:|:----------:|:--------------:|:------:|:------:|
-| 简单 |       0.52 |             13 |      8 |      4 |
-| 中等 |       1.09 |              1 |      7 |      3 |
+| 简单 |       0.64 |             14 |      7 |      4 |
+| 中等 |       1.27 |              1 |      6 |      4 |
 | 困难 |       1.40 |              0 |      3 |      2 |
 
-基于多模型平均通过率的经验重分类显示，简单 case 占主导（61.0%）。简单 case 同时包含基准任务（52.0%）和带因子任务（48.0%），
+基于多模型平均通过率的经验重分类显示，简单 case 占主导（61.0%）。简单 case 同时包含基准任务（56.0%）和带因子任务（44.0%），
 表明许多结构性复杂度因子对当前 agent 并不构成显著难度。困难 case 集中在需要约束失败处理（B1）或特定挑战性环境（DevOps 中的 A2）的任务上。

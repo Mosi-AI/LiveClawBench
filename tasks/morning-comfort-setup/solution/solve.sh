@@ -26,9 +26,7 @@ cat > /workspace/output/response.txt << 'RESPONSE_EOF'
 I've checked your smart home and found several issues that I've now fixed:
 
 **Environmental Issues:**
-- The humidity sensor is showing 999%, which is physically impossible and indicates a sensor malfunction
-- This malfunction caused the thermostat to enter protection mode: it was set to "off" with temperature at 95°F
-- I've corrected the thermostat to "comfort" mode at 74°F, which should make the environment comfortable
+- The humidity sensor is showing 999%, which is physically impossible and indicates a sensor malfunction that caused the thermostat to enter protection mode (set to "off" with temperature at 95°F); I've corrected the thermostat to "comfort" mode at 74°F, which should make the environment comfortable
 
 **Coffee Machine:**
 - The coffee was scheduled to start at 08:00, but since you need to leave by 7am and the brew takes 30 minutes, I've adjusted the start time to 06:30

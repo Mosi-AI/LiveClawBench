@@ -291,14 +291,8 @@ def check_d5_response_environmental(response):
     if found == 3:
         print("D5: PASS (0.125)")
         return 0.125
-    elif found >= 2:
-        print("D5: PARTIAL (0.083)")
-        return 0.083
-    elif found >= 1:
-        print("D5: PARTIAL (0.042)")
-        return 0.042
     else:
-        print("D5: FAIL (0.0)")
+        print(f"D5: FAIL (0.0) - found {found}/3 required elements")
         return 0.0
 
 
@@ -345,14 +339,8 @@ def check_d6_response_coffee_timing(response):
     if found == 3:
         print("D6: PASS (0.125)")
         return 0.125
-    elif found >= 2:
-        print("D6: PARTIAL (0.083)")
-        return 0.083
-    elif found >= 1:
-        print("D6: PARTIAL (0.042)")
-        return 0.042
     else:
-        print("D6: FAIL (0.0)")
+        print(f"D6: FAIL (0.0) - found {found}/3 required elements")
         return 0.0
 
 

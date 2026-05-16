@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 40-case annotation table (40 implemented),
+It covers factor definitions, the full 41-case annotation table (41 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 40-Case Factor Annotation Table
+## 1. 41-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -86,11 +86,11 @@ single, clean environment without structural complexity.
 
 Factor combination distribution:
 
-- No factors (baseline): 14 cases (35.0%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection
-- Single factor: 17 cases (42.5%)
-- Dual factor: 8 cases (20.0%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), grocery-reorder (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2)
-- Triple factor: 1 case (2.5%) — conflict-repair-acb (A1+A2+B2)
-- **Multi-factor (≥2 factors): 9 cases (22.5%)**
+- No factors (baseline): 15 cases (36.6%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record
+- Single factor: 16 cases (39.0%)
+- Dual factor: 9 cases (22.0%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), grocery-reorder (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), morning-comfort-setup (A2+B1)
+- Triple factor: 1 case (2.4%) — conflict-repair-acb (A1+A2+B2)
+- **Multi-factor (≥2 factors): 10 cases (24.4%)**
 
 ---
 
@@ -159,12 +159,12 @@ Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
-| Easy       |             0.52 |          13          |       8       |       4      |
-| Medium     |             1.09 |          1           |       7       |       3      |
+| Easy       |             0.64 |          14          |       7       |       4      |
+| Medium     |             1.27 |          1           |       6       |       4      |
 | Hard       |             1.40 |          0           |       3       |       2      |
 
 The empirical reclassification (based on average solve rates across models) shows that Easy
-cases dominate (61.0%). Easy cases include both baselines (52.0%) and factor-bearing tasks
-(48.0%), indicating that many structural complexity factors do not pose significant difficulty
+cases dominate (61.0%). Easy cases include both baselines (56.0%) and factor-bearing tasks
+(44.0%), indicating that many structural complexity factors do not pose significant difficulty
 for current agents. Hard cases are concentrated in tasks requiring constraint failure handling
 (B1) or specific challenging environments (A2 in DevOps).
