@@ -75,10 +75,15 @@ export function initSchema(db: Database): void {
   for (const col of [
     "description TEXT",
     "event_type TEXT NOT NULL DEFAULT 'personal'",
-    "updated_at TEXT DEFAULT (datetime('now'))",
   ]) {
     try { db.exec(`ALTER TABLE calendar_event ADD COLUMN ${col}`); } catch (_) {}
   }
+  // updated_at needs a constant default (SQLite ALTER TABLE limitation),
+  // then backfill any rows that got NULL.
+  try {
+    db.exec(`ALTER TABLE calendar_event ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''`);
+    db.run(`UPDATE calendar_event SET updated_at = created_at WHERE updated_at = ''`);
+  } catch (_) {}
 
   console.log("calendar: schema initialized with WAL mode");
 }
