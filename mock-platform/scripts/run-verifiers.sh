@@ -61,9 +61,13 @@ docker exec "$CONTAINER" sh -c 'sqlite3 /var/lib/mock-data/airline/airline.db "S
 
 # Run the verifier via test.sh (the real task harness)
 # test.sh calls verify.py and writes /logs/verifier/reward.txt
+# Verifiers exit non-zero when score < 0.5, which is expected for unsolved tasks.
+# Temporarily disable -e so the script continues to extract rewards/artifacts.
 echo "Running verifier via /tests/test.sh..."
+set +e
 docker exec "$CONTAINER" sh -c 'mkdir -p /logs/verifier /logs/artifacts && cd /workspace && /tests/test.sh' > "${OUTPUT_DIR}/test-sh-output.txt" 2>&1
 TEST_EXIT=$?
+set -e
 echo "test.sh exit code: ${TEST_EXIT}" > "${OUTPUT_DIR}/test-sh-exit-code.txt"
 
 # Copy reward.txt from container (the authoritative score)
