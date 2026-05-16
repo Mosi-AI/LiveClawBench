@@ -261,4 +261,103 @@ describe("appointments routes", () => {
     expect(body.id).toBe(appointmentId);
     expect(body.slot_id).toBe(slotId);
   });
+
+  // Helper: book the first available slot of the first provider's first service
+  async function bookFirstSlot(app: any, token: string) {
+    const listRes = await app.request("/api/providers", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const { providers } = await listRes.json();
+    const providerId = providers[0].id;
+
+    const providerRes = await app.request(`/api/providers/${providerId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const { services } = await providerRes.json();
+    const serviceId = services[0].id;
+
+    const slotsRes = await app.request(
+      `/api/providers/${providerId}/services/${serviceId}/slots`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    const { slots } = await slotsRes.json();
+    const slotId = slots[0].id;
+
+    const bookRes = await app.request("/api/appointments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ slot_id: slotId }),
+    });
+    const body = await bookRes.json();
+    return {
+      appointmentId: body.id as number,
+      slotId: slotId as number,
+      providerId: providerId as number,
+      serviceId: serviceId as number,
+    };
+  }
+
+  test("DELETE /api/appointments/:id cancels appointment and frees slot", async () => {
+    const { app, token } = await createAppWithToken();
+    const { appointmentId, slotId, providerId, serviceId } = await bookFirstSlot(
+      app,
+      token,
+    );
+
+    // Confirm slot is unavailable while booked
+    const slotsBeforeRes = await app.request(
+      `/api/providers/${providerId}/services/${serviceId}/slots`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    const { slots: slotsBefore } = await slotsBeforeRes.json();
+    expect(slotsBefore.find((s: any) => s.id === slotId)).toBeUndefined();
+
+    const cancelRes = await app.request(`/api/appointments/${appointmentId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(cancelRes.status).toBe(200);
+    const cancelled = await cancelRes.json();
+    expect(cancelled.id).toBe(appointmentId);
+    expect(cancelled.status).toBe("cancelled");
+
+    // Subsequent GET must reflect status=cancelled
+    const getRes = await app.request(`/api/appointments/${appointmentId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(getRes.status).toBe(200);
+    const fetched = await getRes.json();
+    expect(fetched.status).toBe("cancelled");
+
+    // Slot must be available again
+    const slotsAfterRes = await app.request(
+      `/api/providers/${providerId}/services/${serviceId}/slots`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    const { slots: slotsAfter } = await slotsAfterRes.json();
+    expect(slotsAfter.find((s: any) => s.id === slotId)).toBeDefined();
+  });
+
+  test("DELETE /api/appointments/:id returns 404 for nonexistent appointment", async () => {
+    const { app, token } = await createAppWithToken();
+    const cancelRes = await app.request("/api/appointments/999999", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(cancelRes.status).toBe(404);
+    const body = await cancelRes.json();
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("Appointment not found");
+  });
+
+  test("DELETE /api/appointments/:id requires authentication", async () => {
+    const { app } = await createAppWithToken();
+    const cancelRes = await app.request("/api/appointments/1", {
+      method: "DELETE",
+    });
+    expect(cancelRes.status).toBe(401);
+  });
 });

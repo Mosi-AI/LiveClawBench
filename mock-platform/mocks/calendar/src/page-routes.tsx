@@ -231,8 +231,14 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
         invalid_time_range: "End time must be after start time",
         time_overlap: "Time overlaps with another event",
       };
+      // Validation failures from UpdateEventBodySchema arrive as
+      // "invalid_request: <issues>" — surface a concise UI message and
+      // refuse to write (no database mutation occurred).
+      const display = result.error.startsWith("invalid_request:")
+        ? "Invalid field value (event_type or date format)"
+        : (errorMessages[result.error] ?? result.error);
       return c.html(
-        <EditEventPage user={user} event={event!} error={errorMessages[result.error] ?? result.error} />,
+        <EditEventPage user={user} event={event!} error={display} />,
       );
     }
 

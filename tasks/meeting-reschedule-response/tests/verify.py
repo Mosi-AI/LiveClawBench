@@ -7,14 +7,46 @@
 
 import sqlite3
 import sys
+from datetime import datetime, timezone
 
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
 EMAIL_DB_PATH = "/var/lib/mock-data/email/email.db"
 
-OLD_START = "2026-05-22T14:00:00"
-OLD_END = "2026-05-22T15:00:00"
-NEW_START = "2026-05-23T10:00:00"
-NEW_END = "2026-05-23T11:00:00"
+# Wall-clock instants the agent must produce in the calendar (UTC).
+# The mock stores ISO 8601 with ".000Z" suffix via Date.toISOString(); we compare
+# as parsed datetimes to be robust to format differences (Z vs +00:00, ms suffix).
+OLD_START = datetime(2026, 5, 22, 14, 0, 0, tzinfo=timezone.utc)
+OLD_END = datetime(2026, 5, 22, 15, 0, 0, tzinfo=timezone.utc)
+NEW_START = datetime(2026, 5, 23, 10, 0, 0, tzinfo=timezone.utc)
+NEW_END = datetime(2026, 5, 23, 11, 0, 0, tzinfo=timezone.utc)
+
+
+def parse_iso(value: str) -> datetime | None:
+    """Parse an ISO 8601 string into a UTC datetime, or None on failure."""
+    if not value:
+        return None
+    try:
+        # Accept both "...Z" and "...+00:00" forms.
+        normalized = value.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(normalized)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    except (ValueError, TypeError):
+        return None
+
+
+def find_event(cursor, start: datetime, end: datetime):
+    """Return the first user-1 event whose UTC instants match (start, end), or None."""
+    cursor.execute(
+        "SELECT id, title, start_time, end_time, event_type FROM calendar_event WHERE user_id = 1",
+    )
+    for row in cursor.fetchall():
+        row_start = parse_iso(row["start_time"])
+        row_end = parse_iso(row["end_time"])
+        if row_start == start and row_end == end:
+            return row
+    return None
 
 
 def check_old_event_deleted():
@@ -27,11 +59,7 @@ def check_old_event_deleted():
         print(f"FAIL: Could not open calendar database: {e}")
         return 0.0
 
-    cursor.execute(
-        "SELECT id, title, start_time, end_time FROM calendar_event WHERE user_id = 1 AND start_time = ? AND end_time = ?",
-        (OLD_START, OLD_END),
-    )
-    row = cursor.fetchone()
+    row = find_event(cursor, OLD_START, OLD_END)
     conn.close()
 
     if row is None:
@@ -51,11 +79,7 @@ def check_new_event_created():
         print(f"FAIL: Could not open calendar database: {e}")
         return 0.0
 
-    cursor.execute(
-        "SELECT id, title, start_time, end_time, event_type FROM calendar_event WHERE user_id = 1 AND start_time = ? AND end_time = ?",
-        (NEW_START, NEW_END),
-    )
-    row = cursor.fetchone()
+    row = find_event(cursor, NEW_START, NEW_END)
     conn.close()
 
     if row:

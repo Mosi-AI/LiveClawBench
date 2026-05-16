@@ -39,37 +39,66 @@ const UpdateEventBodySchema = z.object({
   source_ref: z.string().nullable().optional(),
 });
 
-/** Shared update logic used by both PUT /api/events/:id and POST /events/:id/edit */
+/**
+ * Shared update logic used by both PUT /api/events/:id and POST /events/:id/edit.
+ *
+ * Validates raw input through UpdateEventBodySchema, so callers cannot bypass
+ * the event_type enum or required field shapes by going through the page-route
+ * form bridge. Returns a discriminated result that maps directly onto HTTP
+ * status codes.
+ */
 export function updateEvent(
   db: Database,
   userId: number,
   id: number,
-  data: Record<string, unknown>,
+  rawData: Record<string, unknown>,
 ): { ok: true; event: Record<string, unknown> } | { ok: false; error: string; status: number } {
-  const existing = db.query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?").get(id, userId) as Record<string, unknown> | null;
+  const parse = UpdateEventBodySchema.safeParse(rawData);
+  if (!parse.success) {
+    const issues = parse.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+    return { ok: false, error: `invalid_request: ${issues}`, status: 400 };
+  }
+  const data = parse.data;
+
+  const existing = db
+    .query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?")
+    .get(id, userId) as Record<string, unknown> | null;
   if (!existing) return { ok: false, error: "not_found", status: 404 };
 
-  if (Object.keys(data).length === 0) return { ok: true, event: existing };
+  const fieldKeys = Object.keys(data) as (keyof typeof data)[];
+  if (fieldKeys.length === 0) return { ok: true, event: existing };
 
-  const validFields = ["title", "description", "event_type", "start_time", "end_time", "source", "source_ref"] as const;
-  const updates: string[] = [];
-  const values: (string | number | null)[] = [];
-
-  for (const field of validFields) {
-    if (field in data) {
-      const val = data[field as keyof typeof data];
-      updates.push(`${field} = ?`);
-      values.push(val === undefined ? null : val === null ? null : String(val));
-    }
+  let newStart: string;
+  let newEnd: string;
+  try {
+    newStart =
+      data.start_time !== undefined
+        ? new Date(data.start_time).toISOString()
+        : String(existing.start_time);
+    newEnd =
+      data.end_time !== undefined
+        ? new Date(data.end_time).toISOString()
+        : String(existing.end_time);
+  } catch {
+    return { ok: false, error: "invalid_request: start_time or end_time is not a valid date", status: 400 };
   }
-
-  if (updates.length === 0) return { ok: true, event: existing };
-
-  const newStart = data.start_time !== undefined ? new Date(data.start_time as string).toISOString() : String(existing.start_time);
-  const newEnd = data.end_time !== undefined ? new Date(data.end_time as string).toISOString() : String(existing.end_time);
 
   if (new Date(newStart) >= new Date(newEnd)) {
     return { ok: false, error: "invalid_time_range", status: 400 };
+  }
+
+  const updates: string[] = [];
+  const values: (string | number | null)[] = [];
+  for (const field of fieldKeys) {
+    const val = data[field];
+    updates.push(`${field} = ?`);
+    if (field === "start_time") {
+      values.push(newStart);
+    } else if (field === "end_time") {
+      values.push(newEnd);
+    } else {
+      values.push(val === undefined || val === null ? null : String(val));
+    }
   }
 
   db.run("BEGIN IMMEDIATE");
@@ -357,13 +386,9 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("invalid_request: Malformed JSON"), 400);
     }
 
-    const parse = UpdateEventBodySchema.safeParse(body);
-    if (!parse.success) {
-      const issues = parse.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
-      return c.json(err(`invalid_request: ${issues}`), 400);
-    }
-
-    const result = updateEvent(db, userId, id, parse.data as Record<string, unknown>);
+    // updateEvent() validates input through UpdateEventBodySchema internally,
+    // so both API and page-route callers share a single validated update path.
+    const result = updateEvent(db, userId, id, body);
     if (!result.ok) {
       return c.json(err(result.error), result.status);
     }

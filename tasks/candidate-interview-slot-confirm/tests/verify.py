@@ -6,12 +6,30 @@
 
 import sqlite3
 import sys
+from datetime import datetime, timezone
 
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
 EMAIL_DB_PATH = "/var/lib/mock-data/email/email.db"
 
-EXPECTED_START = "2026-05-26T14:00:00"
-EXPECTED_END = "2026-05-26T15:00:00"
+# Wall-clock instants the agent must produce in the calendar (UTC).
+# The mock stores ISO 8601 with ".000Z" suffix via Date.toISOString(); we compare
+# as parsed datetimes to be robust to format differences (Z vs +00:00, ms suffix).
+EXPECTED_START = datetime(2026, 5, 26, 14, 0, 0, tzinfo=timezone.utc)
+EXPECTED_END = datetime(2026, 5, 26, 15, 0, 0, tzinfo=timezone.utc)
+
+
+def parse_iso(value: str) -> datetime | None:
+    """Parse an ISO 8601 string into a UTC datetime, or None on failure."""
+    if not value:
+        return None
+    try:
+        normalized = value.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(normalized)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(timezone.utc)
+    except (ValueError, TypeError):
+        return None
 
 
 def check_calendar_event():
@@ -25,16 +43,29 @@ def check_calendar_event():
         return 0.0
 
     cursor.execute(
-        "SELECT id, title, start_time, end_time, event_type, description FROM calendar_event WHERE user_id = 1 AND start_time = ? AND end_time = ?",
-        (EXPECTED_START, EXPECTED_END),
+        "SELECT id, title, start_time, end_time, event_type, description FROM calendar_event WHERE user_id = 1",
     )
-    row = cursor.fetchone()
+    matched = None
+    for row in cursor.fetchall():
+        row_start = parse_iso(row["start_time"])
+        row_end = parse_iso(row["end_time"])
+        if row_start == EXPECTED_START and row_end == EXPECTED_END:
+            matched = row
+            break
     conn.close()
 
-    if row:
-        title_lower = (row["title"] or "").lower()
-        has_interview = "interview" in title_lower or "candidate" in title_lower or "alex" in title_lower or "developer" in title_lower
-        print(f"Found event: id={row['id']}, title='{row['title']}', type='{row['event_type']}'")
+    if matched:
+        title_lower = (matched["title"] or "").lower()
+        has_interview = (
+            "interview" in title_lower
+            or "candidate" in title_lower
+            or "alex" in title_lower
+            or "developer" in title_lower
+        )
+        print(
+            f"Found event: id={matched['id']}, title='{matched['title']}', "
+            f"type='{matched['event_type']}'"
+        )
         if has_interview:
             print("PASS: Interview calendar event created with relevant title")
             return 0.5

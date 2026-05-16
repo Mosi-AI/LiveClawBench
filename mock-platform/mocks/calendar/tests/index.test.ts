@@ -536,3 +536,133 @@ describe("calendar IDOR protection", () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe("calendar edit form page route", () => {
+  let app: ReturnType<typeof createCalendarApp>["app"];
+  let token: string;
+
+  beforeEach(async () => {
+    process.env.CALENDAR_DB_PATH = ":memory:";
+    app = createCalendarApp().app;
+    token = await login(app);
+  });
+
+  async function createEvent(overrides: Record<string, unknown> = {}) {
+    const res = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "PageRouteEvent",
+        description: "Original desc",
+        event_type: "appointment",
+        start_time: "2026-09-10T09:00:00Z",
+        end_time: "2026-09-10T10:00:00Z",
+        ...overrides,
+      }),
+    });
+    expect(res.status).toBe(201);
+    return await res.json();
+  }
+
+  test("GET /events/:id/edit pre-populates title, description, event_type, and times", async () => {
+    const created = await createEvent();
+    const res = await app.request(`/events/${created.id}/edit`, {
+      headers: authHeaders(token),
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain('value="PageRouteEvent"');
+    expect(html).toContain("Original desc");
+    // event_type=appointment should be marked selected
+    expect(html).toMatch(/<option value="appointment"[^>]*selected/);
+    // datetime-local inputs lose the timezone but keep YYYY-MM-DDTHH:MM
+    expect(html).toMatch(/name="start_time"[^>]*value="2026-09-10T/);
+    expect(html).toMatch(/name="end_time"[^>]*value="2026-09-10T/);
+  });
+
+  test("POST /events/:id/edit with crafted invalid event_type rejects and does NOT write", async () => {
+    const created = await createEvent();
+
+    const form = new URLSearchParams();
+    form.set("title", "Should Not Save");
+    form.set("description", "Tampered");
+    form.set("event_type", "bad_type"); // crafted invalid value
+    form.set("start_time", "2026-09-10T11:00");
+    form.set("end_time", "2026-09-10T12:00");
+    const res = await app.request(`/events/${created.id}/edit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", ...authHeaders(token) },
+      body: form.toString(),
+      redirect: "manual",
+    });
+    // Page form returns 200 with error message, NOT a 302 redirect
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html.toLowerCase()).toContain("invalid");
+
+    // Verify nothing was written: event still has original values
+    const getRes = await app.request(`/api/events/${created.id}`, {
+      headers: authHeaders(token),
+    });
+    const body = await getRes.json();
+    expect(body.title).toBe("PageRouteEvent");
+    expect(body.event_type).toBe("appointment");
+    expect(body.description).toBe("Original desc");
+  });
+
+  test("POST /events/:id/edit with invalid time range rejects and does NOT write", async () => {
+    const created = await createEvent();
+
+    const form = new URLSearchParams();
+    form.set("title", "Should Not Save");
+    form.set("description", "Tampered");
+    form.set("event_type", "personal");
+    // End before start — fails the invalid_time_range check
+    form.set("start_time", "2026-09-10T12:00");
+    form.set("end_time", "2026-09-10T11:00");
+    const res = await app.request(`/events/${created.id}/edit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", ...authHeaders(token) },
+      body: form.toString(),
+      redirect: "manual",
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("End time must be after start time");
+
+    // Verify nothing was written
+    const getRes = await app.request(`/api/events/${created.id}`, {
+      headers: authHeaders(token),
+    });
+    const body = await getRes.json();
+    expect(body.title).toBe("PageRouteEvent");
+    expect(body.event_type).toBe("appointment");
+  });
+
+  test("POST /events/:id/edit with valid data persists changes and redirects", async () => {
+    const created = await createEvent();
+
+    const form = new URLSearchParams();
+    form.set("title", "Updated Via Form");
+    form.set("description", "New desc");
+    form.set("event_type", "medication");
+    form.set("start_time", "2026-09-10T13:00");
+    form.set("end_time", "2026-09-10T14:00");
+    const res = await app.request(`/events/${created.id}/edit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", ...authHeaders(token) },
+      body: form.toString(),
+      redirect: "manual",
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toBe("/");
+
+    const getRes = await app.request(`/api/events/${created.id}`, {
+      headers: authHeaders(token),
+    });
+    const body = await getRes.json();
+    expect(body.title).toBe("Updated Via Form");
+    expect(body.event_type).toBe("medication");
+    expect(body.description).toBe("New desc");
+  });
+});

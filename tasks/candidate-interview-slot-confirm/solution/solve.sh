@@ -22,17 +22,21 @@ curl -s -b /tmp/cal_cookie -X POST "${CALENDAR_API}/api/events" \
 
 echo "Created interview calendar event"
 
-# Login to email
-curl -s -c /tmp/email_cookie -X POST "http://localhost:5001/login" \
-  -d "email=${EMAIL}&password=${PASSWORD}" -L > /dev/null
-
-# Send confirmation email to HR
-curl -s -b /tmp/email_cookie -X POST "http://localhost:5001/api/emails" \
+# Login to email API (JSON, Bearer token)
+EMAIL_LOGIN=$(curl -s -X POST "http://localhost:5001/api/auth/login" \
   -H "Content-Type: application/json" \
+  -d '{"username":"peter","password":"password123"}')
+EMAIL_TOKEN=$(echo "$EMAIL_LOGIN" | python3 -c "import sys, json; print(json.load(sys.stdin)['data']['access_token'])")
+
+# Send confirmation email to HR via JSON API
+curl -s -X POST "http://localhost:5001/api/emails" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${EMAIL_TOKEN}" \
   -d '{
-    "to": "hr@work.mosi.inc",
+    "recipient": "hr@work.mosi.inc",
     "subject": "Re: Interview Confirmation - Senior Developer Candidate",
-    "body": "Hi HR Team,\n\nI have added the interview for Alex Thompson (Senior Developer) to my calendar:\n- Date: Monday, May 26, 2026\n- Time: 2:00 PM - 3:00 PM\n- Location: Conference Room A\n\nConfirmed.\n\nBest regards,\nPeter Griffin"
+    "body": "Hi HR Team,\n\nI have added the interview for Alex Thompson (Senior Developer) to my calendar:\n- Date: Monday, May 26, 2026\n- Time: 2:00 PM - 3:00 PM\n- Location: Conference Room A\n\nConfirmed.\n\nBest regards,\nPeter Griffin",
+    "send_now": true
   }'
 
 echo "All tasks complete"
