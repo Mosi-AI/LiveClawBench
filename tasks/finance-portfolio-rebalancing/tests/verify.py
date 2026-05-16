@@ -17,9 +17,11 @@ Expected new orders:
   - eq buy 12500, fi sell 5000, ca sell 12500, al buy 5000
 """
 
+import json
 import os
 import sqlite3
 import sys
+import traceback
 
 DB_PATH = os.environ.get("MOCK_FINANCE_DB_PATH", "/opt/mock/data/finance_app.sqlite")
 
@@ -49,9 +51,14 @@ EXPECTED_ORDERS = {
 TOLERANCE = 1.0
 
 
+def orders_match(a: tuple, b: tuple) -> bool:
+    """Return True if two orders match within tolerance."""
+    return a[0] == b[0] and a[1] == b[1] and abs(a[2] - b[2]) <= TOLERANCE
+
+
 def main() -> tuple[float, dict]:
     score = 0.0
-    details = {"messages": []}
+    details: dict[str, list[str]] = {"messages": []}
 
     if not os.path.exists(DB_PATH):
         details["messages"].append(f"ERROR: Database not found at {DB_PATH}")
@@ -62,10 +69,10 @@ def main() -> tuple[float, dict]:
 
     try:
         # Check holdings
-        holdings_rows = conn.execute(
+        rows = conn.execute(
             "SELECT asset_class_code, current_value FROM portfolio_holding"
         ).fetchall()
-        holdings = {row["asset_class_code"]: row["current_value"] for row in holdings_rows}
+        holdings = {row["asset_class_code"]: row["current_value"] for row in rows}
 
         correct_holdings = 0
         for code, target in TARGET_HOLDINGS.items():
@@ -94,22 +101,11 @@ def main() -> tuple[float, dict]:
                 (row["asset_class_code"], row["direction"], row["amount"])
                 for row in order_rows
             }
-
-            # Remove seeded orders
             net_orders = orders - SEEDED_ORDERS
 
             correct_orders = 0
             for expected in EXPECTED_ORDERS:
-                matched = False
-                for actual in list(net_orders):
-                    if (
-                        actual[0] == expected[0]
-                        and actual[1] == expected[1]
-                        and abs(actual[2] - expected[2]) <= TOLERANCE
-                    ):
-                        matched = True
-                        net_orders.discard(actual)
-                        break
+                matched = any(orders_match(actual, expected) for actual in net_orders)
                 if matched:
                     correct_orders += 1
                     details["messages"].append(
@@ -126,9 +122,7 @@ def main() -> tuple[float, dict]:
             )
 
     except Exception as e:
-        details["messages"].append(f"ERROR: {str(e)}")
-        import traceback
-
+        details["messages"].append(f"ERROR: {e}")
         details["messages"].append(traceback.format_exc())
     finally:
         conn.close()
@@ -140,14 +134,15 @@ if __name__ == "__main__":
     score, details = main()
 
     print(f"Score: {score:.1f}/1.0")
-    for msg in details.get("messages", []):
+    for msg in details["messages"]:
         print(f"  {msg}")
 
     # Write reward.json breakdown
     try:
-        import json
-
-        reward_json = {"reward": round(score, 2), "holdings_correct": 1.0 if score == 1.0 else 0.0}
+        reward_json = {
+            "reward": round(score, 2),
+            "holdings_correct": 1.0 if score == 1.0 else 0.0,
+        }
         if score < 1.0:
             reward_json["orders_score"] = round(score, 2)
         with open("/logs/verifier/reward.json", "w") as f:
@@ -155,7 +150,4 @@ if __name__ == "__main__":
     except Exception:
         pass
 
-    if score >= 0.5:
-        sys.exit(0)
-    else:
-        sys.exit(1)
+    sys.exit(0 if score >= 0.5 else 1)

@@ -34,7 +34,7 @@ echo "Waiting for startup to complete..."
 sleep 15
 
 # Check if container is still running
-if ! docker ps -q -f "id=${CONTAINER}" | grep -q .; then
+if [ -z "$(docker ps -q -f "id=${CONTAINER}")" ]; then
   echo "FAIL: Container exited during startup"
   docker logs "$CONTAINER" > "${OUTPUT_DIR}/startup-log.txt" 2>&1 || true
   echo "0.0" > "${OUTPUT_DIR}/reward.txt"

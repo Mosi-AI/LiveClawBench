@@ -13,9 +13,11 @@ Awards partial credit per sub-task:
 Aggregate score = sum of earned weights.
 """
 
+import json
 import os
 import sqlite3
 import sys
+import traceback
 
 DB_PATH = os.environ.get("MOCK_FINANCE_DB_PATH", "/opt/mock/data/finance_app.sqlite")
 
@@ -32,9 +34,26 @@ WEIGHTS = {
 TOLERANCE = 0.01
 
 
+def record_score(
+    details: dict,
+    dimension: str,
+    passed: bool,
+    pass_msg: str,
+    fail_msg: str,
+) -> float:
+    """Record a dimension score and message, returning the earned weight."""
+    if passed:
+        details["dimension_scores"][dimension] = WEIGHTS[dimension]
+        details["messages"].append(f"PASS: {pass_msg}")
+        return WEIGHTS[dimension]
+    details["dimension_scores"][dimension] = 0.0
+    details["messages"].append(f"FAIL: {fail_msg}")
+    return 0.0
+
+
 def main() -> tuple[float, dict]:
     score = 0.0
-    details = {"messages": [], "dimension_scores": {}}
+    details: dict[str, list | dict] = {"messages": [], "dimension_scores": {}}
 
     if not os.path.exists(DB_PATH):
         details["messages"].append(f"ERROR: Database not found at {DB_PATH}")
@@ -48,14 +67,14 @@ def main() -> tuple[float, dict]:
         acc_row = conn.execute(
             "SELECT status FROM account_balance WHERE account_id = ?", ("ACC-1002",)
         ).fetchone()
-        if acc_row and acc_row["status"] == "flagged":
-            score += WEIGHTS["account_flagging"]
-            details["dimension_scores"]["account_flagging"] = WEIGHTS["account_flagging"]
-            details["messages"].append("PASS: ACC-1002 is flagged")
-        else:
-            details["dimension_scores"]["account_flagging"] = 0.0
-            status = acc_row["status"] if acc_row else "missing"
-            details["messages"].append(f"FAIL: ACC-1002 status is '{status}', expected 'flagged'")
+        status = acc_row["status"] if acc_row else "missing"
+        score += record_score(
+            details,
+            "account_flagging",
+            acc_row is not None and acc_row["status"] == "flagged",
+            "ACC-1002 is flagged",
+            f"ACC-1002 status is '{status}', expected 'flagged'",
+        )
 
         # 2. Transaction flagging: ids 2, 4, 8 should be flagged
         flagged_txns = conn.execute(
@@ -63,14 +82,14 @@ def main() -> tuple[float, dict]:
         ).fetchall()
         flagged_ids = {row["id"] for row in flagged_txns if row["status"] == "flagged"}
         expected_txn_ids = {2, 4, 8}
-        if flagged_ids == expected_txn_ids:
-            score += WEIGHTS["transaction_flagging"]
-            details["dimension_scores"]["transaction_flagging"] = WEIGHTS["transaction_flagging"]
-            details["messages"].append("PASS: Transactions 2, 4, 8 are flagged")
-        else:
-            missing = expected_txn_ids - flagged_ids
-            details["dimension_scores"]["transaction_flagging"] = 0.0
-            details["messages"].append(f"FAIL: Transactions not flagged: {missing}")
+        missing = expected_txn_ids - flagged_ids
+        score += record_score(
+            details,
+            "transaction_flagging",
+            flagged_ids == expected_txn_ids,
+            "Transactions 2, 4, 8 are flagged",
+            f"Transactions not flagged: {missing}",
+        )
 
         # 3. Expense report created: "March Marketing Trip", total ~2450.0
         exp_row = conn.execute(
@@ -78,53 +97,53 @@ def main() -> tuple[float, dict]:
             ("March Marketing Trip",),
         ).fetchone()
         if exp_row and abs(exp_row["total_amount"] - 2450.0) <= TOLERANCE:
-            score += WEIGHTS["expense_report_created"]
-            details["dimension_scores"]["expense_report_created"] = WEIGHTS["expense_report_created"]
-            details["messages"].append(
-                f"PASS: Expense report '{exp_row['trip_name']}' created with total {exp_row['total_amount']:.2f}"
+            score += record_score(
+                details,
+                "expense_report_created",
+                True,
+                f"Expense report '{exp_row['trip_name']}' created with total {exp_row['total_amount']:.2f}",
+                "",
             )
         else:
-            details["dimension_scores"]["expense_report_created"] = 0.0
-            if not exp_row:
-                details["messages"].append("FAIL: Expense report 'March Marketing Trip' not found")
-            else:
-                details["messages"].append(
-                    f"FAIL: Expense report total = {exp_row['total_amount']:.2f}, expected 2450.00"
-                )
+            fail_msg = (
+                "Expense report 'March Marketing Trip' not found"
+                if not exp_row
+                else f"Expense report total = {exp_row['total_amount']:.2f}, expected 2450.00"
+            )
+            score += record_score(
+                details, "expense_report_created", False, "", fail_msg
+            )
 
         # 4. Expense report submitted
-        if exp_row and exp_row["status"] == "submitted":
-            score += WEIGHTS["expense_report_submitted"]
-            details["dimension_scores"]["expense_report_submitted"] = WEIGHTS["expense_report_submitted"]
-            details["messages"].append("PASS: Expense report is submitted")
-        else:
-            details["dimension_scores"]["expense_report_submitted"] = 0.0
-            status = exp_row["status"] if exp_row else "missing"
-            details["messages"].append(f"FAIL: Expense report status is '{status}', expected 'submitted'")
+        status = exp_row["status"] if exp_row else "missing"
+        score += record_score(
+            details,
+            "expense_report_submitted",
+            exp_row is not None and exp_row["status"] == "submitted",
+            "Expense report is submitted",
+            f"Expense report status is '{status}', expected 'submitted'",
+        )
 
         # 5. Invoice created: INV-2026-004 for Globex Systems
         inv_row = conn.execute(
             "SELECT id, vendor_id, vendor_name, invoice_number, invoice_date FROM invoice WHERE invoice_number = ?",
             ("INV-2026-004",),
         ).fetchone()
-        if (
-            inv_row
-            and inv_row["vendor_id"] == 2
-            and inv_row["invoice_date"] == "2026-03-01"
-        ):
-            score += WEIGHTS["invoice_created"]
-            details["dimension_scores"]["invoice_created"] = WEIGHTS["invoice_created"]
-            details["messages"].append(
-                f"PASS: Invoice {inv_row['invoice_number']} created for {inv_row['vendor_name']} on {inv_row['invoice_date']}"
+        if inv_row and inv_row["vendor_id"] == 2 and inv_row["invoice_date"] == "2026-03-01":
+            score += record_score(
+                details,
+                "invoice_created",
+                True,
+                f"Invoice {inv_row['invoice_number']} created for {inv_row['vendor_name']} on {inv_row['invoice_date']}",
+                "",
             )
         else:
-            details["dimension_scores"]["invoice_created"] = 0.0
-            if not inv_row:
-                details["messages"].append("FAIL: Invoice 'INV-2026-004' not found")
-            else:
-                details["messages"].append(
-                    f"FAIL: Invoice vendor_id={inv_row['vendor_id']} date={inv_row['invoice_date']}, expected vendor_id=2 date=2026-03-01"
-                )
+            fail_msg = (
+                "Invoice 'INV-2026-004' not found"
+                if not inv_row
+                else f"Invoice vendor_id={inv_row['vendor_id']} date={inv_row['invoice_date']}, expected vendor_id=2 date=2026-03-01"
+            )
+            score += record_score(details, "invoice_created", False, "", fail_msg)
 
         # 6. Invoice line items: 2 items with categories 5100 and 5400
         if inv_row:
@@ -133,24 +152,25 @@ def main() -> tuple[float, dict]:
                 (inv_row["id"],),
             ).fetchall()
             categories = {row["category_code"] for row in line_items}
-            if categories == {"5100", "5400"} and len(line_items) == 2:
-                score += WEIGHTS["invoice_line_items"]
-                details["dimension_scores"]["invoice_line_items"] = WEIGHTS["invoice_line_items"]
-                details["messages"].append("PASS: Invoice has 2 line items with categories 5100 and 5400")
-            else:
-                details["dimension_scores"]["invoice_line_items"] = 0.0
-                actual_cats = [row["category_code"] for row in line_items]
-                details["messages"].append(
-                    f"FAIL: Invoice line item categories: {actual_cats}, expected ['5100', '5400'] with exactly 2 items"
-                )
+            actual_cats = [row["category_code"] for row in line_items]
+            score += record_score(
+                details,
+                "invoice_line_items",
+                categories == {"5100", "5400"} and len(line_items) == 2,
+                "Invoice has 2 line items with categories 5100 and 5400",
+                f"Invoice line item categories: {actual_cats}, expected ['5100', '5400'] with exactly 2 items",
+            )
         else:
-            details["dimension_scores"]["invoice_line_items"] = 0.0
-            details["messages"].append("FAIL: Cannot check line items — invoice not found")
+            score += record_score(
+                details,
+                "invoice_line_items",
+                False,
+                "",
+                "Cannot check line items — invoice not found",
+            )
 
     except Exception as e:
-        details["messages"].append(f"ERROR: {str(e)}")
-        import traceback
-
+        details["messages"].append(f"ERROR: {e}")
         details["messages"].append(traceback.format_exc())
     finally:
         conn.close()
@@ -162,21 +182,16 @@ if __name__ == "__main__":
     score, details = main()
 
     print(f"Score: {score:.1f}/1.0")
-    for msg in details.get("messages", []):
+    for msg in details["messages"]:
         print(f"  {msg}")
 
     # Write reward.json breakdown
     try:
-        import json
-
         reward_json = {"reward": round(score, 2)}
-        reward_json.update(details.get("dimension_scores", {}))
+        reward_json.update(details["dimension_scores"])
         with open("/logs/verifier/reward.json", "w") as f:
             json.dump(reward_json, f, indent=2)
     except Exception:
         pass
 
-    if score >= 0.5:
-        sys.exit(0)
-    else:
-        sys.exit(1)
+    sys.exit(0 if score >= 0.5 else 1)
