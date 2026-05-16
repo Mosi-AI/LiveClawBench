@@ -6,6 +6,7 @@ interface CalendarEvent {
   title: string;
   start_time: string;
   end_time: string;
+  source_ref: string | null;
 }
 
 interface CalendarPageProps {
@@ -74,6 +75,7 @@ export const CalendarPage: FC<CalendarPageProps> = ({ user, events, error }) => 
                   <th>Title</th>
                   <th>Start</th>
                   <th>End</th>
+                  <th>Source Reference</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -83,6 +85,7 @@ export const CalendarPage: FC<CalendarPageProps> = ({ user, events, error }) => 
                     <td>{evt.title}</td>
                     <td>{formatTime(evt.start_time)}</td>
                     <td>{formatTime(evt.end_time)}</td>
+                    <td>{evt.source_ref ?? "—"}</td>
                     <td>
                       <form method="post" action={`/events/${evt.id}/delete`}>
                         <button type="submit" class="btn-danger">Delete</button>

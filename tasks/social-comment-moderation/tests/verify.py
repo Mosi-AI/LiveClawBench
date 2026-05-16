@@ -89,7 +89,7 @@ reply_found = False
 replies = query_db(
     "SELECT c.*, a.username FROM comment c "
     "LEFT JOIN account a ON c.author_account_id = a.id "
-    "WHERE c.parent_comment_id = 102 AND c.status = 'visible'"
+    "WHERE c.parent_comment_id = 102 AND c.status = 'visible' AND a.username = 'mosi_brand'"
 )
 
 if replies:
@@ -121,12 +121,18 @@ else:
                 return results
 
             api_replies = find_replies(comments, 102)
-            if api_replies:
+            # Only accept replies from mosi_brand (the brand account)
+            mosi_replies = [
+                r for r in api_replies
+                if r.get("author_username") == "mosi_brand"
+                or r.get("author_account_id") == 1
+            ]
+            if mosi_replies:
                 reply_found = True
                 SCORE += 0.2
                 print(
-                    f"PASS: Reply found via API to comment 102: "
-                    f"'{api_replies[0].get('body', '')[:50]}'"
+                    f"PASS: Reply found via API to comment 102 (mosi_brand): "
+                    f"'{mosi_replies[0].get('body', '')[:50]}'"
                 )
             else:
                 print("FAIL: No reply found to comment 102")
