@@ -69,6 +69,7 @@ single, clean environment without structural complexity.
 |      38 | health-daily-record               |     E      |    |    |    |    | Health & Wellness          |
 |      39 | smarthome-test                    |     M      |    |    | ✓  |    | E-commerce & Daily Svcs    |
 |      40 | weather-aqi-report                |     E      |    |    |    |    | Deep Research & Report     |
+|      42 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    | Health & Fitness           |
 
 ---
 
@@ -76,12 +77,12 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    12 |      30.0% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder |
-| A2     | Contaminated Initial State     |     6 |      15.0% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
-| B1     | Implicit Goal Resolution       |     6 |      15.0% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, grocery-reorder, smarthome-test |
-| B2     | Knowledge System Maintenance   |    11 |      27.5% | skill-creation, skill-dependency-fix, noise-filtering         |
+| A1     | Cross-Service Dependency       |    12 |      29.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder |
+| A2     | Contaminated Initial State     |     7 |      17.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup |
+| B1     | Implicit Goal Resolution       |     7 |      17.1% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, grocery-reorder, smarthome-test, morning-comfort-setup |
+| B2     | Knowledge System Maintenance   |    11 |      26.8% | skill-creation, skill-dependency-fix, noise-filtering         |
 
-> Percentages are relative to 40 implemented cases.
+> Percentages are relative to 41 implemented cases.
 
 Factor combination distribution:
 
@@ -106,16 +107,16 @@ Factor occurrence frequency per primary domain:
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |                      1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |                      2 |
 | Deep Research & Report     |  1 |  1 |  0 |  2 |                      4 |
-| Health & Fitness           |  0 |  0 |  0 |  0 |                      0 |
+| Health & Fitness           |  0 |  1 |  1 |  0 |                      2 |
 | Social Media               |  0 |  0 |  0 |  0 |                      0 |
 | Finance & Data Analytics   |  0 |  0 |  0 |  0 |                      0 |
 
 Key observations:
 - **B2 is highly concentrated in Documents & Knowledge** (10/11), reflecting the nature of knowledge management tasks
 - **A1 is the most broadly distributed**, spanning 5 domains — cross-service coordination is a universal complexity source
-- **B1 appears in E-commerce and Calendar**, where tasks most naturally produce implicit goals
+- **B1 appears in E-commerce, Calendar, and Health & Fitness**, where tasks most naturally produce implicit goals
 - **Communication & Email has no factors** — these cases serve as pure baselines
-- **Health & Fitness has no factors** — mint-diet-snack-log serves as a domain baseline
+- **Health & Fitness now has factors** — morning-comfort-setup introduces A2+B1, moving from baseline to multi-factor
 - **Social Media has no factors** — the two social tasks serve as domain baselines
 - **Finance & Data Analytics has no factors** — expense-draft-delete serves as a domain baseline
 
@@ -150,20 +151,20 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    25 |      62.5% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record |
-| Medium     |    10 |      25.0% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, grocery-reorder, smarthome-test |
-| Hard       |     5 |      12.5% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain |
+| Easy       |    25 |      61.0% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record |
+| Medium     |    11 |      26.8% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, grocery-reorder, smarthome-test, morning-comfort-setup |
+| Hard       |     5 |      12.2% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain |
 
 Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
-| Easy       |             0.56 |          13          |       8       |       4      |
-| Medium     |             1.10 |          1           |       7       |       2      |
+| Easy       |             0.52 |          13          |       8       |       4      |
+| Medium     |             1.09 |          1           |       7       |       3      |
 | Hard       |             1.40 |          0           |       3       |       2      |
 
 The empirical reclassification (based on average solve rates across models) shows that Easy
-cases dominate (64.9%). Easy cases include both baselines (54.2%) and factor-bearing tasks
-(45.8%), indicating that many structural complexity factors do not pose significant difficulty
+cases dominate (61.0%). Easy cases include both baselines (52.0%) and factor-bearing tasks
+(48.0%), indicating that many structural complexity factors do not pose significant difficulty
 for current agents. Hard cases are concentrated in tasks requiring constraint failure handling
 (B1) or specific challenging environments (A2 in DevOps).

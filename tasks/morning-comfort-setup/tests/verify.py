@@ -186,25 +186,30 @@ def check_d2_coffee_state():
 
 
 def check_d3_grocery_blue_mountain():
-    """D3: Grocery Blue Mountain — DB: entry exists with quantity=20g (±2g tolerance)"""
+    """D3: Grocery Blue Mountain — DB: entry exists with quantity=20g (±2g tolerance) AND has reason in reference field"""
     print("\n=== D3: Grocery Blue Mountain ===")
 
     try:
         conn = sqlite3.connect(SQLITE_DB)
         cursor = conn.cursor()
-        cursor.execute("SELECT name, quantity FROM grocery_product")
+        cursor.execute("SELECT name, quantity, reference FROM grocery_product")
         rows = cursor.fetchall()
         conn.close()
 
-        print(f"Grocery entries: {rows}")
+        print(f"Grocery entries: {[(r[0], r[1], r[2]) for r in rows]}")
 
-        # Check for Blue Mountain entry
-        for name, quantity in rows:
+        # Check for Blue Mountain entry with valid reason
+        for name, quantity, reference in rows:
             name_lower = name.lower()
             if "blue mountain" in name_lower and "coffee" in name_lower:
-                if EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY - 2 <= quantity <= EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY + 2:
-                    print(f"D3: PASS - Found Blue Mountain entry with quantity={quantity}g (within tolerance)")
+                qty_ok = EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY - 2 <= quantity <= EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY + 2
+                reason_ok = reference is not None and ("expired" in reference.lower() or "expire" in reference.lower())
+                if qty_ok and reason_ok:
+                    print(f"D3: PASS - Found Blue Mountain entry with quantity={quantity}g and reason='{reference}'")
                     return 0.125
+                elif qty_ok:
+                    print(f"D3: PARTIAL - Found Blue Mountain with correct quantity={quantity}g but missing/invalid reason")
+                    return 0.0625
                 else:
                     print(f"D3: PARTIAL - Found Blue Mountain but quantity={quantity}g outside tolerance")
                     return 0.0625
@@ -217,23 +222,28 @@ def check_d3_grocery_blue_mountain():
 
 
 def check_d4_grocery_kenya_aa():
-    """D4: Grocery Kenya AA — DB: entry exists with quantity=8g (±1g tolerance)"""
+    """D4: Grocery Kenya AA — DB: entry exists with quantity=8g (±1g tolerance) AND has reason in reference field"""
     print("\n=== D4: Grocery Kenya AA ===")
 
     try:
         conn = sqlite3.connect(SQLITE_DB)
         cursor = conn.cursor()
-        cursor.execute("SELECT name, quantity FROM grocery_product")
+        cursor.execute("SELECT name, quantity, reference FROM grocery_product")
         rows = cursor.fetchall()
         conn.close()
 
-        # Check for Kenya AA entry
-        for name, quantity in rows:
+        # Check for Kenya AA entry with valid reason
+        for name, quantity, reference in rows:
             name_lower = name.lower()
             if "kenya" in name_lower:
-                if EXPECTED_GROCERY_KENYA_AA_QTY - 1 <= quantity <= EXPECTED_GROCERY_KENYA_AA_QTY + 1:
-                    print(f"D4: PASS - Found Kenya AA entry with quantity={quantity}g (within tolerance)")
+                qty_ok = EXPECTED_GROCERY_KENYA_AA_QTY - 1 <= quantity <= EXPECTED_GROCERY_KENYA_AA_QTY + 1
+                reason_ok = reference is not None and ("insufficient" in reference.lower() or "shortage" in reference.lower())
+                if qty_ok and reason_ok:
+                    print(f"D4: PASS - Found Kenya AA entry with quantity={quantity}g and reason='{reference}'")
                     return 0.125
+                elif qty_ok:
+                    print(f"D4: PARTIAL - Found Kenya AA with correct quantity={quantity}g but missing/invalid reason")
+                    return 0.0625
                 else:
                     print(f"D4: PARTIAL - Found Kenya AA but quantity={quantity}g outside tolerance")
                     return 0.0625
@@ -246,7 +256,7 @@ def check_d4_grocery_kenya_aa():
 
 
 def check_d5_response_environmental(response):
-    """D5: Response environmental — mentions humidity anomaly (999%) AND thermostat correction"""
+    """D5: Response environmental — mentions humidity anomaly (999%) AND causal link to thermostat corruption AND thermostat correction"""
     print("\n=== D5: Response Environmental ===")
 
     if response is None:
@@ -256,12 +266,30 @@ def check_d5_response_environmental(response):
     response_lower = response.lower()
     found = 0
 
-    # Check humidity anomaly mention
-    if "999" in response_lower or "humidity" in response_lower and ("anomaly" in response_lower or "malfunction" in response_lower or "sensor" in response_lower):
+    # Check humidity anomaly mention (999% or sensor malfunction)
+    if "999" in response_lower or ("humidity" in response_lower and ("anomaly" in response_lower or "malfunction" in response_lower or "sensor" in response_lower)):
         print("PASS: Humidity anomaly mentioned")
         found += 1
     else:
         print("FAIL: Humidity anomaly not mentioned")
+
+    # Check causal link: humidity/sensor caused thermostat corruption
+    causal_patterns = [
+        "caused", "cause", "trigger", "triggered", "led to", "resulted in",
+        "because", "due to", "from the", "protection mode", "corrupted"
+    ]
+    has_causal = False
+    if "humidity" in response_lower or "sensor" in response_lower or "999" in response_lower:
+        if "thermostat" in response_lower:
+            for pattern in causal_patterns:
+                if pattern in response_lower:
+                    has_causal = True
+                    break
+    if has_causal:
+        print("PASS: Causal link between humidity/sensor and thermostat mentioned")
+        found += 1
+    else:
+        print("FAIL: Causal link between humidity/sensor and thermostat not mentioned")
 
     # Check thermostat correction mention
     if "thermostat" in response_lower and ("comfort" in response_lower or "corrected" in response_lower or "fix" in response_lower or "adjust" in response_lower):
@@ -270,19 +298,22 @@ def check_d5_response_environmental(response):
     else:
         print("FAIL: Thermostat correction not mentioned")
 
-    if found == 2:
+    if found == 3:
         print("D5: PASS (0.125)")
         return 0.125
+    elif found == 2:
+        print("D5: PARTIAL (0.083)")
+        return 0.083
     elif found == 1:
-        print("D5: PARTIAL (0.0625)")
-        return 0.0625
+        print("D5: PARTIAL (0.042)")
+        return 0.042
     else:
         print("D5: FAIL (0.0)")
         return 0.0
 
 
 def check_d6_response_coffee_timing(response):
-    """D6: Response coffee timing — mentions brew_duration reasoning AND start_time adjustment"""
+    """D6: Response coffee timing — mentions explicit 30-minute brew_duration reasoning AND start_time adjustment with inference"""
     print("\n=== D6: Response Coffee Timing ===")
 
     if response is None:
@@ -292,27 +323,32 @@ def check_d6_response_coffee_timing(response):
     response_lower = response.lower()
     found = 0
 
-    # Check brew_duration reasoning (30 min mentioned or inferred)
-    if "30" in response_lower and ("min" in response_lower or "brew" in response_lower or "duration" in response_lower):
-        print("PASS: Brew duration reasoning mentioned")
-        found += 1
-    elif "brew" in response_lower and ("time" in response_lower or "duration" in response_lower):
-        print("PASS: Brew timing reasoning mentioned")
+    # Check explicit 30-minute brew duration reasoning (must mention 30 min/minutes)
+    if "30" in response_lower and ("min" in response_lower or "minute" in response_lower):
+        print("PASS: Explicit 30-minute brew duration mentioned")
         found += 1
     else:
-        print("FAIL: Brew duration reasoning not mentioned")
+        print("FAIL: Explicit 30-minute brew duration not mentioned")
 
-    # Check start_time adjustment
-    if "06:30" in response_lower or "6:30" in response_lower or ("start" in response_lower and "time" in response_lower and ("adjust" in response_lower or "change" in response_lower or "earlier" in response_lower)):
-        print("PASS: Start time adjustment mentioned")
+    # Check start_time adjustment with reasoning (must mention 06:30 or inference from brew time)
+    if "06:30" in response_lower or "6:30" in response_lower:
+        print("PASS: Start time 06:30 mentioned")
         found += 1
+    elif "start" in response_lower and "time" in response_lower and ("adjust" in response_lower or "change" in response_lower or "earlier" in response_lower):
+        # Also check for inference reasoning (brew time -> departure time)
+        if "brew" in response_lower and ("7" in response_lower or "07:" in response_lower or "leave" in response_lower or "departure" in response_lower or "ready" in response_lower):
+            print("PASS: Start time adjustment with brew timing inference mentioned")
+            found += 1
+        else:
+            print("PARTIAL: Start time adjustment mentioned but without clear inference")
+            found += 0.5
     else:
         print("FAIL: Start time adjustment not mentioned")
 
-    if found == 2:
+    if found >= 2:
         print("D6: PASS (0.125)")
         return 0.125
-    elif found == 1:
+    elif found >= 1:
         print("D6: PARTIAL (0.0625)")
         return 0.0625
     else:

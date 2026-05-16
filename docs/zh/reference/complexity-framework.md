@@ -53,8 +53,9 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      27 | conflict-repair-acb               |  E   | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |      28 | mixed-tool-memory                 |  E   | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |  M   | ✓  |    |    | ✓  | Deep Research & Report     |
-|      31 | smarthome-test                    |  M   |    |    | ✓  |    | E-commerce & Daily Svcs    |
+|      39 | smarthome-test                    |  M   |    |    | ✓  |    | E-commerce & Daily Svcs    |
 |      41 | grocery-reorder                   |  M   | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
+|      42 | morning-comfort-setup             |  M   |    | ✓  | ✓  |    | Health & Fitness           |
 
 ---
 
@@ -62,20 +63,20 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |   11 | 34.4%  | flight-seat-selection, email-watch-shop, grocery-reorder       |
-| A2   | 初始状态污染             |    6 | 18.8%  | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering |
-| B1   | 隐式目标解析             |    6 | 18.8%  | flight-seat-selection-failed, flight-cancel-claim, smarthome-test, grocery-reorder |
-| B2   | 知识系统维护             |   11 | 34.4%  | skill-creation, skill-dependency-fix, noise-filtering          |
+| A1   | 跨服务依赖               |   12 |  29.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder |
+| A2   | 初始状态污染             |    7 |  17.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup |
+| B1   | 隐式目标解析             |    7 |  17.1% | flight-seat-selection-failed, flight-cancel-claim, smarthome-test, grocery-reorder, morning-comfort-setup |
+| B2   | 知识系统维护             |   11 |  26.8% | skill-creation, skill-dependency-fix, noise-filtering          |
 
-> 占比以 32 个已实现 case 总数为分母。
+> 占比以 41 个已实现 case 总数为分母。
 
 因子组合分布：
 
-- 无因子（基准）：8 个 case（26.7%）— email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change
-- 单因子：14 个 case（46.7%）
-- 双因子：7 个 case（23.3%）— flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2)
-- 三因子：1 个 case（3.3%）— conflict-repair-acb (A1+A2+B2)
-- **多因子（≥2 个因子）：8 个 case（26.7%）**
+- 无因子（基准）：14 个 case（34.1%）— email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection
+- 单因子：17 个 case（41.5%）
+- 双因子：9 个 case（22.0%）— flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), grocery-reorder (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), morning-comfort-setup (A2+B1)
+- 三因子：1 个 case（2.4%）— conflict-repair-acb (A1+A2+B2)
+- **多因子（≥2 个因子）：10 个 case（24.4%）**
 
 ---
 
@@ -87,17 +88,19 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |----------------------------|----|----|----|----|:------------:|
 | Documents & Knowledge      |  2 |  2 |  0 | 10 |           14 |
 | Communication & Email      |  0 |  0 |  0 |  0 |            0 |
-| E-commerce & Daily Svcs    |  5 |  0 |  2 |  0 |            7 |
+| E-commerce & Daily Svcs    |  7 |  0 |  4 |  0 |           11 |
 | Calendar & Task Mgmt       |  2 |  0 |  1 |  0 |            3 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |            1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |            2 |
 | Deep Research & Report     |  1 |  1 |  0 |  2 |            4 |
+| Health & Fitness           |  0 |  1 |  1 |  0 |            2 |
 
 关键观察：
 - **B2 高度集中在 Documents & Knowledge**（10/11），反映了知识管理任务的本质
-- **A1 分布最广**，横跨 4 个领域——跨服务协调是普遍的复杂度来源
-- **B1 仅出现在 E-commerce 和 Calendar** ——这些领域最自然地产生隐式目标
+- **A1 分布最广**，横跨 5 个领域——跨服务协调是普遍的复杂度来源
+- **B1 出现在 E-commerce、Calendar 和 Health & Fitness** ——这些领域最自然地产生隐式目标
 - **Communication & Email 没有任何因子** ——这些 case 作为纯基准
+- **Health & Fitness 现在有了因子** ——morning-comfort-setup 引入 A2+B1，从基准变为多因子任务
 
 ---
 
@@ -128,9 +131,9 @@ LiveClawBench 包含 2 个经验证具有有效难度梯度的控制对。
 
 | 难度 | 数量 | 占比   | Case 列表 |
 |:----:|-----:|-------:|-----------|
-| 简单 |   18 | 60.0%  | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory |
-| 中等 |    7 | 23.3%  | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5 |
-| 困难 |    5 | 16.7%  | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain |
+| 简单 |   25 |  61.0% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record |
+| 中等 |   11 |  26.8% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, grocery-reorder, smarthome-test, morning-comfort-setup |
+| 困难 |    5 |  12.2% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain |
 
 因子数量与难度关系：
 
