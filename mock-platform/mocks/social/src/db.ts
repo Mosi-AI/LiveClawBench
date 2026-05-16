@@ -507,6 +507,17 @@ function seedData(database: Database) {
   const count = database.query("SELECT COUNT(*) as count FROM account").get() as { count: number };
   if (count.count > 0) {
     console.log(`[social] Skipping re-seed: ${count.count} account(s) already exist.`);
+    // Compatibility backfill: ensure alice's like exists for social-unlike-post (case_id=33).
+    // On reused DBs a previous agent run may have deleted this like, and the full
+    // seed transaction above is skipped because accounts already exist.
+    const likeExists = database.query("SELECT 1 FROM post_like WHERE post_id = 1 AND account_id = 2").get();
+    if (!likeExists) {
+      const post1Exists = database.query("SELECT 1 FROM post WHERE id = 1").get();
+      if (post1Exists) {
+        database.prepare("INSERT INTO post_like (post_id, account_id) VALUES (1, 2)").run();
+        console.log("[social] Restored alice's post_like seed (post_id=1, account_id=2)");
+      }
+    }
     return;
   }
   console.log("[social] Seeding fresh demo data into empty social.db...");
