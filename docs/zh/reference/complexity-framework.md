@@ -75,7 +75,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |   16 | 35.6%  | flight-seat-selection, email-watch-shop, conflict-repair-acb, social-keyword-cleanup |
+| A1   | 跨服务依赖               |   17 | 37.8%  | flight-seat-selection, email-watch-shop, conflict-repair-acb, social-keyword-cleanup |
 | A2   | 初始状态污染             |    9 | 20.0%  | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, social-schedule-audit |
 | B1   | 隐式目标解析             |   10 | 22.2%  | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, social-keyword-cleanup |
 | B2   | 知识系统维护             |   11 | 24.4%  | skill-creation, skill-dependency-fix, noise-filtering          |
@@ -88,7 +88,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 - 单因子：16 个 case（35.6%）
 - 双因子：11 个 case（24.4%）— flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), social-keyword-cleanup (A1+B1), social-event-campaign (A1+B1), social-comment-moderation (A1+B1), social-cross-publish (A1+B1)
 - 三因子：3 个 case（6.7%）— conflict-repair-acb (A1+A2+B2), social-data-anomaly-report (A1+A2+B1), social-pinned-post-update (A1+A2+B1)
-- **多因子（≥2 个因子）：15 个 case（33.3%）**
+- **多因子（≥2 个因子）：14 个 case（31.1%）**
 
 ---
 
@@ -98,25 +98,25 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 主要领域                   | A1 | A2 | B1 | B2 | 因子实例总数 |
 |----------------------------|----|----|----|----|:------------:|
-| Documents & Knowledge      |  2 |  2 |  0 | 10 |           14 |
+| Documents & Knowledge      |  2 |  2 |  0 |  9 |           13 |
 | Communication & Email      |  0 |  0 |  0 |  0 |            0 |
-| E-commerce & Daily Svcs    |  6 |  0 |  2 |  0 |            9 |
+| E-commerce & Daily Svcs    |  6 |  0 |  3 |  0 |            9 |
 | Calendar & Task Mgmt       |  2 |  0 |  1 |  0 |            3 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |            1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |            2 |
 | Deep Research & Report     |  1 |  1 |  0 |  2 |            4 |
 | Health & Fitness           |  0 |  0 |  0 |  0 |            0 |
-| Social Media               |  5 |  3 |  6 |  0 |           14 |
+| Social Media               |  6 |  3 |  6 |  0 |           15 |
 | Finance & Data Analytics   |  0 |  0 |  0 |  0 |            0 |
 | Health & Wellness          |  0 |  0 |  0 |  0 |            0 |
 
 关键观察：
-- **B2 高度集中在 Documents & Knowledge**（10/11），反映了知识管理任务的本质
+- **B2 高度集中在 Documents & Knowledge**（9/11），反映了知识管理任务的本质
 - **A1 分布最广**，横跨 6 个领域——跨服务协调是普遍的复杂度来源
 - **B1 出现在 E-commerce、Calendar 和 Social Media** ——这些领域最自然地产生隐式目标
 - **Communication & Email 没有任何因子** ——这些 case 作为纯基准
 - **Health & Fitness 没有任何因子** ——mint-diet-snack-log 作为领域基准
-- **Social Media 的 9 个任务覆盖 A1=5、A2=3、B1=6** ——7 个新增任务大幅扩展了因子覆盖
+- **Social Media 的 9 个任务覆盖 A1=6、A2=3、B1=6** ——7 个新增任务大幅扩展了因子覆盖
 - **Finance & Data Analytics 没有任何因子** ——expense-draft-delete 作为领域基准
 - **Health & Wellness 没有任何因子** ——health-daily-record 作为领域基准
 

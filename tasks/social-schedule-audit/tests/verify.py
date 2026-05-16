@@ -104,13 +104,12 @@ def main():
         score += 0.2
     elif p102["status"] == "draft":
         messages.append(
-            "ANOMALY 2 (post 102): PASS — status changed to 'draft' (removed stale schedule)"
+            "ANOMALY 2 (post 102): FAIL — changed to 'draft' instead of 'published'"
         )
-        score += 0.2
     else:
         messages.append(
-            f"ANOMALY 2 (post 102): FAIL — status is still '{p102['status']}' "
-            f"(should be published or draft)"
+            f"ANOMALY 2 (post 102): FAIL — status is '{p102['status']}' "
+            f"(should be 'published')"
         )
 
     # --- Anomaly 3: Post 103 — published but no action_log entry ---

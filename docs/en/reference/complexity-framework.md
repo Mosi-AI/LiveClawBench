@@ -81,7 +81,7 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    16 |      35.6% | flight-seat-selection, email-watch-shop, conflict-repair-acb, social-keyword-cleanup |
+| A1     | Cross-Service Dependency       |    17 |      37.8% | flight-seat-selection, email-watch-shop, conflict-repair-acb, social-keyword-cleanup |
 | A2     | Contaminated Initial State     |     9 |      20.0% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, social-schedule-audit |
 | B1     | Implicit Goal Resolution       |    10 |      22.2% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, social-keyword-cleanup |
 | B2     | Knowledge System Maintenance   |    11 |      24.4% | skill-creation, skill-dependency-fix, noise-filtering         |
@@ -94,7 +94,7 @@ Factor combination distribution:
 - Single factor: 16 cases (35.6%)
 - Dual factor: 11 cases (24.4%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), social-keyword-cleanup (A1+B1), social-event-campaign (A1+B1), social-comment-moderation (A1+B1), social-cross-publish (A1+B1)
 - Triple factor: 3 cases (6.7%) — conflict-repair-acb (A1+A2+B2), social-data-anomaly-report (A1+A2+B1), social-pinned-post-update (A1+A2+B1)
-- **Multi-factor (≥2 factors): 15 cases (33.3%)**
+- **Multi-factor (≥2 factors): 14 cases (31.1%)**
 
 ---
 
@@ -104,25 +104,25 @@ Factor occurrence frequency per primary domain:
 
 | Primary Domain             | A1 | A2 | B1 | B2 | Total Factor Instances |
 |----------------------------|----|----|----|----|-----------------------:|
-| Documents & Knowledge      |  2 |  2 |  0 | 10 |                     14 |
+| Documents & Knowledge      |  2 |  2 |  0 |  9 |                     13 |
 | Communication & Email      |  0 |  0 |  0 |  0 |                      0 |
-| E-commerce & Daily Svcs    |  6 |  0 |  2 |  0 |                      9 |
+| E-commerce & Daily Svcs    |  6 |  0 |  3 |  0 |                      9 |
 | Calendar & Task Mgmt       |  2 |  0 |  1 |  0 |                      3 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |                      1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |                      2 |
 | Deep Research & Report     |  1 |  1 |  0 |  2 |                      4 |
 | Health & Fitness           |  0 |  0 |  0 |  0 |                      0 |
-| Social Media               |  5 |  3 |  6 |  0 |                     14 |
+| Social Media               |  6 |  3 |  6 |  0 |                     15 |
 | Finance & Data Analytics   |  0 |  0 |  0 |  0 |                      0 |
 | Health & Wellness          |  0 |  0 |  0 |  0 |                      0 |
 
 Key observations:
-- **B2 is highly concentrated in Documents & Knowledge** (10/11), reflecting the nature of knowledge management tasks
+- **B2 is highly concentrated in Documents & Knowledge** (9/11), reflecting the nature of knowledge management tasks
 - **A1 is the most broadly distributed**, spanning 6 domains — cross-service coordination is a universal complexity source
 - **B1 appears in E-commerce, Calendar, and Social Media** — domains that most naturally produce implicit goals
 - **Communication & Email has no factors** — these cases serve as pure baselines
 - **Health & Fitness has no factors** — mint-diet-snack-log serves as a domain baseline
-- **Social Media's 9 tasks cover A1=5, A2=3, B1=6** — the 7 new tasks significantly expand factor coverage
+- **Social Media's 9 tasks cover A1=6, A2=3, B1=6** — the 7 new tasks significantly expand factor coverage
 - **Finance & Data Analytics has no factors** — expense-draft-delete serves as a domain baseline
 - **Health & Wellness has no factors** — health-daily-record serves as a domain baseline
 
