@@ -44,24 +44,29 @@ interface ProviderSeed {
   name: string;
   district: string;
   distance_km: number;
+  network_status: "in_network" | "out_of_network";
   offers: ReadonlyArray<CheckItem>;
 }
 
 export const PROVIDERS: ReadonlyArray<ProviderSeed> = [
-  { name: "Metro Lab Services", district: "Central", distance_km: 1.2, offers: ["lab"] },
-  { name: "Nutrition & Wellness Center", district: "Central", distance_km: 1.8, offers: ["specialist"] },
-  { name: "Central Family Clinic", district: "Central", distance_km: 0.8, offers: ["general_checkup", "dental", "vision", "lab"] },
-  { name: "Riverside Medical Center", district: "Riverside", distance_km: 2.4, offers: ["general_checkup", "dental", "vision", "lab", "imaging", "specialist"] },
-  { name: "Northgate Health", district: "North", distance_km: 3.1, offers: ["general_checkup", "dental", "lab", "imaging"] },
-  { name: "Eastside Dental & Vision", district: "East", distance_km: 4.0, offers: ["general_checkup", "dental", "vision", "lab"] },
-  { name: "Southside Diagnostics", district: "South", distance_km: 5.2, offers: ["general_checkup", "lab", "imaging", "specialist"] },
-  { name: "Westview General Hospital", district: "West", distance_km: 6.5, offers: ["general_checkup", "dental", "vision", "lab", "imaging", "specialist"] },
-  { name: "Hillcrest Specialty Clinic", district: "Hillcrest", distance_km: 7.3, offers: ["general_checkup", "dental", "vision", "specialist"] },
-  { name: "Lakeside Imaging Lab", district: "Lakeside", distance_km: 8.0, offers: ["general_checkup", "vision", "lab", "imaging"] },
-  { name: "Bayview Wellness Center", district: "Bayview", distance_km: 9.4, offers: ["general_checkup", "dental", "vision", "lab", "specialist"] },
-  { name: "Parkside Urgent Care", district: "Parkside", distance_km: 10.2, offers: ["general_checkup", "dental", "vision", "lab"] },
-  { name: "Greenfield Family Practice", district: "Greenfield", distance_km: 11.5, offers: ["general_checkup", "dental", "vision", "lab", "imaging"] },
-  { name: "Highland Specialist Group", district: "Highland", distance_km: 12.8, offers: ["general_checkup", "dental", "vision", "lab", "specialist"] },
+  { name: "Metro Lab Services", district: "Central", distance_km: 1.2, network_status: "in_network", offers: ["lab"] },
+  { name: "Nutrition & Wellness Center", district: "Central", distance_km: 1.8, network_status: "in_network", offers: ["specialist"] },
+  { name: "Central Family Clinic", district: "Central", distance_km: 0.8, network_status: "in_network", offers: ["general_checkup", "dental", "vision", "lab"] },
+  { name: "Riverside Medical Center", district: "Riverside", distance_km: 2.4, network_status: "in_network", offers: ["general_checkup", "dental", "vision", "lab", "imaging", "specialist"] },
+  { name: "Northgate Health", district: "North", distance_km: 3.1, network_status: "in_network", offers: ["general_checkup", "dental", "lab", "imaging"] },
+  { name: "Eastside Dental & Vision", district: "East", distance_km: 4.0, network_status: "in_network", offers: ["general_checkup", "dental", "vision", "lab"] },
+  { name: "Southside Diagnostics", district: "South", distance_km: 5.2, network_status: "in_network", offers: ["general_checkup", "lab", "imaging", "specialist"] },
+  { name: "Westview General Hospital", district: "West", distance_km: 6.5, network_status: "in_network", offers: ["general_checkup", "dental", "vision", "lab", "imaging", "specialist"] },
+  { name: "Hillcrest Specialty Clinic", district: "Hillcrest", distance_km: 7.3, network_status: "in_network", offers: ["general_checkup", "dental", "vision", "specialist"] },
+  { name: "Lakeside Imaging Lab", district: "Lakeside", distance_km: 8.0, network_status: "in_network", offers: ["general_checkup", "vision", "lab", "imaging"] },
+  { name: "Bayview Wellness Center", district: "Bayview", distance_km: 9.4, network_status: "in_network", offers: ["general_checkup", "dental", "vision", "lab", "specialist"] },
+  { name: "Parkside Urgent Care", district: "Parkside", distance_km: 10.2, network_status: "in_network", offers: ["general_checkup", "dental", "vision", "lab"] },
+  { name: "Greenfield Family Practice", district: "Greenfield", distance_km: 11.5, network_status: "in_network", offers: ["general_checkup", "dental", "vision", "lab", "imaging"] },
+  { name: "Highland Specialist Group", district: "Highland", distance_km: 12.8, network_status: "in_network", offers: ["general_checkup", "dental", "vision", "lab", "specialist"] },
+  { name: "Summit Out-of-Network Clinic", district: "Summit", distance_km: 3.5, network_status: "out_of_network", offers: ["general_checkup", "specialist"] },
+  { name: "Valley Premium Medical", district: "Valley", distance_km: 4.8, network_status: "out_of_network", offers: ["general_checkup", "dental", "imaging"] },
+  { name: "Coastal Healthcare Partners", district: "Coastal", distance_km: 6.2, network_status: "out_of_network", offers: ["specialist", "lab", "imaging"] },
+  { name: "Pinnacle Private Practice", district: "Downtown", distance_km: 1.5, network_status: "out_of_network", offers: ["general_checkup", "dental", "vision", "lab", "imaging", "specialist"] },
 ];
 
 interface BenefitSeed {

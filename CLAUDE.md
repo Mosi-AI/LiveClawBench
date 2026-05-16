@@ -234,6 +234,11 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `weather-aqi-report` | Deep Research & Report | easy | verify.py |
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
+| `meeting-reschedule-response` | Calendar & Task Mgmt | easy | verify.py |
+| `candidate-interview-slot-confirm` | Calendar & Task Mgmt | easy | verify.py |
+| `medication-prescription-sync` | Health & Fitness | hard | verify.py |
+| `health-appointment-scheduling` | Health & Fitness | hard | verify.py |
+| `content-calendar-cross-publish` | Calendar & Task Mgmt | hard | verify.py |
 
 ## Docker Image Architecture
 
@@ -387,8 +392,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-37 implemented tasks: A1=12, A2=6, B1=4, B2=11.
-Difficulty: Easy=23, Medium=8, Hard=5.
+43 implemented tasks: A1=16, A2=9, B1=7, B2=11.
+Difficulty: Easy=27, Medium=8, Hard=8.
 
 ## Known Issues
 

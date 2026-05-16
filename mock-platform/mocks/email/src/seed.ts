@@ -427,6 +427,124 @@ Peter`,
   days_ago: 5,
 };
 
+// --- Calendar/scheduling task emails ---
+
+const SENDER_HR = { username: "hr.department", email: "hr@work.mosi.inc" };
+const SENDER_DR = { username: "dr.harris", email: "dr.harris@citymedical.com" };
+const SENDER_CONTENT = { username: "content.team", email: "content@work.mosi.inc" };
+
+const INBOX_MEETING_RESCHEDULE = {
+  subject: "Meeting Reschedule - Project Sync",
+  body: `Hi Peter,
+
+Your weekly project sync meeting has been rescheduled. Here are the updated details:
+
+Original: Thursday, May 22, 2026, 2:00 PM - 3:00 PM
+New Time: Friday, May 23, 2026, 10:00 AM - 11:00 AM
+
+Please update your calendar accordingly. The meeting will still be held in Conference Room B.
+
+If the new time doesn't work for you, please let me know by end of day today.
+
+Best regards,
+HR Department
+Mosi Inc.`,
+  days_ago: 0,
+  is_read: 0,
+};
+
+const INBOX_INTERVIEW_SLOT = {
+  subject: "Interview Confirmation - Senior Developer Candidate",
+  body: `Hi Peter,
+
+We have a candidate coming in for the Senior Developer position interview. Please confirm the following interview slot by adding it to your calendar:
+
+Candidate: Alex Thompson
+Position: Senior Developer
+Date: Monday, May 26, 2026
+Time: 2:00 PM - 3:00 PM
+Location: Conference Room A
+
+Please add this to your calendar and send me a confirmation email so I can notify the candidate.
+
+Thank you,
+HR Department
+Mosi Inc.`,
+  days_ago: 0,
+  is_read: 0,
+};
+
+const INBOX_PRESCRIPTION_UPDATE = {
+  subject: "Updated Prescription from Dr. Harris",
+  body: `Dear Peter,
+
+Following your recent checkup, I've updated your medication regimen. Here are the changes:
+
+NEW MEDICATION:
+- Metformin 500mg - Take twice daily with meals (morning and evening)
+- Start date: immediately
+
+Please make sure to:
+1. Update your medication records in the health portal (http://localhost:5007/)
+2. Add calendar reminders for your medication intake times (8:00 AM and 6:00 PM daily)
+3. Discontinue any conflicting medications
+
+Your health is important to us. Please schedule a follow-up in 4 weeks.
+
+Best regards,
+Dr. Harris
+City Medical Center`,
+  days_ago: 0,
+  is_read: 0,
+};
+
+const INBOX_HEALTH_SCHEDULE_CHECK = {
+  subject: "Please Review Your Health Schedule",
+  body: `Hi Peter,
+
+Could you check if everything looks good with your health schedule? I noticed you have an upcoming appointment in the insurance system (http://localhost:6000/). Please verify:
+
+1. Your appointment details are correct
+2. The provider is in-network under your current plan
+3. The appointment time works with your calendar
+
+If anything needs fixing, please update it and add the correct appointment to your company calendar (http://localhost:5006/).
+
+Login: peter.griffin@work.mosi.inc / password123
+
+Thanks,
+HR Department
+Mosi Inc.`,
+  days_ago: 0,
+  is_read: 0,
+};
+
+const INBOX_CONTENT_BRIEF = {
+  subject: "New Content Brief - Product Launch Campaign",
+  body: `Hi Peter,
+
+We have a new content brief for the upcoming product launch. Here's what we need:
+
+Campaign: Summer Product Launch 2026
+Content Pieces:
+1. Blog post: "Introducing Our Summer Collection" - key features and benefits
+2. Social media posts: 3 posts for our social channels highlighting different product features
+3. All content should be scheduled for publication between June 1-7, 2026
+
+Please:
+1. Create calendar events for each content piece with deadlines
+2. Set up the social media posts in our social platform (http://localhost:5004/)
+3. Make sure all scheduled posts have future dates
+
+The social platform login is the same as your company credentials.
+
+Thanks,
+Content Team
+Mosi Inc.`,
+  days_ago: 0,
+  is_read: 0,
+};
+
 // --- Seed configuration per task ---
 
 interface SeedConfig {
@@ -529,6 +647,66 @@ function makeSeedConfig(taskName: string): SeedConfig {
           { senderUsername: "lau.pai", ...INBOX_PARTNERSHIP },
         ],
         sent: [...baselineSent, SENT_GARY],
+      };
+    }
+
+    case "meeting-reschedule-response": {
+      const senders = [...BASELINE_SENDERS, SENDER_HR];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "hr.department", ...INBOX_MEETING_RESCHEDULE },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "candidate-interview-slot-confirm": {
+      const senders = [...BASELINE_SENDERS, SENDER_HR];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "hr.department", ...INBOX_INTERVIEW_SLOT },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "medication-prescription-sync": {
+      const senders = [...BASELINE_SENDERS, SENDER_DR];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "dr.harris", ...INBOX_PRESCRIPTION_UPDATE },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "health-appointment-scheduling": {
+      const senders = [...BASELINE_SENDERS, SENDER_HR];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "hr.department", ...INBOX_HEALTH_SCHEDULE_CHECK },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "content-calendar-cross-publish": {
+      const senders = [...BASELINE_SENDERS, SENDER_CONTENT];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "content.team", ...INBOX_CONTENT_BRIEF },
+        ],
+        sent: baselineSent,
       };
     }
 

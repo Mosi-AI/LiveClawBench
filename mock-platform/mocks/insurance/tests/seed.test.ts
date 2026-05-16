@@ -49,8 +49,8 @@ describe("insurance seed", () => {
   test("seeds the documented row counts across all 12 tables", () => {
     const db = freshSeededDb();
     expect(count(db, "users")).toBe(1);
-    expect(count(db, "provider")).toBe(14);
-    expect(count(db, "provider_service")).toBe(57);
+    expect(count(db, "provider")).toBe(18);
+    expect(count(db, "provider_service")).toBe(71);
     expect(count(db, "insurance_plan")).toBe(3);
     expect(count(db, "plan_benefit")).toBe(18);
     expect(count(db, "current_policy")).toBe(1);
@@ -75,7 +75,7 @@ describe("insurance seed", () => {
          GROUP BY provider_service_id`,
       )
       .all();
-    expect(rows.length).toBe(57);
+    expect(rows.length).toBe(71);
     for (const row of rows) {
       expect(row.n).toBeGreaterThanOrEqual(3);
       expect(row.n).toBeLessThanOrEqual(5);

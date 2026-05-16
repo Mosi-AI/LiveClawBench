@@ -59,6 +59,8 @@ export function initSchema(db: Database): void {
       title TEXT NOT NULL,
       start_time TEXT NOT NULL,
       end_time TEXT NOT NULL,
+      description TEXT,
+      event_type TEXT NOT NULL DEFAULT 'personal',
       source TEXT,
       source_ref TEXT,
       created_at TEXT DEFAULT (datetime('now')),

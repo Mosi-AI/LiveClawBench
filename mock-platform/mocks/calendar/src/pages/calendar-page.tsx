@@ -4,6 +4,8 @@ import type { FC } from "hono/jsx";
 interface CalendarEvent {
   id: number;
   title: string;
+  description: string | null;
+  event_type: string;
   start_time: string;
   end_time: string;
 }
@@ -18,6 +20,8 @@ function formatTime(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleString();
 }
+
+const EVENT_TYPES = ["personal", "medication", "appointment", "content"];
 
 export const CalendarPage: FC<CalendarPageProps> = ({ user, events, error }) => {
   return (
@@ -54,6 +58,18 @@ export const CalendarPage: FC<CalendarPageProps> = ({ user, events, error }) => 
               <input type="text" name="title" required />
             </label>
             <label>
+              Description:
+              <textarea name="description" rows="2"></textarea>
+            </label>
+            <label>
+              Event Type:
+              <select name="event_type">
+                {EVENT_TYPES.map((t) => (
+                  <option value={t} selected={t === "personal"}>{t}</option>
+                ))}
+              </select>
+            </label>
+            <label>
               Start Time:
               <input type="datetime-local" name="start_time" required />
             </label>
@@ -72,6 +88,8 @@ export const CalendarPage: FC<CalendarPageProps> = ({ user, events, error }) => 
               <thead>
                 <tr>
                   <th>Title</th>
+                  <th>Description</th>
+                  <th>Type</th>
                   <th>Start</th>
                   <th>End</th>
                   <th>Actions</th>
@@ -81,10 +99,13 @@ export const CalendarPage: FC<CalendarPageProps> = ({ user, events, error }) => 
                 {events.map((evt) => (
                   <tr key={evt.id}>
                     <td>{evt.title}</td>
+                    <td>{evt.description ?? ""}</td>
+                    <td>{evt.event_type}</td>
                     <td>{formatTime(evt.start_time)}</td>
                     <td>{formatTime(evt.end_time)}</td>
                     <td>
-                      <form method="post" action={`/events/${evt.id}/delete`}>
+                      <a href={`/events/${evt.id}/edit`} class="btn-edit">Edit</a>
+                      <form method="post" action={`/events/${evt.id}/delete`} style="display:inline">
                         <button type="submit" class="btn-danger">Delete</button>
                       </form>
                     </td>

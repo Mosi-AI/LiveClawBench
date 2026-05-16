@@ -62,6 +62,15 @@
         "zod": "^3.24.0",
       },
     },
+    "mocks/health": {
+      "name": "@mock/health",
+      "version": "0.1.0",
+      "dependencies": {
+        "hono": "^4.8.0",
+        "mock-lib": "workspace:*",
+        "zod": "^3.22.0",
+      },
+    },
     "mocks/insurance": {
       "name": "@mock/insurance",
       "version": "0.1.0",
@@ -143,6 +152,8 @@
     "@mock/email": ["@mock/email@workspace:mocks/email"],
 
     "@mock/expense": ["@mock/expense@workspace:mocks/expense"],
+
+    "@mock/health": ["@mock/health@workspace:mocks/health"],
 
     "@mock/insurance": ["@mock/insurance@workspace:mocks/insurance"],
 

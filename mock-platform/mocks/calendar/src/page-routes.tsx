@@ -4,12 +4,15 @@ import { sign, tokenCookieOptions, serializeCookie, authRequired } from "mock-li
 import type { AppEnv } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { CalendarPage } from "./pages/calendar-page";
+import { EditEventPage } from "./pages/edit-event-page";
 import { LoginPage } from "./pages/login-page";
 import type { Hono } from "hono";
 
 interface CalEvent {
   id: number;
   title: string;
+  description: string | null;
+  event_type: string;
   start_time: string;
   end_time: string;
 }
@@ -31,9 +34,17 @@ function getCurrentUser(
 function listEvents(db: Database, userId: number) {
   return db
     .query<CalEvent, [number]>(
-      "SELECT id, title, start_time, end_time FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC",
+      "SELECT id, title, description, event_type, start_time, end_time FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC",
     )
     .all(userId);
+}
+
+function getEvent(db: Database, userId: number, eventId: number) {
+  return db
+    .query<CalEvent, [number, number]>(
+      "SELECT id, title, description, event_type, start_time, end_time FROM calendar_event WHERE id = ? AND user_id = ?",
+    )
+    .get(eventId, userId);
 }
 
 export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
@@ -104,6 +115,8 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
       );
     }
     const title = String(body.title ?? "");
+    const description = String(body.description ?? "");
+    const eventType = String(body.event_type ?? "personal");
     const startTime = String(body.start_time ?? "");
     const endTime = String(body.end_time ?? "");
 
@@ -146,8 +159,87 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
     }
 
     db.run(
-      "INSERT INTO calendar_event (user_id, title, start_time, end_time) VALUES (?, ?, ?, ?)",
-      [userId, title, startUtc, endUtc],
+      "INSERT INTO calendar_event (user_id, title, description, event_type, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?)",
+      [userId, title, description || null, eventType, startUtc, endUtc],
+    );
+
+    return c.redirect("/");
+  });
+
+  // Edit form page (GET)
+  app.get("/events/:id/edit", pageAuth, (c) => {
+    const userId = c.get("userId")!;
+    const user = getCurrentUser(db, userId);
+    if (!user) return c.redirect("/login");
+    const id = Number(c.req.param("id"));
+    const event = getEvent(db, userId, id);
+    if (!event) {
+      const events = listEvents(db, userId);
+      return c.html(
+        <CalendarPage user={user} events={events} error="Event not found" />,
+      );
+    }
+    return c.html(<EditEventPage user={user} event={event} />);
+  });
+
+  // Edit form submission (POST bridge to PUT API)
+  app.post("/events/:id/edit", pageAuth, async (c) => {
+    const userId = c.get("userId")!;
+    const user = getCurrentUser(db, userId);
+    if (!user) return c.redirect("/login");
+    const id = Number(c.req.param("id"));
+
+    let body: Record<string, string | File>;
+    try {
+      body = await c.req.parseBody();
+    } catch {
+      const event = getEvent(db, userId, id);
+      return c.html(
+        <EditEventPage user={user} event={event!} error="Invalid form submission" />,
+        400,
+      );
+    }
+
+    const title = String(body.title ?? "");
+    const description = String(body.description ?? "");
+    const eventType = String(body.event_type ?? "personal");
+    const startTime = String(body.start_time ?? "");
+    const endTime = String(body.end_time ?? "");
+
+    if (!title || !startTime || !endTime) {
+      const event = getEvent(db, userId, id);
+      return c.html(
+        <EditEventPage user={user} event={event!} error="All fields are required" />,
+      );
+    }
+
+    const startUtc = new Date(startTime).toISOString();
+    const endUtc = new Date(endTime).toISOString();
+
+    if (new Date(startUtc) >= new Date(endUtc)) {
+      const event = getEvent(db, userId, id);
+      return c.html(
+        <EditEventPage user={user} event={event!} error="End time must be after start time" />,
+      );
+    }
+
+    // Overlap check excluding self
+    const overlap = db
+      .query<{ count: number }, [number, string, string, number]>(
+        "SELECT COUNT(*) as count FROM calendar_event WHERE user_id = ? AND start_time < ? AND end_time > ? AND id != ?",
+      )
+      .get(userId, endUtc, startUtc, id);
+
+    if (overlap && overlap.count > 0) {
+      const event = getEvent(db, userId, id);
+      return c.html(
+        <EditEventPage user={user} event={event!} error="Time overlaps with another event" />,
+      );
+    }
+
+    db.run(
+      "UPDATE calendar_event SET title = ?, description = ?, event_type = ?, start_time = ?, end_time = ?, updated_at = datetime('now') WHERE id = ? AND user_id = ?",
+      [title, description || null, eventType, startUtc, endUtc, id, userId],
     );
 
     return c.redirect("/");

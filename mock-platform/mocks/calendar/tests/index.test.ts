@@ -135,6 +135,56 @@ describe("calendar events API", () => {
     const body = await res.json();
     expect(body.title).toBe("Blood Test");
     expect(body.user_id).toBe(1);
+    expect(body.event_type).toBe("personal");
+    expect(body.description).toBeNull();
+  });
+
+  test("POST /api/events creates event with description and event_type", async () => {
+    const res = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Take Medication",
+        description: "Take 500mg after lunch",
+        event_type: "medication",
+        start_time: "2026-05-10T12:00:00Z",
+        end_time: "2026-05-10T12:30:00Z",
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.title).toBe("Take Medication");
+    expect(body.description).toBe("Take 500mg after lunch");
+    expect(body.event_type).toBe("medication");
+  });
+
+  test("POST /api/events defaults event_type to personal", async () => {
+    const res = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Default Type",
+        start_time: "2026-06-10T09:00:00Z",
+        end_time: "2026-06-10T10:00:00Z",
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.event_type).toBe("personal");
+  });
+
+  test("POST /api/events rejects invalid event_type", async () => {
+    const res = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Bad Type",
+        event_type: "invalid_type",
+        start_time: "2026-07-10T09:00:00Z",
+        end_time: "2026-07-10T10:00:00Z",
+      }),
+    });
+    expect(res.status).toBe(400);
   });
 
   test("POST /api/events ignores user_id from body (uses authenticated user)", async () => {
@@ -280,6 +330,162 @@ describe("calendar events API", () => {
       headers: authHeaders(token),
     });
     expect(getRes.status).toBe(404);
+  });
+
+  // PUT /api/events/:id tests
+  test("PUT /api/events/:id updates title", async () => {
+    const createRes = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Original",
+        start_time: "2026-05-10T09:00:00Z",
+        end_time: "2026-05-10T10:00:00Z",
+      }),
+    });
+    const created = await createRes.json();
+
+    const res = await app.request(`/api/events/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({ title: "Updated" }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.title).toBe("Updated");
+    expect(body.start_time).toBe(created.start_time);
+  });
+
+  test("PUT /api/events/:id updates description and event_type", async () => {
+    const createRes = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Event",
+        start_time: "2026-05-10T14:00:00Z",
+        end_time: "2026-05-10T15:00:00Z",
+      }),
+    });
+    const created = await createRes.json();
+
+    const res = await app.request(`/api/events/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({ description: "New desc", event_type: "appointment" }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.description).toBe("New desc");
+    expect(body.event_type).toBe("appointment");
+  });
+
+  test("PUT /api/events/:id updates time without overlap", async () => {
+    const createRes = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "TimeShift",
+        start_time: "2026-05-10T09:00:00Z",
+        end_time: "2026-05-10T10:00:00Z",
+      }),
+    });
+    const created = await createRes.json();
+
+    const res = await app.request(`/api/events/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        start_time: "2026-05-10T11:00:00Z",
+        end_time: "2026-05-10T12:00:00Z",
+      }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(new Date(body.start_time).toISOString()).toBe(new Date("2026-05-10T11:00:00Z").toISOString());
+  });
+
+  test("PUT /api/events/:id allows keeping same time (self-overlap)", async () => {
+    const createRes = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "SelfOverlap",
+        start_time: "2026-05-10T09:00:00Z",
+        end_time: "2026-05-10T10:00:00Z",
+      }),
+    });
+    const created = await createRes.json();
+
+    const res = await app.request(`/api/events/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({ title: "Updated Title" }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.title).toBe("Updated Title");
+  });
+
+  test("PUT /api/events/:id rejects overlap with other event", async () => {
+    await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Blocker",
+        start_time: "2026-05-10T10:00:00Z",
+        end_time: "2026-05-10T11:00:00Z",
+      }),
+    });
+
+    const createRes = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "ToMove",
+        start_time: "2026-05-10T09:00:00Z",
+        end_time: "2026-05-10T09:30:00Z",
+      }),
+    });
+    const created = await createRes.json();
+
+    const res = await app.request(`/api/events/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        start_time: "2026-05-10T10:30:00Z",
+        end_time: "2026-05-10T11:30:00Z",
+      }),
+    });
+    expect(res.status).toBe(409);
+  });
+
+  test("PUT /api/events/:id returns 404 for non-existent event", async () => {
+    const res = await app.request("/api/events/99999", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({ title: "Ghost" }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  test("PUT /api/events/:id rejects invalid event_type", async () => {
+    const createRes = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "TypeTest",
+        start_time: "2026-08-10T09:00:00Z",
+        end_time: "2026-08-10T10:00:00Z",
+      }),
+    });
+    const created = await createRes.json();
+
+    const res = await app.request(`/api/events/${created.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({ event_type: "bad_type" }),
+    });
+    expect(res.status).toBe(400);
   });
 });
 
