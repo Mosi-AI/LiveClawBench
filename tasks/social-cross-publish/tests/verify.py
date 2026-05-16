@@ -79,7 +79,7 @@ def main():
 
         messages.append(f"Logged in as {USERNAME}")
 
-        status, body = api("/api/posts", cookie=cookie)
+        status, body = api("/api/posts?author_id=1&limit=100", cookie=cookie)
         if status != 200:
             messages.append(f"FAIL: feed retrieval returned {status}")
             print(f"Score: {score}/1.0")
@@ -89,26 +89,6 @@ def main():
 
         posts = body if isinstance(body, list) else body.get("posts", [])
         new_posts = [p for p in posts if p.get("id") not in LAYER0_POST_IDS]
-
-        if not new_posts:
-            author_id = 1
-            status2, body2 = api(
-                f"/api/posts?status=draft&author_id={author_id}", cookie=cookie
-            )
-            if status2 == 200:
-                draft_posts = body2.get("posts", []) if isinstance(body2, dict) else []
-                new_posts.extend(
-                    p for p in draft_posts if p.get("id") not in LAYER0_POST_IDS
-                )
-
-            status3, body3 = api(
-                f"/api/posts?status=scheduled&author_id={author_id}", cookie=cookie
-            )
-            if status3 == 200:
-                scheduled_posts = body3.get("posts", []) if isinstance(body3, dict) else []
-                new_posts.extend(
-                    p for p in scheduled_posts if p.get("id") not in LAYER0_POST_IDS
-                )
 
         if not new_posts:
             messages.append("FAIL: no new posts found")

@@ -89,19 +89,27 @@ def main() -> tuple[float, dict]:
 
         posts_resp = api_call(
             "GET",
-            f"/api/posts?author_id={MOSI_BRAND_ACCOUNT_ID}&limit=100",
+            f"/api/posts?author_id={MOSI_BRAND_ACCOUNT_ID}&include_deleted=true&limit=100",
             token=token,
         )
-        published_posts = posts_resp.get("posts", [])
-        published_ids = {p["id"] for p in published_posts}
+        all_posts = posts_resp.get("posts", [])
+
+        # Verify actual deletion (status='deleted'), not just absence from feed
+        deleted_ids = {p["id"] for p in all_posts if p.get("status") == "deleted"}
+        published_ids = {p["id"] for p in all_posts if p.get("status") == "published"}
 
         details["messages"].append(
             f"Published posts by mosi_brand: {sorted(published_ids)}"
         )
+        details["messages"].append(
+            f"Deleted posts by mosi_brand: {sorted(deleted_ids)}"
+        )
 
         # Dimension 1: Target posts deleted (0.6 pts — 0.2 per post)
-        still_present = SHOULD_DELETE & published_ids
-        deleted_count = len(SHOULD_DELETE) - len(still_present)
+        confirmed_deleted = SHOULD_DELETE & deleted_ids
+        still_visible = SHOULD_DELETE & published_ids
+        hidden_not_deleted = SHOULD_DELETE - deleted_ids - still_visible
+        deleted_count = len(confirmed_deleted)
         dim1_score = deleted_count * 0.2
 
         if deleted_count == len(SHOULD_DELETE):
@@ -111,11 +119,14 @@ def main() -> tuple[float, dict]:
         elif deleted_count > 0:
             details["messages"].append(
                 f"PARTIAL: {deleted_count}/{len(SHOULD_DELETE)} target posts deleted, "
-                f"still present: {sorted(still_present)}"
+                f"still published: {sorted(still_visible)}, "
+                f"hidden but not deleted: {sorted(hidden_not_deleted)}"
             )
         else:
             details["messages"].append(
-                f"FAIL: No target posts deleted, still present: {sorted(still_present)}"
+                f"FAIL: No target posts deleted (status='deleted'), "
+                f"still published: {sorted(still_visible)}, "
+                f"hidden but not deleted: {sorted(hidden_not_deleted)}"
             )
 
         # Dimension 2: Non-matching post 103 preserved (0.4 pts).

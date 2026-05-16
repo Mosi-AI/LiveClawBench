@@ -93,7 +93,7 @@ def main():
 
         messages.append(f"Logged in as {USERNAME}")
 
-        status, body = api("/api/posts", cookie=cookie)
+        status, body = api("/api/posts?author_id=1&limit=100", cookie=cookie)
         if status != 200:
             messages.append(f"FAIL: feed retrieval returned {status}")
             print(f"Score: {score}/1.0")
