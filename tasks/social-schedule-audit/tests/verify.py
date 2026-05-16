@@ -73,6 +73,8 @@ def main():
     p101 = get_post(db, 101)
     if p101 is None:
         messages.append("ANOMALY 1 (post 101): FAIL — post deleted (task requires repair, not deletion)")
+    elif p101["status"] == "deleted":
+        messages.append("ANOMALY 1 (post 101): FAIL — post soft-deleted (task requires repair, not deletion)")
     elif p101["status"] != "published" and p101["published_at"] is None:
         messages.append(
             f"ANOMALY 1 (post 101): PASS — status changed to '{p101['status']}' "
@@ -94,6 +96,8 @@ def main():
     p102 = get_post(db, 102)
     if p102 is None:
         messages.append("ANOMALY 2 (post 102): FAIL — post deleted (task requires repair, not deletion)")
+    elif p102["status"] == "deleted":
+        messages.append("ANOMALY 2 (post 102): FAIL — post soft-deleted (task requires repair, not deletion)")
     elif p102["status"] == "published":
         messages.append(
             "ANOMALY 2 (post 102): PASS — status is now 'published'"
@@ -115,6 +119,8 @@ def main():
     p103_has_log = has_action_log(db, 103, "published")
     if p103 is None:
         messages.append("ANOMALY 3 (post 103): FAIL — post deleted (task requires repair, not deletion)")
+    elif p103["status"] == "deleted":
+        messages.append("ANOMALY 3 (post 103): FAIL — post soft-deleted (task requires repair, not deletion)")
     elif p103_has_log:
         messages.append("ANOMALY 3 (post 103): PASS — action_log entry now exists")
         score += 0.2
@@ -133,6 +139,8 @@ def main():
     p104_status = get_post_status(db, 104)
     if p104_status is None:
         messages.append("ANOMALY 4 (post 104): FAIL — post deleted (task requires repair, not deletion)")
+    elif p104_status == "deleted":
+        messages.append("ANOMALY 4 (post 104): FAIL — post soft-deleted (task requires repair, not deletion)")
     elif p104_status == "published":
         messages.append(
             "ANOMALY 4 (post 104): PASS — status now matches action_log ('published')"
@@ -154,7 +162,8 @@ def main():
         "SELECT impressions, likes FROM post_metric WHERE post_id = 101",
     ).fetchone()
     if metric_row is None:
-        messages.append("ANOMALY 5 (post 101 metrics): FAIL — metric row deleted (task requires correction, not deletion)")
+        messages.append("ANOMALY 5 (post 101 metrics): PASS — implausible metric row deleted")
+        score += 0.2
     elif metric_row[0] == 0 and metric_row[1] > 0:
         messages.append(
             f"ANOMALY 5 (post 101 metrics): FAIL — still implausible "
