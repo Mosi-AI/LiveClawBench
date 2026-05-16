@@ -520,12 +520,15 @@ export function cancelAppointment(
     if (!appointment) return null;
 
     const slotId = Number(appointment.slot_id);
+    const wasConfirmed = String(appointment.status) === "confirmed";
 
     db.query(
       "UPDATE appointment SET status = 'cancelled', updated_at = datetime('now') WHERE id = ?",
     ).run(id);
 
-    db.query("UPDATE appointment_slot SET is_available = 1 WHERE id = ?").run(slotId);
+    if (wasConfirmed) {
+      db.query("UPDATE appointment_slot SET is_available = 1 WHERE id = ?").run(slotId);
+    }
 
     return db
       .query<Record<string, unknown>, [number]>(

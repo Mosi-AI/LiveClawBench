@@ -183,8 +183,14 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
       body = await c.req.parseBody();
     } catch {
       const event = getEvent(db, userId, id);
+      if (!event) {
+        const events = listEvents(db, userId);
+        return c.html(
+          <CalendarPage user={user} events={events} error="Event not found" />,
+        );
+      }
       return c.html(
-        <EditEventPage user={user} event={event!} error="Invalid form submission" />,
+        <EditEventPage user={user} event={event} error="Invalid form submission" />,
         400,
       );
     }
@@ -195,8 +201,14 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
 
     if (!title || !startTime || !endTime) {
       const event = getEvent(db, userId, id);
+      if (!event) {
+        const events = listEvents(db, userId);
+        return c.html(
+          <CalendarPage user={user} events={events} error="Event not found" />,
+        );
+      }
       return c.html(
-        <EditEventPage user={user} event={event!} error="All fields are required" />,
+        <EditEventPage user={user} event={event} error="All fields are required" />,
       );
     }
 
@@ -217,19 +229,22 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
     const result = updateEvent(db, userId, id, updateData);
     if (!result.ok) {
       const event = getEvent(db, userId, id);
+      if (!event) {
+        const events = listEvents(db, userId);
+        return c.html(
+          <CalendarPage user={user} events={events} error="Event not found" />,
+        );
+      }
       const errorMessages: Record<string, string> = {
         not_found: "Event not found",
         invalid_time_range: "End time must be after start time",
         time_overlap: "Time overlaps with another event",
       };
-      // Validation failures from UpdateEventBodySchema arrive as
-      // "invalid_request: <issues>" — surface a concise UI message and
-      // refuse to write (no database mutation occurred).
       const display = result.error.startsWith("invalid_request:")
         ? "Invalid field value (event_type or date format)"
         : (errorMessages[result.error] ?? result.error);
       return c.html(
-        <EditEventPage user={user} event={event!} error={display} />,
+        <EditEventPage user={user} event={event} error={display} />,
       );
     }
 
