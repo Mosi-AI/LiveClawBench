@@ -10,6 +10,6 @@ Please help me update the pinned post on our company's social media account. Her
 
 5. **Pin the post about the "10K followers giveaway"** instead.
 
-6. **Confirm the change** — make sure the verification code from the calendar is mentioned in any confirmation or note you leave.
+6. **Send a confirmation email** — from Peter's email account at http://localhost:5001/, send an email to `social-team@mosi.inc` confirming the pinned post change. The email body MUST contain the verification code `SM-Q2-7842` from the calendar event and mention which post is now pinned (the 10K followers giveaway) and which was unpinned (the launch announcement). The email must actually be sent (saved to Peter's sent folder) — drafts do not count.
 
-Let me know once the pinned post has been updated.
+Let me know once the pinned post has been updated and the confirmation email has been sent.

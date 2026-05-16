@@ -21,7 +21,7 @@ function seedTaskData(db: Database, userId: number, taskName: string): void {
           "2026-06-15 09:00:00",
           "2026-06-15 10:00:00",
           "social-campaign",
-          "cross-publish-format",
+          "POST_FORMAT: include event date June 15, 2026 and CTA: Register now at https://summit.mosi.inc",
         ],
       );
       db.run(

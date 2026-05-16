@@ -2,17 +2,20 @@
 """
 Verifier for social-cross-publish task (case_id=44).
 
-The agent must read an email with promotional content, check the calendar for
-context, then create and publish a social media post.
+The agent must read email, check calendar for event date, then publish a post.
 
-Scoring:
+Scoring (5 dimensions, 0.2 each):
   - 0.2 for published post with correct topic ("Summer Tech Summit")
   - 0.2 for correct author (mosi_brand)
-  - 0.3 for including email-specific content (early bird, June 30, save 30%, 50+ speaker)
-  - 0.3 for including email-specified hashtags (#TechSummit2026 #SummerSummit #TechConference)
+  - 0.2 for email-specific content (early bird, June 30, save 30%, 50+ speaker)
+  - 0.2 for email-specified hashtags (#TechSummit2026 #SummerSummit #TechConference)
+  - 0.2 for calendar-derived content (event date "June 15")
 
-On untouched seed: no new posts exist → score 0.0
-Without reading email: topic match possible but email-specific content missing → max 0.4
+Gate: if calendar dimension is 0, total score is capped at 0.4 (below pass threshold).
+
+On untouched seed: no new posts → 0.0
+Email-only (no calendar): max 0.8 but gated to 0.4 → fails
+Full solution: 1.0
 """
 
 import json
@@ -28,6 +31,8 @@ LAYER0_POST_IDS = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
 EMAIL_PHRASES = ["early bird", "june 30", "save 30", "50+ speaker"]
 EMAIL_HASHTAGS = ["#techsummit2026", "#summersummit", "#techconference"]
+
+CALENDAR_DATE_PHRASES = ["june 15", "jun 15", "6/15", "06/15"]
 
 
 def api(path, method="GET", data=None, cookie=None):
@@ -114,7 +119,6 @@ def main():
 
         messages.append(f"Found {len(new_posts)} new post(s)")
 
-        # Find best matching post
         target_post = None
         for p in new_posts:
             content = p.get("content", "").lower()
@@ -158,22 +162,19 @@ def main():
                 f"FAIL: post authored by '{author_username}' (id={author_id})"
             )
 
-        # Dimension 3: Email-specific content (0.3)
+        # Dimension 3: Email-specific content (0.2)
         dim3_score = 0.0
         content_lower = target_post.get("content", "").lower()
         found_phrases = [p for p in EMAIL_PHRASES if p in content_lower]
         if len(found_phrases) >= 1:
-            dim3_score = 0.3
-            messages.append(
-                f"PASS: email-specific content found: {found_phrases}"
-            )
+            dim3_score = 0.2
+            messages.append(f"PASS: email-specific content found: {found_phrases}")
         else:
             messages.append(
-                "FAIL: no email-specific content found "
-                f"(expected phrases like: {EMAIL_PHRASES})"
+                f"FAIL: no email-specific content (expected: {EMAIL_PHRASES})"
             )
 
-        # Dimension 4: Email-specified hashtags (0.3)
+        # Dimension 4: Email-specified hashtags (0.2)
         dim4_score = 0.0
         tags = target_post.get("tags", [])
         tag_labels = [t.get("label_text", "") if isinstance(t, dict) else str(t) for t in tags]
@@ -181,18 +182,36 @@ def main():
 
         found_hashtags = [h for h in EMAIL_HASHTAGS if h in combined]
         if len(found_hashtags) >= 2:
-            dim4_score = 0.3
+            dim4_score = 0.2
             messages.append(f"PASS: email hashtags found: {found_hashtags}")
         elif len(found_hashtags) == 1:
-            dim4_score = 0.15
+            dim4_score = 0.1
             messages.append(f"PARTIAL: one email hashtag found: {found_hashtags}")
         else:
+            messages.append(f"FAIL: no email hashtags (expected: {EMAIL_HASHTAGS})")
+
+        # Dimension 5: Calendar-derived event date (0.2)
+        dim5_score = 0.0
+        found_date = [d for d in CALENDAR_DATE_PHRASES if d in content_lower]
+        if found_date:
+            dim5_score = 0.2
             messages.append(
-                "FAIL: no email-specified hashtags "
-                f"(expected: {EMAIL_HASHTAGS})"
+                f"PASS: calendar-derived event date found: {found_date}"
+            )
+        else:
+            messages.append(
+                "FAIL: no calendar-derived event date "
+                f"(expected: {CALENDAR_DATE_PHRASES})"
             )
 
-        score = dim1_score + dim2_score + dim3_score + dim4_score
+        score = dim1_score + dim2_score + dim3_score + dim4_score + dim5_score
+
+        # Gate: without calendar-derived content, cap below pass threshold
+        if dim5_score == 0:
+            score = min(score, 0.4)
+            messages.append(
+                "GATE: calendar dimension missing — score capped at 0.4"
+            )
 
     except Exception as e:
         messages.append(f"ERROR: {str(e)}")

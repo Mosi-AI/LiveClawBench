@@ -6,15 +6,19 @@ The agent must:
   1. Read email with pinned post update instructions
   2. Find verification code SM-Q2-7842 from calendar event
   3. Unpin post 1, pin post 9
-  4. Confirm the change with the verification code
+  4. Send a confirmation email to social-team@mosi.inc with the verification code
 
 Scoring:
   - 0.2 for post_id=1 unpinned
   - 0.2 for post_id=9 pinned
-  - 0.6 for sent email containing verification code "SM-Q2-7842"
+  - 0.6 for sent email to social-team@mosi.inc containing verification code SM-Q2-7842
+    (binary: requires folder='sent' AND recipient_email='social-team@mosi.inc'
+     AND subject_or_body contains 'SM-Q2-7842'; otherwise 0.0)
 
-On untouched seed: 0.0 (post 1 still pinned, post 9 not pinned, no sent email)
-After pin swap only: 0.4 (fails — must send confirmation email)
+On untouched seed: 0.0
+After pin swap only: 0.4 (fails — must also send confirmation email)
+After pin swap + email to wrong recipient: 0.4 (fails — recipient must match)
+After pin swap + email to correct recipient without code: 0.4 (fails — code required)
 After full solution: 1.0
 """
 
@@ -30,6 +34,7 @@ USERNAME = "mosi_brand"
 PASSWORD = "demo123"
 
 VERIFICATION_CODE = "SM-Q2-7842"
+CONFIRMATION_RECIPIENT = "social-team@mosi.inc"
 
 
 def api(path, method="GET", data=None, cookie=None):
@@ -110,32 +115,45 @@ def main():
         else:
             messages.append("FAIL: post_id=9 not pinned or not found")
 
-        # Dimension 3: Confirmation email with verification code (0.6)
+        # Dimension 3: Confirmation email sent to social-team@mosi.inc with code (0.6)
         dim3_score = 0.0
         try:
             email_db = sqlite3.connect(EMAIL_DB)
-            row = email_db.execute(
-                "SELECT id, subject, body FROM emails WHERE folder = 'sent' "
-                "ORDER BY created_at DESC LIMIT 50"
+            rows = email_db.execute(
+                "SELECT id, subject, body, recipient_email FROM emails "
+                "WHERE folder = 'sent' AND lower(recipient_email) = lower(?) "
+                "ORDER BY created_at DESC LIMIT 50",
+                (CONFIRMATION_RECIPIENT,),
             ).fetchall()
             email_db.close()
 
-            found_email = None
-            for r in row:
-                if VERIFICATION_CODE in (r[1] or "") or VERIFICATION_CODE in (r[2] or ""):
-                    found_email = r
-                    break
-
-            if found_email:
-                dim3_score = 0.6
+            if not rows:
                 messages.append(
-                    f"PASS: sent email found with verification code '{VERIFICATION_CODE}' "
-                    f"(email_id={found_email[0]})"
+                    f"FAIL: no sent email to recipient '{CONFIRMATION_RECIPIENT}' "
+                    "(folder='sent' required)"
                 )
             else:
-                messages.append(
-                    f"FAIL: no sent email containing verification code '{VERIFICATION_CODE}'"
-                )
+                found_email = None
+                for r in rows:
+                    subject = r[1] or ""
+                    body = r[2] or ""
+                    if VERIFICATION_CODE in subject or VERIFICATION_CODE in body:
+                        found_email = r
+                        break
+
+                if found_email:
+                    dim3_score = 0.6
+                    messages.append(
+                        f"PASS: sent email to '{CONFIRMATION_RECIPIENT}' contains "
+                        f"verification code '{VERIFICATION_CODE}' "
+                        f"(email_id={found_email[0]})"
+                    )
+                else:
+                    messages.append(
+                        f"FAIL: sent email(s) to '{CONFIRMATION_RECIPIENT}' found but "
+                        f"none contain verification code '{VERIFICATION_CODE}' "
+                        f"(checked {len(rows)} message(s))"
+                    )
         except Exception as e:
             messages.append(f"FAIL: cannot check email DB: {e}")
 

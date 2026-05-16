@@ -140,15 +140,40 @@ echo "3. Unpinned post_id=1 (launch announcement)"
 echo "4. Pinned post_id=9 (10K followers giveaway)"
 
 # ============================================================================
-# Part 4: Email — send confirmation with verification code
+# Part 4: Email — send confirmation to social-team@mosi.inc with verification code
 # ============================================================================
 
-echo "[Email] Sending confirmation email..."
-CONFIRM_BODY="The pinned post has been updated successfully. The previous pinned post (Welcome to Mosi Social!) has been unpinned and the 10K followers giveaway post is now pinned. Verification code: ${VERIFICATION_CODE}"
+echo "[Email] Sending confirmation email to social-team@mosi.inc..."
+CONFIRM_BODY="Pinned post update completed. The launch announcement post has been unpinned and the 10K followers giveaway post is now pinned. Verification code: ${VERIFICATION_CODE}"
 
-SEND_RESPONSE=$(curl -s -X POST "${EMAIL_API}/api/emails" \
+SEND_RESPONSE=$(curl -s -w "\n__HTTP_STATUS__:%{http_code}" -X POST "${EMAIL_API}/api/emails" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ${EMAIL_TOKEN}" \
-  -d "{\"recipient_email\":\"social.team@mosi.inc\",\"subject\":\"Pinned Post Update Confirmed\",\"body\":\"${CONFIRM_BODY}\",\"send_now\":true}")
+  -d "{\"recipient\":\"social-team@mosi.inc\",\"subject\":\"Pinned Post Update Confirmed (${VERIFICATION_CODE})\",\"body\":\"${CONFIRM_BODY}\",\"send_now\":true}")
 
-echo "[Email] Confirmation sent: ${SEND_RESPONSE}"
+SEND_STATUS=$(echo "${SEND_RESPONSE}" | grep -o '__HTTP_STATUS__:[0-9]*' | cut -d: -f2)
+SEND_BODY=$(echo "${SEND_RESPONSE}" | sed 's/__HTTP_STATUS__:[0-9]*//')
+
+echo "[Email] Confirmation send HTTP status: ${SEND_STATUS}"
+echo "[Email] Confirmation send response: ${SEND_BODY}"
+
+if [ "${SEND_STATUS}" != "200" ] && [ "${SEND_STATUS}" != "201" ]; then
+  echo "FAIL: Confirmation email send failed (status=${SEND_STATUS})"
+  exit 1
+fi
+
+SEND_SUCCESS=$(echo "${SEND_BODY}" | python3 -c "
+import sys, json
+try:
+    r = json.loads(sys.stdin.read() or '{}')
+    print('1' if r.get('success') else '0')
+except Exception:
+    print('0')
+")
+
+if [ "${SEND_SUCCESS}" != "1" ]; then
+  echo "FAIL: Confirmation email send returned non-success body"
+  exit 1
+fi
+
+echo "[Email] Confirmation email sent successfully"
