@@ -235,6 +235,48 @@
         { "src": "tasks/expense-draft-delete/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
       ]
     },
-    "health-daily-record": { "binaries": ["health"] }
+    "health-daily-record": { "binaries": ["health"] },
+    "social-schedule-audit": {
+      "binaries": ["social"],
+      "assets": [
+        { "src": "tasks/social-schedule-audit/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+      ]
+    },
+    "social-keyword-cleanup": {
+      "binaries": ["social", "email"],
+      "assets": [
+        { "src": "tasks/social-keyword-cleanup/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+      ]
+    },
+    "social-event-campaign": {
+      "binaries": ["social", "email"],
+      "assets": [
+        { "src": "tasks/social-event-campaign/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+      ]
+    },
+    "social-data-anomaly-report": {
+      "binaries": ["social", "email"],
+      "assets": [
+        { "src": "tasks/social-data-anomaly-report/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+      ]
+    },
+    "social-comment-moderation": {
+      "binaries": ["social", "email"],
+      "assets": [
+        { "src": "tasks/social-comment-moderation/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+      ]
+    },
+    "social-cross-publish": {
+      "binaries": ["social", "email", "calendar"],
+      "assets": [
+        { "src": "tasks/social-cross-publish/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+      ]
+    },
+    "social-pinned-post-update": {
+      "binaries": ["social", "email", "calendar"],
+      "assets": [
+        { "src": "tasks/social-pinned-post-update/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+      ]
+    }
   }
 }

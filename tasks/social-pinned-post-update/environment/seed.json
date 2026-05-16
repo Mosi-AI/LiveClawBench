@@ -1,0 +1,26 @@
+{
+  "posts": [
+    {
+      "id": 101,
+      "author_username": "mosi_brand",
+      "content": "Important company announcement: We are expanding to European markets! Stay tuned for more details. #Expansion #MosiEU",
+      "status": "published",
+      "published_at": "2026-03-05 08:00:00"
+    }
+  ],
+  "accounts": [],
+  "tags": [],
+  "post_tags": [],
+  "comments": [],
+  "follow_relations": [],
+  "keyword_rules": [],
+  "post_metrics": [
+    {"post_id": 101, "impressions": 8500, "likes": 420, "replies": 18, "reposts": 95, "clicks": 200, "profile_visits": 180, "new_followers": 22}
+  ],
+  "event_campaigns": [],
+  "action_logs": [
+    {"post_id": 101, "actor_username": "mosi_brand", "action_type": "published", "new_value": "published", "created_at": "2026-03-05 08:00:00"}
+  ],
+  "post_likes": [],
+  "post_reposts": []
+}

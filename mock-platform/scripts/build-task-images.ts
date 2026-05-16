@@ -91,6 +91,9 @@ const ALL_TASK_NAMES = new Set([
   "mint-diet-snack-log", "weather-aqi-report",
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
   "health-daily-record",
+  "social-schedule-audit", "social-keyword-cleanup", "social-event-campaign",
+  "social-data-anomaly-report", "social-comment-moderation",
+  "social-cross-publish", "social-pinned-post-update",
 ]);
 
 interface AssetMapping {
@@ -421,6 +424,11 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/expense-backend.log 2>&1 &`);
         lines.push(`echo "Expense frontend served by Bun on port ${port}" > /tmp/expense-frontend.log`);
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/expense-npm-install.log`);
+      } else if (bin === "social") {
+        lines.push(`export MOCK_DATA_DIR=/opt/mock/data`);
+        lines.push(`mkdir -p /opt/mock/data/social`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/social-backend.log 2>&1 &`);
+        lines.push(`echo "Social frontend served by Bun on port ${port}" > /tmp/social-frontend.log`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }

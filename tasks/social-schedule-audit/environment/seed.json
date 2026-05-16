@@ -1,0 +1,79 @@
+{
+  "accounts": [],
+  "posts": [
+    {
+      "id": 101,
+      "author_username": "mosi_brand",
+      "content": "Our new partnership announcement is live! Check out what we have planned for Q3. #Partnership #Q3Launch",
+      "status": "published",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 102,
+      "author_username": "mosi_brand",
+      "content": "Happy New Year 2026 from all of us at Mosi! Wishing you an amazing year ahead. #NewYear #2026",
+      "status": "scheduled",
+      "visibility": "public",
+      "scheduled_for": "2026-01-01 08:00:00",
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 103,
+      "author_username": "mosi_brand",
+      "content": "Behind the scenes at the Mosi product photoshoot! Sneak peek coming soon. #BTS #ProductLaunch",
+      "status": "published",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": "2026-03-15 10:00:00",
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 104,
+      "author_username": "mosi_brand",
+      "content": "Exciting update: Mosi v2.0 is now available with enhanced analytics and scheduling tools! #MosiV2",
+      "status": "draft",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
+    }
+  ],
+  "tags": [],
+  "post_tags": [],
+  "comments": [],
+  "follow_relations": [],
+  "keyword_rules": [],
+  "post_metrics": [
+    {
+      "post_id": 101,
+      "impressions": 0,
+      "likes": 50000,
+      "replies": 3,
+      "reposts": 1,
+      "clicks": 5,
+      "profile_visits": 2,
+      "new_followers": 0
+    }
+  ],
+  "event_campaigns": [],
+  "action_logs": [
+    {
+      "post_id": 104,
+      "actor_username": "mosi_brand",
+      "action_type": "published",
+      "old_value": "draft",
+      "new_value": "published",
+      "created_at": "2026-04-20 09:30:00"
+    }
+  ],
+  "post_likes": [],
+  "post_reposts": []
+}
