@@ -69,3 +69,6 @@ tasks/**/todolist-app/frontend/dist/
 
 # Mock platform runtime data
 mock-platform/data/
+
+# Unfinished  tasks (local work in progress, not tracked)
+tasks/morning-comfort-setup
