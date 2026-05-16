@@ -351,6 +351,12 @@ function loadLayer1Seed(database: Database): void {
     return row ? row.id : null;
   };
 
+  const requireAccount = (username: string, context: string): number => {
+    const id = resolveAccount(username);
+    if (id === null) throw new Error(`[social] Seed ${context}: account "${username}" not found`);
+    return id;
+  };
+
   if (seed.accounts) {
     for (const a of seed.accounts) {
       if (resolveAccount(a.username)) continue;
@@ -410,7 +416,7 @@ function loadLayer1Seed(database: Database): void {
         if (existing) continue;
       }
 
-      const authorId = c.author_username ? resolveAccount(c.author_username) : null;
+      const authorId = c.author_username ? requireAccount(c.author_username, "comment author") : null;
       const cols = c.id ? "id, " : "";
       const placeholders = c.id ? "?, " : "";
       const params = c.id ? [c.id] : [];
@@ -424,9 +430,8 @@ function loadLayer1Seed(database: Database): void {
 
   if (seed.follow_relations) {
     for (const f of seed.follow_relations) {
-      const followerId = resolveAccount(f.follower_username);
-      const targetId = resolveAccount(f.target_username);
-      if (!followerId || !targetId) continue;
+      const followerId = requireAccount(f.follower_username, "follow_relation follower");
+      const targetId = requireAccount(f.target_username, "follow_relation target");
 
       const existing = database.query("SELECT 1 FROM follow_relation WHERE follower_account_id = ? AND target_account_id = ?").get(followerId, targetId);
       if (existing) continue;
@@ -436,8 +441,7 @@ function loadLayer1Seed(database: Database): void {
 
   if (seed.keyword_rules) {
     for (const r of seed.keyword_rules) {
-      const ownerId = resolveAccount(r.owner_username);
-      if (!ownerId) continue;
+      const ownerId = requireAccount(r.owner_username, "keyword_rule owner");
 
       const existing = database.query("SELECT 1 FROM keyword_rule WHERE owner_account_id = ? AND phrase = ? AND scope = ?").get(ownerId, r.phrase, r.scope || "post");
       if (existing) continue;
@@ -472,7 +476,7 @@ function loadLayer1Seed(database: Database): void {
 
   if (seed.action_logs) {
     for (const al of seed.action_logs) {
-      const actorId = al.actor_username ? resolveAccount(al.actor_username) : null;
+      const actorId = al.actor_username ? requireAccount(al.actor_username, "action_log actor") : null;
       database.prepare(
         `INSERT INTO post_action_log (post_id, actor_account_id, action_type, old_value, new_value, note, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`
@@ -482,8 +486,7 @@ function loadLayer1Seed(database: Database): void {
 
   if (seed.post_likes) {
     for (const pl of seed.post_likes) {
-      const accountId = resolveAccount(pl.username);
-      if (!accountId) continue;
+      const accountId = requireAccount(pl.username, "post_like account");
       const existing = database.query("SELECT 1 FROM post_like WHERE post_id = ? AND account_id = ?").get(pl.post_id, accountId);
       if (existing) continue;
       database.prepare("INSERT INTO post_like (post_id, account_id) VALUES (?, ?)").run(pl.post_id, accountId);
@@ -492,8 +495,7 @@ function loadLayer1Seed(database: Database): void {
 
   if (seed.post_reposts) {
     for (const pr of seed.post_reposts) {
-      const accountId = resolveAccount(pr.username);
-      if (!accountId) continue;
+      const accountId = requireAccount(pr.username, "post_repost account");
       const existing = database.query("SELECT 1 FROM post_repost WHERE post_id = ? AND account_id = ?").get(pr.post_id, accountId);
       if (existing) continue;
       database.prepare("INSERT INTO post_repost (post_id, account_id) VALUES (?, ?)").run(pr.post_id, accountId);

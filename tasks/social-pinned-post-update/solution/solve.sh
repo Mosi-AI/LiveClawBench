@@ -138,3 +138,17 @@ echo "1. Read email with pinned post update instructions"
 echo "2. Retrieved verification code from calendar: ${VERIFICATION_CODE}"
 echo "3. Unpinned post_id=1 (launch announcement)"
 echo "4. Pinned post_id=9 (10K followers giveaway)"
+
+# ============================================================================
+# Part 4: Email — send confirmation with verification code
+# ============================================================================
+
+echo "[Email] Sending confirmation email..."
+CONFIRM_BODY="The pinned post has been updated successfully. The previous pinned post (Welcome to Mosi Social!) has been unpinned and the 10K followers giveaway post is now pinned. Verification code: ${VERIFICATION_CODE}"
+
+SEND_RESPONSE=$(curl -s -X POST "${EMAIL_API}/api/emails" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${EMAIL_TOKEN}" \
+  -d "{\"recipient_email\":\"social.team@mosi.inc\",\"subject\":\"Pinned Post Update Confirmed\",\"body\":\"${CONFIRM_BODY}\",\"send_now\":true}")
+
+echo "[Email] Confirmation sent: ${SEND_RESPONSE}"

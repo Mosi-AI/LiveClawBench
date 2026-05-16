@@ -17,9 +17,10 @@ Seed state (all posts below belong to mosi_brand, author_id=1):
 Other published posts from Layer 0 (1, 2, 4) do not contain the keywords and must survive.
 
 Scoring:
-  - Dimension 1 (0.5): All keyword-matching posts deleted (no published post by mosi_brand
-    contains "giveaway" or "milestone")
-  - Dimension 2 (0.5): Non-matching post 103 still published
+  - Dimension 1 (0.6): Deletions — 0.2 per target post deleted (posts 9, 101, 102)
+  - Dimension 2 (0.4): Preservation — post 103 still published (only awarded if dim1 > 0)
+
+On untouched seed: dim1 = 0.0 (no deletions), dim2 blocked → total 0.0
 """
 
 import json
@@ -35,6 +36,7 @@ SOCIAL_PASSWORD = "demo123"
 KEYWORDS = ["giveaway", "milestone"]
 
 MOSI_BRAND_ACCOUNT_ID = 1
+SHOULD_DELETE = {9, 101, 102}
 SHOULD_SURVIVE = {103}
 
 
@@ -44,7 +46,6 @@ def api_call(
     data: dict | None = None,
     token: str | None = None,
 ) -> dict:
-    """Make an API call and return parsed JSON response."""
     url = f"{SOCIAL_URL}{path}"
     headers = {"Content-Type": "application/json"}
     if token:
@@ -62,7 +63,6 @@ def api_call(
 
 
 def content_matches_keywords(content: str) -> bool:
-    """Check if content contains any of the target keywords (case-insensitive)."""
     lower = content.lower()
     return any(kw in lower for kw in KEYWORDS)
 
@@ -72,7 +72,6 @@ def main() -> tuple[float, dict]:
     details: dict = {"dimension_scores": {}, "messages": []}
 
     try:
-        # Step 1: Login as mosi_brand
         login_resp = api_call(
             "POST",
             "/api/auth/login",
@@ -83,7 +82,6 @@ def main() -> tuple[float, dict]:
             raise Exception(f"No session_token in login response: {login_resp}")
         details["messages"].append(f"Logged in as {SOCIAL_USERNAME}")
 
-        # Step 2: Get published posts by mosi_brand
         posts_resp = api_call(
             "GET",
             f"/api/posts?author_id={MOSI_BRAND_ACCOUNT_ID}&limit=100",
@@ -96,40 +94,42 @@ def main() -> tuple[float, dict]:
             f"Published posts by mosi_brand: {sorted(published_ids)}"
         )
 
-        # Dimension 1: No published post by mosi_brand contains target keywords (0.5 pts)
-        dim1_score = 0.0
-        keyword_violations = []
-        for p in published_posts:
-            if content_matches_keywords(p["content"]):
-                keyword_violations.append(
-                    {"id": p["id"], "snippet": p["content"][:80]}
-                )
+        # Dimension 1: Target posts deleted (0.6 pts — 0.2 per post)
+        still_present = SHOULD_DELETE & published_ids
+        deleted_count = len(SHOULD_DELETE) - len(still_present)
+        dim1_score = deleted_count * 0.2
 
-        if len(keyword_violations) == 0:
-            dim1_score = 0.5
+        if deleted_count == len(SHOULD_DELETE):
             details["messages"].append(
-                "PASS: No published posts contain target keywords"
+                "PASS: All keyword-matching posts deleted"
+            )
+        elif deleted_count > 0:
+            details["messages"].append(
+                f"PARTIAL: {deleted_count}/{len(SHOULD_DELETE)} target posts deleted, "
+                f"still present: {sorted(still_present)}"
             )
         else:
             details["messages"].append(
-                f"FAIL: {len(keyword_violations)} published post(s) still contain "
-                f"target keywords: {keyword_violations}"
+                f"FAIL: No target posts deleted, still present: {sorted(still_present)}"
             )
 
-        # Dimension 2: Non-matching post 103 must still be published (0.5 pts)
+        # Dimension 2: Non-matching post 103 preserved (0.4 pts, only if dim1 > 0)
         dim2_score = 0.0
-        surviving = SHOULD_SURVIVE & published_ids
-        missing = SHOULD_SURVIVE - published_ids
-
-        if surviving == SHOULD_SURVIVE:
-            dim2_score = 0.5
-            details["messages"].append(
-                f"PASS: Non-matching posts preserved: {sorted(surviving)}"
-            )
+        if dim1_score > 0:
+            surviving = SHOULD_SURVIVE & published_ids
+            missing = SHOULD_SURVIVE - published_ids
+            if surviving == SHOULD_SURVIVE:
+                dim2_score = 0.4
+                details["messages"].append(
+                    f"PASS: Non-matching posts preserved: {sorted(surviving)}"
+                )
+            else:
+                details["messages"].append(
+                    f"FAIL: Non-matching posts incorrectly deleted: {sorted(missing)}"
+                )
         else:
             details["messages"].append(
-                f"FAIL: Non-matching posts incorrectly deleted or missing: "
-                f"{sorted(missing)}"
+                "SKIP: Preservation check blocked — no deletions performed"
             )
 
         score = dim1_score + dim2_score

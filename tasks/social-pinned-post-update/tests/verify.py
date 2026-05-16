@@ -1,34 +1,39 @@
 #!/usr/bin/env python3
 """
-Verifier for social-pinned-post-update task.
-Scores: (1) post_id=1 is_pinned=0 -> 0.5, (2) post_id=9 is_pinned=1 -> 0.5
+Verifier for social-pinned-post-update task (case_id=45).
 
-Layer 0 seeded state:
-- post_id=1 (mosi_brand, "Welcome to Mosi Social! ... #MosiLaunch"): is_pinned=1
-- post_id=9 (mosi_brand, "Thank you all for 10K followers! ... #Giveaway #Milestone"): is_pinned=0
+The agent must:
+  1. Read email with pinned post update instructions
+  2. Find verification code SM-Q2-7842 from calendar event
+  3. Unpin post 1, pin post 9
+  4. Confirm the change with the verification code
 
-Layer 1 seed adds post_id=101 as a distractor (A2 factor).
+Scoring:
+  - 0.2 for post_id=1 unpinned
+  - 0.2 for post_id=9 pinned
+  - 0.6 for sent email containing verification code "SM-Q2-7842"
 
-After agent action:
-- post_id=1 should have is_pinned=0 (unpinned)
-- post_id=9 should have is_pinned=1 (new pinned post)
+On untouched seed: 0.0 (post 1 still pinned, post 9 not pinned, no sent email)
+After pin swap only: 0.4 (fails — must send confirmation email)
+After full solution: 1.0
 """
 
 import json
+import sqlite3
 import sys
 import urllib.error
 import urllib.request
 
-BASE_URL = "http://127.0.0.1:5004"
+SOCIAL_URL = "http://127.0.0.1:5004"
+EMAIL_DB = "/var/lib/mock-data/email/email.db"
 USERNAME = "mosi_brand"
 PASSWORD = "demo123"
 
-OLD_PINNED_POST_ID = 1
-NEW_PINNED_POST_ID = 9
+VERIFICATION_CODE = "SM-Q2-7842"
 
 
 def api(path, method="GET", data=None, cookie=None):
-    url = f"{BASE_URL}{path}"
+    url = f"{SOCIAL_URL}{path}"
     headers = {"Content-Type": "application/json"}
     if cookie:
         headers["Cookie"] = cookie
@@ -51,7 +56,6 @@ def main():
     messages = []
 
     try:
-        # Step 1: Login as mosi_brand
         status, body = api(
             "/api/auth/login", "POST", {"username": USERNAME, "password": PASSWORD}
         )
@@ -72,7 +76,6 @@ def main():
 
         messages.append(f"Logged in as {USERNAME}")
 
-        # Step 2: Get post-agent state
         status, body = api("/api/posts", cookie=cookie)
         if status != 200:
             messages.append(f"FAIL: feed retrieval returned {status}")
@@ -83,58 +86,67 @@ def main():
 
         posts = body if isinstance(body, list) else body.get("posts", [])
 
-        # Find the two target posts
         old_post = None
         new_post = None
         for p in posts:
-            if p.get("id") == OLD_PINNED_POST_ID:
+            if p.get("id") == 1:
                 old_post = p
-            elif p.get("id") == NEW_PINNED_POST_ID:
+            elif p.get("id") == 9:
                 new_post = p
 
-        # Dimension 1: old pinned post (post_id=1) should be unpinned
+        # Dimension 1: post_id=1 unpinned (0.2)
         dim1_score = 0.0
-        if old_post is None:
-            messages.append(
-                f"FAIL: old pinned post {OLD_PINNED_POST_ID} not found in feed"
-            )
+        if old_post and old_post.get("is_pinned", 0) == 0:
+            dim1_score = 0.2
+            messages.append("PASS: post_id=1 unpinned")
         else:
-            old_pinned = old_post.get("is_pinned", 0)
-            messages.append(
-                f"Post-agent state: id={OLD_PINNED_POST_ID}, is_pinned={old_pinned}"
-            )
-            if old_pinned == 0:
-                dim1_score = 0.5
-                messages.append("PASS: post_id=1 unpinned (is_pinned=0)")
-            else:
-                messages.append("FAIL: post_id=1 still pinned (is_pinned=1)")
+            messages.append("FAIL: post_id=1 still pinned or not found")
 
-        # Dimension 2: new pinned post (post_id=9) should be pinned
+        # Dimension 2: post_id=9 pinned (0.2)
         dim2_score = 0.0
-        if new_post is None:
-            messages.append(
-                f"FAIL: target post {NEW_PINNED_POST_ID} not found in feed"
-            )
+        if new_post and new_post.get("is_pinned", 0) == 1:
+            dim2_score = 0.2
+            messages.append("PASS: post_id=9 pinned")
         else:
-            new_pinned = new_post.get("is_pinned", 0)
-            messages.append(
-                f"Post-agent state: id={NEW_PINNED_POST_ID}, is_pinned={new_pinned}"
-            )
-            if new_pinned == 1:
-                dim2_score = 0.5
-                messages.append("PASS: post_id=9 pinned (is_pinned=1)")
-            else:
-                messages.append("FAIL: post_id=9 not pinned (is_pinned=0)")
+            messages.append("FAIL: post_id=9 not pinned or not found")
 
-        score = dim1_score + dim2_score
+        # Dimension 3: Confirmation email with verification code (0.6)
+        dim3_score = 0.0
+        try:
+            email_db = sqlite3.connect(EMAIL_DB)
+            row = email_db.execute(
+                "SELECT id, subject, body FROM emails WHERE folder = 'sent' "
+                "ORDER BY created_at DESC LIMIT 50"
+            ).fetchall()
+            email_db.close()
+
+            found_email = None
+            for r in row:
+                if VERIFICATION_CODE in (r[1] or "") or VERIFICATION_CODE in (r[2] or ""):
+                    found_email = r
+                    break
+
+            if found_email:
+                dim3_score = 0.6
+                messages.append(
+                    f"PASS: sent email found with verification code '{VERIFICATION_CODE}' "
+                    f"(email_id={found_email[0]})"
+                )
+            else:
+                messages.append(
+                    f"FAIL: no sent email containing verification code '{VERIFICATION_CODE}'"
+                )
+        except Exception as e:
+            messages.append(f"FAIL: cannot check email DB: {e}")
+
+        score = dim1_score + dim2_score + dim3_score
 
     except Exception as e:
         messages.append(f"ERROR: {str(e)}")
         import traceback
-
         messages.append(traceback.format_exc())
 
-    print(f"Score: {score}/1.0")
+    print(f"Score: {score:.1f}/1.0")
     for msg in messages:
         print(f"  {msg}")
 

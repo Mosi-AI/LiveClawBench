@@ -5,20 +5,14 @@ Verifier for social-cross-publish task (case_id=44).
 The agent must read an email with promotional content, check the calendar for
 context, then create and publish a social media post.
 
-Layer 0 seeded state (from db.ts seedData):
-  - mosi_brand account (id=1, password: demo123)
-  - 10 posts with ids 1-10 (none about "Summer Tech Summit")
-
-Expected agent actions:
-  1. Read email about "Cross-Publish Content to Social Media"
-  2. Check calendar for format hints
-  3. Login to social media as mosi_brand
-  4. Create and publish a new post about "Summer Tech Summit 2026"
-
 Scoring:
-  - 0.4 for published post with correct topic ("Summer Tech Summit" or "Tech Summit 2026")
-  - 0.3 for including relevant hashtags (#TechSummit2026)
-  - 0.3 for correct author (mosi_brand)
+  - 0.2 for published post with correct topic ("Summer Tech Summit")
+  - 0.2 for correct author (mosi_brand)
+  - 0.3 for including email-specific content (early bird, June 30, save 30%, 50+ speaker)
+  - 0.3 for including email-specified hashtags (#TechSummit2026 #SummerSummit #TechConference)
+
+On untouched seed: no new posts exist → score 0.0
+Without reading email: topic match possible but email-specific content missing → max 0.4
 """
 
 import json
@@ -26,13 +20,14 @@ import sys
 import urllib.error
 import urllib.request
 
-SCORE = 0.0
 BASE_URL = "http://127.0.0.1:5004"
 USERNAME = "mosi_brand"
 PASSWORD = "demo123"
 
-# Layer 0 post IDs (from db.ts seedData)
 LAYER0_POST_IDS = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+EMAIL_PHRASES = ["early bird", "june 30", "save 30", "50+ speaker"]
+EMAIL_HASHTAGS = ["#techsummit2026", "#summersummit", "#techconference"]
 
 
 def api(path, method="GET", data=None, cookie=None):
@@ -59,7 +54,6 @@ def main():
     messages = []
 
     try:
-        # Step 1: Login as mosi_brand
         status, body = api(
             "/api/auth/login", "POST", {"username": USERNAME, "password": PASSWORD}
         )
@@ -80,7 +74,6 @@ def main():
 
         messages.append(f"Logged in as {USERNAME}")
 
-        # Step 2: Get all posts (including own drafts to find new post)
         status, body = api("/api/posts", cookie=cookie)
         if status != 200:
             messages.append(f"FAIL: feed retrieval returned {status}")
@@ -90,22 +83,10 @@ def main():
             sys.exit(0 if score >= 0.5 else 1)
 
         posts = body if isinstance(body, list) else body.get("posts", [])
-
-        # Find new posts (not in Layer 0 seed)
         new_posts = [p for p in posts if p.get("id") not in LAYER0_POST_IDS]
 
         if not new_posts:
-            # Also check author's own posts including drafts
-            auth_data = body.get("account", {}) if isinstance(body, dict) else {}
-            # Try getting all mosi_brand posts including drafts
-            account = body.get("account") if isinstance(body, dict) else None
-            author_id = None
-            if account and isinstance(account, dict):
-                author_id = account.get("id")
-            else:
-                # Get author_id from login response
-                author_id = 1  # mosi_brand is always id=1
-
+            author_id = 1
             status2, body2 = api(
                 f"/api/posts?status=draft&author_id={author_id}", cookie=cookie
             )
@@ -133,85 +114,92 @@ def main():
 
         messages.append(f"Found {len(new_posts)} new post(s)")
 
-        # Dimension 1: Published post with correct topic (0.4)
-        dim1_score = 0.0
+        # Find best matching post
         target_post = None
         for p in new_posts:
             content = p.get("content", "").lower()
             if "tech summit" in content or "summer tech" in content:
                 target_post = p
-                if p.get("status") == "published":
-                    dim1_score = 0.4
-                    messages.append(
-                        f"PASS: published post found with topic match (id={p.get('id')})"
-                    )
-                else:
-                    dim1_score = 0.2
-                    messages.append(
-                        f"PARTIAL: post found with topic match but status='{p.get('status')}' (id={p.get('id')})"
-                    )
                 break
 
-        if dim1_score == 0.0:
+        if not target_post:
             messages.append(
                 "FAIL: no post found mentioning 'tech summit' or 'summer tech'"
             )
-            # Show what posts were found for debugging
             for p in new_posts:
                 messages.append(f"  Post id={p.get('id')}: {p.get('content', '')[:80]}...")
+            print(f"Score: {score}/1.0")
+            for msg in messages:
+                print(f"  {msg}")
+            sys.exit(0 if score >= 0.5 else 1)
 
-        # Dimension 2: Includes relevant hashtags (0.3)
+        # Dimension 1: Published with correct topic (0.2)
+        dim1_score = 0.0
+        if target_post.get("status") == "published":
+            dim1_score = 0.2
+            messages.append(
+                f"PASS: published post with topic match (id={target_post.get('id')})"
+            )
+        else:
+            dim1_score = 0.1
+            messages.append(
+                f"PARTIAL: topic match but status='{target_post.get('status')}'"
+            )
+
+        # Dimension 2: Correct author (0.2)
         dim2_score = 0.0
-        if target_post:
-            content = target_post.get("content", "")
-            tags = target_post.get("tags", [])
-            tag_labels = [t.get("label_text", "") if isinstance(t, dict) else str(t) for t in tags]
-            tag_text = " ".join(tag_labels).lower()
-            combined = content.lower() + " " + tag_text
-
-            if "#techsummit2026" in combined:
-                dim2_score = 0.3
-                messages.append("PASS: post includes #TechSummit2026 hashtag")
-            elif "techsummit" in combined or "tech summit" in combined:
-                dim2_score = 0.15
-                messages.append(
-                    "PARTIAL: post mentions tech summit but missing exact #TechSummit2026 hashtag"
-                )
-            else:
-                messages.append("FAIL: post does not include relevant hashtags")
-
-            # Also check for additional hashtags from email content
-            extra_hashtags = ["#summersummit", "#techconference"]
-            found_extra = [h for h in extra_hashtags if h in combined]
-            if found_extra:
-                messages.append(f"  Bonus hashtags found: {found_extra}")
+        author_username = target_post.get("author_username", "")
+        author_id = target_post.get("author_account_id", 0)
+        if author_username == "mosi_brand" or author_id == 1:
+            dim2_score = 0.2
+            messages.append("PASS: post authored by mosi_brand")
         else:
-            messages.append("FAIL: no target post to check hashtags")
+            messages.append(
+                f"FAIL: post authored by '{author_username}' (id={author_id})"
+            )
 
-        # Dimension 3: Correct author is mosi_brand (0.3)
+        # Dimension 3: Email-specific content (0.3)
         dim3_score = 0.0
-        if target_post:
-            author_username = target_post.get("author_username", "")
-            author_id = target_post.get("author_account_id", 0)
-            if author_username == "mosi_brand" or author_id == 1:
-                dim3_score = 0.3
-                messages.append("PASS: post authored by mosi_brand")
-            else:
-                messages.append(
-                    f"FAIL: post authored by '{author_username}' (id={author_id}), expected mosi_brand"
-                )
+        content_lower = target_post.get("content", "").lower()
+        found_phrases = [p for p in EMAIL_PHRASES if p in content_lower]
+        if len(found_phrases) >= 1:
+            dim3_score = 0.3
+            messages.append(
+                f"PASS: email-specific content found: {found_phrases}"
+            )
         else:
-            messages.append("FAIL: no target post to check author")
+            messages.append(
+                "FAIL: no email-specific content found "
+                f"(expected phrases like: {EMAIL_PHRASES})"
+            )
 
-        score = dim1_score + dim2_score + dim3_score
+        # Dimension 4: Email-specified hashtags (0.3)
+        dim4_score = 0.0
+        tags = target_post.get("tags", [])
+        tag_labels = [t.get("label_text", "") if isinstance(t, dict) else str(t) for t in tags]
+        combined = content_lower + " " + " ".join(tag_labels).lower()
+
+        found_hashtags = [h for h in EMAIL_HASHTAGS if h in combined]
+        if len(found_hashtags) >= 2:
+            dim4_score = 0.3
+            messages.append(f"PASS: email hashtags found: {found_hashtags}")
+        elif len(found_hashtags) == 1:
+            dim4_score = 0.15
+            messages.append(f"PARTIAL: one email hashtag found: {found_hashtags}")
+        else:
+            messages.append(
+                "FAIL: no email-specified hashtags "
+                f"(expected: {EMAIL_HASHTAGS})"
+            )
+
+        score = dim1_score + dim2_score + dim3_score + dim4_score
 
     except Exception as e:
         messages.append(f"ERROR: {str(e)}")
         import traceback
-
         messages.append(traceback.format_exc())
 
-    print(f"Score: {score}/1.0")
+    print(f"Score: {score:.1f}/1.0")
     for msg in messages:
         print(f"  {msg}")
 
