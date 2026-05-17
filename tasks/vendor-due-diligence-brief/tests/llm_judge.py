@@ -232,7 +232,43 @@ def read_text(path: Path) -> str:
         return ""
 
 
+def fetch_email_context() -> str:
+    """Fetch vendor intro email from mock service so the judge can verify email-backed claims."""
+    try:
+        with urllib.request.urlopen(
+            "http://localhost:5174/api/emails?folder=inbox", timeout=5
+        ) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        emails = data.get("data", {}).get("emails", [])
+        for email in emails:
+            subject = (email.get("subject") or "").lower()
+            body = (email.get("body") or "").lower()
+            if (
+                "cloudedge" in subject
+                or "vendor" in subject
+                or "cloudedge" in body
+                or "partnership" in subject
+            ):
+                email_id = email.get("id")
+                if email_id:
+                    with urllib.request.urlopen(
+                        f"http://localhost:5174/api/emails/{email_id}", timeout=5
+                    ) as r:
+                        detail = json.loads(r.read().decode("utf-8"))
+                    email = detail.get("data", {}).get("email", email)
+                return (
+                    f"Subject: {email.get('subject', '')}\n"
+                    f"From: {email.get('sender_name', '')} <{email.get('sender_email', '')}>\n"
+                    f"Body:\n{email.get('body', '')}"
+                )
+    except Exception:
+        pass
+    return "(email service unavailable or vendor intro not found)"
+
+
 def build_prompt(result: dict, structural: dict) -> str:
+    email_context = fetch_email_context()
+
     corpus_dir = dc.ROOT / "corpus"
     corpus_sections = []
     if corpus_dir.is_dir():
@@ -247,6 +283,9 @@ def build_prompt(result: dict, structural: dict) -> str:
         "",
         "# Deterministic Check Results",
         serialize_json(structural),
+        "",
+        "# Vendor Introduction Email",
+        email_context,
         "",
         "# Corpus Materials Available to Agent",
         "\n\n".join(corpus_sections) if corpus_sections else "(none)",

@@ -29,19 +29,18 @@ for email in emails:
         vendor_email = email
         break
 
-email_context = ""
-if vendor_email:
-    email_id = vendor_email.get("id")
-    if email_id:
-        detail = fetch_json(f"{EMAIL_BASE}/api/emails/{email_id}")
-        email_detail = detail.get("data", {}).get("email", vendor_email)
-    else:
-        email_detail = vendor_email
-    email_context = (
-        f"Subject: {email_detail.get('subject', '')}\n"
-        f"From: {email_detail.get('sender_email', '')}\n"
-        f"Body: {email_detail.get('body', '')}"
-    )
+if vendor_email is None:
+    raise SystemExit("ERROR: Vendor intro email not found in inbox — cannot complete due diligence brief")
+
+email_id = vendor_email.get("id")
+if email_id:
+    detail = fetch_json(f"{EMAIL_BASE}/api/emails/{email_id}")
+    email_detail = detail.get("data", {}).get("email", vendor_email)
+else:
+    email_detail = vendor_email
+
+vendor_contact_name = email_detail.get("sender_name", "Marcus Webb")
+vendor_contact_email = email_detail.get("sender_email", "partnerships@cloudedge.io")
 
 # --- Step 2: Read corpus files ---
 corpus_text = {}
@@ -56,10 +55,11 @@ if CORPUS.is_dir():
 # --- Step 3: Synthesize due diligence brief ---
 brief = {
     "vendor_background": (
-        "CloudEdge Systems is a cloud security middleware company founded in 2022, "
-        "headquartered in San Francisco. They raised a Series A of $18M in 2023 and currently "
-        "have 14 enterprise customers. Their sole product is DataGuard, an encryption and "
-        "access-control middleware layer using AES-256-GCM encryption."
+        f"CloudEdge Systems is a cloud security middleware company founded in 2022, "
+        f"headquartered in San Francisco. Vendor introduction received from {vendor_contact_name} "
+        f"({vendor_contact_email}), VP of Partnerships. They raised a Series A of $18M in 2023 "
+        f"and currently have 14 enterprise customers. Their sole product is DataGuard, an "
+        f"encryption and access-control middleware layer using AES-256-GCM encryption."
     ),
     "fit_assessment": (
         "CloudEdge's DataGuard addresses a genuine need — encrypting data pipelines between "
@@ -99,6 +99,6 @@ brief = {
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(json.dumps(brief, ensure_ascii=False, indent=2), encoding="utf-8")
 print(f"Written: {OUT}")
-print(f"Email context found: {bool(vendor_email)}")
+print(f"Vendor contact: {vendor_contact_name} <{vendor_contact_email}>")
 print(f"Corpus files read: {list(corpus_text.keys())}")
 PYEOF

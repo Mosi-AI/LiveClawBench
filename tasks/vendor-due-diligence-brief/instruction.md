@@ -9,7 +9,7 @@ Prepare a due diligence brief covering:
 4. A recommendation on whether we should proceed to the next round
 
 Save the result to `~/.openclaw/output/result.json` with these fields:
-- `"vendor_background"` — who the vendor is, what they do, funding stage
+- `"vendor_background"` — who the vendor is, what they do, funding stage; include the vendor contact's name and email address from the introduction email
 - `"fit_assessment"` — how well their offering fits our needs
 - `"red_flags"` — list of at least 3 red flags or open questions (strings), each citing specific evidence
 - `"recommendation"` — actionable recommendation: proceed / conditional proceed / do not proceed, with clear rationale
