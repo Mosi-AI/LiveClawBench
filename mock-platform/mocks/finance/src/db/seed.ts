@@ -5,7 +5,6 @@ import { generateWerkzeugHashSync } from "../helpers";
 
 export function runCustomSeed(db: Database): void {
   const seedPath = process.env.MOCK_FINANCE_SEED_SQL ?? "/opt/mock/data/finance_seed.sql";
-  if (!process.env.MOCK_FINANCE_SEED_SQL) return;
   if (!existsSync(seedPath)) {
     console.warn(`[finance] Custom seed file not found at ${seedPath}, falling back to default seed.`);
     return;
