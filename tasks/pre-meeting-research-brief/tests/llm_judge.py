@@ -232,7 +232,38 @@ def read_text(path: Path) -> str:
         return ""
 
 
+def fetch_calendar_context() -> str:
+    """Fetch the seeded partnership meeting todo so the judge can verify meeting_summary accuracy.
+
+    Raises RuntimeError if the todo service is unreachable or no meeting entry is found.
+    """
+    with urllib.request.urlopen("http://localhost:3000/api/todos", timeout=5) as r:
+        data = json.loads(r.read().decode("utf-8"))
+    todos = data.get("data", {}).get("todos", [])
+    for todo in todos:
+        title = (todo.get("title") or "").lower()
+        description = (todo.get("description") or "").lower()
+        if (
+            "partnership" in title
+            or "novatech" in title
+            or "partnership" in description
+        ):
+            return (
+                f"Title: {todo.get('title', '')}\n"
+                f"Date: {todo.get('date', '')}\n"
+                f"Time: {todo.get('time', '')}\n"
+                f"Location: {todo.get('location', '')}\n"
+                f"Person: {todo.get('person', '')}\n"
+                f"Description: {todo.get('description', '')}"
+            )
+    raise RuntimeError(
+        "Partnership meeting not found in calendar — cannot judge meeting_summary accuracy"
+    )
+
+
 def build_prompt(result: dict, structural: dict) -> str:
+    calendar_context = fetch_calendar_context()
+
     corpus_dir = dc.ROOT / "corpus"
     corpus_sections = []
     if corpus_dir.is_dir():
@@ -247,6 +278,9 @@ def build_prompt(result: dict, structural: dict) -> str:
         "",
         "# Deterministic Check Results",
         serialize_json(structural),
+        "",
+        "# Calendar Entry Available to Agent",
+        calendar_context,
         "",
         "# Corpus Materials Available to Agent",
         "\n\n".join(corpus_sections) if corpus_sections else "(none)",

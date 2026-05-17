@@ -232,15 +232,36 @@ def read_text(path: Path) -> str:
         return ""
 
 
+def _email_auth_token() -> str:
+    """Log in as the default user and return a bearer token."""
+    request = urllib.request.Request(
+        "http://localhost:5174/api/auth/login",
+        data=json.dumps({"username": "peter", "password": "password123"}).encode(
+            "utf-8"
+        ),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=5) as r:
+        data = json.loads(r.read().decode("utf-8"))
+    token = (data.get("data") or {}).get("access_token")
+    if not token:
+        raise RuntimeError("Email auth login failed — could not obtain access_token")
+    return token
+
+
 def fetch_email_context() -> str:
     """Fetch vendor intro email from mock service so the judge can verify email-backed claims.
 
     Raises RuntimeError if the email service is unreachable or the vendor intro is not found,
     so a broken A1 dependency fails the verifier closed rather than degrading silently.
     """
-    with urllib.request.urlopen(
-        "http://localhost:5174/api/emails?folder=inbox", timeout=5
-    ) as r:
+    token = _email_auth_token()
+    auth_headers = {"Authorization": f"Bearer {token}"}
+    request = urllib.request.Request(
+        "http://localhost:5174/api/emails?folder=inbox", headers=auth_headers
+    )
+    with urllib.request.urlopen(request, timeout=5) as r:
         data = json.loads(r.read().decode("utf-8"))
     emails = data.get("data", {}).get("emails", [])
     for email in emails:
@@ -249,9 +270,11 @@ def fetch_email_context() -> str:
         if "cloudedge" in subject or "vendor" in subject or "cloudedge" in body:
             email_id = email.get("id")
             if email_id:
-                with urllib.request.urlopen(
-                    f"http://localhost:5174/api/emails/{email_id}", timeout=5
-                ) as r:
+                detail_request = urllib.request.Request(
+                    f"http://localhost:5174/api/emails/{email_id}",
+                    headers=auth_headers,
+                )
+                with urllib.request.urlopen(detail_request, timeout=5) as r:
                     detail = json.loads(r.read().decode("utf-8"))
                 email = detail.get("data", {}).get("email", email)
             return (

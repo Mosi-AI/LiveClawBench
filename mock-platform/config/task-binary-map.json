@@ -220,7 +220,14 @@
       "binaries": ["todolist"]
     },
     "vendor-due-diligence-brief": {
-      "binaries": ["email"]
+      "binaries": ["email"],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
     }
   }
 }

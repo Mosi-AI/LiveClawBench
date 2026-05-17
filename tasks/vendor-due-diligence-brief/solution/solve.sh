@@ -12,13 +12,28 @@ OUT = Path.home() / ".openclaw" / "output" / "result.json"
 CORPUS = Path.home() / ".openclaw" / "corpus"
 
 
-def fetch_json(url):
-    with urllib.request.urlopen(url, timeout=10) as r:
+def fetch_json(url, headers=None):
+    req = urllib.request.Request(url, headers=headers or {})
+    with urllib.request.urlopen(req, timeout=10) as r:
         return json.loads(r.read().decode("utf-8"))
 
 
+# --- Step 0: Authenticate ---
+login_req = urllib.request.Request(
+    f"{EMAIL_BASE}/api/auth/login",
+    data=json.dumps({"username": "peter", "password": "password123"}).encode("utf-8"),
+    headers={"Content-Type": "application/json"},
+    method="POST",
+)
+with urllib.request.urlopen(login_req, timeout=10) as r:
+    login_data = json.loads(r.read().decode("utf-8"))
+TOKEN = (login_data.get("data") or {}).get("access_token")
+if not TOKEN:
+    raise SystemExit("ERROR: Email authentication failed — could not obtain access token")
+AUTH = {"Authorization": f"Bearer {TOKEN}"}
+
 # --- Step 1: Find vendor intro email in inbox ---
-emails_data = fetch_json(f"{EMAIL_BASE}/api/emails?folder=inbox")
+emails_data = fetch_json(f"{EMAIL_BASE}/api/emails?folder=inbox", headers=AUTH)
 emails = emails_data.get("data", {}).get("emails", [])
 
 vendor_email = None
@@ -34,7 +49,7 @@ if vendor_email is None:
 
 email_id = vendor_email.get("id")
 if email_id:
-    detail = fetch_json(f"{EMAIL_BASE}/api/emails/{email_id}")
+    detail = fetch_json(f"{EMAIL_BASE}/api/emails/{email_id}", headers=AUTH)
     email_detail = detail.get("data", {}).get("email", vendor_email)
 else:
     email_detail = vendor_email
