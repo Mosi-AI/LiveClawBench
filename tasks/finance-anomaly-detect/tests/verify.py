@@ -26,9 +26,7 @@ import sqlite3
 import sys
 import traceback
 
-DB_PATH = os.environ.get(
-    "MOCK_FINANCE_DB_PATH", "/opt/mock/data/finance_app.sqlite"
-)
+DB_PATH = os.environ.get("MOCK_FINANCE_DB_PATH", "/opt/mock/data/finance_app.sqlite")
 
 ANOMALOUS_IDS = {8, 9, 10, 11}
 NORMAL_IDS = {1, 2, 3, 4, 5, 6, 7}
@@ -71,15 +69,13 @@ def main() -> tuple[float, dict]:
     try:
         # Get all transactions
         rows = conn.execute(
-            "SELECT id, vendor_name, amount, status FROM transaction_record "
-            "ORDER BY id"
+            "SELECT id, vendor_name, amount, status FROM transaction_record ORDER BY id"
         ).fetchall()
 
         if not rows:
             details["messages"].append("ERROR: No transactions found in database")
             return score, details
 
-        all_ids = {row["id"] for row in rows}
         flagged_ids = {row["id"] for row in rows if row["status"] == "flagged"}
 
         details["messages"].append(

@@ -44,7 +44,14 @@ EXPECTED_CORRECTIONS = {
 CORRECT_ASSETS = {1: 9000.0, 3: 2700.0, 5: 4500.0, 7: 2700.0}
 
 
-def record_score(details, dimension, passed, pass_msg, fail_msg):
+def record_score(
+    details: dict,
+    dimension: str,
+    passed: bool,
+    pass_msg: str,
+    fail_msg: str,
+) -> float:
+    """Record a dimension score and message, returning the earned weight."""
     if passed:
         details["dimension_scores"][dimension] = WEIGHTS[dimension]
         details["messages"].append(f"PASS: {pass_msg}")
@@ -54,9 +61,9 @@ def record_score(details, dimension, passed, pass_msg, fail_msg):
     return 0.0
 
 
-def main():
+def main() -> tuple[float, dict]:
     score = 0.0
-    details = {"messages": [], "dimension_scores": {}}
+    details: dict[str, list | dict] = {"messages": [], "dimension_scores": {}}
 
     if not os.path.exists(DB_PATH):
         details["messages"].append(f"ERROR: Database not found at {DB_PATH}")
@@ -73,7 +80,11 @@ def main():
                 "SELECT annual_depreciation FROM asset_record WHERE id = ?",
                 (asset_id,),
             ).fetchone()
-            if row and abs(row["annual_depreciation"] - expected["expected_depreciation"]) <= TOLERANCE:
+            if (
+                row
+                and abs(row["annual_depreciation"] - expected["expected_depreciation"])
+                <= TOLERANCE
+            ):
                 corrected_count += 1
 
         score += record_score(
@@ -135,7 +146,8 @@ def main():
 
             # 5. Check policy mentions specific assets
             mentioned = sum(
-                1 for info in EXPECTED_CORRECTIONS.values()
+                1
+                for info in EXPECTED_CORRECTIONS.values()
                 if info["asset_name"].lower() in policy_content.lower()
             )
             score += record_score(
@@ -146,8 +158,12 @@ def main():
                 f"Policy mentions {mentioned}/{len(EXPECTED_CORRECTIONS)} corrected assets",
             )
         else:
-            score += record_score(details, "policy_updated", False, "", "Policy file not found")
-            score += record_score(details, "policy_content", False, "", "Policy file not found")
+            score += record_score(
+                details, "policy_updated", False, "", "Policy file not found"
+            )
+            score += record_score(
+                details, "policy_content", False, "", "Policy file not found"
+            )
 
     except Exception as e:
         details["messages"].append(f"ERROR: {e}")

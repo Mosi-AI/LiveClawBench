@@ -17,7 +17,6 @@ Expected VAT calculations:
 """
 
 import json
-import math
 import os
 import re
 import sqlite3
@@ -86,8 +85,11 @@ def check_invoice_created(conn: sqlite3.Connection, details: dict) -> float:
 
     if not inv_row:
         return record_score(
-            details, "invoice_created", False, "",
-            "Invoice INV-2026-010 not found in finance DB"
+            details,
+            "invoice_created",
+            False,
+            "",
+            "Invoice INV-2026-010 not found in finance DB",
         )
 
     vendor_ok = inv_row["vendor_id"] == EXPECTED_INVOICE_010["vendor_id"]
@@ -95,9 +97,12 @@ def check_invoice_created(conn: sqlite3.Connection, details: dict) -> float:
 
     if not vendor_ok or not date_ok:
         return record_score(
-            details, "invoice_created", False, "",
+            details,
+            "invoice_created",
+            False,
+            "",
             f"INV-2026-010 found but vendor_id={inv_row['vendor_id']} (expected 1), "
-            f"date={inv_row['invoice_date']} (expected 2026-03-01)"
+            f"date={inv_row['invoice_date']} (expected 2026-03-01)",
         )
 
     # Check line items
@@ -108,8 +113,11 @@ def check_invoice_created(conn: sqlite3.Connection, details: dict) -> float:
 
     if len(items) != 2:
         return record_score(
-            details, "invoice_created", False, "",
-            f"INV-2026-010 has {len(items)} line items (expected 2)"
+            details,
+            "invoice_created",
+            False,
+            "",
+            f"INV-2026-010 has {len(items)} line items (expected 2)",
         )
 
     # Match expected items by category_code and amount (tolerance 0.01)
@@ -119,26 +127,36 @@ def check_invoice_created(conn: sqlite3.Connection, details: dict) -> float:
         for i, item in enumerate(items):
             if i in used:
                 continue
-            if item["category_code"] == exp_code and abs(item["amount"] - exp_amount) < 0.01:
+            if (
+                item["category_code"] == exp_code
+                and abs(item["amount"] - exp_amount) < 0.01
+            ):
                 used.add(i)
                 matched = True
                 break
         if not matched:
             actual = [(r["category_code"], r["amount"]) for r in items]
             return record_score(
-                details, "invoice_created", False, "",
-                f"INV-2026-010 line items mismatch. Expected 5300/15000 + 5400/5000, got {actual}"
+                details,
+                "invoice_created",
+                False,
+                "",
+                f"INV-2026-010 line items mismatch. Expected 5300/15000 + 5400/5000, got {actual}",
             )
 
     items_str = ", ".join(f"{r['category_code']}:${r['amount']:.2f}" for r in items)
     return record_score(
-        details, "invoice_created", True,
+        details,
+        "invoice_created",
+        True,
         f"INV-2026-010 created with vendor_id=1, date=2026-03-01, items: {items_str}",
-        ""
+        "",
     )
 
 
-def extract_amounts_near_keyword(text: str, keyword: str, radius: int = 300) -> list[float]:
+def extract_amounts_near_keyword(
+    text: str, keyword: str, radius: int = 300
+) -> list[float]:
     """Extract dollar amounts near a keyword in text."""
     amounts = []
     # Find all occurrences of the keyword
@@ -147,8 +165,8 @@ def extract_amounts_near_keyword(text: str, keyword: str, radius: int = 300) -> 
         end = min(len(text), match.end() + radius)
         context = text[start:end]
         # Find dollar amounts like $930.03, $1,200.00, 2130.03, $2,130.03
-        for num_match in re.finditer(r'\$?\s*([\d,]+\.\d{2})', context):
-            amount_str = num_match.group(1).replace(',', '')
+        for num_match in re.finditer(r"\$?\s*([\d,]+\.\d{2})", context):
+            amount_str = num_match.group(1).replace(",", "")
             try:
                 amounts.append(float(amount_str))
             except ValueError:
@@ -166,7 +184,9 @@ def check_vat_in_policy(policy_text: str, details: dict) -> float:
         amounts_near = extract_amounts_near_keyword(policy_text, inv_num)
 
         if not amounts_near:
-            invoice_results.append(f"{inv_num}: no amounts found near invoice reference")
+            invoice_results.append(
+                f"{inv_num}: no amounts found near invoice reference"
+            )
             continue
 
         tolerance = expected_vat * VAT_TOLERANCE_FRAC if expected_vat > 0 else 0.01
@@ -183,9 +203,11 @@ def check_vat_in_policy(policy_text: str, details: dict) -> float:
 
     passed = invoices_correct == len(EXPECTED_VAT)
     return record_score(
-        details, "vat_per_invoice", passed,
+        details,
+        "vat_per_invoice",
+        passed,
         f"VAT per invoice correct: {'; '.join(invoice_results)}",
-        f"VAT per invoice incorrect ({invoices_correct}/{len(EXPECTED_VAT)}): {'; '.join(invoice_results)}"
+        f"VAT per invoice incorrect ({invoices_correct}/{len(EXPECTED_VAT)}): {'; '.join(invoice_results)}",
     )
 
 
@@ -203,10 +225,12 @@ def check_vat_total(policy_text: str, details: dict) -> float:
     found = any(abs(a - EXPECTED_TOTAL) <= tolerance for a in all_amounts)
 
     return record_score(
-        details, "vat_total", found,
+        details,
+        "vat_total",
+        found,
         f"Total Q1 2026 VAT ${EXPECTED_TOTAL:.2f} found in policy",
         f"Total Q1 2026 VAT ${EXPECTED_TOTAL:.2f} not found in policy "
-        f"(amounts near total keywords: {all_amounts[:10]})"
+        f"(amounts near total keywords: {all_amounts[:10]})",
     )
 
 
@@ -227,15 +251,20 @@ def check_policy_updated(policy_text: str, details: dict) -> float:
 
     if still_pending and not found_keywords:
         return record_score(
-            details, "policy_updated", False, "",
-            "Tax policy still shows PENDING status, no filing keywords found"
+            details,
+            "policy_updated",
+            False,
+            "",
+            "Tax policy still shows PENDING status, no filing keywords found",
         )
 
     score_ok = len(found_keywords) >= 1 and has_q1_ref and has_total
     return record_score(
-        details, "policy_updated", score_ok,
+        details,
+        "policy_updated",
+        score_ok,
         f"Policy updated with filing data (keywords: {found_keywords}, Q1 ref: {has_q1_ref})",
-        f"Policy update incomplete: keywords={found_keywords}, Q1_ref={has_q1_ref}, total={has_total}"
+        f"Policy update incomplete: keywords={found_keywords}, Q1_ref={has_q1_ref}, total={has_total}",
     )
 
 
@@ -253,13 +282,15 @@ def check_email_sent(email_conn: sqlite3.Connection, details: dict) -> float:
             "SELECT recipient_email, subject, body FROM emails WHERE folder = 'sent'"
         ).fetchall()
         tax_emails = [
-            e for e in sent_emails
-            if "tax-authority" in e["recipient_email"].lower()
+            e for e in sent_emails if "tax-authority" in e["recipient_email"].lower()
         ]
         if not tax_emails:
             return record_score(
-                details, "email_sent", False, "",
-                f"No email sent to tax-authority.gov (found {len(sent_emails)} sent emails total)"
+                details,
+                "email_sent",
+                False,
+                "",
+                f"No email sent to tax-authority.gov (found {len(sent_emails)} sent emails total)",
             )
         sent_emails = tax_emails
 
@@ -273,8 +304,7 @@ def check_email_sent(email_conn: sqlite3.Connection, details: dict) -> float:
         # Check for VAT-related content
         has_vat = "vat" in combined
         has_amount = any(
-            kw in combined
-            for kw in ["930", "1200", "2130", "2,130", "1,200"]
+            kw in combined for kw in ["930", "1200", "2130", "2,130", "1,200"]
         )
         has_inv_ref = any(
             kw in combined
@@ -283,7 +313,9 @@ def check_email_sent(email_conn: sqlite3.Connection, details: dict) -> float:
 
         if has_vat and has_amount:
             best_match = True
-            best_details = f"to={email['recipient_email']}, subject={email['subject'][:60]}"
+            best_details = (
+                f"to={email['recipient_email']}, subject={email['subject'][:60]}"
+            )
             break
 
         # Partial match tracking
@@ -294,9 +326,11 @@ def check_email_sent(email_conn: sqlite3.Connection, details: dict) -> float:
             )
 
     return record_score(
-        details, "email_sent", best_match,
+        details,
+        "email_sent",
+        best_match,
         f"Reply email with VAT summary sent ({best_details})",
-        f"Email to tax authority missing VAT summary ({best_details})"
+        f"Email to tax authority missing VAT summary ({best_details})",
     )
 
 
@@ -312,7 +346,9 @@ def main() -> tuple[float, dict]:
             score += check_invoice_created(fin_conn, details)
             fin_conn.close()
         else:
-            details["messages"].append(f"ERROR: Finance DB not found at {FINANCE_DB_PATH}")
+            details["messages"].append(
+                f"ERROR: Finance DB not found at {FINANCE_DB_PATH}"
+            )
     except Exception as e:
         details["messages"].append(f"ERROR checking invoice: {e}")
         details["messages"].append(traceback.format_exc())

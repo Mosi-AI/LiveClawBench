@@ -10,11 +10,11 @@ Checks:
   - policy_audit: Policy file has audit notes (0.15)
   - policy_content: Policy mentions specific corrections (0.15)
 """
+
 import json
 import os
 import sqlite3
 import sys
-import traceback
 
 DB_PATH = os.environ.get("MOCK_FINANCE_DB_PATH", "/opt/mock/data/finance_app.sqlite")
 POLICY_PATH = os.environ.get("POLICY_PATH", "/workspace/policies/dashboard_spec.md")
@@ -44,7 +44,18 @@ def collect_field_names(node, fields):
                     collect_field_names(item, fields)
 
 
-def main():
+def write_reward(total: float, dimension_scores: dict) -> None:
+    try:
+        os.makedirs("/logs/verifier", exist_ok=True)
+        reward_json = {f"_meta_{k}": v for k, v in dimension_scores.items()}
+        reward_json["reward"] = total
+        with open("/logs/verifier/reward.json", "w") as f:
+            json.dump(reward_json, f, indent=2)
+    except OSError:
+        pass
+
+
+def main() -> None:
     dimension_scores = {}
     messages = []
 
@@ -122,7 +133,9 @@ def main():
     if structure_score >= WEIGHTS["formula_structure"]:
         messages.append("PASS: formula matches NAPI structure")
     else:
-        messages.append(f"FAIL: formula structure partial match ({structure_score:.2f}/{WEIGHTS['formula_structure']:.2f})")
+        messages.append(
+            f"FAIL: formula structure partial match ({structure_score:.2f}/{WEIGHTS['formula_structure']:.2f})"
+        )
 
     # --- Dimension 5: Policy file has audit notes (0.15) ---
     policy_content = ""
@@ -134,7 +147,12 @@ def main():
 
     has_audit_section = any(
         header in policy_content
-        for header in ["## audit", "## change log", "## correction log", "## change record"]
+        for header in [
+            "## audit",
+            "## change log",
+            "## correction log",
+            "## change record",
+        ]
     )
     if has_audit_section:
         score += WEIGHTS["policy_audit"]
@@ -142,7 +160,9 @@ def main():
         messages.append("PASS: policy has audit notes section")
     else:
         dimension_scores["policy_audit"] = 0.0
-        messages.append("FAIL: policy missing audit notes section (## Audit or similar)")
+        messages.append(
+            "FAIL: policy missing audit notes section (## Audit or similar)"
+        )
 
     # --- Dimension 6: Policy mentions specific corrections (0.15) ---
     # Only check if audit section exists; initial spec must not satisfy this.
@@ -151,12 +171,20 @@ def main():
         mentions_expense_fix = (
             "total_expenses" in policy_content
             and "actual_expense_amount" in policy_content
-            and ("replace" in policy_content or "correct" in policy_content or "fix" in policy_content)
+            and (
+                "replace" in policy_content
+                or "correct" in policy_content
+                or "fix" in policy_content
+            )
         )
         mentions_budget_fix = (
             "budget_deviation" in policy_content
             and "budget_amount" in policy_content
-            and ("replace" in policy_content or "correct" in policy_content or "fix" in policy_content)
+            and (
+                "replace" in policy_content
+                or "correct" in policy_content
+                or "fix" in policy_content
+            )
         )
         if mentions_expense_fix:
             policy_content_score += 0.075
@@ -168,7 +196,9 @@ def main():
     if policy_content_score >= WEIGHTS["policy_content"]:
         messages.append("PASS: policy documents specific field corrections")
     else:
-        messages.append(f"FAIL: policy content partial ({policy_content_score:.3f}/{WEIGHTS['policy_content']:.2f})")
+        messages.append(
+            f"FAIL: policy content partial ({policy_content_score:.3f}/{WEIGHTS['policy_content']:.2f})"
+        )
 
     # Compute total
     total = round(min(score, 1.0), 2)
@@ -179,17 +209,6 @@ def main():
 
     if total < 0.5:
         sys.exit(1)
-
-
-def write_reward(total, dimension_scores):
-    try:
-        os.makedirs("/logs/verifier", exist_ok=True)
-        reward_json = {f"_meta_{k}": v for k, v in dimension_scores.items()}
-        reward_json["reward"] = total
-        with open("/logs/verifier/reward.json", "w") as f:
-            json.dump(reward_json, f, indent=2)
-    except OSError:
-        pass
 
 
 if __name__ == "__main__":

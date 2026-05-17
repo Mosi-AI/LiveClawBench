@@ -139,17 +139,29 @@ DEPARTMENT_NAMES = [
 SEED_MARCH_VALUES = frozenset(
     {
         # Engineering: 50000 budget, 55000 actual, 62000 revenue
-        50000, 55000, 62000,
+        50000,
+        55000,
+        62000,
         # Sales: 40000 budget, 38000 actual, 78000 revenue
-        40000, 38000, 78000,
+        40000,
+        38000,
+        78000,
         # Marketing: 30000 budget, 32000 actual, 41000 revenue
-        30000, 32000, 41000,
+        30000,
+        32000,
+        41000,
         # HR: 20000 budget, 19500 actual, 5000 revenue
-        20000, 19500, 5000,
+        20000,
+        19500,
+        5000,
         # Finance: 25000 budget, 23000 actual, 8000 revenue
-        25000, 23000, 8000,
+        25000,
+        23000,
+        8000,
         # Operations: 35000 budget, 34000 actual, 12000 revenue
-        35000, 34000, 12000,
+        35000,
+        34000,
+        12000,
     }
 )
 
@@ -157,9 +169,7 @@ SEED_MARCH_VALUES = frozenset(
 # (50000/55000/62000), so 5 forces the agent to look beyond a single department.
 MIN_SEED_VALUE_MATCHES = 5
 
-NUMERIC_TOKEN_RE = re.compile(
-    r"\$?\s?(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?"
-)
+NUMERIC_TOKEN_RE = re.compile(r"\$?\s?(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?")
 
 
 def record_score(

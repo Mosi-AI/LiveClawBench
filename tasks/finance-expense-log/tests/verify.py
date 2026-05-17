@@ -44,8 +44,6 @@ EXPECTED_ITEMS = [
     {"expense_category": "hotel", "amount": 750.00},
 ]
 
-EXPECTED_TOTAL = sum(item["amount"] for item in EXPECTED_ITEMS)
-
 
 def record_score(
     details: dict,
