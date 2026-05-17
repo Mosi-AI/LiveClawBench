@@ -106,7 +106,7 @@ bun run scripts/build-task-images.ts
 docker build -t liveclawbench-{task}:latest tasks/{task}/environment/
 ```
 
-There are four patterns in use across the 30 tasks — pick the one that matches your task type:
+There are four patterns in use across the 42 tasks — pick the one that matches your task type:
 
 ### Pattern 1: Static file drop (skill-\*, blog-site-\*, vue-project-\*)
 
@@ -306,7 +306,7 @@ The validator checks:
 - `case_id` is unique across all tasks
 - Stub warnings: short `instruction.md`, echo-only `test.sh`, missing `solve.sh`
 
-All 30 existing tasks must continue to pass.
+All 42 existing tasks must continue to pass.
 
 ## Submission Checklist
 

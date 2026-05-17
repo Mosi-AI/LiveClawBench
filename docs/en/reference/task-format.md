@@ -79,6 +79,12 @@ allow_internet = true   # required if the agent needs LLM API access
 | `environment.build_timeout_sec` | Docker environment build timeout |
 | `allow_internet` | Set to `true` if the agent must call external LLM APIs |
 
+Current primary domains are: `Browser & Web Scraping`, `Calendar & Task Mgmt`,
+`Coding & Software Dev`, `Communication & Email`, `Deep Research & Report`,
+`DevOps & Env Repair`, `Documents & Knowledge`, `E-commerce & Daily Svcs`,
+`Finance & Data Analytics`, `Health & Wellness`, `Social Media`, and
+`Voice & Multimodal`.
+
 **Complexity factor fields** (set to `1` when the factor applies, `0` when absent):
 
 | Field | Factor |

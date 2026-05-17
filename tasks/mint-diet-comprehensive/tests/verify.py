@@ -70,7 +70,7 @@ def compute_dates() -> tuple[str, str, str]:
 
 def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict, float]:
     """
-    Dimension 1 (0.25): Check daily_log has food_entry rows for all 4 slots
+    Dimension 1 (0.20): Check daily_log has food_entry rows for all 4 slots
     with expected foods matching quantity, unit, and calories.
     Also tracks catalog usage bonus.
     """
@@ -169,7 +169,7 @@ def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict, 
 
             if matched:
                 slot_items_matched += 1
-                slot_score += 0.25 / total_expected_foods  # Equal weight per food item
+                slot_score += 0.20 / total_expected_foods  # Equal weight per food item
 
             slot_details["items"].append(
                 {
@@ -187,8 +187,8 @@ def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict, 
         slot_details["items_expected"] = len(expected_foods)
         details[slot] = slot_details
 
-    # Cap at 0.25 for Dimension 1
-    score = min(slot_score, 0.25)
+    # Cap at 0.20 for Dimension 1
+    score = min(slot_score, 0.20)
 
     # Catalog usage bonus (0.05): at least one entry uses valid food_catalog_id
     catalog_bonus = 0.05 if total_catalog_entries >= 1 else 0.0
@@ -303,9 +303,9 @@ def main() -> int:
     conn.row_factory = sqlite3.Row
 
     try:
-        # Dimension 1: Daily log entries (0.25) + catalog bonus (0.05)
+        # Dimension 1: Daily log entries (0.20) + catalog bonus (0.05)
         d1_score, d1_details, catalog_bonus = check_daily_log(conn, today)
-        print(f"Dimension 1 (Daily log): {d1_score:.2f}/0.25")
+        print(f"Dimension 1 (Daily log): {d1_score:.2f}/0.20")
         print(f"  Catalog usage bonus: {catalog_bonus:.2f}")
         print(
             f"  Entries with catalog_id: {d1_details.get('catalog_usage', {}).get('entries_with_catalog_id', 0)}"
@@ -337,7 +337,7 @@ def main() -> int:
             f"Dimension 4 (Tuesday items): {d4_score:.2f}/0.25 (found {d4_count} items)"
         )
 
-        # Total score (max 1.0: 0.25 + 0.05 + 0.25 + 0.25 + 0.25 = 1.05, capped at 1.0)
+        # Total score (max 1.0: 0.20 + 0.05 + 0.25 + 0.25 + 0.25)
         raw_score = d1_score + catalog_bonus + d2_score + d3_score + d4_score
         total_score = min(round(raw_score, 2), 1.0)
 
