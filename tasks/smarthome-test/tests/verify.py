@@ -43,6 +43,8 @@ EXPECTED_EVENT_TITLES = [
     "Lunch with Client",
     "Project Review",
 ]
+EXPECTED_FRIDGE_COUNT = 8
+EXPECTED_PANTRY_COUNT = 5
 INITIAL_SHOPPING_LIST_COUNT = 8
 
 
@@ -258,7 +260,7 @@ def check_d3_thermostat_state():
 
 
 def check_d4_inventory_report(response):
-    """D4: Inventory report — mentions fridge count (8) AND pantry count (5)"""
+    """D4: Inventory report — mentions fridge count and pantry count"""
     print("\n=== D4: Inventory Report ===")
 
     if response is None:
@@ -268,26 +270,26 @@ def check_d4_inventory_report(response):
     response_lower = response.lower()
     found = 0
 
-    # Check fridge count (8) - must have 8 items in fridge context
+    # Check fridge count - must mention the expected count in fridge context.
     fridge_patterns = [
-        r"8\s*items?\s*(in\s*)?(the\s*)?fridge",
-        r"fridge[^\d]*8\s*items?",
-        r"fridge[^\d.]*:\s*8",
+        rf"{EXPECTED_FRIDGE_COUNT}\s*items?\s*(in\s*)?(the\s*)?fridge",
+        rf"fridge[^\d]*{EXPECTED_FRIDGE_COUNT}\s*items?",
+        rf"fridge[^\d.]*:\s*{EXPECTED_FRIDGE_COUNT}",
     ]
     if any(re.search(p, response_lower) for p in fridge_patterns):
-        print("PASS: Fridge count (8 items) mentioned")
+        print(f"PASS: Fridge count ({EXPECTED_FRIDGE_COUNT} items) mentioned")
         found += 1
     else:
         print("FAIL: Fridge count not mentioned")
 
-    # Check pantry count (5) - must have 5 items in pantry context
+    # Check pantry count - must mention the expected count in pantry context.
     pantry_patterns = [
-        r"5\s*items?\s*(in\s*)?(the\s*)?pantry",
-        r"pantry[^\d]*5\s*items?",
-        r"pantry[^\d.]*:\s*5",
+        rf"{EXPECTED_PANTRY_COUNT}\s*items?\s*(in\s*)?(the\s*)?pantry",
+        rf"pantry[^\d]*{EXPECTED_PANTRY_COUNT}\s*items?",
+        rf"pantry[^\d.]*:\s*{EXPECTED_PANTRY_COUNT}",
     ]
     if any(re.search(p, response_lower) for p in pantry_patterns):
-        print("PASS: Pantry count (5 items) mentioned")
+        print(f"PASS: Pantry count ({EXPECTED_PANTRY_COUNT} items) mentioned")
         found += 1
     else:
         print("FAIL: Pantry count not mentioned")

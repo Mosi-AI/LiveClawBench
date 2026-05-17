@@ -134,9 +134,17 @@ interface BenchmarkClock {
 // Data directory for persistent smarthome state. The per-task startup script creates this
 // directory (mkdir -p, chown mock:mock, chmod 700) and creates verifier-compatible
 // symlink: /tmp/mosi_smart_home.sqlite -> /var/lib/mock-data/smarthome/smarthome.db
-const DATA_DIR = process.env.MOCK_DATA_DIR || "/var/lib/mock-data/smarthome";
-const DB_PATH = `${DATA_DIR}/smarthome.db`;
-const SEED_PATH = process.env.MOCK_SEED_PATH || "/opt/mock/data/smarthome.sql";
+function getDataDir(): string {
+  return process.env.MOCK_DATA_DIR || "/var/lib/mock-data/smarthome";
+}
+
+function getDbPath(): string {
+  return `${getDataDir()}/smarthome.db`;
+}
+
+function getSeedPath(): string {
+  return process.env.MOCK_SEED_PATH || "/opt/mock/data/smarthome.sql";
+}
 
 let db: Database | null = null;
 
@@ -159,7 +167,9 @@ function hasRequiredSeedData(): boolean {
 }
 
 function initDatabase(): void {
-  const dbDir = DB_PATH.substring(0, DB_PATH.lastIndexOf("/"));
+  const dbPath = getDbPath();
+  const seedPath = getSeedPath();
+  const dbDir = dbPath.substring(0, dbPath.lastIndexOf("/"));
   try {
     mkdirSync(dbDir, { recursive: true });
   } catch (err) {
@@ -168,8 +178,8 @@ function initDatabase(): void {
   }
 
   // Check if DB already exists (for persistence across restart)
-  const dbExists = existsSync(DB_PATH);
-  db = new Database(DB_PATH, { create: true });
+  const dbExists = existsSync(dbPath);
+  db = new Database(dbPath, { create: true });
 
   // Create tables with CHECK constraints (idempotent via IF NOT EXISTS)
   db.exec(`
@@ -320,14 +330,14 @@ function initDatabase(): void {
   // 1. Fresh DB (doesn't exist yet), OR
   // 2. Existing DB but required singleton tables are empty (handles restart after crash before seed)
   const needsSeed = !dbExists || !hasRequiredSeedData();
-  if (needsSeed && existsSync(SEED_PATH)) {
-    const sql = readFileSync(SEED_PATH, "utf-8");
+  if (needsSeed && existsSync(seedPath)) {
+    const sql = readFileSync(seedPath, "utf-8");
     db.exec(sql);
-    console.log(`mock-smarthome: initialized DB from ${SEED_PATH} (${dbExists ? "refilled empty tables" : "fresh DB"})`);
+    console.log(`mock-smarthome: initialized DB from ${seedPath} (${dbExists ? "refilled empty tables" : "fresh DB"})`);
   } else if (dbExists) {
-    console.log(`mock-smarthome: found existing DB at ${DB_PATH} with valid seed data, preserving state`);
+    console.log(`mock-smarthome: found existing DB at ${dbPath} with valid seed data, preserving state`);
   } else {
-    console.log(`mock-smarthome: no seed SQL found at ${SEED_PATH}, using empty tables`);
+    console.log(`mock-smarthome: no seed SQL found at ${seedPath}, using empty tables`);
   }
 
   // Populate inventory_snapshot from inventory_item (only if snapshot is empty)
