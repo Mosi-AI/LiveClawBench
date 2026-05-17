@@ -172,7 +172,7 @@ def main():
 
     # Compute total
     total = round(min(score, 1.0), 2)
-    score_line = f"Score: {total:.1f}/1.0 | " + "; ".join(messages)
+    score_line = f"Score: {total:.2f}/1.0 | " + "; ".join(messages)
     print(score_line)
 
     write_reward(total, dimension_scores)

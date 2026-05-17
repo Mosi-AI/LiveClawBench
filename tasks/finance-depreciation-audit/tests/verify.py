@@ -161,7 +161,7 @@ def main():
 if __name__ == "__main__":
     score, details = main()
 
-    print(f"Score: {score:.1f}/1.0")
+    print(f"Score: {score:.2f}/1.0")
     for msg in details["messages"]:
         print(f"  {msg}")
 

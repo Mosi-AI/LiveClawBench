@@ -122,9 +122,14 @@ def check_emails(email_conn: sqlite3.Connection) -> tuple[float, dict]:
         "Finance DB missing corrupted March 2026 records",
     )
 
-    # Get all sent emails
+    # Get sent emails relevant to this task. The instruction tells the agent
+    # "The email subject should clearly indicate it is a budget alert", so we
+    # restrict to subjects mentioning 'budget' or 'alert' (case-insensitive)
+    # to exclude unrelated baseline-seed emails in the sent folder.
     sent_emails = email_conn.execute(
-        "SELECT recipient_email, subject, body FROM emails WHERE folder = 'sent'"
+        "SELECT recipient_email, subject, body FROM emails "
+        "WHERE folder = 'sent' "
+        "AND (LOWER(subject) LIKE '%budget%' OR LOWER(subject) LIKE '%alert%')"
     ).fetchall()
 
     # Build a map of recipient -> list of emails
@@ -134,30 +139,31 @@ def check_emails(email_conn: sqlite3.Connection) -> tuple[float, dict]:
             (recipient, subject, body)
         )
 
-    # 2. Email sent count: exactly 3 emails to violating departments
-    violating_recipients_found = {
-        r for r in emails_by_recipient if r in {e.lower() for e in EXPECTED_RECIPIENTS}
-    }
-    sent_count = len(violating_recipients_found)
+    # Recipient set analysis: instruction forbids emails to non-violating departments,
+    # so both dimensions reject ANY extra recipient beyond the 3 violators.
+    found_emails = set(emails_by_recipient.keys())  # already lowered above
+    expected_lower = {e.lower() for e in EXPECTED_RECIPIENTS}
+    extras = found_emails - expected_lower
+    missing = expected_lower - found_emails
+    sent_count = len(found_emails & expected_lower)
+
+    # 2. Email sent count: exactly 3 emails to violators AND no emails to anyone else
     score += record_score(
         details,
         "email_sent_count",
-        sent_count == 3,
-        f"Alert emails sent to {sent_count}/3 violating department managers",
-        f"Alert emails sent to {sent_count}/3 violating department managers (expected 3)",
+        sent_count == 3 and len(extras) == 0,
+        f"Alert emails sent to {sent_count}/3 violating managers with no extras",
+        f"Alert emails sent to {sent_count}/3 violating managers; "
+        f"{len(extras)} extra non-violator recipients: {sorted(extras)}",
     )
 
-    # 3. Correct recipients: emails sent to exactly the 3 violating managers
-    found_emails = {r for r in emails_by_recipient}
-    correct = EXPECTED_RECIPIENTS.intersection(
-        {r for r in found_emails}
-    )
+    # 3. Correct recipients: strict set equality with the 3 violating managers
     score += record_score(
         details,
         "correct_recipients",
-        len(correct) == 3,
-        f"Emails sent to correct managers: {correct}",
-        f"Missing recipients: {EXPECTED_RECIPIENTS - correct}",
+        found_emails == expected_lower,
+        f"Emails sent to exactly the correct managers: {sorted(found_emails)}",
+        f"Recipient mismatch - missing: {sorted(missing)}, extras: {sorted(extras)}",
     )
 
     # 4. Email content: each email mentions department and violation
@@ -226,7 +232,7 @@ def main() -> tuple[float, dict]:
 if __name__ == "__main__":
     score, details = main()
 
-    print(f"Score: {score:.1f}/1.0")
+    print(f"Score: {score:.2f}/1.0")
     for msg in details["messages"]:
         print(f"  {msg}")
 
