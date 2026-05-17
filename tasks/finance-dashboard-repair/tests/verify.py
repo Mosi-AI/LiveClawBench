@@ -17,7 +17,7 @@ import sys
 import traceback
 
 DB_PATH = os.environ.get("MOCK_FINANCE_DB_PATH", "/opt/mock/data/finance_app.sqlite")
-POLICY_PATH = "/workspace/policies/dashboard_spec.md"
+POLICY_PATH = os.environ.get("POLICY_PATH", "/workspace/policies/dashboard_spec.md")
 
 DEPRECATED_FIELDS = {"total_expenses", "budget_deviation", "gross_revenue"}
 VALID_FIELDS = {"budget_amount", "actual_expense_amount", "revenue_amount"}
@@ -101,13 +101,14 @@ def main():
         messages.append(f"FAIL: invalid field names: {invalid}")
 
     # --- Dimension 4: Formula matches NAPI structure (0.15) ---
-    has_correct_consts = "0.1" in formula_str and "0.05" in formula_str
-    has_add = '"op":"add"' in formula_str
-    has_subtract = '"op":"subtract"' in formula_str
-    has_multiply = '"op":"multiply"' in formula_str
-    has_revenue = '"revenue_amount"' in formula_str
-    has_expense = '"actual_expense_amount"' in formula_str
-    has_budget = '"budget_amount"' in formula_str
+    formula_compact = json.dumps(formula, separators=(",", ":"))
+    has_correct_consts = "0.1" in formula_compact and "0.05" in formula_compact
+    has_add = '"op":"add"' in formula_compact
+    has_subtract = '"op":"subtract"' in formula_compact
+    has_multiply = '"op":"multiply"' in formula_compact
+    has_revenue = '"revenue_amount"' in formula_compact
+    has_expense = '"actual_expense_amount"' in formula_compact
+    has_budget = '"budget_amount"' in formula_compact
 
     structure_score = 0.0
     if has_correct_consts:
@@ -131,39 +132,43 @@ def main():
     except FileNotFoundError:
         messages.append("FAIL: policy file not found")
 
-    has_audit = any(
-        kw in policy_content
-        for kw in ["audit", "correction", "fixed", "repaired", "issue", "error"]
+    has_audit_section = any(
+        header in policy_content
+        for header in ["## audit", "## change log", "## correction log", "## change record"]
     )
-    if has_audit:
+    if has_audit_section:
         score += WEIGHTS["policy_audit"]
         dimension_scores["policy_audit"] = WEIGHTS["policy_audit"]
-        messages.append("PASS: policy has audit notes")
+        messages.append("PASS: policy has audit notes section")
     else:
         dimension_scores["policy_audit"] = 0.0
-        messages.append("FAIL: policy missing audit/correction notes")
+        messages.append("FAIL: policy missing audit notes section (## Audit or similar)")
 
     # --- Dimension 6: Policy mentions specific corrections (0.15) ---
-    mentions_expense = "actual_expense_amount" in policy_content
-    mentions_budget = "budget_amount" in policy_content
-    mentions_deprecated_context = (
-        "total_expenses" in policy_content
-        and ("deprecated" in policy_content or "replace" in policy_content or "correct" in policy_content)
-    )
-
+    # Only check if audit section exists; initial spec must not satisfy this.
     policy_content_score = 0.0
-    if mentions_expense:
-        policy_content_score += 0.05
-    if mentions_budget:
-        policy_content_score += 0.05
-    if mentions_deprecated_context:
-        policy_content_score += 0.05
+    if has_audit_section:
+        mentions_expense_fix = (
+            "total_expenses" in policy_content
+            and "actual_expense_amount" in policy_content
+            and ("replace" in policy_content or "correct" in policy_content or "fix" in policy_content)
+        )
+        mentions_budget_fix = (
+            "budget_deviation" in policy_content
+            and "budget_amount" in policy_content
+            and ("replace" in policy_content or "correct" in policy_content or "fix" in policy_content)
+        )
+        if mentions_expense_fix:
+            policy_content_score += 0.075
+        if mentions_budget_fix:
+            policy_content_score += 0.075
+
     dimension_scores["policy_content"] = policy_content_score
     score += policy_content_score
     if policy_content_score >= WEIGHTS["policy_content"]:
-        messages.append("PASS: policy mentions specific corrections")
+        messages.append("PASS: policy documents specific field corrections")
     else:
-        messages.append(f"FAIL: policy content partial ({policy_content_score:.2f}/{WEIGHTS['policy_content']:.2f})")
+        messages.append(f"FAIL: policy content partial ({policy_content_score:.3f}/{WEIGHTS['policy_content']:.2f})")
 
     # Compute total
     total = round(min(score, 1.0), 2)
@@ -177,11 +182,14 @@ def main():
 
 
 def write_reward(total, dimension_scores):
-    os.makedirs("/logs/verifier", exist_ok=True)
-    reward_json = {f"_meta_{k}": v for k, v in dimension_scores.items()}
-    reward_json["reward"] = total
-    with open("/logs/verifier/reward.json", "w") as f:
-        json.dump(reward_json, f, indent=2)
+    try:
+        os.makedirs("/logs/verifier", exist_ok=True)
+        reward_json = {f"_meta_{k}": v for k, v in dimension_scores.items()}
+        reward_json["reward"] = total
+        with open("/logs/verifier/reward.json", "w") as f:
+            json.dump(reward_json, f, indent=2)
+    except OSError:
+        pass
 
 
 if __name__ == "__main__":
