@@ -4,6 +4,30 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { OkSchema, ErrSchema } from "./schemas";
 
+export function resetMutableTables(d: Database): void {
+  d.transaction(() => {
+    d.run("DELETE FROM ingredient_item");
+    d.run("DELETE FROM meal_plan_item");
+    d.run("DELETE FROM meal_plan_day");
+    d.run("DELETE FROM food_entry");
+    d.run("DELETE FROM meal_plan");
+    d.run("DELETE FROM daily_log");
+    d.run(`
+      DELETE FROM sqlite_sequence
+      WHERE name IN (
+        'daily_log',
+        'food_entry',
+        'meal_plan',
+        'meal_plan_day',
+        'meal_plan_item',
+        'ingredient_item'
+      )
+    `);
+  })();
+
+  d.run("PRAGMA wal_checkpoint(FULL)");
+}
+
 export function registerAdminRoutes(
   app: OpenAPIApp,
   getDatabase: () => Database
@@ -39,28 +63,7 @@ export function registerAdminRoutes(
     }
 
     const d = getDatabase();
-
-    d.transaction(() => {
-      d.run("DELETE FROM ingredient_item");
-      d.run("DELETE FROM meal_plan_item");
-      d.run("DELETE FROM meal_plan_day");
-      d.run("DELETE FROM food_entry");
-      d.run("DELETE FROM meal_plan");
-      d.run("DELETE FROM daily_log");
-      d.run(`
-        DELETE FROM sqlite_sequence
-        WHERE name IN (
-          'daily_log',
-          'food_entry',
-          'meal_plan',
-          'meal_plan_day',
-          'meal_plan_item',
-          'ingredient_item'
-        )
-      `);
-    })();
-
-    d.run("PRAGMA wal_checkpoint(FULL)");
+    resetMutableTables(d);
 
     return c.json(ok({ message: "Data reset successfully" }));
   });

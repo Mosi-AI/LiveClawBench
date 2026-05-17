@@ -6,8 +6,8 @@ import {
   createPlan,
   updatePlan,
   deletePlan,
-} from "../../../queries";
-import type { CreatePlanInput } from "../../../queries";
+} from "../../queries";
+import type { CreatePlanInput } from "../../queries";
 import {
   PlanIdParamSchema,
   MealPlanSchema,

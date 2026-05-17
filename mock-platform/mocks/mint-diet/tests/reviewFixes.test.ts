@@ -4,8 +4,8 @@ import { Database } from "bun:sqlite";
 import { createTables } from "../src/schema.js";
 import { resolveEffectiveBudget } from "../src/queries.js";
 import type { FoodCatalog } from "../src/queries.js";
-import { resetMutableTables } from "../src/routes/admin.js";
-import { isCatalogQuantityUnit, parseManualMacros } from "../src/routes/log.js";
+import { resetMutableTables } from "../src/routes/api/admin.js";
+import { isCatalogQuantityUnit, parseManualMacros } from "../src/routes/log-shared.js";
 
 const makeCatalog = (overrides: Partial<FoodCatalog> = {}): FoodCatalog => ({
   id: 1,
