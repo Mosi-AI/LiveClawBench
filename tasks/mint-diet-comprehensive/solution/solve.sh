@@ -1,25 +1,40 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Food Catalog ID Reference (based on mock-platform/mocks/mint-diet/src/seeds.ts insertion order)
-# ZH foods (inserted first, IDs 1-15):
-#   白米饭 = 1        (white rice)
-#   鸡胸肉 = 6        (chicken breast)
-#   三文鱼 = 7        (salmon)
-#   牛奶 = 10         (milk)
-#   燕麦 = 12         (oatmeal - ZH)
-#   香蕉 = 13         (banana - ZH)
-# EN foods (inserted second, IDs 16-30):
-#   oatmeal = 16
-#   chicken breast = 18
-#   salmon = 19
-#   milk = 23
-#   banana = 24
-#   broccoli = 30
-#
-# Note: These IDs depend on seed order in seeds.ts. If seeds.ts changes, IDs may need updating.
-
 BASE_URL="http://localhost:5003"
+
+find_catalog_id() {
+  local date="$1"
+  local slot="$2"
+  local query="$3"
+  local response
+  response=$(curl -sfG --data-urlencode "q=${query}" "${BASE_URL}/log/${date}/add/${slot}" 2>/dev/null || echo "")
+  echo "$response" | grep -oP 'food=\K[0-9]+' | head -1 || true
+}
+
+add_catalog_entry() {
+  local date="$1"
+  local slot="$2"
+  local search_query="$3"
+  local food_name="$4"
+  local quantity_value="$5"
+  local quantity_unit="$6"
+  local catalog_id
+
+  catalog_id=$(find_catalog_id "$date" "$slot" "$search_query")
+  if [ -z "$catalog_id" ]; then
+    echo "Could not find catalog food: ${search_query}" >&2
+    exit 1
+  fi
+
+  curl -sf -X POST "${BASE_URL}/log/${date}/entries" \
+    -d "slot=${slot}" \
+    -d "food_catalog_id=${catalog_id}" \
+    -d "food_name=${food_name}" \
+    -d "quantity_value=${quantity_value}" \
+    -d "quantity_unit=${quantity_unit}" \
+    -o /dev/null
+}
 
 # Compute dates
 TODAY=$(date +%Y-%m-%d)
@@ -54,97 +69,20 @@ for _ in $(seq 1 30); do
 done
 
 # Step 1: Log meals for today
-# Breakfast: oatmeal 250g (ID 16), banana 120g (ID 24)
 echo "Logging breakfast..."
-curl -sf -X POST "${BASE_URL}/log/${TODAY}/entries" \
-  -d "slot=breakfast" \
-  -d "food_catalog_id=16" \
-  -d "food_name=oatmeal" \
-  -d "quantity_value=250" \
-  -d "quantity_unit=g" \
-  -d "calories_kcal=950" \
-  -d "protein_g=31.25" \
-  -d "carbs_g=168.75" \
-  -d "fat_g=15.625" \
-  -o /dev/null
+add_catalog_entry "$TODAY" "breakfast" "oatmeal" "oatmeal" "250" "g"
+add_catalog_entry "$TODAY" "breakfast" "banana" "banana" "120" "g"
 
-curl -sf -X POST "${BASE_URL}/log/${TODAY}/entries" \
-  -d "slot=breakfast" \
-  -d "food_catalog_id=24" \
-  -d "food_name=banana" \
-  -d "quantity_value=120" \
-  -d "quantity_unit=g" \
-  -d "calories_kcal=107" \
-  -d "protein_g=1.3" \
-  -d "carbs_g=27.1" \
-  -d "fat_g=0.4" \
-  -o /dev/null
-
-# Lunch: chicken breast 200g (ID 18), white rice 300g (ID 1)
 echo "Logging lunch..."
-curl -sf -X POST "${BASE_URL}/log/${TODAY}/entries" \
-  -d "slot=lunch" \
-  -d "food_catalog_id=18" \
-  -d "food_name=chicken breast" \
-  -d "quantity_value=200" \
-  -d "quantity_unit=g" \
-  -d "calories_kcal=260" \
-  -d "protein_g=48" \
-  -d "carbs_g=0" \
-  -d "fat_g=6" \
-  -o /dev/null
+add_catalog_entry "$TODAY" "lunch" "chicken breast" "chicken breast" "200" "g"
+add_catalog_entry "$TODAY" "lunch" "白米饭" "white rice" "300" "g"
 
-curl -sf -X POST "${BASE_URL}/log/${TODAY}/entries" \
-  -d "slot=lunch" \
-  -d "food_catalog_id=1" \
-  -d "food_name=white rice" \
-  -d "quantity_value=300" \
-  -d "quantity_unit=g" \
-  -d "calories_kcal=390" \
-  -d "protein_g=7.2" \
-  -d "carbs_g=86.4" \
-  -d "fat_g=0.6" \
-  -o /dev/null
-
-# Dinner: salmon 150g (ID 19), broccoli 100g (ID 30)
 echo "Logging dinner..."
-curl -sf -X POST "${BASE_URL}/log/${TODAY}/entries" \
-  -d "slot=dinner" \
-  -d "food_catalog_id=19" \
-  -d "food_name=salmon" \
-  -d "quantity_value=150" \
-  -d "quantity_unit=g" \
-  -d "calories_kcal=312" \
-  -d "protein_g=30" \
-  -d "carbs_g=0" \
-  -d "fat_g=19.5" \
-  -o /dev/null
+add_catalog_entry "$TODAY" "dinner" "salmon" "salmon" "150" "g"
+add_catalog_entry "$TODAY" "dinner" "broccoli" "broccoli" "100" "g"
 
-curl -sf -X POST "${BASE_URL}/log/${TODAY}/entries" \
-  -d "slot=dinner" \
-  -d "food_catalog_id=30" \
-  -d "food_name=broccoli" \
-  -d "quantity_value=100" \
-  -d "quantity_unit=g" \
-  -d "calories_kcal=34" \
-  -d "protein_g=2.8" \
-  -d "carbs_g=6.6" \
-  -d "fat_g=0.4" \
-  -o /dev/null
-
-# Snack: milk 240ml (ID 23)
 echo "Logging snack..."
-curl -sf -X POST "${BASE_URL}/log/${TODAY}/entries" \
-  -d "slot=snacks" \
-  -d "food_catalog_id=23" \
-  -d "food_name=milk" \
-  -d "quantity_value=240" \
-  -d "quantity_unit=ml" \
-  -d "calories_kcal=149" \
-  -d "protein_g=8" \
-  -d "carbs_g=11.7" \
-  -d "fat_g=8" \
-  -o /dev/null
+add_catalog_entry "$TODAY" "snacks" "milk" "milk" "240" "ml"
 
 # Step 2: Create meal plan
 echo "Creating meal plan..."

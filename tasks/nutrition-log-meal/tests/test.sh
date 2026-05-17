@@ -3,9 +3,14 @@ set -euo pipefail
 
 mkdir -p /logs/verifier /logs/artifacts
 
-python3 /tests/verify.py 2>&1 | tee /tmp/verify_output.txt || true
+set +e
+python3 /tests/verify.py 2>&1 | tee /tmp/verify_output.txt
+VERIFY_EXIT=${PIPESTATUS[0]}
+set -e
 
-SCORE=$(grep -oP 'Score:\s*\K[0-9.]+' /tmp/verify_output.txt | tail -1 || echo "0")
+SCORE=$(grep -oE 'Score:[[:space:]]*[0-9.]+' /tmp/verify_output.txt | tail -1 | grep -oE '[0-9.]+' || echo "0")
 echo "$SCORE" > /logs/verifier/reward.txt
 
 cp /tmp/verify_output.txt /logs/artifacts/nutrition-log-meal-verify-output.txt
+
+exit $VERIFY_EXIT

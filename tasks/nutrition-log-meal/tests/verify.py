@@ -8,6 +8,7 @@ import os
 import sqlite3
 import sys
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 DB_PATH = Path("/var/lib/mock-data/mint-diet/mint-diet.sqlite")
 
@@ -15,7 +16,11 @@ DB_PATH = Path("/var/lib/mock-data/mint-diet/mint-diet.sqlite")
 def get_today() -> str:
     """Get today's date in YYYY-MM-DD format."""
     tz = os.environ.get("TZ", "UTC")
-    return datetime.date.today().strftime("%Y-%m-%d")
+    try:
+        today = datetime.datetime.now(ZoneInfo(tz)).date()
+    except ZoneInfoNotFoundError:
+        today = datetime.datetime.now(ZoneInfo("UTC")).date()
+    return today.strftime("%Y-%m-%d")
 
 
 def check_milk_entry(conn: sqlite3.Connection, today: str) -> bool:
@@ -28,6 +33,7 @@ def check_milk_entry(conn: sqlite3.Connection, today: str) -> bool:
         WHERE dl.log_date = ?
           AND fe.meal_slot = 'lunch'
           AND (fe.food_name COLLATE NOCASE = 'milk' OR fe.food_name = '牛奶')
+          AND fe.quantity_value > 0
         """,
         (today,),
     )
@@ -44,6 +50,7 @@ def check_chicken_salad_entry(conn: sqlite3.Connection, today: str) -> bool:
         WHERE dl.log_date = ?
           AND fe.meal_slot = 'lunch'
           AND fe.food_name COLLATE NOCASE LIKE '%chicken salad%'
+          AND fe.quantity_value > 0
         """,
         (today,),
     )

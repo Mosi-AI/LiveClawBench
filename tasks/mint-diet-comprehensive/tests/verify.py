@@ -9,7 +9,6 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-
 DB_PATH = Path("/var/lib/mock-data/mint-diet/mint-diet.sqlite")
 
 # Expected meal specifications from instruction.md
@@ -19,8 +18,18 @@ MEAL_SPECS = {
         {"names": ["banana", "香蕉"], "quantity": 120, "unit": "g", "calories": 107},
     ],
     "lunch": [
-        {"names": ["chicken breast", "鸡胸肉"], "quantity": 200, "unit": "g", "calories": 260},
-        {"names": ["white rice", "白米饭", "rice"], "quantity": 300, "unit": "g", "calories": 390},
+        {
+            "names": ["chicken breast", "鸡胸肉"],
+            "quantity": 200,
+            "unit": "g",
+            "calories": 260,
+        },
+        {
+            "names": ["white rice", "白米饭", "rice"],
+            "quantity": 300,
+            "unit": "g",
+            "calories": 390,
+        },
     ],
     "dinner": [
         {"names": ["salmon", "三文鱼"], "quantity": 150, "unit": "g", "calories": 312},
@@ -59,7 +68,7 @@ def compute_dates() -> tuple[str, str, str]:
     )
 
 
-def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict]:
+def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict, float]:
     """
     Dimension 1 (0.25): Check daily_log has food_entry rows for all 4 slots
     with expected foods matching quantity, unit, and calories.
@@ -76,7 +85,7 @@ def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict]:
 
     if not row:
         details["error"] = f"No daily_log found for {today}"
-        return score, details
+        return score, details, 0.0
 
     daily_log_id = row[0]
 
@@ -101,16 +110,18 @@ def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict]:
     for entry in entries:
         meal_slot = entry[0]
         if meal_slot in slot_entries:
-            slot_entries[meal_slot].append({
-                "food_name": entry[1],
-                "quantity_value": entry[2],
-                "quantity_unit": entry[3],
-                "calories_kcal": entry[4],
-                "protein_g": entry[5],
-                "carbs_g": entry[6],
-                "fat_g": entry[7],
-                "food_catalog_id": entry[8],
-            })
+            slot_entries[meal_slot].append(
+                {
+                    "food_name": entry[1],
+                    "quantity_value": entry[2],
+                    "quantity_unit": entry[3],
+                    "calories_kcal": entry[4],
+                    "protein_g": entry[5],
+                    "carbs_g": entry[6],
+                    "fat_g": entry[7],
+                    "food_catalog_id": entry[8],
+                }
+            )
 
     # Check each slot against expected meal specs
     slot_score = 0.0
@@ -131,7 +142,9 @@ def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict]:
                 food_name_lower = entry["food_name"].lower()
 
                 # Check if food name matches any of the expected names
-                name_match = any(name.lower() in food_name_lower for name in spec["names"])
+                name_match = any(
+                    name.lower() in food_name_lower for name in spec["names"]
+                )
 
                 if name_match:
                     # Check quantity with tolerance
@@ -158,15 +171,17 @@ def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict]:
                 slot_items_matched += 1
                 slot_score += 0.25 / total_expected_foods  # Equal weight per food item
 
-            slot_details["items"].append({
-                "expected_names": spec["names"],
-                "expected_qty": spec["quantity"],
-                "expected_unit": spec["unit"],
-                "expected_cal": spec["calories"],
-                "matched": matched,
-                "catalog_matched": catalog_matched,
-                "actual_entry": matched_entry,
-            })
+            slot_details["items"].append(
+                {
+                    "expected_names": spec["names"],
+                    "expected_qty": spec["quantity"],
+                    "expected_unit": spec["unit"],
+                    "expected_cal": spec["calories"],
+                    "matched": matched,
+                    "catalog_matched": catalog_matched,
+                    "actual_entry": matched_entry,
+                }
+            )
 
         slot_details["items_matched"] = slot_items_matched
         slot_details["items_expected"] = len(expected_foods)
@@ -185,7 +200,9 @@ def check_daily_log(conn: sqlite3.Connection, today: str) -> tuple[float, dict]:
     return score, details, catalog_bonus
 
 
-def check_meal_plan(conn: sqlite3.Connection, next_monday: str, next_sunday: str) -> tuple[float, dict]:
+def check_meal_plan(
+    conn: sqlite3.Connection, next_monday: str, next_sunday: str
+) -> tuple[float, dict]:
     """
     Dimension 2 (0.25): Check meal_plan exists with title="Clean Eating Week",
     status="active", dates match, target=1800, notes contains "lean protein".
@@ -246,7 +263,9 @@ def check_meal_plan(conn: sqlite3.Connection, next_monday: str, next_sunday: str
     return score, details
 
 
-def check_plan_items(conn: sqlite3.Connection, plan_id: int, target_date: str) -> tuple[float, int, list]:
+def check_plan_items(
+    conn: sqlite3.Connection, plan_id: int, target_date: str
+) -> tuple[float, int, list]:
     """
     Check meal_plan_item rows for a specific date.
     Returns (score, count, items).
@@ -288,7 +307,9 @@ def main() -> int:
         d1_score, d1_details, catalog_bonus = check_daily_log(conn, today)
         print(f"Dimension 1 (Daily log): {d1_score:.2f}/0.25")
         print(f"  Catalog usage bonus: {catalog_bonus:.2f}")
-        print(f"  Entries with catalog_id: {d1_details.get('catalog_usage', {}).get('entries_with_catalog_id', 0)}")
+        print(
+            f"  Entries with catalog_id: {d1_details.get('catalog_usage', {}).get('entries_with_catalog_id', 0)}"
+        )
 
         # Dimension 2: Meal plan configuration (0.25)
         d2_score, d2_details = check_meal_plan(conn, next_monday, next_sunday)
@@ -302,7 +323,9 @@ def main() -> int:
             d3_score, d3_count, d3_items = check_plan_items(conn, plan_id, next_monday)
         else:
             d3_score, d3_count, d3_items = 0.0, 0, []
-        print(f"Dimension 3 (Monday items): {d3_score:.2f}/0.25 (found {d3_count} items)")
+        print(
+            f"Dimension 3 (Monday items): {d3_score:.2f}/0.25 (found {d3_count} items)"
+        )
 
         # Dimension 4: Tuesday plan items (0.25)
         next_tuesday = (date.fromisoformat(next_monday) + timedelta(days=1)).isoformat()
@@ -310,7 +333,9 @@ def main() -> int:
             d4_score, d4_count, d4_items = check_plan_items(conn, plan_id, next_tuesday)
         else:
             d4_score, d4_count, d4_items = 0.0, 0, []
-        print(f"Dimension 4 (Tuesday items): {d4_score:.2f}/0.25 (found {d4_count} items)")
+        print(
+            f"Dimension 4 (Tuesday items): {d4_score:.2f}/0.25 (found {d4_count} items)"
+        )
 
         # Total score (max 1.0: 0.25 + 0.05 + 0.25 + 0.25 + 0.25 = 1.05, capped at 1.0)
         raw_score = d1_score + catalog_bonus + d2_score + d3_score + d4_score
@@ -332,7 +357,7 @@ def main() -> int:
                 "d2_meal_plan": d2_details,
                 "d3_monday_items": {"count": d3_count, "items": d3_items},
                 "d4_tuesday_items": {"count": d4_count, "items": d4_items},
-            }
+            },
         }
         with open("/logs/verifier/reward.json", "w") as f:
             json.dump(reward_json, f, indent=2)
