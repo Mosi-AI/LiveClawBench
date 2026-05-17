@@ -61,7 +61,7 @@ function getNextFriday(): string {
   const today = new Date();
   // Python weekday: 0=Mon … 4=Fri … 6=Sun
   const pyWeekday = (today.getDay() + 6) % 7;
-  const daysUntilFriday = (4 - pyWeekday + 7) % 7 || 7;
+  const daysUntilFriday = (4 - pyWeekday + 7) % 7;
   const friday = new Date(today);
   friday.setDate(today.getDate() + daysUntilFriday);
   return formatLocalDate(friday);

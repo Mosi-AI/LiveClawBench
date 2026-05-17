@@ -307,6 +307,7 @@ def main() -> None:
     det_scores = dc.structural_scores(result, key)
     det_scores.update(dc.anchor_scores(result, key))
 
+    dc.OUT.mkdir(parents=True, exist_ok=True)
     prompt = build_prompt(result, det_scores)
     (dc.OUT / "llm_judge_prompt.txt").write_text(prompt, encoding="utf-8")
 
