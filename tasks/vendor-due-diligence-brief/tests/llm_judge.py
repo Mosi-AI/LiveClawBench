@@ -233,37 +233,40 @@ def read_text(path: Path) -> str:
 
 
 def fetch_email_context() -> str:
-    """Fetch vendor intro email from mock service so the judge can verify email-backed claims."""
-    try:
-        with urllib.request.urlopen(
-            "http://localhost:5174/api/emails?folder=inbox", timeout=5
-        ) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        emails = data.get("data", {}).get("emails", [])
-        for email in emails:
-            subject = (email.get("subject") or "").lower()
-            body = (email.get("body") or "").lower()
-            if (
-                "cloudedge" in subject
-                or "vendor" in subject
-                or "cloudedge" in body
-                or "partnership" in subject
-            ):
-                email_id = email.get("id")
-                if email_id:
-                    with urllib.request.urlopen(
-                        f"http://localhost:5174/api/emails/{email_id}", timeout=5
-                    ) as r:
-                        detail = json.loads(r.read().decode("utf-8"))
-                    email = detail.get("data", {}).get("email", email)
-                return (
-                    f"Subject: {email.get('subject', '')}\n"
-                    f"From: {email.get('sender_name', '')} <{email.get('sender_email', '')}>\n"
-                    f"Body:\n{email.get('body', '')}"
-                )
-    except Exception:
-        pass
-    return "(email service unavailable or vendor intro not found)"
+    """Fetch vendor intro email from mock service so the judge can verify email-backed claims.
+
+    Raises RuntimeError if the email service is unreachable or the vendor intro is not found,
+    so a broken A1 dependency fails the verifier closed rather than degrading silently.
+    """
+    with urllib.request.urlopen(
+        "http://localhost:5174/api/emails?folder=inbox", timeout=5
+    ) as r:
+        data = json.loads(r.read().decode("utf-8"))
+    emails = data.get("data", {}).get("emails", [])
+    for email in emails:
+        subject = (email.get("subject") or "").lower()
+        body = (email.get("body") or "").lower()
+        if (
+            "cloudedge" in subject
+            or "vendor" in subject
+            or "cloudedge" in body
+            or "partnership" in subject
+        ):
+            email_id = email.get("id")
+            if email_id:
+                with urllib.request.urlopen(
+                    f"http://localhost:5174/api/emails/{email_id}", timeout=5
+                ) as r:
+                    detail = json.loads(r.read().decode("utf-8"))
+                email = detail.get("data", {}).get("email", email)
+            return (
+                f"Subject: {email.get('subject', '')}\n"
+                f"From: {email.get('sender_name', '')} <{email.get('sender_email', '')}>\n"
+                f"Body:\n{email.get('body', '')}"
+            )
+    raise RuntimeError(
+        "Vendor intro email not found in inbox — cannot judge email-backed evidence"
+    )
 
 
 def build_prompt(result: dict, structural: dict) -> str:
