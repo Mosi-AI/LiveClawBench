@@ -412,6 +412,79 @@ GKD Airline Customer Service Team`,
   is_read: 0,
 };
 
+const SENDER_ACME_BILLING = { username: "billing.acme", email: "billing@acmecorp.com" };
+const SENDER_INITECH_BILLING = { username: "billing.initech", email: "billing@initech.com" };
+const SENDER_TAX_AUTHORITY = { username: "tax.authority", email: "notifications@tax-authority.gov" };
+
+const INBOX_ACME_INVOICE = {
+  subject: "Invoice INV-2026-010 - Software License Renewal",
+  body: `Dear Peter Griffin,
+
+Please find below the invoice for services rendered.
+
+Invoice Details:
+- Invoice Number: INV-2026-010
+- Invoice Date: 2026-03-01
+- Vendor: Acme Corp
+
+Line Items:
+1. Software License Renewal - Category 5300 - $15,000.00
+2. Technical Support Package - Category 5400 - $5,000.00
+
+Total Amount Due: $20,000.00
+Payment Terms: Net 30
+
+Please process this invoice at your earliest convenience.
+
+Best regards,
+Acme Corp Billing Department`,
+  days_ago: 2,
+  is_read: 0,
+};
+
+const INBOX_INITECH_INVOICE = {
+  subject: "Invoice INV-2026-011 - Consulting Services",
+  body: `Dear Peter Griffin,
+
+Attached is our invoice for consulting services provided in February.
+
+Invoice Details:
+- Invoice Number: INV-2026-011
+- Invoice Date: 2026-03-05
+- Vendor: Initech Solutions
+
+Line Items:
+1. System Integration - Category 5400 - $8,000.00
+2. Training Services - Category 5400 - $3,500.00
+
+Total Amount Due: $11,500.00
+
+Thank you for your business.
+
+Best regards,
+Initech Solutions Billing`,
+  days_ago: 1,
+  is_read: 0,
+};
+
+const INBOX_TAX_NOTIFICATION = {
+  subject: "Q1 2026 VAT Filing Reminder - Action Required",
+  body: `Dear Finance Team,
+
+This is a reminder that Q1 2026 VAT returns are due by April 15, 2026.
+
+You have the following invoices requiring VAT calculation:
+- INV-2026-001 from Acme Corp (dated 2026-01-15, Software License $12,500.50 + Support $3,000.00)
+- INV-2026-002 from Globex Systems (dated 2026-02-01, Travel Expenses $52,000.00)
+- INV-2026-010 from Acme Corp (dated 2026-03-01, Software License $15,000.00 + Support $5,000.00)
+
+Please calculate the applicable VAT for each invoice based on the current rates and file your return.
+
+Tax Authority Automated Notification System`,
+  days_ago: 1,
+  is_read: 0,
+};
+
 const SENT_GARY = {
   recipient_email: "gaeuala@outlook.com",
   subject: "LONG TIME NO SEE!!!",
@@ -529,6 +602,47 @@ function makeSeedConfig(taskName: string): SeedConfig {
           { senderUsername: "lau.pai", ...INBOX_PARTNERSHIP },
         ],
         sent: [...baselineSent, SENT_GARY],
+      };
+    }
+
+    case "finance-invoice-process": {
+      const senders = [...BASELINE_SENDERS, SENDER_ACME_BILLING, SENDER_INITECH_BILLING];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "billing.acme", ...INBOX_ACME_INVOICE },
+          { senderUsername: "billing.initech", ...INBOX_INITECH_INVOICE },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "finance-tax-prepare": {
+      const senders = [...BASELINE_SENDERS, SENDER_TAX_AUTHORITY, SENDER_ACME_BILLING];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "tax.authority", ...INBOX_TAX_NOTIFICATION },
+          { senderUsername: "billing.acme", ...INBOX_ACME_INVOICE },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "finance-budget-alert":
+    case "finance-analysis-generate":
+    case "finance-expense-log":
+    case "finance-anomaly-detect":
+    case "finance-depreciation-audit":
+    case "finance-dashboard-repair":
+    case "finance-portfolio-rebalancing":
+    case "finance-monthly-close": {
+      return {
+        senders: [...BASELINE_SENDERS],
+        inbox: baselineInbox,
+        sent: baselineSent,
       };
     }
 

@@ -6,16 +6,14 @@ import { generateWerkzeugHashSync } from "../helpers";
 export function seed(db: Database): void {
   const seedPath = process.env.MOCK_FINANCE_SEED_SQL ?? "/opt/mock/data/finance_seed.sql";
 
-  if (existsSync(seedPath)) {
+  // Run custom seed SQL first if provided (additive seeding)
+  if (process.env.MOCK_FINANCE_SEED_SQL && existsSync(seedPath)) {
     try {
       const sql = readFileSync(seedPath, "utf-8");
       db.exec(sql);
-      return;
     } catch {
-      console.warn(`[finance] Seed file not readable at ${seedPath}, falling back to default seed.`);
+      console.warn(`[finance] Seed file not readable at ${seedPath}, skipping custom seed.`);
     }
-  } else if (process.env.MOCK_FINANCE_SEED_SQL) {
-    console.warn(`[finance] Seed file not found at ${seedPath}, falling back to default seed.`);
   }
 
   // Default fixtures

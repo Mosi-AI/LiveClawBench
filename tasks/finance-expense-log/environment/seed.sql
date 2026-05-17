@@ -1,0 +1,2 @@
+-- No additional seed data needed for finance-expense-log task
+-- Agent creates new expense reports from scratch using default seed data

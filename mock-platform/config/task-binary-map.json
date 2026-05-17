@@ -241,6 +241,30 @@
     "finance-monthly-close": {
       "binaries": ["finance"]
     },
-    "health-daily-record": { "binaries": ["health"] }
+    "finance-expense-log": {
+      "binaries": ["finance"]
+    },
+    "finance-anomaly-detect": {
+      "binaries": ["finance"]
+    },
+    "finance-budget-alert": {
+      "binaries": ["finance", "email"]
+    },
+    "finance-invoice-process": {
+      "binaries": ["finance", "email"]
+    },
+    "health-daily-record": { "binaries": ["health"] },
+    "finance-dashboard-repair": {
+      "binaries": ["finance"]
+    },
+    "finance-depreciation-audit": {
+      "binaries": ["finance"]
+    },
+    "finance-tax-prepare": {
+      "binaries": ["finance", "email"]
+    },
+    "finance-analysis-generate": {
+      "binaries": ["finance", "email"]
+    }
   }
 }
