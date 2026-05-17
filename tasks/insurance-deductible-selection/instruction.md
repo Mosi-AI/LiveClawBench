@@ -1,0 +1,1 @@
+Please help me switch to the "Balanced Silver" health insurance plan on the company insurance portal (http://localhost:6000/, open it in browser). My account email is peter.griffin@work.mosi.inc and the password is password123. Log in, navigate to the plans page, and select the Balanced Silver plan. Let me know when you're done.

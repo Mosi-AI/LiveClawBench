@@ -12,7 +12,7 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 
 | Repository | Role | URL |
 |---|---|---|
-| **LiveClawBench** (this repo) | Task corpus — 30 harbor-format benchmark tasks | — |
+| **LiveClawBench** (this repo) | Task corpus — 37 harbor-format benchmark tasks | — |
 | **claw-harbor** | Evaluation framework (fork of harbor with OpenClaw support) | https://github.com/Mosi-AI/claw-harbor |
 | **OpenClaw** | Agent platform running inside task containers | https://github.com/openclaw/openclaw |
 
@@ -150,7 +150,20 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 
 ## Mock Platform
 
-The `mock-platform/` directory contains Bun+Hono mock services that compile to standalone binaries via `bun build --compile`. All five services (shop, doc-search, airline, email, todolist) use Zod schema-first routes with auto-generated OpenAPI 3.1 specs.
+The `mock-platform/` directory contains Bun+Hono mock services that simulate real-world APIs inside
+task containers. Each mock compiles to a standalone binary via `bun build --compile`.
+
+### Mock Services
+
+| Service | Directory | Binary | Description |
+|---|---|---|---|
+| Shop | `mocks/shop/` | `mock-shop` | E-commerce: products, cart, orders, user profile, search |
+| Doc-search | `mocks/doc-search/` | `mock-doc-search` | Full-text search with FTS5, BM25 ranking, JSONL access log |
+| Airline | `mocks/airline/` | `mock-airline` | Flight booking, seat selection, baggage tracking |
+| Email | `mocks/email/` | `mock-email` | Email inbox, compose, reply |
+| Todolist | `mocks/todolist/` | `mock-todolist` | Task management |
+| Insurance | `mocks/insurance/` | `mock-insurance` | Health insurance: claims, appointments, plan selection |
+| Calendar | `mocks/calendar/` | `mock-calendar` | Calendar events CRUD with overlap rejection |
 
 ### Build Commands
 
@@ -161,22 +174,26 @@ bun run build          # Build all mock binaries → dist/
 bun run build:images   # Build per-task Docker images (requires base image first)
 ```
 
-### Documentation
+### Architecture
 
-- [`mock-platform/README.md`](mock-platform/README.md) — Architecture overview, build flow, and adding-a-mock checklist
-- [`mock-platform/docs/mock-conventions.md`](mock-platform/docs/mock-conventions.md) — Full conventions: factory pattern, response wrappers, auth, DB/seeding, testing
-- [`mock-platform/DESIGN.md`](mock-platform/DESIGN.md) — MockAppV2 interface, file size guidelines, build pipeline, Docker layers
+- `packages/mock-lib/` — Shared library (Hono app factory, SQLite helpers, render utilities, types)
+
+> **Auth**: see `mock-platform/README.md#authentication--auth-patterns`
+> for canonical login / row-ownership / cookie patterns. Hand-rolled
+> JWT or plaintext password compare is a review-blocker.
+
+- `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented)
+- `scripts/build-all.ts` — Builds all mock binaries
+- `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set
 
 ### Key Files
 
 | File | Purpose |
 |---|---|
-| `mock-platform/README.md` | Architecture overview, build flow, and adding-a-mock checklist |
-| `mock-platform/docs/mock-conventions.md` | Full conventions: factory pattern, response wrappers, auth, DB/seeding, testing |
-| `mock-platform/packages/mock-lib/README.md` | Shared library API reference |
+| `mock-platform/README.md` | Architecture overview, build flow, and development commands |
 | `mocks/shop/src/index.tsx` | Shop UI and API (Hono TSX rendering) |
 | `mocks/shop/src/search-algorithm.ts` | Extracted search logic (single source of truth) |
-| `mocks/shop/tests/search-algorithm.test.ts` | Layer 1 unit tests (bun:test explicit assertions) |
+| `mocks/shop/src/search-algorithm.test.ts` | Layer 1 unit tests (bun:test snapshot tests) |
 | `mocks/doc-search/src/index.ts` | Doc-search with FTS5 + JSONL browser trace logging |
 
 ## Task List
@@ -215,6 +232,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `skill-combination` | Documents & Knowledge | easy | evaluate.py |
 | `mint-diet-snack-log` | Health & Fitness | easy | verify.py |
 | `weather-aqi-report` | Deep Research & Report | easy | verify.py |
+| `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
+| `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
 
 ## Docker Image Architecture
 
@@ -368,8 +387,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-32 implemented tasks: A1=10, A2=6, B1=4, B2=11.
-Difficulty: Easy=20, Medium=7, Hard=5.
+37 implemented tasks: A1=12, A2=6, B1=4, B2=11.
+Difficulty: Easy=23, Medium=8, Hard=5.
 
 ## Known Issues
 

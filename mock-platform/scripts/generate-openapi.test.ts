@@ -120,4 +120,35 @@ describe("OpenAPI generation — per-mock assertions", () => {
     expect(paths).not.toHaveProperty("/profile");
     expect(paths).not.toHaveProperty("/orders");
   });
+
+  test("insurance generates valid spec with sentinel", async () => {
+    const { document, error } = await generateForMock("insurance");
+    expect(error).toBeUndefined();
+    const paths = (document as any).paths;
+    expect(paths).toHaveProperty("/__mock_sentinel__/insurance");
+    expect(paths).toHaveProperty("/api/auth/login");
+    expect(paths).toHaveProperty("/api/claims");
+    expect(paths).toHaveProperty("/api/plans");
+    // HTML pages should NOT appear in the spec
+    expect(paths).not.toHaveProperty("/login");
+    expect(paths).not.toHaveProperty("/claims");
+    expect(paths).not.toHaveProperty("/claims/new");
+    expect(paths).not.toHaveProperty("/claims/{id}");
+    expect(paths).not.toHaveProperty("/appointments/search");
+    expect(paths).not.toHaveProperty("/appointments/providers/{id}");
+    expect(paths).not.toHaveProperty("/plans");
+    expect(paths).not.toHaveProperty("/plans/current");
+    expect(paths).not.toHaveProperty("/plans/select");
+  });
+
+  test("calendar generates valid spec with sentinel", async () => {
+    const { document, error } = await generateForMock("calendar");
+    expect(error).toBeUndefined();
+    const paths = (document as any).paths;
+    expect(paths).toHaveProperty("/__mock_sentinel__/calendar");
+    expect(paths).toHaveProperty("/api/events");
+    expect(paths).toHaveProperty("/api/events/{id}");
+    // HTML pages should NOT appear in the spec
+    expect(paths).not.toHaveProperty("/");
+  });
 });

@@ -1,8 +1,19 @@
-import type { Database } from "bun:sqlite";
 import { describe, expect, test, beforeEach } from "bun:test";
 import { createAirlineApp } from "../src/index";
 import { resetAirlineDb } from "../src/db";
 import type { OpenAPIApp } from "mock-lib";
+import type { Database } from "bun:sqlite";
+
+async function loginAsDefaultUser(app: OpenAPIApp): Promise<string> {
+  const res = await app.request("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "peter.griffin@work.mosi.inc", password: "password123" }),
+  });
+  expect(res.status).toBe(200);
+  const setCookie = res.headers.get("set-cookie");
+  return setCookie ?? "";
+}
 
 describe("airline routes", () => {
   let app: OpenAPIApp;
@@ -10,9 +21,9 @@ describe("airline routes", () => {
 
   beforeEach(() => {
     resetAirlineDb();
-    const mockApp = createAirlineApp({ dbPath: ":memory:" });
-    app = mockApp.app;
-    db = mockApp.db;
+    const airlineApp = createAirlineApp({ dbPath: ":memory:" });
+    app = airlineApp.app;
+    db = airlineApp.db;
   });
 
   describe("auth", () => {
@@ -42,7 +53,8 @@ describe("airline routes", () => {
     });
 
     test("GET /api/auth/profile returns default user", async () => {
-      const res = await app.request("/api/auth/profile");
+      const cookie = await loginAsDefaultUser(app);
+      const res = await app.request("/api/auth/profile", { headers: { Cookie: cookie } });
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
@@ -90,13 +102,14 @@ describe("airline routes", () => {
 
   describe("bookings", () => {
     test("POST /api/bookings/ creates confirmed booking with payment side effect", async () => {
+      const cookie = await loginAsDefaultUser(app);
       const flightRes = await app.request("/api/flights");
       const flightBody = await flightRes.json();
       const flightId = flightBody.data.flights[0].id;
 
       const res = await app.request("/api/bookings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Cookie: cookie },
         body: JSON.stringify({
           flight_id: flightId,
           cabin_class: "economy",
@@ -110,20 +123,21 @@ describe("airline routes", () => {
       expect(body.data.booking_reference).toHaveLength(6);
 
       // Verify payment side effect was created
-      const payments = await app.request(`/api/bookings/${body.data.booking_reference}`);
+      const payments = await app.request(`/api/bookings/${body.data.booking_reference}`, { headers: { Cookie: cookie } });
       const paymentBody = await payments.json();
       expect(paymentBody.data.payment).toBeDefined();
       expect(paymentBody.data.payment.payment_status).toBe("completed");
     });
 
     test("POST /api/payment/process processes payment", async () => {
+      const cookie = await loginAsDefaultUser(app);
       const flightRes = await app.request("/api/flights");
       const flightBody = await flightRes.json();
       const flightId = flightBody.data.flights[0].id;
 
       const bookingRes = await app.request("/api/bookings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Cookie: cookie },
         body: JSON.stringify({
           flight_id: flightId,
           cabin_class: "economy",
@@ -135,7 +149,7 @@ describe("airline routes", () => {
 
       const res = await app.request("/api/payment/process", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Cookie: cookie },
         body: JSON.stringify({
           booking_id: bookingId,
           card_number: "4111111111111111",
@@ -154,9 +168,10 @@ describe("airline routes", () => {
 
   describe("claims", () => {
     test("POST /api/claims creates claim", async () => {
+      const cookie = await loginAsDefaultUser(app);
       const res = await app.request("/api/claims", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Cookie: cookie },
         body: JSON.stringify({
           booking_reference: "FAKE01",
           claim_type: "cancellation",
@@ -253,9 +268,10 @@ describe("airline routes", () => {
 
   describe("baggage POST returns 201", () => {
     test("POST /api/baggage creates report with 201 status", async () => {
+      const cookie = await loginAsDefaultUser(app);
       const res = await app.request("/api/baggage", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Cookie: cookie },
         body: JSON.stringify({
           flight_number: "GKD1001",
           flight_time: "2026-06-01 10:00:00",
@@ -274,6 +290,7 @@ describe("airline routes", () => {
 
   describe("seat selection upgrade fee (flight-seat-selection-failed flow)", () => {
     test("returns upgrade fee with 350 when all economy window seats are occupied", async () => {
+      const cookie = await loginAsDefaultUser(app);
       // Get a flight with seats
       const flightRes = await app.request("/api/flights");
       const flightBody = await flightRes.json();
@@ -282,7 +299,7 @@ describe("airline routes", () => {
       // Create a booking for this flight
       const bookingRes = await app.request("/api/bookings", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Cookie: cookie },
         body: JSON.stringify({
           flight_id: flightId,
           cabin_class: "economy",
@@ -312,7 +329,7 @@ describe("airline routes", () => {
       // Attempt to select that occupied window seat
       const seatRes = await app.request(`/api/bookings/${bookingRef}/seats`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Cookie: cookie },
         body: JSON.stringify({
           seat_assignments: [{ passenger_id: passenger!.id, seat_id: occupiedWindowSeat!.id }],
         }),
@@ -327,7 +344,8 @@ describe("airline routes", () => {
 
   describe("mock services", () => {
     test("GET /api/emails returns emails with legacy key", async () => {
-      const res = await app.request("/api/emails");
+      const cookie = await loginAsDefaultUser(app);
+      const res = await app.request("/api/emails", { headers: { Cookie: cookie } });
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
@@ -335,7 +353,8 @@ describe("airline routes", () => {
     });
 
     test("GET /api/calendar/events returns events", async () => {
-      const res = await app.request("/api/calendar/events");
+      const cookie = await loginAsDefaultUser(app);
+      const res = await app.request("/api/calendar/events", { headers: { Cookie: cookie } });
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
@@ -343,7 +362,8 @@ describe("airline routes", () => {
     });
 
     test("GET /api/chat/sessions returns sessions", async () => {
-      const res = await app.request("/api/chat/sessions");
+      const cookie = await loginAsDefaultUser(app);
+      const res = await app.request("/api/chat/sessions", { headers: { Cookie: cookie } });
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
