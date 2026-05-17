@@ -218,6 +218,9 @@
     "weather-outdoor-window": { "binaries": ["weather"] },
     "pre-meeting-research-brief": {
       "binaries": ["todolist"]
+    },
+    "vendor-due-diligence-brief": {
+      "binaries": ["email"]
     }
   }
 }
