@@ -242,29 +242,53 @@
       "binaries": ["finance"]
     },
     "finance-expense-log": {
-      "binaries": ["finance"]
+      "binaries": ["finance"],
+      "assets": [
+        { "src": "tasks/finance-expense-log/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ]
     },
     "finance-anomaly-detect": {
-      "binaries": ["finance"]
+      "binaries": ["finance"],
+      "assets": [
+        { "src": "tasks/finance-anomaly-detect/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ]
     },
     "finance-budget-alert": {
-      "binaries": ["finance", "email"]
+      "binaries": ["finance", "email"],
+      "assets": [
+        { "src": "tasks/finance-budget-alert/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ]
     },
     "finance-invoice-process": {
-      "binaries": ["finance", "email"]
+      "binaries": ["finance", "email"],
+      "assets": [
+        { "src": "tasks/finance-invoice-process/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ]
     },
     "health-daily-record": { "binaries": ["health"] },
     "finance-dashboard-repair": {
-      "binaries": ["finance"]
+      "binaries": ["finance"],
+      "assets": [
+        { "src": "tasks/finance-dashboard-repair/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ]
     },
     "finance-depreciation-audit": {
-      "binaries": ["finance"]
+      "binaries": ["finance"],
+      "assets": [
+        { "src": "tasks/finance-depreciation-audit/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ]
     },
     "finance-tax-prepare": {
-      "binaries": ["finance", "email"]
+      "binaries": ["finance", "email"],
+      "assets": [
+        { "src": "tasks/finance-tax-prepare/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ]
     },
     "finance-analysis-generate": {
-      "binaries": ["finance", "email"]
+      "binaries": ["finance", "email"],
+      "assets": [
+        { "src": "tasks/finance-analysis-generate/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ]
     }
   }
 }

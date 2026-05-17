@@ -131,6 +131,36 @@ DEPARTMENT_NAMES = [
     "operations",
 ]
 
+# Distinctive March 2026 figures from the seeded finance data. These values
+# only appear after the agent calls GET /api/departments?month=2026-03. The
+# default Jan/Feb seed uses uniform 150000/85000/180000 across all departments,
+# so the per-department March numbers are the strongest evidence that the
+# report contains real data rather than fabricated placeholders.
+SEED_MARCH_VALUES = frozenset(
+    {
+        # Engineering: 50000 budget, 55000 actual, 62000 revenue
+        50000, 55000, 62000,
+        # Sales: 40000 budget, 38000 actual, 78000 revenue
+        40000, 38000, 78000,
+        # Marketing: 30000 budget, 32000 actual, 41000 revenue
+        30000, 32000, 41000,
+        # HR: 20000 budget, 19500 actual, 5000 revenue
+        20000, 19500, 5000,
+        # Finance: 25000 budget, 23000 actual, 8000 revenue
+        25000, 23000, 8000,
+        # Operations: 35000 budget, 34000 actual, 12000 revenue
+        35000, 34000, 12000,
+    }
+)
+
+# Require at least 5 distinctive March values. Engineering alone provides 3
+# (50000/55000/62000), so 5 forces the agent to look beyond a single department.
+MIN_SEED_VALUE_MATCHES = 5
+
+NUMERIC_TOKEN_RE = re.compile(
+    r"\$?\s?(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?"
+)
+
 
 def record_score(
     details: dict,
@@ -164,8 +194,34 @@ def check_report_sections(report_text: str) -> int:
     return found
 
 
-def check_report_data(report_text: str) -> tuple[bool, bool, bool]:
-    """Check for department names, month refs, and dollar amounts."""
+def _extract_numeric_values(text: str) -> set[int]:
+    """Extract integer financial figures from the report.
+
+    Accepts both comma-separated ($55,000.00) and bare (55000) forms. Fractional
+    cents are dropped — match is against the integer dollar amount because the
+    seed values are whole dollars.
+    """
+    values: set[int] = set()
+    for match in NUMERIC_TOKEN_RE.finditer(text):
+        digits = match.group(1).replace(",", "")
+        try:
+            val = int(digits)
+        except ValueError:
+            continue
+        # Filter out tiny values (likely section numbers, percentages, or years)
+        # to keep the match anchored on dollar figures.
+        if val >= 1000:
+            values.add(val)
+    return values
+
+
+def check_report_data(report_text: str) -> tuple[bool, bool, bool, int]:
+    """Check for department names, month refs, and distinctive seed data.
+
+    Returns (depts_ok, months_ok, data_ok, seed_match_count). The data check
+    requires at least ``MIN_SEED_VALUE_MATCHES`` distinct figures from the
+    March 2026 seed; this prevents passing a report that fabricates numbers.
+    """
     lower = report_text.lower()
 
     # Department names: at least 3
@@ -185,11 +241,12 @@ def check_report_data(report_text: str) -> tuple[bool, bool, bool]:
     ]
     months_found = any(p in lower for p in month_patterns)
 
-    # Dollar amounts: $XX,XXX or XX,XXX.XX patterns
-    dollar_pattern = re.compile(r"\$?\d{1,3}(,\d{3})+|\$\d+\.\d{2}")
-    has_dollar = bool(dollar_pattern.search(report_text))
+    # Distinctive seed-data values: require enough overlap to prove the agent
+    # actually queried the finance API rather than inventing numbers.
+    seed_matches = _extract_numeric_values(report_text) & SEED_MARCH_VALUES
+    data_ok = len(seed_matches) >= MIN_SEED_VALUE_MATCHES
 
-    return depts_found >= 3, months_found, has_dollar
+    return depts_found >= 3, months_found, data_ok, len(seed_matches)
 
 
 def check_email_sent(email_conn: sqlite3.Connection) -> bool:
@@ -261,7 +318,7 @@ def main() -> tuple[float, dict]:
 
     # 3. Report data quality
     if report_text:
-        depts_ok, months_ok, dollars_ok = check_report_data(report_text)
+        depts_ok, months_ok, dollars_ok, seed_matches = check_report_data(report_text)
         data_ok = depts_ok and months_ok and dollars_ok
         data_parts = []
         if depts_ok:
@@ -269,7 +326,9 @@ def main() -> tuple[float, dict]:
         if months_ok:
             data_parts.append("month references")
         if dollars_ok:
-            data_parts.append("dollar amounts")
+            data_parts.append(
+                f"{seed_matches} distinctive seed values (>= {MIN_SEED_VALUE_MATCHES})"
+            )
 
         # Proportional credit for partial data
         data_score = sum([depts_ok, months_ok, dollars_ok]) / 3.0
@@ -287,7 +346,11 @@ def main() -> tuple[float, dict]:
             if not months_ok:
                 missing.append("month references")
             if not dollars_ok:
-                missing.append("dollar amounts")
+                missing.append(
+                    f"distinctive seed values "
+                    f"(found {seed_matches}/{MIN_SEED_VALUE_MATCHES} required; "
+                    f"report must use figures retrieved from the finance API)"
+                )
             details["messages"].append(
                 f"PARTIAL: Report data quality: {', '.join(data_parts)}; "
                 f"missing: {', '.join(missing)}"
