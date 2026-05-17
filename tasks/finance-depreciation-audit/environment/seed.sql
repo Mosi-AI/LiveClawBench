@@ -3,6 +3,7 @@
 -- We clear defaults and inject our contaminated set of 7 assets.
 
 DELETE FROM asset_record;
+DELETE FROM sqlite_sequence WHERE name = 'asset_record';
 
 -- Asset 1: CORRECT - Server Rack A, straight_line, (50000-5000)/5 = 9000
 INSERT INTO asset_record (asset_name, cost_basis, residual_value, useful_life_years, depreciation_method, annual_depreciation)

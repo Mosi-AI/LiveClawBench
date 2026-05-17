@@ -44,9 +44,9 @@ echo "Invoice INV-2026-010 created."
 # Total: $930.03 + $0.00 + $1,200.00 = $2,130.03
 
 # 6. Update tax policy
-FILING_DATE=$(date +%Y-%m-%d)
-python3 << PYEOF
-import datetime
+export FILING_DATE=$(date +%Y-%m-%d)
+python3 << 'PYEOF'
+import datetime, os
 policy_path = '/workspace/policies/tax_policy.md'
 with open(policy_path, 'r') as f:
     content = f.read()
@@ -55,19 +55,21 @@ old_section = """## Q1 2026 Filing Status: PENDING
 
 *No filing data has been recorded yet for Q1 2026.*"""
 
-new_section = """## Q1 2026 Filing Status: FILED
+filing_date = os.environ.get('FILING_DATE', 'unknown')
+
+new_section = f"""## Q1 2026 Filing Status: FILED
 
 ### VAT Calculation Summary
 
 | Invoice | Vendor | Line Items | VAT Amount |
 |---------|--------|-----------|------------|
-| INV-2026-001 | Acme Corp | Software License (5300) \\$12,500.50 + Support (5400) \\$3,000.00 | \\$930.03 |
-| INV-2026-002 | Globex Systems | Travel Expenses (5100) \\$52,000.00 | \\$0.00 |
-| INV-2026-010 | Acme Corp | Software License (5300) \\$15,000.00 + Support (5400) \\$5,000.00 | \\$1,200.00 |
+| INV-2026-001 | Acme Corp | Software License (5300) $12,500.50 + Support (5400) $3,000.00 | $930.03 |
+| INV-2026-002 | Globex Systems | Travel Expenses (5100) $52,000.00 | $0.00 |
+| INV-2026-010 | Acme Corp | Software License (5300) $15,000.00 + Support (5400) $5,000.00 | $1,200.00 |
 
-**Total Q1 2026 VAT: \\$2,130.03**
+**Total Q1 2026 VAT: $2,130.03**
 
-Filed on: ${FILING_DATE}"""
+Filed on: {filing_date}"""
 
 content = content.replace(old_section, new_section)
 with open(policy_path, 'w') as f:

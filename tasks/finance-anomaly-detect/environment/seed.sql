@@ -3,6 +3,7 @@
 -- We clear defaults and inject our contaminated set.
 
 DELETE FROM transaction_record;
+DELETE FROM sqlite_sequence WHERE name = 'transaction_record';
 
 -- Normal transactions (ids 1-7): varied amounts, realistic vendors
 INSERT INTO transaction_record (trade_date, vendor_name, amount, category, status, approval_status, approval_note)

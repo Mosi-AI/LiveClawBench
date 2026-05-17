@@ -12,7 +12,9 @@ export function runCustomSeed(db: Database): void {
   }
   try {
     const sql = readFileSync(seedPath, "utf-8");
+    db.exec("PRAGMA foreign_keys = OFF");
     db.exec(sql);
+    db.exec("PRAGMA foreign_keys = ON");
   } catch {
     console.warn(`[finance] Custom seed file not readable at ${seedPath}, falling back to default seed.`);
   }
