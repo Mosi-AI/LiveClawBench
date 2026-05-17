@@ -4,7 +4,7 @@
 set -euo pipefail
 
 TASK="$1"
-WORKTREE="/Users/swordfaith/Documents/workspace/ClawBench/LiveClawBench/.claude/worktrees/finance-analysis-tasks-synth"
+WORKTREE="$(cd "$(dirname "$0")/../.." && pwd)"
 TASK_DIR="${WORKTREE}/tasks/${TASK}"
 OUTPUT_DIR="/tmp/finance-test-output/${TASK}"
 mkdir -p "$OUTPUT_DIR"

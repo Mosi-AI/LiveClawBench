@@ -257,12 +257,18 @@
       "binaries": ["finance", "email"],
       "assets": [
         { "src": "tasks/finance-budget-alert/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ],
+      "frontends": [
+        { "src": "tasks/email-writing/environment/email-app/frontend", "buildDir": "dist", "dest": "/opt/mock/frontend/email" }
       ]
     },
     "finance-invoice-process": {
       "binaries": ["finance", "email"],
       "assets": [
         { "src": "tasks/finance-invoice-process/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ],
+      "frontends": [
+        { "src": "tasks/email-writing/environment/email-app/frontend", "buildDir": "dist", "dest": "/opt/mock/frontend/email" }
       ]
     },
     "health-daily-record": { "binaries": ["health"] },
@@ -282,12 +288,18 @@
       "binaries": ["finance", "email"],
       "assets": [
         { "src": "tasks/finance-tax-prepare/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ],
+      "frontends": [
+        { "src": "tasks/email-writing/environment/email-app/frontend", "buildDir": "dist", "dest": "/opt/mock/frontend/email" }
       ]
     },
     "finance-analysis-generate": {
       "binaries": ["finance", "email"],
       "assets": [
         { "src": "tasks/finance-analysis-generate/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      ],
+      "frontends": [
+        { "src": "tasks/email-writing/environment/email-app/frontend", "buildDir": "dist", "dest": "/opt/mock/frontend/email" }
       ]
     }
   }
