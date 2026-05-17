@@ -33,7 +33,7 @@ cat > "$REPORT_FILE" << REPORT
 
 ## Executive Summary
 
-Acme Corp demonstrated solid financial performance across Q1 2026 with total revenue of \$453,000.00 against total expenses of \$344,500.00. The company maintained profitability throughout the quarter, though Engineering and Marketing departments exceeded their March budgets. Overall budget utilization was 95.7% across all departments, indicating generally disciplined spending with targeted areas requiring management attention.
+Acme Corp demonstrated solid financial performance across Q1 2026 with total revenue of \$2,366,000.00 against total expenses of \$1,221,500.00. The company maintained profitability throughout the quarter, though Engineering and Marketing departments exceeded their March budgets. Overall budget utilization was 61.1% across all departments, indicating disciplined spending with targeted areas requiring management attention.
 
 Revenue showed positive trends in Sales (\$78,000.00 in March) and Engineering (\$62,000.00 in March), while support departments (HR, Finance) maintained stable cost structures within their allocations. The transition from uniform budgeting in January-February (\$150,000.00 per department) to differentiated budgets in March reflects a maturing cost allocation methodology.
 
@@ -144,7 +144,7 @@ curl -s -X POST "$EMAIL_URL/api/emails" \
   -d '{
     "recipient": "cfo@acmecorp.com",
     "subject": "Acme Corp Q1 2026 Financial Analysis Report",
-    "body": "Dear CFO,\n\nPlease find below the summary of the Q1 2026 Financial Analysis Report for Acme Corp.\n\nExecutive Summary:\nTotal Q1 revenue was $453,000.00 against total expenses of $344,500.00. The company maintained profitability throughout the quarter.\n\nKey Findings:\n- Engineering and Marketing exceeded their March budgets ($5,000 and $2,000 overruns respectively)\n- Sales led revenue generation at $78,000.00 in March\n- Revenue is concentrated in Engineering and Sales (79.5% of March total)\n- All departments operated within budget during January-February\n\nRecommendations:\n1. Review and potentially increase Engineering budget allocation\n2. Implement monthly budget monitoring for Marketing\n3. Develop revenue diversification strategies\n4. Establish 105% budget variance alert thresholds\n\nThe full report has been saved to /workspace/output/report.md.\n\nBest regards,\nFinancial Analyst",
+    "body": "Dear CFO,\n\nPlease find below the summary of the Q1 2026 Financial Analysis Report for Acme Corp.\n\nExecutive Summary:\nTotal Q1 revenue was $2,366,000.00 against total expenses of $1,221,500.00. The company maintained profitability throughout the quarter.\n\nKey Findings:\n- Engineering and Marketing exceeded their March budgets ($5,000 and $2,000 overruns respectively)\n- Sales led revenue generation at $78,000.00 in March\n- Revenue is concentrated in Engineering and Sales (79.5% of March total)\n- All departments operated within budget during January-February\n\nRecommendations:\n1. Review and potentially increase Engineering budget allocation\n2. Implement monthly budget monitoring for Marketing\n3. Develop revenue diversification strategies\n4. Establish 105% budget variance alert thresholds\n\nThe full report has been saved to /workspace/output/report.md.\n\nBest regards,\nFinancial Analyst",
     "send_now": true
   }' > /dev/null
 
