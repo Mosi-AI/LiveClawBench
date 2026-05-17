@@ -42,6 +42,7 @@ run_*.sh
 
 # Claude Code worktrees and session data
 .claude/
+.tmp-claude-global-template.md
 
 # Playwright MCP session logs
 .playwright-mcp/
