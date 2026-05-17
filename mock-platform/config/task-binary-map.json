@@ -215,6 +215,9 @@
     "skill-combination": { "binaries": [] },
     "mint-diet-snack-log": { "binaries": ["mint-diet"] },
     "weather-city-travel-pick": { "binaries": ["weather"] },
-    "weather-outdoor-window": { "binaries": ["weather"] }
+    "weather-outdoor-window": { "binaries": ["weather"] },
+    "pre-meeting-research-brief": {
+      "binaries": ["todolist"]
+    }
   }
 }

@@ -215,6 +215,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `skill-combination` | Documents & Knowledge | easy | evaluate.py |
 | `mint-diet-snack-log` | Health & Fitness | easy | verify.py |
 | `weather-aqi-report` | Deep Research & Report | easy | verify.py |
+| `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
 
 ## Docker Image Architecture
 
@@ -368,8 +369,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-34 implemented tasks: A1=10, A2=6, B1=4, B2=11.
-Difficulty: Easy=20, Medium=8, Hard=6.
+35 implemented tasks: A1=10, A2=6, B1=5, B2=12.
+Difficulty: Easy=20, Medium=9, Hard=6.
 
 ## Known Issues
 
