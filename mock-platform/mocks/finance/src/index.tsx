@@ -19,6 +19,7 @@ import { registerInvoiceRoutes } from "./routes/invoice";
 import { registerAssetRoutes } from "./routes/asset";
 import { registerSystemConfigRoutes } from "./routes/system-config";
 import { registerDashboardRoutes, getEffectiveConfig } from "./routes/dashboard";
+import { computeDashboardMetrics } from "./db/queries/dashboard";
 import { registerPortfolioRoutes, executePortfolioOrder } from "./routes/portfolio";
 
 import { LoginPage } from "./pages/login";
@@ -146,8 +147,6 @@ export function createFinanceApp() {
     const isAdmin = user?.role === "admin";
 
     const config = getEffectiveConfig(db, userId);
-
-    const { computeDashboardMetrics } = require("./db/queries/dashboard");
     const metrics = computeDashboardMetrics(db, config);
     return c.html(<DashboardPage config={config} kpis={metrics.kpis} monthly={metrics.monthly} isAdmin={isAdmin} />);
   });

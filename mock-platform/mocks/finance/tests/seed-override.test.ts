@@ -26,7 +26,7 @@ describe("seed override", () => {
   it("MOCK_FINANCE_SEED_SQL override works when file exists", async () => {
     writeFileSync(
       customSeedPath,
-      `INSERT INTO user (username, password, role, is_active) VALUES ('custom', 'custom123', 'user', 1);`
+      `INSERT INTO user (username, password_hash, role, is_active) VALUES ('custom', 'custom_hash', 'user', 1);`
     );
     process.env.MOCK_FINANCE_SEED_SQL = customSeedPath;
     finance = createFinanceApp();

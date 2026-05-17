@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { Database } from "bun:sqlite";
 import { LoginRequestSchema, LoginResponseSchema } from "../schemas/auth";
 import { ErrorResponseSchema } from "../schemas/common";
+import { verifyWerkzeugHash } from "../helpers";
 
 export function registerAuthRoutes(app: OpenAPIApp, db: Database) {
   const loginRoute = createRoute({
@@ -38,12 +39,12 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database) {
     const { username, password } = body;
 
     const row = db
-      .query<{ id: number; password: string; role: string; is_active: number }, [string]>(
-        "SELECT id, password, role, is_active FROM user WHERE username = ?"
+      .query<{ id: number; password_hash: string; role: string; is_active: number }, [string]>(
+        "SELECT id, password_hash, role, is_active FROM user WHERE username = ?"
       )
       .get(username);
 
-    if (!row || row.password !== password || row.is_active !== 1) {
+    if (!row || !(await verifyWerkzeugHash(row.password_hash, password)) || row.is_active !== 1) {
       return c.json({ error: "Invalid credentials" }, 401);
     }
 

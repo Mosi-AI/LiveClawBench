@@ -1,13 +1,8 @@
 export const SCHEMA_SQL = `
-CREATE TABLE IF NOT EXISTS _migrations (
-  id TEXT PRIMARY KEY,
-  applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
 CREATE TABLE IF NOT EXISTS user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT NOT NULL UNIQUE,
-  password TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
   role TEXT NOT NULL CHECK(role IN ('admin','user')) DEFAULT 'user',
   is_active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),

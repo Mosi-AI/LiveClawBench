@@ -62,9 +62,13 @@ describe("migration and seed", () => {
 
     const { SCHEMA_SQL } = require("../src/db/schema");
     db.exec(SCHEMA_SQL);
+    db.run(`CREATE TABLE IF NOT EXISTS _migrations (
+      id TEXT PRIMARY KEY,
+      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`);
     db.run("INSERT INTO _migrations (id) VALUES ('finance_v1')");
 
-    db.run("INSERT INTO user (username, password, role, is_active) VALUES ('legacy', 'pass', 'user', 1)");
+    db.run("INSERT INTO user (username, password_hash, role, is_active) VALUES ('legacy', 'legacy_hash', 'user', 1)");
 
     const { runMigrations } = require("../src/db/migrate");
     runMigrations(db);

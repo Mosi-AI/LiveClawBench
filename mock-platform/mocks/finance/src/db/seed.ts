@@ -1,6 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { readFileSync, existsSync } from "node:fs";
 import { round2 } from "../utils";
+import { generateWerkzeugHashSync } from "../helpers";
 
 export function seed(db: Database): void {
   const seedPath = process.env.MOCK_FINANCE_SEED_SQL ?? "/opt/mock/data/finance_seed.sql";
@@ -19,12 +20,15 @@ export function seed(db: Database): void {
 
   // Default fixtures
 
-  // Users
+  // Users (passwords hashed with Werkzeug-compatible PBKDF2)
   db.run(
-    `INSERT OR IGNORE INTO user (username, password, role, is_active) VALUES
-      ('admin', 'admin123', 'admin', 1),
-      ('john', 'user123', 'user', 1),
-      ('jane', 'user123', 'user', 0)`
+    `INSERT OR IGNORE INTO user (username, password_hash, role, is_active) VALUES
+      (?, ?, 'admin', 1),
+      (?, ?, 'user', 1),
+      (?, ?, 'user', 0)`,
+    ["admin", generateWerkzeugHashSync("admin123"),
+     "john", generateWerkzeugHashSync("user123"),
+     "jane", generateWerkzeugHashSync("user123")]
   );
 
   // Department financial records: 6 depts x 2 months
