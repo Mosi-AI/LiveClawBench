@@ -9,5 +9,6 @@
   "required_fields": ["meeting_summary", "background", "discussion_points", "risks", "opportunities", "suggested_questions"],
   "min_discussion_points": 3,
   "min_questions": 3,
-  "min_risks": 1
+  "min_risks": 1,
+  "min_opportunities": 1
 }

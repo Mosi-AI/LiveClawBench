@@ -42,6 +42,7 @@ def structural_scores(result: dict, key: dict) -> dict[str, float]:
     min_points = key.get("min_discussion_points", 3)
     min_questions = key.get("min_questions", 3)
     min_risks = key.get("min_risks", 1)
+    min_opportunities = key.get("min_opportunities", 1)
 
     points_ok = (
         isinstance(result.get("discussion_points"), list)
@@ -55,8 +56,14 @@ def structural_scores(result: dict, key: dict) -> dict[str, float]:
         isinstance(result.get("risks"), list)
         and len(result.get("risks", [])) >= min_risks
     )
+    opportunities_ok = (
+        isinstance(result.get("opportunities"), list)
+        and len(result.get("opportunities", [])) >= min_opportunities
+    )
 
-    structure_completeness = 1.0 if (points_ok and questions_ok and risks_ok) else 0.0
+    structure_completeness = (
+        1.0 if (points_ok and questions_ok and risks_ok and opportunities_ok) else 0.0
+    )
 
     return {
         "structural_valid": structural_valid,

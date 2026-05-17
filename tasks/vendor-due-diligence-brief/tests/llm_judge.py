@@ -246,12 +246,7 @@ def fetch_email_context() -> str:
     for email in emails:
         subject = (email.get("subject") or "").lower()
         body = (email.get("body") or "").lower()
-        if (
-            "cloudedge" in subject
-            or "vendor" in subject
-            or "cloudedge" in body
-            or "partnership" in subject
-        ):
+        if "cloudedge" in subject or "vendor" in subject or "cloudedge" in body:
             email_id = email.get("id")
             if email_id:
                 with urllib.request.urlopen(

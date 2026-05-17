@@ -5,7 +5,8 @@
     "overage fees",
     "IP dispute with ForgeNet",
     "founded in 2022",
-    "marcus webb"
+    "marcus webb",
+    "partnerships@cloudedge.io"
   ],
   "required_fields": ["vendor_background", "fit_assessment", "red_flags", "recommendation"],
   "min_red_flags": 3

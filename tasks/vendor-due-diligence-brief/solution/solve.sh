@@ -25,7 +25,7 @@ vendor_email = None
 for email in emails:
     subject = (email.get("subject") or "").lower()
     body = (email.get("body") or "").lower()
-    if "vendor" in subject or "cloudedge" in subject or "cloudedge" in body or "partnership" in subject:
+    if "vendor" in subject or "cloudedge" in subject or "cloudedge" in body:
         vendor_email = email
         break
 
