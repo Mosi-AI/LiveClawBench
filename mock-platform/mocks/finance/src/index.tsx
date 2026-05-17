@@ -5,7 +5,7 @@ import { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { runMigrations } from "./db/migrate";
-import { seed } from "./db/seed";
+import { seed, runCustomSeed } from "./db/seed";
 import { seedV2 } from "./db/seed-v2";
 import { z } from "zod";
 import { parseFormBody } from "./utils";
@@ -198,6 +198,7 @@ export function createFinanceApp() {
       runMigrations(db);
       seed(db);
       seedV2(db);
+      runCustomSeed(db);
     },
   };
 }

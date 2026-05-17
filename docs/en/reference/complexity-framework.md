@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 41-case annotation table (41 implemented),
+It covers factor definitions, the full 48-case annotation table (48 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 41-Case Factor Annotation Table
+## 1. 48-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -67,8 +67,8 @@ single, clean environment without structural complexity.
 |      36 | insurance-deductible-selection    |     E      |    |    |    |    | E-commerce & Daily Svcs    |
 |      37 | health-insurance-optimization     |     M      | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |      38 | health-daily-record               |     E      |    |    |    |    | Health & Wellness          |
-|      39 | finance-portfolio-rebalancing     |     H      |    |    |    |    | Finance & Data Analytics   |
-|      40 | finance-monthly-close             |     M      |    |    |    |    | Finance & Data Analytics   |
+|      39 | finance-portfolio-rebalancing     |     H      |    |    | ✓  |    | Finance & Data Analytics   |
+|      40 | finance-monthly-close             |     M      |    | ✓  |    |    | Finance & Data Analytics   |
 |      43 | finance-anomaly-detect            |     M      |    | ✓  | ✓  |    | Finance & Data Analytics   |
 |      41 | finance-expense-log               |     E      |    |    | ✓  |    | Finance & Data Analytics   |
 |      42 | finance-invoice-process           |     E      | ✓  |    |    |    | Finance & Data Analytics   |
@@ -85,19 +85,20 @@ single, clean environment without structural complexity.
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
 | A1     | Cross-Service Dependency       |    15 |      31.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, health-insurance-optimization, finance-invoice-process |
-| A2     | Contaminated Initial State     |    10 |      20.8% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, finance-anomaly-detect, finance-depreciation-audit |
-| B1     | Implicit Goal Resolution       |     9 |      18.8% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, finance-expense-log, finance-tax-prepare |
+| A2     | Contaminated Initial State     |    11 |      22.9% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, finance-monthly-close, finance-anomaly-detect |
+| B1     | Implicit Goal Resolution       |    10 |      20.8% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, finance-portfolio-rebalancing, finance-expense-log |
 | B2     | Knowledge System Maintenance   |    15 |      31.3% | skill-creation, skill-dependency-fix, noise-filtering, finance-tax-prepare, finance-depreciation-audit |
 
 > Percentages are relative to 48 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 17 cases (35.4%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, finance-portfolio-rebalancing, finance-monthly-close
-- Single factor: 17 cases (35.4%) — includes finance-expense-log (B1), finance-invoice-process (A1)
+- No factors (baseline): 15 cases (31.3%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record
+- Single factor: 19 cases (39.6%) — includes finance-expense-log (B1), finance-invoice-process (A1), finance-portfolio-rebalancing (B1), finance-monthly-close (A2)
 - Dual factor: 10 cases (20.8%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), finance-anomaly-detect (A2+B1), finance-budget-alert (A1+A2), finance-dashboard-repair (A2+B2)
 - Triple factor: 4 cases (8.3%) — conflict-repair-acb (A1+A2+B2), finance-tax-prepare (A1+B1+B2), finance-analysis-generate (A1+B1+B2), finance-depreciation-audit (A2+B1+B2)
 - **Multi-factor (≥2 factors): 14 cases (29.2%)**
+- **Total factor instances: 51 across 33 factor-bearing cases**
 
 ---
 
@@ -116,7 +117,7 @@ Factor occurrence frequency per primary domain:
 | Deep Research & Report     |  1 |  1 |  0 |  2 |                      4 |
 | Health & Fitness           |  0 |  0 |  0 |  0 |                      0 |
 | Social Media               |  0 |  0 |  0 |  0 |                      0 |
-| Finance & Data Analytics   |  4 |  4 |  5 |  4 |                     17 |
+| Finance & Data Analytics   |  4 |  5 |  6 |  4 |                     19 |
 | Health & Wellness          |  0 |  0 |  0 |  0 |                      0 |
 
 Key observations:
@@ -126,7 +127,7 @@ Key observations:
 - **Communication & Email has no factors** — these cases serve as pure baselines
 - **Health & Fitness has no factors** — mint-diet-snack-log serves as a domain baseline
 - **Social Media has no factors** — the two social tasks serve as domain baselines
-- **Finance & Data Analytics now has rich factor coverage** (A1=4, A2=4, B1=5, B2=4) — all four factors are exercised through finance-expense-log (B1), finance-invoice-process (A1), finance-budget-alert (A1+A2), finance-anomaly-detect (A2+B1), finance-tax-prepare (A1+B1+B2), finance-analysis-generate (A1+B1+B2), finance-depreciation-audit (A2+B1+B2), and finance-dashboard-repair (A2+B2)
+- **Finance & Data Analytics now has rich factor coverage** (A1=4, A2=5, B1=6, B2=4) — all four factors are exercised through finance-expense-log (B1), finance-invoice-process (A1), finance-portfolio-rebalancing (B1), finance-monthly-close (A2), finance-budget-alert (A1+A2), finance-anomaly-detect (A2+B1), finance-tax-prepare (A1+B1+B2), finance-analysis-generate (A1+B1+B2), finance-depreciation-audit (A2+B1+B2), and finance-dashboard-repair (A2+B2)
 - **Health & Wellness has no factors** — health-daily-record serves as a domain baseline
 
 ---
@@ -169,8 +170,8 @@ Factor count vs difficulty:
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
 | Easy       |             0.67 |          14          |       9       |       4      |
-| Medium     |             1.18 |           2          |       5       |       4      |
-| Hard       |             1.80 |           1          |       3       |       6      |
+| Medium     |             1.27 |           1          |       6       |       4      |
+| Hard       |             1.90 |           0          |       4       |       6      |
 
 The empirical reclassification (based on average solve rates across models) shows that Easy
 cases dominate (64.9%). Easy cases include both baselines (54.2%) and factor-bearing tasks

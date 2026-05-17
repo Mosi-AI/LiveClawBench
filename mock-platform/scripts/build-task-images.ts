@@ -92,7 +92,9 @@ const ALL_TASK_NAMES = new Set([
   "mint-diet-snack-log", "weather-aqi-report",
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
   "finance-portfolio-rebalancing", "finance-monthly-close",
-  "finance-anomaly-detect",
+  "finance-expense-log", "finance-anomaly-detect", "finance-budget-alert",
+  "finance-invoice-process", "finance-tax-prepare", "finance-analysis-generate",
+  "finance-depreciation-audit", "finance-dashboard-repair",
   "health-daily-record",
 ]);
 

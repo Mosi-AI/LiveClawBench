@@ -1,6 +1,8 @@
 -- Contaminated transaction data for anomaly detection task.
--- Mix of normal corporate transactions and injected anomalies.
--- Default transaction seed is suppressed (count > 0 check in seed.ts).
+-- Runs AFTER default seed, which inserts 10 normal transactions.
+-- We clear defaults and inject our contaminated set.
+
+DELETE FROM transaction_record;
 
 -- Normal transactions (ids 1-7): varied amounts, realistic vendors
 INSERT INTO transaction_record (trade_date, vendor_name, amount, category, status, approval_status, approval_note)

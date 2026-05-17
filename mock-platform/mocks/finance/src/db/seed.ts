@@ -3,19 +3,22 @@ import { readFileSync, existsSync } from "node:fs";
 import { round2 } from "../utils";
 import { generateWerkzeugHashSync } from "../helpers";
 
-export function seed(db: Database): void {
+export function runCustomSeed(db: Database): void {
   const seedPath = process.env.MOCK_FINANCE_SEED_SQL ?? "/opt/mock/data/finance_seed.sql";
-
-  // Run custom seed SQL first if provided (additive seeding)
-  if (process.env.MOCK_FINANCE_SEED_SQL && existsSync(seedPath)) {
-    try {
-      const sql = readFileSync(seedPath, "utf-8");
-      db.exec(sql);
-    } catch {
-      console.warn(`[finance] Seed file not readable at ${seedPath}, skipping custom seed.`);
-    }
+  if (!process.env.MOCK_FINANCE_SEED_SQL) return;
+  if (!existsSync(seedPath)) {
+    console.warn(`[finance] Custom seed file not found at ${seedPath}, falling back to default seed.`);
+    return;
   }
+  try {
+    const sql = readFileSync(seedPath, "utf-8");
+    db.exec(sql);
+  } catch {
+    console.warn(`[finance] Custom seed file not readable at ${seedPath}, falling back to default seed.`);
+  }
+}
 
+export function seed(db: Database): void {
   // Default fixtures
 
   // Users (passwords hashed with Werkzeug-compatible PBKDF2)
