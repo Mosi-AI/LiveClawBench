@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # Reference solution: query the JSON API directly and write the result
 set -euo pipefail
 

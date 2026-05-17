@@ -3,7 +3,7 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "insurance", "calendar", "mint-diet", "weather", "social", "expense", "health", "smarthome"],
+"binaries": ["airline", "email", "shop", "todolist", "doc-search", "insurance", "calendar", "mint-diet", "weather", "social", "expense", "health", "finance", "smarthome"],
   "tasks": {
     "weather-aqi-report": {
       "binaries": ["weather"]
@@ -234,6 +234,12 @@
       "assets": [
         { "src": "tasks/expense-draft-delete/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
       ]
+    },
+    "finance-portfolio-rebalancing": {
+      "binaries": ["finance"]
+    },
+    "finance-monthly-close": {
+      "binaries": ["finance"]
     },
     "health-daily-record": { "binaries": ["health"] },
     "smarthome-test": {
