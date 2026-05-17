@@ -147,10 +147,10 @@ def check_d1_dashboard_report(response):
 
     # Check temperature (68.5°F) - must mention 68.5 or 68 with temperature context
     temp_patterns = [
-        r"68\.5",           # "68.5"
-        r"68\s*°",          # "68°" or "68 °"
-        r"68\s*degrees",    # "68 degrees"
-        r"68\s*f",          # "68F" or "68 F"
+        r"68\.5",  # "68.5"
+        r"68\s*°",  # "68°" or "68 °"
+        r"68\s*degrees",  # "68 degrees"
+        r"68\s*f",  # "68F" or "68 F"
     ]
     if any(re.search(p, response_lower) for p in temp_patterns):
         print("PASS: Temperature (68.5°F) mentioned")
@@ -159,9 +159,11 @@ def check_d1_dashboard_report(response):
         print("FAIL: Temperature not mentioned")
 
     # Check humidity (52%) - must have 52 with humidity context
-    if re.search(r"52\s*%", response_lower) or \
-       re.search(r"humidity[^\d]*52", response_lower) or \
-       re.search(r"52[^\d]*humidity", response_lower):
+    if (
+        re.search(r"52\s*%", response_lower)
+        or re.search(r"humidity[^\d]*52", response_lower)
+        or re.search(r"52[^\d]*humidity", response_lower)
+    ):
         print("PASS: Humidity (52%) mentioned")
         found += 1
     else:
@@ -204,7 +206,10 @@ def check_d2_coffee_report(response):
         print("FAIL: Coffee start time not mentioned")
 
     # Check status (ready/brewing)
-    if any(word in response_lower for word in ["ready", "brewing", "preparing", "scheduled"]):
+    if any(
+        word in response_lower
+        for word in ["ready", "brewing", "preparing", "scheduled"]
+    ):
         print("PASS: Coffee status mentioned")
         found += 1
     else:
@@ -243,7 +248,9 @@ def check_d3_thermostat_state():
             print("D3: PASS (0.125)")
             return 0.125
         else:
-            print(f"D3: FAIL - Expected mode='comfort' AND temperature=74, got mode='{mode}' AND temperature={temp}")
+            print(
+                f"D3: FAIL - Expected mode='comfort' AND temperature=74, got mode='{mode}' AND temperature={temp}"
+            )
             return 0.0
     except sqlite3.Error as e:
         print(f"FAIL: Database error: {e}")
@@ -404,7 +411,9 @@ def check_d7_workout_state():
             print("D7: PASS (0.125)")
             return 0.125
         else:
-            print(f"D7: FAIL - Expected title='Morning Workout' AND workout_type='walking', got title='{title}' AND workout_type='{workout_type}'")
+            print(
+                f"D7: FAIL - Expected title='Morning Workout' AND workout_type='walking', got title='{title}' AND workout_type='{workout_type}'"
+            )
             return 0.0
     except sqlite3.Error as e:
         print(f"FAIL: Database error: {e}")
@@ -435,7 +444,9 @@ def check_d8_shopping_list_with_reasoning(response):
 
         # Check if new items correspond to expiring inventory
         expiring_names = set(EXPECTED_EXPIRING_ITEMS.keys())
-        matching_items = [item for item in new_items if any(exp in item for exp in expiring_names)]
+        matching_items = [
+            item for item in new_items if any(exp in item for exp in expiring_names)
+        ]
 
         print(f"New items matching expiring inventory: {matching_items}")
 
@@ -451,15 +462,17 @@ def check_d8_shopping_list_with_reasoning(response):
         response_lower = response.lower()
         # Must mention expiring items as the reason for adding to shopping list
         reasoning_patterns = [
-            r"expir",           # "expiring" or "expire"
-            r"running\s*low",   # "running low"
-            r"need.*shop",      # "need to shop" or "needed for shopping"
-            r"shop.*need",      # "shopping list needs"
+            r"expir",  # "expiring" or "expire"
+            r"running\s*low",  # "running low"
+            r"need.*shop",  # "need to shop" or "needed for shopping"
+            r"shop.*need",  # "shopping list needs"
         ]
         has_reasoning = any(re.search(p, response_lower) for p in reasoning_patterns)
 
         if has_reasoning:
-            print("PASS: Shopping list updated with items from expiring inventory and reasoning provided")
+            print(
+                "PASS: Shopping list updated with items from expiring inventory and reasoning provided"
+            )
             print("D8: PASS (0.125)")
             return 0.125
         else:
@@ -514,7 +527,9 @@ def main():
     d7_pass = results["D7"] >= 0.125
     hard_req_pass = d3_pass and d7_pass
 
-    print(f"Hard requirements: D3={'PASS' if d3_pass else 'FAIL'}, D7={'PASS' if d7_pass else 'FAIL'}")
+    print(
+        f"Hard requirements: D3={'PASS' if d3_pass else 'FAIL'}, D7={'PASS' if d7_pass else 'FAIL'}"
+    )
 
     # Write reward file
     with open("/logs/verifier/reward.txt", "w") as f:

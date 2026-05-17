@@ -143,11 +143,16 @@ def check_d1_thermostat_state():
         mode, temp = row
         print(f"Current thermostat: mode={mode}, temperature={temp}")
 
-        if mode == EXPECTED_THERMOSTAT_MODE and EXPECTED_THERMOSTAT_TEMP_MIN <= temp <= EXPECTED_THERMOSTAT_TEMP_MAX:
+        if (
+            mode == EXPECTED_THERMOSTAT_MODE
+            and EXPECTED_THERMOSTAT_TEMP_MIN <= temp <= EXPECTED_THERMOSTAT_TEMP_MAX
+        ):
             print("D1: PASS (0.125)")
             return 0.125
         else:
-            print(f"D1: FAIL - Expected mode='{EXPECTED_THERMOSTAT_MODE}' AND temperature in {EXPECTED_THERMOSTAT_TEMP_MIN}-{EXPECTED_THERMOSTAT_TEMP_MAX} range")
+            print(
+                f"D1: FAIL - Expected mode='{EXPECTED_THERMOSTAT_MODE}' AND temperature in {EXPECTED_THERMOSTAT_TEMP_MIN}-{EXPECTED_THERMOSTAT_TEMP_MAX} range"
+            )
             print(f"       Got mode='{mode}' AND temperature={temp}")
             return 0.0
     except sqlite3.Error as e:
@@ -177,7 +182,9 @@ def check_d2_coffee_state():
             print("D2: PASS (0.125)")
             return 0.125
         else:
-            print(f"D2: FAIL - Expected start_time <= '{EXPECTED_COFFEE_START_TIME_MAX}', got '{start_time}'")
+            print(
+                f"D2: FAIL - Expected start_time <= '{EXPECTED_COFFEE_START_TIME_MAX}', got '{start_time}'"
+            )
             return 0.0
     except sqlite3.Error as e:
         print(f"FAIL: Database error: {e}")
@@ -200,13 +207,23 @@ def check_d3_grocery_blue_mountain():
         for name, quantity, reference in rows:
             name_lower = name.lower()
             if "blue mountain" in name_lower and "coffee" in name_lower:
-                qty_ok = EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY - 2 <= quantity <= EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY + 2
-                reason_ok = reference is not None and ("expired" in reference.lower() or "expire" in reference.lower())
+                qty_ok = (
+                    EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY - 2
+                    <= quantity
+                    <= EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY + 2
+                )
+                reason_ok = reference is not None and (
+                    "expired" in reference.lower() or "expire" in reference.lower()
+                )
                 if qty_ok and reason_ok:
-                    print(f"D3: PASS - Found Blue Mountain entry with quantity={quantity}g and reason='{reference}'")
+                    print(
+                        f"D3: PASS - Found Blue Mountain entry with quantity={quantity}g and reason='{reference}'"
+                    )
                     return 0.125
                 else:
-                    print(f"D3: FAIL - Blue Mountain found but quantity={quantity}g (expected 20±2) or reason='{reference}' (expected 'expired')")
+                    print(
+                        f"D3: FAIL - Blue Mountain found but quantity={quantity}g (expected 20±2) or reason='{reference}' (expected 'expired')"
+                    )
                     return 0.0
 
         print("D3: FAIL - No Blue Mountain coffee entry found")
@@ -230,13 +247,24 @@ def check_d4_grocery_kenya_aa():
         for name, quantity, reference in rows:
             name_lower = name.lower()
             if "kenya" in name_lower:
-                qty_ok = EXPECTED_GROCERY_KENYA_AA_QTY - 1 <= quantity <= EXPECTED_GROCERY_KENYA_AA_QTY + 1
-                reason_ok = reference is not None and ("insufficient" in reference.lower() or "shortage" in reference.lower())
+                qty_ok = (
+                    EXPECTED_GROCERY_KENYA_AA_QTY - 1
+                    <= quantity
+                    <= EXPECTED_GROCERY_KENYA_AA_QTY + 1
+                )
+                reason_ok = reference is not None and (
+                    "insufficient" in reference.lower()
+                    or "shortage" in reference.lower()
+                )
                 if qty_ok and reason_ok:
-                    print(f"D4: PASS - Found Kenya AA entry with quantity={quantity}g and reason='{reference}'")
+                    print(
+                        f"D4: PASS - Found Kenya AA entry with quantity={quantity}g and reason='{reference}'"
+                    )
                     return 0.125
                 else:
-                    print(f"D4: FAIL - Kenya AA found but quantity={quantity}g (expected 8±1) or reason='{reference}' (expected 'insufficient/shortage')")
+                    print(
+                        f"D4: FAIL - Kenya AA found but quantity={quantity}g (expected 8±1) or reason='{reference}' (expected 'insufficient/shortage')"
+                    )
                     return 0.0
 
         print("D4: FAIL - No Kenya AA entry found")
@@ -258,7 +286,14 @@ def check_d5_response_environmental(response):
     found = 0
 
     # Check humidity anomaly mention (999% or sensor malfunction)
-    has_humidity = "999" in response_lower or ("humidity" in response_lower and ("anomaly" in response_lower or "malfunction" in response_lower or "sensor" in response_lower))
+    has_humidity = "999" in response_lower or (
+        "humidity" in response_lower
+        and (
+            "anomaly" in response_lower
+            or "malfunction" in response_lower
+            or "sensor" in response_lower
+        )
+    )
     if has_humidity:
         print("PASS: Humidity anomaly mentioned")
         found += 1
@@ -268,21 +303,43 @@ def check_d5_response_environmental(response):
     # Check causal link: humidity/sensor caused thermostat corruption (must be in same context)
     # Pattern: humidity/sensor + causal word + thermostat (within ~50 chars)
     has_causal_link = False
-    sentences = re.split(r'[.!?\n]', response_lower)
+    sentences = re.split(r"[.!?\n]", response_lower)
     for sentence in sentences:
-        if ("humidity" in sentence or "sensor" in sentence or "999" in sentence) and "thermostat" in sentence:
-            causal_words = ["caused", "cause", "trigger", "triggered", "led to", "resulted in", "protection mode", "corrupted", "because of", "due to"]
+        if (
+            "humidity" in sentence or "sensor" in sentence or "999" in sentence
+        ) and "thermostat" in sentence:
+            causal_words = [
+                "caused",
+                "cause",
+                "trigger",
+                "triggered",
+                "led to",
+                "resulted in",
+                "protection mode",
+                "corrupted",
+                "because of",
+                "due to",
+            ]
             if any(word in sentence for word in causal_words):
                 has_causal_link = True
                 break
     if has_causal_link:
-        print("PASS: Causal link between humidity/sensor and thermostat in same sentence")
+        print(
+            "PASS: Causal link between humidity/sensor and thermostat in same sentence"
+        )
         found += 1
     else:
-        print("FAIL: Causal link between humidity/sensor and thermostat not in same sentence")
+        print(
+            "FAIL: Causal link between humidity/sensor and thermostat not in same sentence"
+        )
 
     # Check thermostat correction mention
-    if "thermostat" in response_lower and ("comfort" in response_lower or "corrected" in response_lower or "fix" in response_lower or "adjust" in response_lower):
+    if "thermostat" in response_lower and (
+        "comfort" in response_lower
+        or "corrected" in response_lower
+        or "fix" in response_lower
+        or "adjust" in response_lower
+    ):
         print("PASS: Thermostat correction mentioned")
         found += 1
     else:
@@ -308,7 +365,9 @@ def check_d6_response_coffee_timing(response):
     found = 0
 
     # Check explicit 30-minute brew duration
-    has_30min = "30" in response_lower and ("min" in response_lower or "minute" in response_lower)
+    has_30min = "30" in response_lower and (
+        "min" in response_lower or "minute" in response_lower
+    )
     if has_30min:
         print("PASS: Explicit 30-minute brew duration mentioned")
         found += 1
@@ -325,9 +384,15 @@ def check_d6_response_coffee_timing(response):
 
     # Check 7am/departure inference (must tie brew time to departure)
     has_departure_inference = False
-    sentences = re.split(r'[.!?\n]', response_lower)
+    sentences = re.split(r"[.!?\n]", response_lower)
     for sentence in sentences:
-        if ("30" in sentence or "brew" in sentence) and ("7" in sentence or "07:" in sentence or "leave" in sentence or "departure" in sentence or "ready by" in sentence):
+        if ("30" in sentence or "brew" in sentence) and (
+            "7" in sentence
+            or "07:" in sentence
+            or "leave" in sentence
+            or "departure" in sentence
+            or "ready by" in sentence
+        ):
             has_departure_inference = True
             break
     if has_departure_inference:
@@ -355,13 +420,20 @@ def check_d7_response_inventory(response):
     response_lower = response.lower()
     found = 0
 
-    if "blue mountain" in response_lower and ("expired" in response_lower or "expire" in response_lower):
+    if "blue mountain" in response_lower and (
+        "expired" in response_lower or "expire" in response_lower
+    ):
         print("PASS: Blue Mountain expired mentioned")
         found += 1
     else:
         print("FAIL: Blue Mountain expired not mentioned")
 
-    if "kenya" in response_lower and ("insufficient" in response_lower or "shortage" in response_lower or "12" in response_lower or "not enough" in response_lower):
+    if "kenya" in response_lower and (
+        "insufficient" in response_lower
+        or "shortage" in response_lower
+        or "12" in response_lower
+        or "not enough" in response_lower
+    ):
         print("PASS: Kenya AA insufficient mentioned")
         found += 1
     else:
@@ -389,12 +461,19 @@ def check_d8_response_cross_reference(response):
     response_lower = response.lower()
 
     if "kenya" in response_lower and "coffee" in response_lower:
-        if "cross" in response_lower or "reference" in response_lower or "machine" in response_lower or "bean" in response_lower:
+        if (
+            "cross" in response_lower
+            or "reference" in response_lower
+            or "machine" in response_lower
+            or "bean" in response_lower
+        ):
             print("PASS: Kenya AA cross-referenced as coffee bean")
             print("D8: PASS (0.125)")
             return 0.125
         else:
-            print("PARTIAL: Kenya AA mentioned with coffee but no explicit cross-reference")
+            print(
+                "PARTIAL: Kenya AA mentioned with coffee but no explicit cross-reference"
+            )
             print("D8: PARTIAL (0.0625)")
             return 0.0625
 
@@ -440,7 +519,9 @@ def main():
 
     # Check hard requirements (D1, D2, D3, D4)
     hard_req_pass = all(results[d] >= 0.125 for d in ["D1", "D2", "D3", "D4"])
-    print(f"Hard requirements: D1={results['D1']>=0.125}, D2={results['D2']>=0.125}, D3={results['D3']>=0.125}, D4={results['D4']>=0.125}")
+    print(
+        f"Hard requirements: D1={results['D1'] >= 0.125}, D2={results['D2'] >= 0.125}, D3={results['D3'] >= 0.125}, D4={results['D4'] >= 0.125}"
+    )
 
     with open("/logs/verifier/reward.txt", "w") as f:
         f.write(f"{total_score:.3f}\n")

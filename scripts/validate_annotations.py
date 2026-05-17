@@ -234,10 +234,22 @@ def main() -> int:
     else:
         for case_name in framework_data:
             if case_name not in framework_data_zh:
-                all_errors.append(f"[EN↔ZH] {case_name}: missing from ZH complexity-framework.md")
+                all_errors.append(
+                    f"[EN↔ZH] {case_name}: missing from ZH complexity-framework.md"
+                )
             else:
-                for key in ["case_id", "difficulty", "domain", "factor_a1", "factor_a2", "factor_b1", "factor_b2"]:
-                    if framework_data[case_name].get(key) != framework_data_zh[case_name].get(key):
+                for key in [
+                    "case_id",
+                    "difficulty",
+                    "domain",
+                    "factor_a1",
+                    "factor_a2",
+                    "factor_b1",
+                    "factor_b2",
+                ]:
+                    if framework_data[case_name].get(key) != framework_data_zh[
+                        case_name
+                    ].get(key):
                         all_errors.append(
                             f"[EN↔ZH] {case_name}.{key}: "
                             f"EN={framework_data[case_name].get(key)} vs ZH={framework_data_zh[case_name].get(key)}"
