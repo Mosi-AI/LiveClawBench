@@ -18,6 +18,15 @@
         "zod": "^3.24.0",
       },
     },
+    "mocks/calendar": {
+      "name": "@mock/calendar",
+      "version": "0.1.0",
+      "dependencies": {
+        "hono": "^4.8.0",
+        "mock-lib": "workspace:*",
+        "zod": "^3.24.0",
+      },
+    },
     "mocks/doc-search": {
       "name": "@mock/doc-search",
       "version": "0.1.0",
@@ -88,6 +97,8 @@
     "@hono/zod-validator": ["@hono/zod-validator@0.4.3", "", { "peerDependencies": { "hono": ">=3.9.0", "zod": "^3.19.1" } }, "sha512-xIgMYXDyJ4Hj6ekm9T9Y27s080Nl9NXHcJkOvkXPhubOLj8hZkOL8pDnnXfvCf5xEE8Q4oMFenQUZZREUY2gqQ=="],
 
     "@mock/airline": ["@mock/airline@workspace:mocks/airline"],
+
+    "@mock/calendar": ["@mock/calendar@workspace:mocks/calendar"],
 
     "@mock/doc-search": ["@mock/doc-search@workspace:mocks/doc-search"],
 
