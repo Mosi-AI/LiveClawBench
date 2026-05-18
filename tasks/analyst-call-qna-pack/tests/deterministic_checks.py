@@ -82,11 +82,13 @@ def check_call_details(text: str) -> dict[str, float]:
         content_start : content_start
         + (next_heading.start() if next_heading else len(text))
     ]
-    # Must contain a date (YYYY-MM-DD) or time (HH:MM or H PM/AM)
-    has_info = bool(
-        re.search(r"\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}|\d{1,2}\s*[Pp][Mm]", section_text)
+    # Require the specific meeting start time (14:00 / 2 PM).
+    # That value only exists in the calendar API response — not in the corpus or workspace —
+    # so a fabricated or corpus-only entry cannot satisfy this check.
+    has_meeting_time = bool(
+        re.search(r"14:00|2:00\s*[Pp][Mm]|2\s*[Pp][Mm]\b", section_text)
     )
-    return {"call_details_ok": 1.0 if has_info else 0.0}
+    return {"call_details_ok": 1.0 if has_meeting_time else 0.0}
 
 
 def check_a2_corrections(text: str) -> dict[str, float]:

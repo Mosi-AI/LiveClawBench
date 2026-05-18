@@ -187,9 +187,19 @@ def main() -> None:
 
     reward = round(det_total + llm_total, 4)
 
-    # A2 hard gate: corrections list must be non-empty to demonstrate incremental repair.
-    # A full-rewrite agent cannot pass without documenting what it corrected.
-    if not result.get("corrections"):
+    # A2 hard gate: corrections must explicitly name at least one outdated value from the
+    # draft (78.3% F1, EMNLP 2024, or adapter-layer novelty claim).  A generic list or
+    # full-rewrite output that never references the stale claims cannot pass.
+    corrections = result.get("corrections", [])
+    corrections_text = (
+        " ".join(str(c) for c in corrections).lower() if corrections else ""
+    )
+    has_specific_repair = (
+        "78.3" in corrections_text
+        or "emnlp" in corrections_text
+        or "adapter layer" in corrections_text
+    )
+    if not corrections or not has_specific_repair:
         reward = min(reward, 0.49)
 
     report = {

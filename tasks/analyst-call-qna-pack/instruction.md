@@ -9,7 +9,7 @@ There is also a previous draft Q&A file in `~/.openclaw/workspace/`. Your task i
 Prepare a final analyst Q&A pack saved to `~/.openclaw/output/analyst_qna.md` with these sections:
 
 ## Call Details
-One line stating the meeting title, scheduled date, and start time as retrieved from the calendar (e.g. "NXL Q3 Investor Call — Thursday YYYY-MM-DD, 14:00–16:00").
+One line stating the meeting title, scheduled date, and start time as retrieved from the calendar (e.g. "Meeting Title — Thursday YYYY-MM-DD, HH:MM–HH:MM").
 
 ## Q&A Pairs
 At least **8** likely analyst questions with concise recommended answers.
