@@ -1,6 +1,6 @@
 {
   "deterministic": {
-    "result_exists":    0.10,
+    "result_exists":    0.15,
     "fields_complete":  0.05,
     "evidence_count":   0.05,
     "gaps_count":       0.05,
@@ -8,7 +8,7 @@
     "a2_venue_updated": 0.10
   },
   "llm": {
-    "novelty_correction": 0.20,
+    "novelty_correction": 0.15,
     "evidence_grounding": 0.20,
     "claim_repair":       0.15
   }

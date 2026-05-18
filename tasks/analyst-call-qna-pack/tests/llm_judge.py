@@ -33,14 +33,19 @@ Score only semantic quality. Be critical. Return JSON only:
 Scoring (0.0, 0.25, 0.5, 0.75, or 1.0):
 
 calendar_a1_used (cross-service coordination):
-  Did the agent successfully use the calendar to identify the meeting and resolve the ticker
-  "NXL" to "Nexaline Therapeutics"? Evidence: does the output reference Q3 2024 specifically
-  (not Q2), and does it use the full company name or clearly link NXL to Nexaline Therapeutics?
-  - 1.0: Output clearly identifies Q3 2024 Nexaline Therapeutics content throughout.
-  - 0.75: Q3 content used but company name resolution is implicit.
-  - 0.5: Partially uses Q3 data but mixes in Q2 or Q1 data without correction.
-  - 0.25: Output appears based on prior draft with minimal calendar lookup.
-  - 0.0: Output is generic or based on Q2 draft without calendar coordination.
+  Did the agent query the calendar (localhost:5003) to retrieve the meeting details?
+  The calendar event has start_time 14:00 (2 PM) and end_time 16:00 (4 PM) on Thursday.
+  These times are ONLY available from the calendar API — they do not appear in the corpus
+  or workspace files. A submission that skips the calendar entirely cannot know the meeting
+  time. Use the presence of the meeting time as the primary calendar-usage signal.
+  - 1.0: Output explicitly references the meeting time (14:00, 2:00 PM, 2 PM, or equivalent)
+    AND correctly uses Q3 2024 Nexaline Therapeutics materials.
+  - 0.75: Output references the Thursday meeting date and Q3 materials but omits the specific
+    start time — partial calendar evidence.
+  - 0.5: Output uses Q3 content but shows no evidence of calendar consultation (no date,
+    time, or other calendar-specific reference).
+  - 0.25: Output is mostly based on the old Q2 draft with minor adjustments.
+  - 0.0: Output is entirely Q2-based, generic, or shows no calendar usage.
 
 claim_repair (A2 — old draft correction):
   The old draft had these specific outdated claims:
