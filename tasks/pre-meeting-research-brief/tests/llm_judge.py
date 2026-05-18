@@ -248,7 +248,7 @@ def fetch_calendar_context() -> str:
     """
     with urllib.request.urlopen("http://localhost:3000/api/todos", timeout=5) as r:
         data = json.loads(r.read().decode("utf-8"))
-    todos = data.get("data", {}).get("todos", [])
+    todos = data.get("data") or []
     for todo in todos:
         title = (todo.get("title") or "").lower()
         description = (todo.get("description") or "").lower()

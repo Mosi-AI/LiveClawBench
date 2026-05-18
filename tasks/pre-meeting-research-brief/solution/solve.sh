@@ -18,7 +18,7 @@ def fetch_json(url):
 
 
 # --- Step 1: Get all todos and find this Friday's partnership meeting ---
-todos = fetch_json(f"{CALENDAR_BASE}/api/todos").get("data", {}).get("todos", [])
+todos = fetch_json(f"{CALENDAR_BASE}/api/todos").get("data") or []
 meeting = None
 for todo in todos:
     title = (todo.get("title") or "").lower()
