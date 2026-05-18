@@ -24,7 +24,7 @@
 
 - `task.toml` — 声明任务元数据（难度、领域、复杂度因子）和资源配置（CPU、内存、超时时间）
 - `instruction.md` — 展示给 agent 的任务描述，模拟用户的自然语言请求
-- `Dockerfile` — 基于 `liveclawbench-{task}:latest`（任务专属层）构建任务运行环境，包括应用依赖安装和数据库初始化。**不要**添加任务本地 `ENTRYPOINT` 或将 `startup.sh` 复制到可写路径——服务由任务专属层的 `/opt/mock/entrypoint.sh` 从只读的 `/opt/mock/startup.d/{task}.sh` 启动
+- `Dockerfile` — 基于 `liveclawbench-{task}-base:latest`（任务专属层）构建任务运行环境，包括应用依赖安装和数据库初始化。**不要**添加任务本地 `ENTRYPOINT` 或将 `startup.sh` 复制到可写路径——服务由任务专属层的 `/opt/mock/entrypoint.sh` 从只读的 `/opt/mock/startup.d/{task}.sh` 启动
 - `solve.sh` — 参考解脚本，用于验证任务可解性（不暴露给 agent）
 - `test.sh` — 验证入口；评分文件因任务而异（参见下方[评估模式](#评估模式)）
 
@@ -70,7 +70,7 @@ allow_internet = true   # 如果 agent 需要访问 LLM API 则必须设置
 | 字段 | 描述 |
 |------|------|
 | `case_id` | 唯一整数标识符；分配前检查 `../../metadata/cases_registry_zh.csv` |
-| `domain` | 主要任务领域（如 `E-commerce & Daily Svcs`） |
+| `domain` | 主要任务领域（见下方[可用领域](#可用领域)） |
 | `domains_multi` | 任务涉及的所有领域，包括主要领域 |
 | `factor_a1` .. `factor_b2` | 三轴框架复杂度因子标志 |
 | `verifier.timeout_sec` | 验证脚本的最大执行时间 |
@@ -86,6 +86,24 @@ allow_internet = true   # 如果 agent 需要访问 LLM API 则必须设置
 | `factor_a2` | A2 — 初始状态污染 |
 | `factor_b1` | B1 — 隐式目标解析 |
 | `factor_b2` | B2 — 知识系统维护 |
+
+### 可用领域
+
+LiveClawBench 任务分为以下主要领域：
+
+| 领域 | 描述 | 示例任务 |
+|------|------|----------|
+| Documents & Knowledge | 技能/知识库管理 | skill-creation, skill-conflict-resolution |
+| Communication & Email | 邮件撰写和管理 | email-writing, email-reply |
+| E-commerce & Daily Svcs | 购物、订单、日常服务 | watch-shop, flight-booking |
+| Calendar & Task Mgmt | 日程安排和任务协调 | schedule-change-request, flight-info-change-notice |
+| Coding & Software Dev | 全栈开发任务 | blog-site-from-scratch, blog-site-completion-from-starter |
+| DevOps & Env Repair | 构建修复和环境修复 | vue-build-fix-single, vue-build-fix-chain |
+| Deep Research & Report | 研究综合和报告 | noise-filtering, live-web-research-sqlite-fts5 |
+| Health & Fitness | 饮食和健康追踪 | mint-diet-snack-log |
+| Social Media | 社交平台互动 | social-media-posting, social-unlike-post |
+| Finance & Data Analytics | 费用和金融数据管理 | expense-draft-delete |
+| Health & Wellness | 健康记录和健康追踪 | health-daily-record |
 
 ---
 

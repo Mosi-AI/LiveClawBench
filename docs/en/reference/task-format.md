@@ -25,7 +25,7 @@ Each task follows this standardised directory layout:
 
 - `task.toml` — declares task metadata (difficulty, domain, complexity factors) and resource config (CPU, memory, timeouts)
 - `instruction.md` — the task description shown to the agent, simulating a user's natural language request
-- `Dockerfile` — builds the task runtime environment on top of `liveclawbench-{task}:latest` (the per-task image layer), including app dependency installation and database init. Do **not** add a task-local `ENTRYPOINT` or copy `startup.sh` into writable paths — services are started by the per-task image's `/opt/mock/entrypoint.sh` from the read-only `/opt/mock/startup.d/{task}.sh`
+- `Dockerfile` — builds the task runtime environment on top of `liveclawbench-{task}-base:latest` (the per-task image layer), including app dependency installation and database init. Do **not** add a task-local `ENTRYPOINT` or copy `startup.sh` into writable paths — services are started by the per-task image's `/opt/mock/entrypoint.sh` from the read-only `/opt/mock/startup.d/{task}.sh`
 - `solve.sh` — reference solution script used to verify task solvability (not exposed to the agent)
 - `test.sh` — verification entry point; scoring files vary by task (see [Evaluation Patterns](#evaluation-patterns) below)
 
@@ -71,13 +71,31 @@ allow_internet = true   # required if the agent needs LLM API access
 | Field | Description |
 |-------|-------------|
 | `case_id` | Unique integer identifier; check `../../metadata/cases_registry.csv` before assigning |
-| `domain` | Primary task domain (e.g., `E-commerce & Daily Svcs`) |
+| `domain` | Primary task domain (see [Available Domains](#available-domains) below) |
 | `domains_multi` | All domains the task touches, including primary |
 | `factor_a1` .. `factor_b2` | Complexity factor flags per the Triple-Axis Framework |
 | `verifier.timeout_sec` | Maximum execution time for the verification script |
 | `agent.timeout_sec` | Maximum time the agent has to complete the task |
 | `environment.build_timeout_sec` | Docker environment build timeout |
 | `allow_internet` | Set to `true` if the agent must call external LLM APIs |
+
+### Available Domains
+
+LiveClawBench tasks are classified into the following primary domains:
+
+| Domain | Description | Example Tasks |
+|--------|-------------|---------------|
+| Documents & Knowledge | Skill/knowledge repository management | skill-creation, skill-conflict-resolution |
+| Communication & Email | Email composition and management | email-writing, email-reply |
+| E-commerce & Daily Svcs | Shopping, orders, daily services | watch-shop, flight-booking |
+| Calendar & Task Mgmt | Scheduling and task coordination | schedule-change-request, flight-info-change-notice |
+| Coding & Software Dev | Full-stack development tasks | blog-site-from-scratch, blog-site-completion-from-starter |
+| DevOps & Env Repair | Build fixes and environment repair | vue-build-fix-single, vue-build-fix-chain |
+| Deep Research & Report | Research synthesis and reporting | noise-filtering, live-web-research-sqlite-fts5 |
+| Health & Fitness | Diet and health tracking | mint-diet-snack-log |
+| Social Media | Social platform interactions | social-media-posting, social-unlike-post |
+| Finance & Data Analytics | Expense and financial data management | expense-draft-delete |
+| Health & Wellness | Health records and wellness tracking | health-daily-record |
 
 **Complexity factor fields** (set to `1` when the factor applies, `0` when absent):
 

@@ -2,7 +2,6 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
 import { ok, err } from "mock-lib";
-import { DEFAULT_USER_ID } from "../helpers";
 import {
   OkSchema,
   ErrSchema,
@@ -36,8 +35,9 @@ export function registerChatRoutes(app: OpenAPIApp, db: Database, prefix: string
   app.openApiRoute(listSessionsRoute, (c) => {
     const query = c.req.valid("query");
     const status = query.status;
+    const userId = c.get("userId")!;
     let sql = "SELECT * FROM chat_sessions WHERE user_id = ?";
-    const params: (number | string)[] = [DEFAULT_USER_ID];
+    const params: (number | string)[] = [userId];
 
     if (status) {
       sql += " AND status = ?";
@@ -62,9 +62,10 @@ export function registerChatRoutes(app: OpenAPIApp, db: Database, prefix: string
 
   app.openApiRoute(createSessionRoute, (c) => {
     const sessionId = `chat-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const userId = c.get("userId")!;
     const result = db.query(
       "INSERT INTO chat_sessions (user_id, session_id, status) VALUES (?, ?, 'active')"
-    ).run(DEFAULT_USER_ID, sessionId);
+    ).run(userId, sessionId);
 
     const id = Number(result.lastInsertRowid);
     const session = db.query("SELECT * FROM chat_sessions WHERE id = ?").get(id) as Record<string, unknown>;
@@ -103,7 +104,8 @@ export function registerChatRoutes(app: OpenAPIApp, db: Database, prefix: string
     const body = c.req.valid("json");
     const message = body.message;
 
-    const session = db.query("SELECT * FROM chat_sessions WHERE session_id = ? AND user_id = ?").get(session_id, DEFAULT_USER_ID) as Record<string, unknown> | null;
+    const userId = c.get("userId")!;
+    const session = db.query("SELECT * FROM chat_sessions WHERE session_id = ? AND user_id = ?").get(session_id, userId) as Record<string, unknown> | null;
     if (!session) return c.json(err("Session not found"), 404);
 
     const sessionDbId = Number(session.id);
@@ -147,7 +149,8 @@ export function registerChatRoutes(app: OpenAPIApp, db: Database, prefix: string
 
   app.openApiRoute(closeSessionRoute, (c) => {
     const { session_id } = c.req.valid("param");
-    const session = db.query("SELECT * FROM chat_sessions WHERE session_id = ? AND user_id = ?").get(session_id, DEFAULT_USER_ID) as Record<string, unknown> | null;
+    const userId = c.get("userId")!;
+    const session = db.query("SELECT * FROM chat_sessions WHERE session_id = ? AND user_id = ?").get(session_id, userId) as Record<string, unknown> | null;
     if (!session) return c.json(err("Session not found"), 404);
 
     db.query("UPDATE chat_sessions SET status = 'closed', ended_at = datetime('now') WHERE id = ?").run(Number(session.id));

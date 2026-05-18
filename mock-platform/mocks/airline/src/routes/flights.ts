@@ -1,59 +1,11 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { createRoute } from "mock-lib";
-import { ok, err } from "mock-lib";
-import { paginate, parsePageParams } from "../helpers";
-import {
-  OkSchema,
-  ErrSchema,
-  FlightSchema,
-  SeatSchema,
-  FlightListQuerySchema,
-  FlightSearchBodySchema,
-  FlightIdParamSchema,
-  SeatIdParamSchema,
-  PaginatedSchema,
-} from "../schemas";
-import { z } from "zod";
+import { ok, err, paginate, parsePageParams } from "../helpers";
 
 export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
-  const flightListResponse = OkSchema(PaginatedSchema(FlightSchema, "flights"));
-  const flightDetailResponse = OkSchema(FlightSchema);
-  const flightSearchResponse = OkSchema(z.object({
-    flights: z.array(FlightSchema),
-    search_criteria: z.object({
-      origin: z.string(),
-      destination: z.string(),
-      departure_date: z.string(),
-      passengers: z.number(),
-      cabin_class: z.string(),
-    }),
-  }));
-  const seatListResponse = OkSchema(z.object({
-    flight_id: z.number(),
-    flight_number: z.string(),
-    seats: z.record(z.string(), z.array(SeatSchema)),
-    total_seats: z.number(),
-    available_seats: z.record(z.string(), z.number()),
-  }));
-  const seatDetailResponse = OkSchema(SeatSchema);
-
-  // GET /api/flights
-  const listRoute = createRoute({
-    method: "get",
-    path: "/api/flights",
-    summary: "List flights",
-    request: { query: FlightListQuerySchema },
-    responses: {
-      200: {
-        content: { "application/json": { schema: flightListResponse } },
-        description: "OK",
-      },
-    },
-  });
-
-  app.openApiRoute(listRoute, (c) => {
-    const query = c.req.valid("query");
+  // GET /api/flights/
+  app.get("/api/flights", (c) => {
+    const query = c.req.query();
     const { page, perPage, offset } = parsePageParams(query.page, query.per_page);
 
     const conditions: string[] = ["1=1"];
@@ -94,31 +46,13 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // POST /api/flights/search
-  const searchRoute = createRoute({
-    method: "post",
-    path: "/api/flights/search",
-    summary: "Search flights",
-    request: {
-      body: {
-        content: { "application/json": { schema: FlightSearchBodySchema } },
-        description: "Search criteria",
-      },
-    },
-    responses: {
-      200: {
-        content: { "application/json": { schema: flightSearchResponse } },
-        description: "OK",
-      },
-    },
-  });
-
-  app.openApiRoute(searchRoute, async (c) => {
-    const body = c.req.valid("json");
-    const origin = body.origin;
-    const destination = body.destination;
-    const departureDate = body.departure_date;
-    const passengers = Math.max(1, body.passengers ?? 1);
-    const cabinClass = body.cabin_class ?? "economy";
+  app.post("/api/flights/search", async (c) => {
+    const body = (await c.req.json()) as Record<string, unknown>;
+    const origin = String(body.origin ?? "");
+    const destination = String(body.destination ?? "");
+    const departureDate = String(body.departure_date ?? "");
+    const passengers = Math.max(1, parseInt(String(body.passengers ?? "1"), 10) || 1);
+    const cabinClass = String(body.cabin_class ?? "economy");
 
     const flights = db
       .query(
@@ -130,26 +64,8 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/flights/:flight_id
-  const detailRoute = createRoute({
-    method: "get",
-    path: "/api/flights/{flight_id}",
-    summary: "Get flight by ID",
-    request: { params: FlightIdParamSchema },
-    responses: {
-      200: {
-        content: { "application/json": { schema: flightDetailResponse } },
-        description: "OK",
-      },
-      404: {
-        content: { "application/json": { schema: ErrSchema } },
-        description: "Not found",
-      },
-    },
-  });
-
-  app.openApiRoute(detailRoute, (c) => {
-    const { flight_id } = c.req.valid("param");
-    const flightId = parseInt(flight_id, 10);
+  app.get("/api/flights/:flight_id", (c) => {
+    const flightId = parseInt(c.req.param("flight_id"), 10);
     const flight = db.query("SELECT * FROM flights WHERE id = ?").get(flightId) as Record<string, unknown> | null;
     if (!flight) {
       return c.json(err("Flight not found"), 404);
@@ -158,31 +74,10 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/flights/:flight_id/seats
-  const seatsRoute = createRoute({
-    method: "get",
-    path: "/api/flights/{flight_id}/seats",
-    summary: "Get flight seats",
-    request: {
-      params: FlightIdParamSchema,
-      query: z.object({
-        cabin_class: z.string().optional(),
-        available_only: z.string().optional(),
-      }),
-    },
-    responses: {
-      200: {
-        content: { "application/json": { schema: seatListResponse } },
-        description: "OK",
-      },
-    },
-  });
-
-  app.openApiRoute(seatsRoute, (c) => {
-    const { flight_id } = c.req.valid("param");
-    const flightId = parseInt(flight_id, 10);
-    const query = c.req.valid("query");
-    const cabinClass = query.cabin_class;
-    const availableOnly = query.available_only === "true";
+  app.get("/api/flights/:flight_id/seats", (c) => {
+    const flightId = parseInt(c.req.param("flight_id"), 10);
+    const cabinClass = c.req.query("cabin_class");
+    const availableOnly = c.req.query("available_only") === "true";
 
     const flight = db.query("SELECT flight_number FROM flights WHERE id = ?").get(flightId) as { flight_number: string } | null;
 
@@ -200,6 +95,7 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
 
     const seats = db.query(sql).all(...params) as Record<string, unknown>[];
 
+    // Compute available_seats per cabin
     const availableSeatsByCabin: Record<string, number> = {};
     const allSeats = db.query("SELECT cabin_class, is_available FROM seats WHERE flight_id = ?").all(flightId) as { cabin_class: string; is_available: number }[];
     for (const s of allSeats) {
@@ -224,31 +120,8 @@ export function registerFlightRoutes(app: OpenAPIApp, db: Database): void {
   });
 
   // GET /api/flights/:flight_id/seats/:seat_id
-  const seatDetailRoute = createRoute({
-    method: "get",
-    path: "/api/flights/{flight_id}/seats/{seat_id}",
-    summary: "Get seat by ID",
-    request: {
-      params: z.object({
-        flight_id: z.string().regex(/^\d+$/),
-        seat_id: z.string().regex(/^\d+$/),
-      }),
-    },
-    responses: {
-      200: {
-        content: { "application/json": { schema: seatDetailResponse } },
-        description: "OK",
-      },
-      404: {
-        content: { "application/json": { schema: ErrSchema } },
-        description: "Not found",
-      },
-    },
-  });
-
-  app.openApiRoute(seatDetailRoute, (c) => {
-    const { seat_id } = c.req.valid("param");
-    const seatId = parseInt(seat_id, 10);
+  app.get("/api/flights/:flight_id/seats/:seat_id", (c) => {
+    const seatId = parseInt(c.req.param("seat_id"), 10);
     const seat = db.query("SELECT * FROM seats WHERE id = ?").get(seatId) as Record<string, unknown> | null;
     if (!seat) {
       return c.json(err("Seat not found"), 404);

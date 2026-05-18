@@ -17,6 +17,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).parent.parent
 TASKS_DIR = REPO_ROOT / "tasks"
 FRAMEWORK_MD = REPO_ROOT / "docs" / "en" / "reference" / "complexity-framework.md"
+FRAMEWORK_MD_ZH = REPO_ROOT / "docs" / "zh" / "reference" / "complexity-framework.md"
 REGISTRY_CSVS = [
     REPO_ROOT / "docs" / "metadata" / "cases_registry.csv",
     REPO_ROOT / "docs" / "metadata" / "cases_registry_zh.csv",
@@ -34,7 +35,7 @@ def load_toml_annotations() -> dict[str, dict]:
         toml_path = task_dir / "task.toml"
         if not toml_path.exists():
             continue
-        data = tomllib.loads(toml_path.read_text(encoding="utf-8"))
+        data = tomllib.loads(toml_path.read_text())
         meta = data.get("metadata", {})
         results[task_dir.name] = {
             "case_id": meta.get("case_id"),
@@ -48,18 +49,18 @@ def load_toml_annotations() -> dict[str, dict]:
     return results
 
 
-def load_framework_annotations() -> dict[str, dict]:
+def load_framework_annotations(framework_path: Path = FRAMEWORK_MD) -> dict[str, dict]:
     """Parse the annotation table from complexity-framework.md."""
-    if not FRAMEWORK_MD.exists():
+    if not framework_path.exists():
         return {}
-    content = FRAMEWORK_MD.read_text(encoding="utf-8")
+    content = framework_path.read_text()
 
     # Find the markdown table rows (skip header and separator)
     results = {}
     in_table = False
     for line in content.splitlines():
-        # Detect table start: line with case_id header
-        if "case_id" in line and "Case Name" in line:
+        # Detect table start: line with case_id header (EN: "Case Name", ZH: "Case 名称")
+        if "case_id" in line and ("Case Name" in line or "Case 名称" in line):
             in_table = True
             continue
         if in_table and line.startswith("|") and "---" in line:
@@ -97,7 +98,7 @@ def load_csv_annotations(csv_path: Path) -> dict[str, dict]:
     if not csv_path.exists():
         return {}
     results = {}
-    with csv_path.open(newline="", encoding="utf-8") as f:
+    with csv_path.open(newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
             case_name = row.get("Case name", "").strip()
@@ -129,7 +130,7 @@ def compare_sources(
     """Compare annotations across all three sources, return list of errors."""
     errors: list[str] = []
     factor_keys = ["factor_a1", "factor_a2", "factor_b1", "factor_b2"]
-    check_keys = ["case_id", "difficulty"] + factor_keys
+    check_keys = ["case_id", "difficulty", "domain"] + factor_keys
 
     # Check toml tasks against framework
     for task_name, toml_ann in toml_data.items():
@@ -211,7 +212,10 @@ def main() -> int:
     print(f"  task.toml: {len(toml_data)} tasks")
 
     framework_data = load_framework_annotations()
-    print(f"  complexity-framework.md: {len(framework_data)} entries")
+    print(f"  complexity-framework.md (EN): {len(framework_data)} entries")
+
+    framework_data_zh = load_framework_annotations(FRAMEWORK_MD_ZH)
+    print(f"  complexity-framework.md (ZH): {len(framework_data_zh)} entries")
 
     all_errors: list[str] = []
     for csv_path in REGISTRY_CSVS:
@@ -221,6 +225,35 @@ def main() -> int:
 
         errors = compare_sources(toml_data, framework_data, csv_data, label=label)
         all_errors.extend(errors)
+
+    # Check EN/ZH framework tables match
+    if len(framework_data) != len(framework_data_zh):
+        all_errors.append(
+            f"[EN↔ZH] complexity-framework.md: EN has {len(framework_data)} entries, ZH has {len(framework_data_zh)} entries"
+        )
+    else:
+        for case_name in framework_data:
+            if case_name not in framework_data_zh:
+                all_errors.append(
+                    f"[EN↔ZH] {case_name}: missing from ZH complexity-framework.md"
+                )
+            else:
+                for key in [
+                    "case_id",
+                    "difficulty",
+                    "domain",
+                    "factor_a1",
+                    "factor_a2",
+                    "factor_b1",
+                    "factor_b2",
+                ]:
+                    if framework_data[case_name].get(key) != framework_data_zh[
+                        case_name
+                    ].get(key):
+                        all_errors.append(
+                            f"[EN↔ZH] {case_name}.{key}: "
+                            f"EN={framework_data[case_name].get(key)} vs ZH={framework_data_zh[case_name].get(key)}"
+                        )
 
     if all_errors:
         print(f"\nFOUND {len(all_errors)} INCONSISTENCIES:\n")
