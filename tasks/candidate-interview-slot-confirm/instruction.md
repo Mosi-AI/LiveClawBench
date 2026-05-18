@@ -4,4 +4,6 @@ I received an email from HR about a candidate interview. Please check my company
 2. Create a calendar event on the company calendar (http://localhost:5006/, open it in your browser) for the interview at the specified date, time, and location.
 3. Reply to the HR email confirming the interview slot has been added to the calendar.
 
+Login credentials for all services: peter.griffin@work.mosi.inc / password123
+
 Let me know when everything is done.

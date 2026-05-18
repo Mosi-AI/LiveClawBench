@@ -5,4 +5,6 @@ I received an email from HR about a meeting reschedule. Please check my company 
 3. Create a new calendar event for the rescheduled meeting using the new date and time from the email.
 4. Reply to the HR email confirming the reschedule, including the new meeting date and time.
 
+Login credentials for all services: peter.griffin@work.mosi.inc / password123
+
 Let me know when everything is done.
