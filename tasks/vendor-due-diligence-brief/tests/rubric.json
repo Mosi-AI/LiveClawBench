@@ -1,0 +1,8 @@
+{
+  "structural_valid": 0.05,
+  "red_flags_minimum": 0.10,
+  "anchor_coverage": 0.20,
+  "vendor_background_quality": 0.15,
+  "evidence_grounding": 0.30,
+  "recommendation_quality": 0.20
+}

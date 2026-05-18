@@ -31,6 +31,8 @@ check_cmd git    "Install from https://git-scm.com/downloads"
 check_cmd uv     "Install from https://docs.astral.sh/uv/getting-started/installation/"
 check_cmd docker "Install from https://docs.docker.com/get-docker/"
 check_cmd bun    "Install from https://bun.sh"
+check_cmd node   "Install from https://nodejs.org (>= 18 required for frontend builds)"
+check_cmd npm    "Included with Node.js (>= 18)"
 
 # Python >= 3.12 check (uv manages Python, but verify host has one accessible)
 PY_VERSION=$(python3 --version 2>&1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
@@ -42,6 +44,16 @@ if [ "$PY_MAJOR" -lt 3 ] || { [ "$PY_MAJOR" -eq 3 ] && [ "$PY_MINOR" -lt 12 ]; }
     exit 1
 fi
 echo "  OK  python3 ($PY_VERSION)"
+
+# Node.js >= 18 check (required for frontend SPA builds)
+NODE_VERSION=$(node --version 2>&1 | sed 's/^v//')
+NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d. -f1)
+if [ "$NODE_MAJOR" -lt 18 ]; then
+    echo "  ERROR: Node.js >= 18 required (found v$NODE_VERSION)."
+    echo "         Install from https://nodejs.org"
+    exit 1
+fi
+echo "  OK  node (v$NODE_VERSION)"
 
 echo ""
 

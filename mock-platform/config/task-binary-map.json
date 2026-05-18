@@ -3,61 +3,189 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search"],
+  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "mint-diet", "weather"],
   "tasks": {
+    "weather-aqi-report": {
+      "binaries": ["weather"]
+    },
     "watch-shop": {
       "binaries": ["shop"],
       "assets": [
-        { "src": "tasks/watch-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/watch-shop/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "washer-shop": {
       "binaries": ["shop"],
       "assets": [
-        { "src": "tasks/washer-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/washer-shop/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "info-change": {
       "binaries": ["shop"],
       "assets": [
-        { "src": "tasks/info-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/info-change/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "washer-change": {
       "binaries": ["shop"],
       "assets": [
-        { "src": "tasks/washer-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/washer-change/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     },
     "email-watch-shop": {
       "binaries": ["shop", "email"],
       "startup_extra": "tasks/email-watch-shop/environment/startup.sh",
       "assets": [
-        { "src": "tasks/email-watch-shop/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/email-watch-shop/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-watch-shop/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
       ]
     },
     "email-washer-change": {
       "binaries": ["shop", "email"],
       "startup_extra": "tasks/email-washer-change/environment/startup.sh",
       "assets": [
-        { "src": "tasks/email-washer-change/environment/shop-app/frontend/static/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/email-washer-change/environment/shop-app/frontend/data/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-washer-change/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
       ]
     },
-    "email-writing": { "binaries": ["email"] },
-    "email-reply": { "binaries": ["email"] },
-    "schedule-change-request": { "binaries": ["airline", "email", "todolist"] },
-    "flight-booking": { "binaries": ["airline"] },
-    "flight-info-change-notice": { "binaries": ["airline", "email", "todolist"] },
-    "flight-seat-selection": { "binaries": ["airline", "email"] },
-    "flight-seat-selection-failed": { "binaries": ["airline", "email"] },
-    "flight-cancel-claim": { "binaries": ["airline", "email"] },
-    "baggage-tracking-application": { "binaries": ["airline"] },
+    "email-writing": {
+      "binaries": ["email"],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "email-reply": {
+      "binaries": ["email"],
+      "frontends": [
+        {
+          "src": "tasks/email-reply/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "schedule-change-request": {
+      "binaries": ["airline", "email", "todolist"],
+      "frontends": [
+        {
+          "src": "tasks/schedule-change-request/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        },
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "flight-booking": {
+      "binaries": ["airline"],
+      "frontends": [
+        {
+          "src": "tasks/flight-booking/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    },
+    "flight-info-change-notice": {
+      "binaries": ["airline", "email", "todolist"],
+      "frontends": [
+        {
+          "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/flight-info-change-notice/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        },
+        {
+          "src": "tasks/flight-info-change-notice/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "flight-seat-selection": {
+      "binaries": ["airline", "email"],
+      "frontends": [
+        {
+          "src": "tasks/flight-seat-selection/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/flight-seat-selection/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "flight-seat-selection-failed": {
+      "binaries": ["airline", "email"],
+      "frontends": [
+        {
+          "src": "tasks/flight-seat-selection-failed/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/flight-seat-selection-failed/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "flight-cancel-claim": {
+      "binaries": ["airline", "email"],
+      "frontends": [
+        {
+          "src": "tasks/flight-cancel-claim/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/flight-cancel-claim/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "baggage-tracking-application": {
+      "binaries": ["airline"],
+      "frontends": [
+        {
+          "src": "tasks/baggage-tracking-application/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    },
     "blog-site-from-scratch": { "binaries": [] },
     "blog-site-completion-from-starter": { "binaries": [] },
     "vue-build-fix-single": { "binaries": [] },
@@ -72,7 +200,7 @@
       "binaries": ["doc-search"],
       "startup_extra": "tasks/mixed-tool-memory/environment/startup.sh",
       "assets": [
-        { "src": "tasks/mixed-tool-memory/environment/browser_mock_sidecar/documents.sql", "dest": "/opt/mock/data/documents.sql" }
+        { "src": "tasks/mixed-tool-memory/environment/documents.sql", "dest": "/opt/mock/data/documents.sql" }
       ]
     },
     "incremental-update-ctp": { "binaries": [] },
@@ -81,9 +209,32 @@
       "binaries": ["doc-search"],
       "startup_extra": "tasks/conflict-repair-acb/environment/startup.sh",
       "assets": [
-        { "src": "tasks/conflict-repair-acb/environment/browser_mock_sidecar/documents.sql", "dest": "/opt/mock/data/documents.sql" }
+        { "src": "tasks/conflict-repair-acb/environment/documents.sql", "dest": "/opt/mock/data/documents.sql" }
       ]
     },
-    "skill-combination": { "binaries": [] }
+    "skill-combination": { "binaries": [] },
+    "mint-diet-snack-log": { "binaries": ["mint-diet"] },
+    "weather-city-travel-pick": { "binaries": ["weather"] },
+    "weather-outdoor-window": { "binaries": ["weather"] },
+    "pre-meeting-research-brief": {
+      "binaries": ["todolist"],
+      "frontends": [
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "vendor-due-diligence-brief": {
+      "binaries": ["email"],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    }
   }
 }

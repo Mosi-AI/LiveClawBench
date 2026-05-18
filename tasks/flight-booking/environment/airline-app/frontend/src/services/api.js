@@ -13,13 +13,13 @@ const api = axios.create({
 
 // Auth API (no trailing slashes - backend routes don't have them)
 export const authAPI = {
-  getProfile: () => api.get('/profile/'),
-  updateProfile: (data) => api.put('/profile/', data),
+  getProfile: () => api.get('/profile'),
+  updateProfile: (data) => api.put('/profile', data),
 };
 
 // Flights API
 export const flightsAPI = {
-  getAll: (params) => api.get('/flights/', { params }),
+  getAll: (params) => api.get('/flights', { params }),
   search: (data) => api.post('/flights/search', data),
   getById: (id) => api.get(`/flights/${id}`),
   getSeats: (id, params) => api.get(`/flights/${id}/seats`, { params }),
@@ -27,9 +27,9 @@ export const flightsAPI = {
 
 // Bookings API
 export const bookingsAPI = {
-  getAll: (params) => api.get('/bookings/', { params }),
+  getAll: (params) => api.get('/bookings', { params }),
   getByReference: (reference) => api.get(`/bookings/${reference}`),
-  create: (data) => api.post('/bookings/', data),
+  create: (data) => api.post('/bookings', data),
   assignSeats: (reference, data) => api.post(`/bookings/${reference}/seats`, data),
   cancel: (reference) => api.post(`/bookings/${reference}/cancel`),
 };
@@ -54,38 +54,38 @@ export const claimsAPI = {
 // Mock Services API
 export const mockAPI = {
   // Email
-  getEmails: (params) => api.get('/mock/emails', { params }),
-  getEmailById: (id) => api.get(`/mock/emails/${id}`),
+  getEmails: (params) => api.get('/emails', { params }),
+  getEmailById: (id) => api.get(`/emails/${id}`),
 
   // Calendar
-  getCalendarEvents: (params) => api.get('/mock/calendar/events', { params }),
+  getCalendarEvents: (params) => api.get('/calendar/events', { params }),
 
   // Payment
-  processPayment: (data) => api.post('/mock/payment/process', data),
+  processPayment: (data) => api.post('/payment/process', data),
 
   // Chat
-  getChatSessions: () => api.get('/mock/chat/sessions'),
-  createChatSession: () => api.post('/mock/chat/sessions'),
-  sendMessage: (sessionId, message) => api.post(`/mock/chat/sessions/${sessionId}/messages`, { message }),
-  closeChatSession: (sessionId) => api.post(`/mock/chat/sessions/${sessionId}/close`),
+  getChatSessions: () => api.get('/chat/sessions'),
+  createChatSession: () => api.post('/chat/sessions'),
+  sendMessage: (sessionId, message) => api.post(`/chat/sessions/${sessionId}/messages`, { message }),
+  closeChatSession: (sessionId) => api.post(`/chat/sessions/${sessionId}/close`),
 };
 
 // Announcements API
 export const announcementsAPI = {
-  getList: (params) => api.get('/announcements/', { params }),
+  getList: (params) => api.get('/announcements', { params }),
   getDetails: (id) => api.get(`/announcements/${id}`),
 };
 
 // FAQ API
 export const faqAPI = {
-  getList: (params) => api.get('/faq/', { params }),
+  getList: (params) => api.get('/faq', { params }),
   getDetails: (id) => api.get(`/faq/${id}`),
 };
 
 // Baggage API
 export const baggageAPI = {
-  getList: (params) => api.get('/baggage/', { params }),
-  submit: (data) => api.post('/baggage/', data),
+  getList: (params) => api.get('/baggage', { params }),
+  submit: (data) => api.post('/baggage', data),
   getDetails: (id) => api.get(`/baggage/${id}`),
 };
 

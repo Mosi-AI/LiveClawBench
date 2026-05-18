@@ -1,7 +1,7 @@
 /**
  * Search algorithm — faithful port of Python calculate_relevance_score(),
  * search_products(), and filter_and_sort_products() from
- * tasks/watch-shop/environment/shop-app/backend/app.py.
+ * the legacy Python shop-app backend.
  *
  * Extracted into a standalone module for shared usage by the Hono shop mock
  * (index.tsx imports from here) and Layer 1 unit tests.

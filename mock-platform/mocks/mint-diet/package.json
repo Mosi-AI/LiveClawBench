@@ -1,0 +1,9 @@
+{
+  "name": "@mock/mint-diet",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "hono": "^4.8.0",
+    "mock-lib": "workspace:*"
+  }
+}

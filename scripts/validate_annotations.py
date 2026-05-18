@@ -34,7 +34,7 @@ def load_toml_annotations() -> dict[str, dict]:
         toml_path = task_dir / "task.toml"
         if not toml_path.exists():
             continue
-        data = tomllib.loads(toml_path.read_text())
+        data = tomllib.loads(toml_path.read_text(encoding="utf-8"))
         meta = data.get("metadata", {})
         results[task_dir.name] = {
             "case_id": meta.get("case_id"),
@@ -52,7 +52,7 @@ def load_framework_annotations() -> dict[str, dict]:
     """Parse the annotation table from complexity-framework.md."""
     if not FRAMEWORK_MD.exists():
         return {}
-    content = FRAMEWORK_MD.read_text()
+    content = FRAMEWORK_MD.read_text(encoding="utf-8")
 
     # Find the markdown table rows (skip header and separator)
     results = {}
@@ -97,7 +97,7 @@ def load_csv_annotations(csv_path: Path) -> dict[str, dict]:
     if not csv_path.exists():
         return {}
     results = {}
-    with csv_path.open(newline="") as f:
+    with csv_path.open(newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             case_name = row.get("Case name", "").strip()

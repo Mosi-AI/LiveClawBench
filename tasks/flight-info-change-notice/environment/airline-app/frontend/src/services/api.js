@@ -13,13 +13,13 @@ const api = axios.create({
 
 // Auth API (no trailing slashes - backend routes don't have them)
 export const authAPI = {
-  getProfile: () => api.get('/profile/'),
-  updateProfile: (data) => api.put('/profile/', data),
+  getProfile: () => api.get('/profile'),
+  updateProfile: (data) => api.put('/profile', data),
 };
 
 // Flights API
 export const flightsAPI = {
-  getAll: (params) => api.get('/flights/', { params }),
+  getAll: (params) => api.get('/flights', { params }),
   search: (data) => api.post('/flights/search', data),
   getById: (id) => api.get(`/flights/${id}`),
   getSeats: (id, params) => api.get(`/flights/${id}/seats`, { params }),
@@ -72,20 +72,20 @@ export const mockAPI = {
 
 // Announcements API
 export const announcementsAPI = {
-  getList: (params) => api.get('/announcements/', { params }),
+  getList: (params) => api.get('/announcements', { params }),
   getDetails: (id) => api.get(`/announcements/${id}`),
 };
 
 // FAQ API
 export const faqAPI = {
-  getList: (params) => api.get('/faq/', { params }),
+  getList: (params) => api.get('/faq', { params }),
   getDetails: (id) => api.get(`/faq/${id}`),
 };
 
 // Baggage API
 export const baggageAPI = {
-  getList: (params) => api.get('/baggage/', { params }),
-  submit: (data) => api.post('/baggage/', data),
+  getList: (params) => api.get('/baggage', { params }),
+  submit: (data) => api.post('/baggage', data),
   getDetails: (id) => api.get(`/baggage/${id}`),
 };
 

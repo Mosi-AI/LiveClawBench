@@ -1,0 +1,23 @@
+{
+  "data": {
+    "email": {
+      "attachments": [],
+      "body": "Draft body content",
+      "created_at": "<TIMESTAMP>",
+      "folder": "sent",
+      "id": "<ID>",
+      "is_read": false,
+      "recipient_email": "peter.griffin@email.app",
+      "recipient_id": 1,
+      "recipient_name": "peter",
+      "sender_email": "peter.griffin@email.app",
+      "sender_id": 1,
+      "sender_name": "peter",
+      "subject": "Draft Subject",
+      "updated_at": "<TIMESTAMP>"
+    },
+    "message": "Email sent successfully"
+  },
+  "message": "Email sent successfully",
+  "success": true
+}
