@@ -66,6 +66,10 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      41 | smarthome-test                    |  M   |    |    | ✓  |    | E-commerce & Daily Svcs    |
 |      42 | grocery-reorder                   |  M   | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
 |      43 | morning-comfort-setup             |  M   |    | ✓  | ✓  |    | Health & Fitness           |
+|      44 | weather-city-travel-pick          |  M   |    |    |    |    | Health & Wellness          |
+|      45 | weather-outdoor-window            |  H   |    |    |    |    | Health & Wellness          |
+|      46 | pre-meeting-research-brief        |  M   |    |    | ✓  | ✓  | Deep Research & Report     |
+|      47 | vendor-due-diligence-brief        |  M   | ✓  |    | ✓  |    | Deep Research & Report     |
 
 ---
 
