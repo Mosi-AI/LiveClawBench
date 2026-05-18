@@ -2,7 +2,6 @@
 # NOTE: Helper functions are intentionally self-contained (no cross-task sharing).
 import json
 import os
-import re
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -193,10 +192,10 @@ def main() -> None:
 
     reward = round(det_total + llm_total, 4)
 
-    # A1 hard gate: "## Call Details" section with calendar evidence is required.
-    # An agent that skips localhost:5003 cannot include a meeting date/time, so this
-    # gate ensures cross-service coordination is observable in the output.
-    if not re.search(r"(?i)^##\s*call\s*details", output_text, re.MULTILINE):
+    # A1 hard gate: Call Details section must contain an actual date/time from the
+    # calendar. An empty heading or corpus-only output cannot satisfy check_call_details,
+    # so this reuses the deterministic result rather than just checking the heading.
+    if det_scores.get("call_details_ok", 0.0) < 1.0:
         reward = min(reward, 0.49)
 
     report = {

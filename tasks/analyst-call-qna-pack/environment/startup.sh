@@ -40,7 +40,7 @@ VALUES (
   '${START_TIME}',
   '${END_TIME}',
   'IR',
-  'Q3 2024 earnings call — Nexaline Therapeutics investor relations'
+  'NXL Q3 2024 investor relations'
 );
 SQL
 

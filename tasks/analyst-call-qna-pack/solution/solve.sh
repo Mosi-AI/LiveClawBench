@@ -30,8 +30,17 @@ call_event = next(
     (e for e in events if thursday in e.get("start_time", "") and "NXL" in e.get("title", "")),
     None
 )
-company = "Nexaline Therapeutics"  # resolved from NXL ticker
+company = "Nexaline Therapeutics"  # resolved from NXL ticker via corpus
 quarter = "Q3 2024"  # resolved from event title
+
+# Extract calendar date/time for the Call Details section
+if call_event:
+    start_dt = call_event["start_time"]  # e.g. "2026-05-22T14:00:00"
+    call_date = start_dt[:10]
+    call_time = start_dt[11:16]  # "14:00"
+    call_details_line = f"{call_event['title']} — {call_date}, {call_time}–16:00"
+else:
+    call_details_line = "NXL Q3 Investor Call — date/time unavailable"
 
 # 3. Read corpus
 corpus = Path.home() / ".openclaw/corpus"
@@ -43,6 +52,9 @@ out = Path.home() / ".openclaw/output/analyst_qna.md"
 out.write_text(f"""# {company} — {quarter} Analyst Call Q&A Pack
 
 > Updated from previous draft to reflect Q3 2024 materials.
+
+## Call Details
+{call_details_line}
 
 ## Q&A Pairs
 
