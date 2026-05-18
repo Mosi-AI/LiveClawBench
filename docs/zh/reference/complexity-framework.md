@@ -1,7 +1,7 @@
 # LiveClawBench 复杂度框架
 
 本文档是 LiveClawBench 任务复杂度标注的唯一参考来源。
-涵盖因子定义、完整的 30 case 标注表（30 个已实现）、
+涵盖因子定义、完整的 38 case 标注表（38 个已实现）、
 摘要统计、领域覆盖和控制对。
 
 ## 复杂度因子定义
@@ -17,7 +17,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 ---
 
-## 1. 30 Case 因子标注表
+## 1. 38 Case 因子标注表
 
 `✓` 表示该 case 包含对应因子。
 
@@ -53,6 +53,14 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      27 | conflict-repair-acb               |  E   | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |      28 | mixed-tool-memory                 |  E   | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |  M   | ✓  |    |    | ✓  | Deep Research & Report     |
+|      31 | mint-diet-snack-log               |  E   |    |    |    |    | Health & Fitness           |
+|      32 | weather-aqi-report                |  E   |    |    |    |    | Deep Research & Report     |
+|     110 | weather-city-travel-pick          |  M   |    |    |    |    | Health & Wellness          |
+|     111 | weather-outdoor-window            |  H   |    |    |    |    | Health & Wellness          |
+|     112 | pre-meeting-research-brief        |  M   |    |    | ✓  | ✓  | Deep Research & Report     |
+|     113 | vendor-due-diligence-brief        |  M   | ✓  |    | ✓  |    | Deep Research & Report     |
+|     114 | grant-application-evidence-brief  |  M   |    | ✓  |    | ✓  | Deep Research & Report     |
+|     115 | analyst-call-qna-pack             |  H   | ✓  | ✓  |    | ✓  | Deep Research & Report     |
 
 ---
 

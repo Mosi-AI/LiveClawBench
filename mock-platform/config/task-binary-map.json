@@ -235,6 +235,11 @@
           "dest": "/opt/mock/frontend/email"
         }
       ]
+    },
+    "grant-application-evidence-brief": { "binaries": [] },
+    "analyst-call-qna-pack": {
+      "binaries": ["calendar"],
+      "startup_extra": "tasks/analyst-call-qna-pack/environment/startup.sh"
     }
   }
 }

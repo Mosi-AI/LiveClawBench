@@ -65,6 +65,8 @@ single, clean environment without structural complexity.
 |     111 | weather-outdoor-window               |     H      |    |    |    |    | Health & Wellness          |
 |     112 | pre-meeting-research-brief           |     M      |    |    | ✓  | ✓  | Deep Research & Report     |
 |     113 | vendor-due-diligence-brief           |     M      | ✓  |    | ✓  |    | Deep Research & Report     |
+|     114 | grant-application-evidence-brief     |     M      |    | ✓  |    | ✓  | Deep Research & Report     |
+|     115 | analyst-call-qna-pack                |     H      | ✓  | ✓  |    | ✓  | Deep Research & Report     |
 
 ---
 
