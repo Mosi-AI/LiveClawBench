@@ -40,6 +40,7 @@ const BINARY_PORTS: Record<string, number> = {
   "doc-search": 8123,
   "mint-diet": 5003,
   weather: 3000,
+  calendar: 5003,
 };
 
 function portProxyLines(listenPort: number, targetPort: number): string[] {
@@ -410,6 +411,10 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/todolist-npm-install.log`);
         // Proxy port 3000 to Bun todolist port for legacy URL compatibility
         lines.push(...portProxyLines(3000, port));
+      } else if (bin === "calendar") {
+        lines.push(`export CALENDAR_DB_PATH=/var/lib/mock-data/calendar/calendar.db`);
+        lines.push(`mkdir -p /var/lib/mock-data/calendar`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/calendar-backend.log 2>&1 &`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }
