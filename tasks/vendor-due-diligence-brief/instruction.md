@@ -1,4 +1,6 @@
-We are discussing a potential vendor partnership tomorrow. Please check my email (http://localhost:5174/) for the vendor's introduction — you can list inbox emails via `GET http://localhost:5174/api/emails?folder=inbox` and read a specific email via `GET http://localhost:5174/api/emails/<id>`.
+We are discussing a potential vendor partnership tomorrow. Please check my email (http://localhost:5174/) for the vendor's introduction.
+
+To access the email API, first authenticate: `POST http://localhost:5174/api/auth/login` with body `{"username": "peter", "password": "password123"}` — the response contains an `access_token`. Include it as `Authorization: Bearer <token>` in all subsequent requests. Then list inbox emails via `GET http://localhost:5174/api/emails?folder=inbox` and read a specific email via `GET http://localhost:5174/api/emails/<id>`.
 
 Then review the supporting materials in `corpus/` (available at `~/.openclaw/corpus/`).
 

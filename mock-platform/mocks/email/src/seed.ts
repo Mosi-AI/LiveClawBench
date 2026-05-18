@@ -14,7 +14,7 @@ const SENDER_LAU = { username: "lau.pai", email: "lau@coop-division.parrot-ai.or
 const SENDER_GKD = { username: "gkd.airline", email: "noreply@gkdairline.com" };
 const SENDER_BRIAN = { username: "brian.griffin", email: "brian.griffin@email.app" };
 const SENDER_LOIS = { username: "lois.griffin", email: "lois.griffin@email.app" };
-const SENDER_CLOUDEDGE = { username: "marcus.webb", email: "partnerships@cloudedge.io" };
+const SENDER_CLOUDEDGE = { username: "Marcus Webb", email: "partnerships@cloudedge.io" };
 
 // --- Baseline email content (email-writing) ---
 
@@ -559,7 +559,7 @@ function makeSeedConfig(taskName: string): SeedConfig {
         senders,
         inbox: [
           ...baselineInbox,
-          { senderUsername: "marcus.webb", ...INBOX_VENDOR_INTRO },
+          { senderUsername: "Marcus Webb", ...INBOX_VENDOR_INTRO },
         ],
         sent: baselineSent,
       };
