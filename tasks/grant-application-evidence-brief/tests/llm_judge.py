@@ -187,6 +187,11 @@ def main() -> None:
 
     reward = round(det_total + llm_total, 4)
 
+    # A2 hard gate: corrections list must be non-empty to demonstrate incremental repair.
+    # A full-rewrite agent cannot pass without documenting what it corrected.
+    if not result.get("corrections"):
+        reward = min(reward, 0.49)
+
     report = {
         "reward": reward,
         "deterministic": det_scores,

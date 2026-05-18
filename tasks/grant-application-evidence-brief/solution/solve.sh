@@ -57,6 +57,11 @@ result = {
         "Collect and annotate Arabic/Chinese legal domain documents.",
         "Prepare updated budget justification (remaining: $28,500 per team_update_march2025.md).",
     ],
+    "corrections": [
+        "F1 score updated from 78.3% (v1.0, old draft) to 84.1% (v2.1, experiment_summary_2025.md).",
+        "Publication venue corrected: EMNLP 2024 submission plan → ACL 2025 acceptance (main conference long paper).",
+        "Novelty corrected: adapter layers are no longer the primary differentiator (also used by Meta CrossLingual-XL); the key novelty is the document-structure-aware attention mechanism.",
+    ],
 }
 
 out = os.path.expanduser("~/.openclaw/output/result.json")

@@ -53,6 +53,16 @@ def check_structure(result: dict) -> dict[str, float]:
     return scores
 
 
+def check_corrections_present(result: dict) -> dict[str, float]:
+    """Check that the corrections list is non-empty (at least one claim explicitly repaired)."""
+    corrections = result.get("corrections", [])
+    return {
+        "corrections_present": (
+            1.0 if isinstance(corrections, list) and len(corrections) >= 1 else 0.0
+        )
+    }
+
+
 def check_a2_corrections(result: dict) -> dict[str, float]:
     """Check that specific outdated claims from the old draft are corrected."""
     if not result:
@@ -79,7 +89,13 @@ def run() -> tuple[dict[str, float], dict]:
     result = load_result()
     scores = {}
     scores.update(check_structure(result))
-    scores.update(check_a2_corrections(result))
+    if result:
+        scores.update(check_corrections_present(result))
+        scores.update(check_a2_corrections(result))
+    else:
+        scores.update(
+            {"corrections_present": 0.0, "a2_f1_updated": 0.0, "a2_venue_updated": 0.0}
+        )
     return scores, result
 
 

@@ -70,6 +70,25 @@ def check_do_not_say(text: str) -> dict[str, float]:
     return {"do_not_say_ok": 1.0 if count >= 3 else round(count / 3, 2)}
 
 
+def check_call_details(text: str) -> dict[str, float]:
+    """Check that the required ## Call Details section is present with date/time info."""
+    section = re.search(r"(?i)^##\s*call\s*details", text, re.MULTILINE)
+    if not section:
+        return {"call_details_ok": 0.0}
+    # Extract section content until next ## heading
+    content_start = section.end()
+    next_heading = re.search(r"\n##\s+", text[content_start:])
+    section_text = text[
+        content_start : content_start
+        + (next_heading.start() if next_heading else len(text))
+    ]
+    # Must contain a date (YYYY-MM-DD) or time (HH:MM or H PM/AM)
+    has_info = bool(
+        re.search(r"\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}|\d{1,2}\s*[Pp][Mm]", section_text)
+    )
+    return {"call_details_ok": 1.0 if has_info else 0.0}
+
+
 def check_a2_corrections(text: str) -> dict[str, float]:
     """Check that outdated Q2 figures are replaced with Q3 figures."""
     scores: dict[str, float] = {}
@@ -95,6 +114,7 @@ def run() -> dict[str, float]:
     scores: dict[str, float] = {}
     scores.update(check_file_exists(text))
     if text:
+        scores.update(check_call_details(text))
         scores.update(check_qa_count(text))
         scores.update(check_risk_topics(text))
         scores.update(check_do_not_say(text))
@@ -102,6 +122,7 @@ def run() -> dict[str, float]:
     else:
         scores.update(
             {
+                "call_details_ok": 0.0,
                 "qa_count_ok": 0.0,
                 "risk_topics_ok": 0.0,
                 "do_not_say_ok": 0.0,

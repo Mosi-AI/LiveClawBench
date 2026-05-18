@@ -1,11 +1,12 @@
 {
   "deterministic": {
-    "result_exists":    0.15,
-    "fields_complete":  0.05,
-    "evidence_count":   0.05,
-    "gaps_count":       0.05,
-    "a2_f1_updated":    0.10,
-    "a2_venue_updated": 0.10
+    "result_exists":        0.10,
+    "fields_complete":      0.05,
+    "corrections_present":  0.05,
+    "evidence_count":       0.05,
+    "gaps_count":           0.05,
+    "a2_f1_updated":        0.10,
+    "a2_venue_updated":     0.10
   },
   "llm": {
     "novelty_correction": 0.15,

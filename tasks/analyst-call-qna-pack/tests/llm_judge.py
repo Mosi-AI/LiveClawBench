@@ -2,6 +2,7 @@
 # NOTE: Helper functions are intentionally self-contained (no cross-task sharing).
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -191,6 +192,12 @@ def main() -> None:
             llm_error = str(exc)
 
     reward = round(det_total + llm_total, 4)
+
+    # A1 hard gate: "## Call Details" section with calendar evidence is required.
+    # An agent that skips localhost:5003 cannot include a meeting date/time, so this
+    # gate ensures cross-service coordination is observable in the output.
+    if not re.search(r"(?i)^##\s*call\s*details", output_text, re.MULTILINE):
+        reward = min(reward, 0.49)
 
     report = {
         "reward": reward,
