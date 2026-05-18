@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
-import { ok, err, getAuthUserId } from "../helpers";
+import { err, getAuthUserId } from "../helpers";
 
 const EventSchema = z.object({
   id: z.number(),
@@ -34,7 +34,7 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
     const events = db
       .query("SELECT * FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC")
       .all(userId) as z.infer<typeof EventSchema>[];
-    return c.json(ok({ events }));
+    return c.json({ ok: true, events });
   });
 
   const getRoute = createRoute({
@@ -56,6 +56,6 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
       .query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?")
       .get(id, userId) as z.infer<typeof EventSchema> | null;
     if (!event) return c.json(err("Event not found"), 404);
-    return c.json(ok({ event }));
+    return c.json({ ok: true, event });
   });
 }

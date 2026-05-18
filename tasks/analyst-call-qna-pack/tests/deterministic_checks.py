@@ -51,7 +51,7 @@ def check_risk_topics(text: str) -> dict[str, float]:
     next_section = re.search(r"\n##\s+", section)
     if next_section:
         section = section[: next_section.start()]
-    items = re.findall(r"^\s*[-*\d]+[.)]\s+\S", section, re.MULTILINE)
+    items = re.findall(r"^\s*(?:[-*]|\d+[.)])\s+\S", section, re.MULTILINE)
     count = len(items)
     return {"risk_topics_ok": 1.0 if count >= 3 else round(count / 3, 2)}
 
@@ -65,7 +65,7 @@ def check_do_not_say(text: str) -> dict[str, float]:
     next_section = re.search(r"\n##\s+", section)
     if next_section:
         section = section[: next_section.start()]
-    items = re.findall(r"^\s*[-*\d]+[.)]\s+\S", section, re.MULTILINE)
+    items = re.findall(r"^\s*(?:[-*]|\d+[.)])\s+\S", section, re.MULTILINE)
     count = len(items)
     return {"do_not_say_ok": 1.0 if count >= 3 else round(count / 3, 2)}
 
