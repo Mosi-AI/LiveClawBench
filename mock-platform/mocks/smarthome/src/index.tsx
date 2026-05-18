@@ -94,6 +94,7 @@ interface CalendarEvent {
   start_time: string;
   event_type?: string;
   workout_type?: WorkoutType;
+  status: "done" | "undone";
   updated_at: string;
 }
 
@@ -272,6 +273,7 @@ function initDatabase(): void {
       start_time TEXT NOT NULL,
       event_type TEXT,
       workout_type TEXT CHECK (workout_type IN ('hiit', 'yoga', 'walking', 'cycling', 'strength', 'stretching', 'swimming', 'rest') OR workout_type IS NULL),
+      status TEXT NOT NULL DEFAULT 'undone' CHECK (status IN ('done', 'undone')),
       updated_at TEXT NOT NULL
     );
 
@@ -547,6 +549,13 @@ const WearableRecoverySchema = z.object({
   resting_heart_rate: z.number(),
 });
 
+const WearableRecoveryRequestSchema = z.object({
+  sleep_hours: z.number().min(0).max(24),
+  sleep_score: z.number().min(0).max(100),
+  readiness: z.number().min(0).max(100),
+  resting_heart_rate: z.number().min(30).max(200),
+});
+
 const CalendarEventSchema = z.object({
   id: z.number(),
   title: z.string(),
@@ -565,6 +574,7 @@ const CalendarEventSchema = z.object({
     ])
     .nullable()
     .optional(),
+  status: z.enum(["done", "undone"]),
   updated_at: z.string(),
 });
 
@@ -573,6 +583,17 @@ const CalendarUpdateRequestSchema = z.object({
   start_time: z.any().optional(),
   event_type: z.any().optional(),
   workout_type: z.any().optional(),
+});
+
+const CalendarCreateRequestSchema = z.object({
+  title: z.string().min(1, "title is required"),
+  start_time: z.string().min(1, "start_time is required"),
+  event_type: z.string().optional(),
+  workout_type: z.enum(["hiit", "yoga", "walking", "cycling", "strength", "stretching", "swimming", "rest"]).optional(),
+});
+
+const CalendarStatusUpdateRequestSchema = z.object({
+  status: z.enum(["done", "undone"]),
 });
 
 const UserConstraintsSchema = z.object({
@@ -784,10 +805,89 @@ async function cancelSchedule() {
 };
 
 // Wearable/Recovery page
-const WearablePage: FC<{ data: WearableRecovery }> = ({ data }) => {
-  return <Layout title="Wearable & Recovery">
+const WearablePage: FC<{ data: WearableRecovery; date: string }> = ({ data, date }) => {
+  return <Layout title="Wearable & Recovery" scripts={`
+function showReadinessFormula() {
+  alert('Readiness Formula:\\n\\nreadiness = sleep_quality × 0.4 + (100 - normalized_resting_heart_rate) × 0.3 + activity_factor × 0.3\\n\\n• sleep_quality: from health service (0-100)\\n• normalized_resting_heart_rate: (resting_heart_rate - 40) / 60 × 100\\n• activity_factor: min(total_activity_min / 60, 100)');
+}
+
+function openSetValuesModal() {
+  document.getElementById('sleep-hours').value = '';
+  document.getElementById('sleep-score').value = '';
+  document.getElementById('readiness').value = '';
+  document.getElementById('resting-heart-rate').value = '';
+  document.getElementById('set-values-modal').style.display = 'block';
+}
+
+function closeSetValuesModal() {
+  document.getElementById('set-values-modal').style.display = 'none';
+}
+
+async function saveValues() {
+  const sleepHours = parseFloat(document.getElementById('sleep-hours').value);
+  const sleepScore = parseFloat(document.getElementById('sleep-score').value);
+  const readiness = parseFloat(document.getElementById('readiness').value);
+  const restingHeartRate = parseFloat(document.getElementById('resting-heart-rate').value);
+
+  if (isNaN(sleepHours) || isNaN(sleepScore) || isNaN(readiness) || isNaN(restingHeartRate)) {
+    alert('Please fill in all fields with valid numbers');
+    return;
+  }
+
+  if (sleepHours < 0 || sleepHours > 24) {
+    alert('Sleep hours must be between 0 and 24');
+    return;
+  }
+
+  if (sleepScore < 0 || sleepScore > 100) {
+    alert('Sleep score must be between 0 and 100');
+    return;
+  }
+
+  if (readiness < 0 || readiness > 100) {
+    alert('Readiness must be between 0 and 100');
+    return;
+  }
+
+  if (restingHeartRate < 30 || restingHeartRate > 200) {
+    alert('Resting heart rate must be between 30 and 200 bpm');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/wearable-recovery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sleep_hours: sleepHours,
+        sleep_score: sleepScore,
+        readiness: readiness,
+        resting_heart_rate: restingHeartRate
+      })
+    });
+    const result = await response.json();
+    if (result.error) {
+      alert('Error: ' + result.error);
+    } else {
+      closeSetValuesModal();
+      location.reload();
+    }
+  } catch (err) {
+    alert('Failed to save values');
+  }
+}
+
+window.onclick = function(event) {
+  const modal = document.getElementById('set-values-modal');
+  if (event.target === modal) closeSetValuesModal();
+};
+`}>
     <h1>Wearable & Recovery Data</h1>
     <div class="card">
+      <div class="metric">
+        <span class="metric-label">Date</span>
+        <span class="metric-value">{date}</span>
+      </div>
       <div class="metric">
         <span class="metric-label">Sleep Hours</span>
         <span class="metric-value">{`${data.sleep_hours} hrs`}</span>
@@ -797,7 +897,10 @@ const WearablePage: FC<{ data: WearableRecovery }> = ({ data }) => {
         <span class="metric-value">{`${data.sleep_score}/100`}</span>
       </div>
       <div class="metric">
-        <span class="metric-label">Readiness</span>
+        <span class="metric-label">
+          Readiness
+          <span onclick="showReadinessFormula()" style="display: inline-block; width: 18px; height: 18px; line-height: 18px; text-align: center; background: #667eea; color: white; border-radius: 50%; font-size: 12px; font-weight: bold; margin-left: 8px; cursor: pointer; user-select: none;" title="Click to see formula">?</span>
+        </span>
         <span class="metric-value">{`${data.readiness}/100`}</span>
       </div>
       <div class="metric">
@@ -805,7 +908,37 @@ const WearablePage: FC<{ data: WearableRecovery }> = ({ data }) => {
         <span class="metric-value">{`${data.resting_heart_rate} bpm`}</span>
       </div>
     </div>
-    <p style="color: #666; font-size: 14px;">This data is read-only and synced from your wearable device.</p>
+
+    <button class="btn" onclick="openSetValuesModal()" style="margin-top: 15px;">Set Values</button>
+
+    <p style="color: #666; font-size: 14px;">Note: This page displays current wellness data. Values need to be manually synced.</p>
+
+    {/* Modal */}
+    <div id="set-values-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4);">
+      <div style="background:white; margin:80px auto; padding:20px; border-radius:8px; width:400px; max-width:90%;">
+        <h2 style="margin-top:0;">Set Today's Values</h2>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Sleep Hours (0-24)</label>
+          <input type="number" id="sleep-hours" step="0.1" min="0" max="24" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Sleep Score (0-100)</label>
+          <input type="number" id="sleep-score" step="1" min="0" max="100" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Readiness (0-100)</label>
+          <input type="number" id="readiness" step="1" min="0" max="100" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Resting Heart Rate (30-200 bpm)</label>
+          <input type="number" id="resting-heart-rate" step="1" min="30" max="200" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn btn-secondary" onclick="closeSetValuesModal()">Cancel</button>
+          <button class="btn" onclick="saveValues()">Save</button>
+        </div>
+      </div>
+    </div>
   </Layout>;
 };
 
@@ -1228,6 +1361,17 @@ const CalendarPage: FC<{ events: CalendarEvent[] }> = ({ events }) => {
   return <Layout title="Calendar" scripts={`
 let editingId = null;
 
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add Event';
+  document.getElementById('event-id').value = '';
+  document.getElementById('event-title').value = '';
+  document.getElementById('event-time').value = '';
+  document.getElementById('event-type').value = '';
+  document.getElementById('workout-type').value = '';
+  document.getElementById('event-modal').style.display = 'block';
+}
+
 function openEditModal(id, title, startTime, eventType, workoutType) {
   editingId = id;
   document.getElementById('modal-title').textContent = 'Edit Event';
@@ -1250,17 +1394,20 @@ async function saveEvent() {
   const eventType = document.getElementById('event-type').value.trim();
   const workoutType = document.getElementById('workout-type').value;
 
-  if (!editingId) { alert('No event selected'); return; }
+  if (!title || !startTime) {
+    alert('Title and Start Time are required');
+    return;
+  }
 
-  const body = {};
-  if (title) body.title = title;
-  if (startTime) body.start_time = startTime;
+  const body = { title, start_time: startTime };
   if (eventType) body.event_type = eventType;
   if (workoutType) body.workout_type = workoutType;
 
   try {
-    const response = await fetch('/api/calendar/' + editingId, {
-      method: 'PUT',
+    const url = editingId ? '/api/calendar/' + editingId : '/api/calendar';
+    const method = editingId ? 'PUT' : 'POST';
+    const response = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
@@ -1271,25 +1418,68 @@ async function saveEvent() {
   } catch (err) { alert('Failed to save event'); }
 }
 
-// Close modal when clicking outside
-window.onclick = function(event) {
-  const modal = document.getElementById('event-modal');
-  if (event.target === modal) closeModal();
+async function deleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  try {
+    const response = await fetch('/api/calendar/' + id, { method: 'DELETE' });
+    const data = await response.json();
+    const errorMessage = data.error || data.message;
+    if (errorMessage) alert('Error: ' + errorMessage);
+    else location.reload();
+  } catch (err) { alert('Failed to delete event'); }
 }
+
+function openMarkModal(id, currentStatus) {
+  document.getElementById('mark-event-id').value = id;
+  document.getElementById('mark-status').value = currentStatus;
+  document.getElementById('mark-modal').style.display = 'block';
+}
+
+function closeMarkModal() {
+  document.getElementById('mark-modal').style.display = 'none';
+}
+
+async function saveMarkStatus() {
+  const id = document.getElementById('mark-event-id').value;
+  const status = document.getElementById('mark-status').value;
+  if (!status) {
+    closeMarkModal();
+    return;
+  }
+  try {
+    const response = await fetch('/api/calendar/' + id + '/status', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    const data = await response.json();
+    const errorMessage = data.error || data.message;
+    if (errorMessage) alert('Error: ' + errorMessage);
+    else { closeMarkModal(); location.reload(); }
+  } catch (err) { alert('Failed to update status'); }
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+  const eventModal = document.getElementById('event-modal');
+  const markModal = document.getElementById('mark-modal');
+  if (event.target === eventModal) closeModal();
+  if (event.target === markModal) closeMarkModal();
+};
 `}>
     <h1>Calendar</h1>
 
-    {/* Modal */}
+    {/* Event Modal */}
     <div id="event-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4);">
       <div style="background:white; margin:80px auto; padding:20px; border-radius:8px; width:400px; max-width:90%;">
-        <h2 id="modal-title" style="margin-top:0;">Edit Event</h2>
+        <h2 id="modal-title" style="margin-top:0;">Add Event</h2>
         <input type="hidden" id="event-id" />
         <div style="margin-bottom:12px;">
-          <label style="display:block; margin-bottom:4px; font-weight:500;">Title</label>
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Title *</label>
           <input type="text" id="event-title" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
         </div>
         <div style="margin-bottom:12px;">
-          <label style="display:block; margin-bottom:4px; font-weight:500;">Start Time</label>
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Start Time *</label>
           <input type="text" id="event-time" placeholder="e.g. 2026-05-09T10:00:00Z" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
         </div>
         <div style="margin-bottom:12px;">
@@ -1317,22 +1507,52 @@ window.onclick = function(event) {
       </div>
     </div>
 
-    <table>
-      <thead><tr><th>Event</th><th>Time</th><th>Type</th><th>Workout</th><th>Actions</th></tr></thead>
-      <tbody>
-        {events.map(event => (
-          <tr>
-            <td>{event.title}</td>
-            <td>{event.start_time}</td>
-            <td>{event.event_type || "-"}</td>
-            <td>{event.workout_type || "-"}</td>
-            <td>
-              <button class="btn btn-secondary" style="padding:4px 12px;" onclick={`openEditModal(${event.id}, '${escJs(event.title)}', '${escJs(event.start_time)}', '${escJs(event.event_type || '')}', '${escJs(event.workout_type || '')}')`}>Edit</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    {/* Mark Modal */}
+    <div id="mark-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4);">
+      <div style="background:white; margin:80px auto; padding:20px; border-radius:8px; width:300px; max-width:90%;">
+        <h2 style="margin-top:0;">Mark Status</h2>
+        <input type="hidden" id="mark-event-id" />
+        <div style="margin-bottom:16px;">
+          <label style="display:block; margin-bottom:4px; font-weight:500;">Status</label>
+          <select id="mark-status" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+            <option value="">-- Cancel --</option>
+            <option value="done">Done</option>
+            <option value="undone">Undone</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn btn-secondary" onclick="closeMarkModal()">Cancel</button>
+          <button class="btn" onclick="saveMarkStatus()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="openAddModal()" style="margin-bottom:15px;">Add New</button>
+    {events.length > 0 ? (
+      <table>
+        <thead><tr><th>Event</th><th>Time</th><th>Type</th><th>Workout</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          {events.map(event => (
+            <tr>
+              <td>{event.title}</td>
+              <td>{event.start_time}</td>
+              <td>{event.event_type || "-"}</td>
+              <td>{event.workout_type || "-"}</td>
+              <td>
+                <span class={`status-badge ${event.status === "done" ? "status-ready" : "status-scheduled"}`}>
+                  {event.status.toUpperCase()}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-secondary" style="padding:4px 12px;" onclick={`openEditModal(${event.id}, '${escJs(event.title)}', '${escJs(event.start_time)}', '${escJs(event.event_type || '')}', '${escJs(event.workout_type || '')}')`}>Edit</button>
+                <button class="btn" style="padding:4px 12px;" onclick={`openMarkModal(${event.id}, '${event.status}')`}>Mark</button>
+                <button class="btn btn-danger" style="padding:4px 12px;" onclick={`deleteEvent(${event.id})`}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ) : <p>No events scheduled.</p>}
   </Layout>;
 };
 
@@ -1914,6 +2134,35 @@ const wearableRecoveryRoute = createRoute({
   },
 });
 
+const wearableRecoveryUpdateRoute = createRoute({
+  method: "post",
+  path: "/api/wearable-recovery",
+  tags: ["wearable-recovery"],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: WearableRecoveryRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Updated wearable recovery data",
+      content: { "application/json": { schema: WearableRecoverySchema } },
+    },
+    400: {
+      description: "Invalid wearable recovery data",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+    503: {
+      description: "Wearable data unavailable",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
 const calendarListRoute = createRoute({
   method: "get",
   path: "/api/calendar",
@@ -1970,6 +2219,84 @@ const calendarUpdateRoute = createRoute({
     },
     400: {
       description: "Invalid calendar event update",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+    404: {
+      description: "Calendar event not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const calendarCreateRoute = createRoute({
+  method: "post",
+  path: "/api/calendar",
+  tags: ["calendar"],
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: CalendarCreateRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Created calendar event",
+      content: { "application/json": { schema: CalendarEventSchema } },
+    },
+    400: {
+      description: "Invalid calendar event",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const calendarDeleteRoute = createRoute({
+  method: "delete",
+  path: "/api/calendar/{id}",
+  tags: ["calendar"],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Deleted calendar event",
+      content: { "application/json": { schema: DeleteSuccessSchema } },
+    },
+    404: {
+      description: "Calendar event not found",
+      content: { "application/json": { schema: LegacyErrorSchema } },
+    },
+  },
+});
+
+const calendarStatusUpdateRoute = createRoute({
+  method: "put",
+  path: "/api/calendar/{id}/status",
+  tags: ["calendar"],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: {
+        "application/json": {
+          schema: CalendarStatusUpdateRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Updated calendar event status",
+      content: { "application/json": { schema: CalendarEventSchema } },
+    },
+    400: {
+      description: "Invalid status",
       content: { "application/json": { schema: LegacyErrorSchema } },
     },
     404: {
@@ -2139,7 +2466,11 @@ function registerRoutes(app: OpenAPIApp): void {
       return c.html(<ErrorPage title="Service Error" message="Wearable data unavailable." />, 500);
     }
 
-    return c.html(<WearablePage data={data} />);
+    // Get today's date from benchmark clock
+    const benchmarkTime = getBenchmarkTime();
+    const today = benchmarkTime.split('T')[0];
+
+    return c.html(<WearablePage data={data} date={today} />);
   });
 
   // Calendar page
@@ -2515,23 +2846,102 @@ function registerRoutes(app: OpenAPIApp): void {
     return c.json(data);
   });
 
+  app.openApiRoute(wearableRecoveryUpdateRoute, async (c) => {
+    let body: { sleep_hours?: number; sleep_score?: number; readiness?: number; resting_heart_rate?: number };
+    try {
+      body = await c.req.json();
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
+    }
+
+    const { sleep_hours, sleep_score, readiness, resting_heart_rate } = body;
+
+    // Validate all fields are present
+    if (typeof sleep_hours !== "number" || typeof sleep_score !== "number" || typeof readiness !== "number" || typeof resting_heart_rate !== "number") {
+      return c.json({ error: "Missing required fields: sleep_hours, sleep_score, readiness, resting_heart_rate" }, 400);
+    }
+
+    // Validate ranges
+    if (sleep_hours < 0 || sleep_hours > 24) {
+      return c.json({ error: "sleep_hours must be between 0 and 24" }, 400);
+    }
+    if (sleep_score < 0 || sleep_score > 100) {
+      return c.json({ error: "sleep_score must be between 0 and 100" }, 400);
+    }
+    if (readiness < 0 || readiness > 100) {
+      return c.json({ error: "readiness must be between 0 and 100" }, 400);
+    }
+    if (resting_heart_rate < 30 || resting_heart_rate > 200) {
+      return c.json({ error: "resting_heart_rate must be between 30 and 200" }, 400);
+    }
+
+    const database = assertDb();
+
+    // Verify singleton exists before update
+    const existing = database.query("SELECT id FROM wearable_recovery_state WHERE id = 1").get();
+    if (!existing) {
+      return c.json({ error: "Wearable data unavailable - required state not initialized" }, 503);
+    }
+
+    database.query("UPDATE wearable_recovery_state SET sleep_hours = ?, sleep_score = ?, readiness = ?, resting_heart_rate = ? WHERE id = 1").run(sleep_hours, sleep_score, readiness, resting_heart_rate);
+
+    return c.json({ sleep_hours, sleep_score, readiness, resting_heart_rate });
+  });
+
   // Calendar/Workout API
   app.openApiRoute(calendarListRoute, (c) => {
     const database = assertDb();
-    const events = database.query("SELECT id, title, start_time, event_type, workout_type, updated_at FROM calendar_event ORDER BY start_time").all();
+    const events = database.query("SELECT id, title, start_time, event_type, workout_type, status, updated_at FROM calendar_event ORDER BY start_time").all();
     return c.json(events);
   });
 
   app.openApiRoute(calendarReadRoute, (c) => {
     const id = c.req.param("id");
     const database = assertDb();
-    const event = database.query("SELECT id, title, start_time, event_type, workout_type, updated_at FROM calendar_event WHERE id = ?").get(id);
+    const event = database.query("SELECT id, title, start_time, event_type, workout_type, status, updated_at FROM calendar_event WHERE id = ?").get(id);
 
     if (!event) {
       return c.json({ error: "Event not found" }, 404);
     }
 
     return c.json(event);
+  });
+
+  app.openApiRoute(calendarCreateRoute, async (c) => {
+    let body: { title?: string; start_time?: string; event_type?: string; workout_type?: string };
+    try {
+      body = await c.req.json();
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
+    }
+
+    if (!body.title || !body.start_time) {
+      return c.json({ error: "Missing required fields: title, start_time" }, 400);
+    }
+
+    // Validate workout_type if provided
+    if (body.workout_type !== undefined && body.workout_type !== null && !isValidWorkoutType(body.workout_type)) {
+      return c.json({ error: "Invalid workout_type" }, 400);
+    }
+
+    const database = assertDb();
+    const now = getBenchmarkTime();
+    const normalizedWorkoutType = body.workout_type ? body.workout_type.toLowerCase() : null;
+
+    const result = database.query(
+      "INSERT INTO calendar_event (title, start_time, event_type, workout_type, status, updated_at) VALUES (?, ?, ?, ?, 'undone', ?)"
+    ).run(body.title, body.start_time, body.event_type || null, normalizedWorkoutType, now);
+
+    const created = database.query("SELECT id, title, start_time, event_type, workout_type, status, updated_at FROM calendar_event WHERE id = ?").get(result.lastInsertRowid);
+    return c.json(created, 201);
   });
 
   app.openApiRoute(calendarUpdateRoute, async (c) => {
@@ -2568,7 +2978,49 @@ function registerRoutes(app: OpenAPIApp): void {
       "UPDATE calendar_event SET title = COALESCE(?, title), start_time = COALESCE(?, start_time), event_type = COALESCE(?, event_type), workout_type = ?, updated_at = ? WHERE id = ?"
     ).run(body.title || null, body.start_time || null, body.event_type || null, normalizedWorkoutType, now, id);
 
-    const updated = database.query("SELECT id, title, start_time, event_type, workout_type, updated_at FROM calendar_event WHERE id = ?").get(id);
+    const updated = database.query("SELECT id, title, start_time, event_type, workout_type, status, updated_at FROM calendar_event WHERE id = ?").get(id);
+    return c.json(updated);
+  });
+
+  app.openApiRoute(calendarDeleteRoute, (c) => {
+    const id = c.req.param("id");
+    const database = assertDb();
+    const existing = database.query("SELECT id FROM calendar_event WHERE id = ?").get(id);
+    if (!existing) {
+      return c.json({ error: "Event not found" }, 404);
+    }
+
+    database.query("DELETE FROM calendar_event WHERE id = ?").run(id);
+    return c.json({ success: true });
+  });
+
+  app.openApiRoute(calendarStatusUpdateRoute, async (c) => {
+    const id = c.req.param("id");
+    let body: { status?: string };
+    try {
+      body = await c.req.json();
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        return c.json({ error: "Invalid JSON body" }, 400);
+      }
+      console.error("mock-smarthome: ERROR parsing request body:", err);
+      return c.json({ error: "Internal server error" }, 500);
+    }
+
+    if (!body.status || !["done", "undone"].includes(body.status)) {
+      return c.json({ error: "Invalid status. Must be 'done' or 'undone'" }, 400);
+    }
+
+    const database = assertDb();
+    const existing = database.query("SELECT id FROM calendar_event WHERE id = ?").get(id);
+    if (!existing) {
+      return c.json({ error: "Event not found" }, 404);
+    }
+
+    const now = getBenchmarkTime();
+    database.query("UPDATE calendar_event SET status = ?, updated_at = ? WHERE id = ?").run(body.status, now, id);
+
+    const updated = database.query("SELECT id, title, start_time, event_type, workout_type, status, updated_at FROM calendar_event WHERE id = ?").get(id);
     return c.json(updated);
   });
 
