@@ -685,6 +685,7 @@
           "dest": "/opt/mock/frontend/email"
         }
       ]
-    }
+    },
+    "adas-accident-liability-allocation": { "binaries": [] }
   }
 }

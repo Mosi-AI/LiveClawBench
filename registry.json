@@ -60,6 +60,8 @@
       {"name": "social-comment-moderation", "path": "tasks/social-comment-moderation"},
       {"name": "social-cross-publish", "path": "tasks/social-cross-publish"},
       {"name": "social-pinned-post-update", "path": "tasks/social-pinned-post-update"}
+      {"name": "grocery-reorder", "path": "tasks/grocery-reorder"},
+      {"name": "adas-accident-liability-allocation", "path": "tasks/adas-accident-liability-allocation"}
     ]
   }
 ]

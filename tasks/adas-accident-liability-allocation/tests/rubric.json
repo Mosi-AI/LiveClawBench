@@ -1,0 +1,82 @@
+{
+  "dimension_weights": {
+    "comprehensiveness": 0.3,
+    "insight": 0.3,
+    "instruction_following": 0.22,
+    "readability": 0.18
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "The report covers legal frameworks for ADAS liability in multiple jurisdictions.",
+        "weight": 0.25
+      },
+      {
+        "criterion": "The report discusses existing precedents, case law, and regulatory guidance.",
+        "weight": 0.25
+      },
+      {
+        "criterion": "The report addresses the human-machine control handoff problem and its legal implications.",
+        "weight": 0.25
+      },
+      {
+        "criterion": "The report covers policy debates, industry standards, and proposed reforms.",
+        "weight": 0.25
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "The report evaluates strengths and limitations of different approaches rather than merely summarizing them.",
+        "weight": 0.3
+      },
+      {
+        "criterion": "The report identifies open questions, recent developments, or ongoing debates in the field.",
+        "weight": 0.3
+      },
+      {
+        "criterion": "The report draws connections between theoretical results and practical implications.",
+        "weight": 0.2
+      },
+      {
+        "criterion": "The report provides critical commentary on the assumptions underlying different models or claims.",
+        "weight": 0.2
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "The report directly answers the research question posed in the task instruction.",
+        "weight": 0.35
+      },
+      {
+        "criterion": "The report includes a Sources section listing references and consulted materials.",
+        "weight": 0.25
+      },
+      {
+        "criterion": "The report is substantive (at least 2000 words) demonstrating thorough research.",
+        "weight": 0.25
+      },
+      {
+        "criterion": "The report is written in well-structured markdown with clear sections and subsections.",
+        "weight": 0.15
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "The report has a clear logical flow and coherent narrative from introduction to conclusion.",
+        "weight": 0.3
+      },
+      {
+        "criterion": "Technical terminology and notation are used correctly and explained where necessary.",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Sections are well-organized with descriptive headers and appropriate use of formatting.",
+        "weight": 0.25
+      },
+      {
+        "criterion": "The writing is clear, concise, and accessible to an informed reader without unnecessary jargon.",
+        "weight": 0.2
+      }
+    ]
+  }
+}
