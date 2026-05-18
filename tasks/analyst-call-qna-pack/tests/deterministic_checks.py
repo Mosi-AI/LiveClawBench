@@ -23,11 +23,19 @@ def check_file_exists(text: str) -> dict[str, float]:
 
 
 def check_qa_count(text: str) -> dict[str, float]:
-    # Count Q&A pairs: lines starting with "### Q:" or "**Q:**" or "Q:"
+    # Count Q&A pairs. The task only requires 8 analyst questions — no specific
+    # prefix is mandated — so accept any of these formats:
+    #   - Explicit Q: prefix: "### Q:", "**Q:**", "Q1:"
+    #   - Heading ending with "?": "### How did NXL-7 perform?"
+    #   - Bold ending with "?": "**What is the guidance?**"
+    #   - Numbered item ending with "?": "1. What is the revenue?"
     patterns = [
         r"^#{1,3}\s+Q[:\.]",
         r"^\*\*Q[:\.]",
         r"^Q\d*[:\.]",
+        r"^#{1,3}\s+.+\?",
+        r"^\*\*.+\?\*\*",
+        r"^\d+[.)]\s+.+\?",
     ]
     count = 0
     for line in text.splitlines():

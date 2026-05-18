@@ -52,8 +52,14 @@ document.getElementById('f').onsubmit = async (e) => {
   const r = await fetch('/api/auth/login', {method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({email:document.getElementById('email').value,password:document.getElementById('pwd').value})});
   const j = await r.json();
-  document.getElementById('out').textContent = JSON.stringify(j,null,2);
-  if(j.access_token) localStorage.setItem('cal_token',j.access_token);
+  if(j.access_token) {
+    localStorage.setItem('cal_token', j.access_token);
+    const evR = await fetch('/api/events', {headers:{'Authorization':'Bearer '+j.access_token}});
+    const evJ = await evR.json();
+    document.getElementById('out').textContent = JSON.stringify(evJ, null, 2);
+  } else {
+    document.getElementById('out').textContent = JSON.stringify(j, null, 2);
+  }
 };
 </script>
 </body>
