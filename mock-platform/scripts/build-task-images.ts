@@ -717,10 +717,9 @@ async function buildTaskImage(
       let isStale: boolean;
       try {
         const cached: Record<string, string> = JSON.parse(readFileSync(manifestPath, "utf-8"));
-        const relFiles = new Set(Object.keys(currentHashes));
         isStale =
           Object.keys(currentHashes).some((r) => cached[r] !== currentHashes[r]) ||
-          Object.keys(cached).some((r) => !relFiles.has(r));
+          Object.keys(cached).some((r) => !(r in currentHashes));
       } catch {
         isStale = true;
       }
