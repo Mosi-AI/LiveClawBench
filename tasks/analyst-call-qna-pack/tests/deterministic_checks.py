@@ -75,8 +75,8 @@ def check_a2_corrections(text: str) -> dict[str, float]:
     scores: dict[str, float] = {}
     lower = text.lower()
 
-    # A2 check 1: Q3 revenue $58.4M should appear (not Q2 $47.2M as current figure)
-    scores["a2_revenue_updated"] = 1.0 if "58.4" in text else 0.0
+    # A2 check 1: Q3 NXL-7 product revenue $41.6M should appear (corrects Q2 $31.8M in the draft)
+    scores["a2_revenue_updated"] = 1.0 if "41.6" in text else 0.0
 
     # A2 check 2: Updated guidance $210–220M should appear (not old $190–205M)
     scores["a2_guidance_updated"] = 1.0 if ("210" in text or "220" in text) else 0.0

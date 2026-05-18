@@ -36,20 +36,21 @@ calendar_a1_used (cross-service coordination):
   Did the agent query the calendar (localhost:5003) to retrieve the meeting details?
   The calendar event has start_time 14:00 (2 PM) and end_time 16:00 (4 PM) on Thursday.
   These times are ONLY available from the calendar API — they do not appear in the corpus
-  or workspace files. A submission that skips the calendar entirely cannot know the meeting
-  time. Use the presence of the meeting time as the primary calendar-usage signal.
+  or workspace files. Only award positive scores when there is explicit calendar evidence.
   - 1.0: Output explicitly references the meeting time (14:00, 2:00 PM, 2 PM, or equivalent)
     AND correctly uses Q3 2024 Nexaline Therapeutics materials.
-  - 0.75: Output references the Thursday meeting date and Q3 materials but omits the specific
-    start time — partial calendar evidence.
-  - 0.5: Output uses Q3 content but shows no evidence of calendar consultation (no date,
-    time, or other calendar-specific reference).
-  - 0.25: Output is mostly based on the old Q2 draft with minor adjustments.
-  - 0.0: Output is entirely Q2-based, generic, or shows no calendar usage.
+  - 0.75: Output references a specific Thursday date (not just "this Thursday" from the
+    instruction) and Q3 materials — partial calendar evidence of date lookup.
+  - 0.5: Output uses the full event title "NXL Q3 Investor Call" or source "IR" context
+    suggesting the calendar record was read, with Q3 materials.
+  - 0.25: Output uses Q3 Nexaline content with the full company name resolved, but no
+    explicit calendar field (date, time, or event title) is present.
+  - 0.0: Output is Q2-based, generic, or shows no evidence of calendar consultation;
+    do NOT award more than 0.0 if no calendar-specific detail appears.
 
 claim_repair (A2 — old draft correction):
   The old draft had these specific outdated claims:
-  1. Q2 revenue $47.2M (→ should be Q3 $58.4M)
+  1. NXL-7 Q2 product revenue $31.8M (→ should be Q3 $41.6M)
   2. FY guidance $190–205M (→ should be $210–220M)
   3. "No near-term competitor approval risk" (→ ZPH-4 filed for accelerated approval; must acknowledge)
   4. NXL-12 enrollment ~70% complete (→ enrollment completed October 2024)
