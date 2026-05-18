@@ -1,4 +1,5 @@
-FROM liveclawbench-analyst-call-qna-pack-base:latest
+ARG OPENCLAW_BASE_IMAGE=liveclawbench-analyst-call-qna-pack-base:latest
+FROM ${OPENCLAW_BASE_IMAGE}
 
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 

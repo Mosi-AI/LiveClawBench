@@ -1,4 +1,4 @@
-I have an analyst call coming up this Thursday. Please check my calendar (http://localhost:5003/) for the meeting details.
+I have an analyst call coming up this Thursday. Please check my calendar (http://localhost:5003/login) for the meeting details.
 
 To access the calendar API, use the login page at `http://localhost:5003/login` with email `peter.griffin@work.mosi.inc` and password `password123`. You can also query events via the API: authenticate with `POST http://localhost:5003/api/auth/login` (body: `{"email": "peter.griffin@work.mosi.inc", "password": "password123"}`), then call `GET http://localhost:5003/api/events` with `Authorization: Bearer <token>`.
 
