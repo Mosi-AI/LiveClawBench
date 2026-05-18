@@ -1,0 +1,30 @@
+version = "1.0"
+
+[metadata]
+difficulty = "medium"
+category = "open-world"
+tags = ["e_commerce_daily_svcs", "smart_home"]
+
+domain = "E-commerce & Daily Svcs"
+domains_multi = ["E-commerce & Daily Svcs"]
+
+# Triple-Axis Complexity Factors (0 = absent, 1 = present)
+factor_a1 = 1   # Cross-Service Dependency (smarthome + shop)
+factor_a2 = 0   # Contaminated Initial State
+factor_b1 = 1   # Implicit Goal Resolution (agent must discover unit mismatch and round up)
+factor_b2 = 0   # Knowledge System Maintenance
+
+case_id = 42
+
+[verifier]
+timeout_sec = 300.0
+
+[agent]
+timeout_sec = 900.0
+
+[environment]
+build_timeout_sec = 300.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 5120
+allow_internet = true

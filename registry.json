@@ -2,7 +2,7 @@
   {
     "name": "liveclawbench",
     "version": "0.1.0",
-    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 32 tasks with 4 complexity factors (A1/A2/B1/B2) across 7 task domains.",
+    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 40 tasks with 4 complexity factors (A1/A2/B1/B2) across 7 task domains.",
     "tasks": [
       {"name": "skill-creation", "path": "tasks/skill-creation"},
       {"name": "skill-supplementation", "path": "tasks/skill-supplementation"},
@@ -34,8 +34,17 @@
       {"name": "conflict-repair-acb", "path": "tasks/conflict-repair-acb"},
       {"name": "mixed-tool-memory", "path": "tasks/mixed-tool-memory"},
       {"name": "live-web-research-sqlite-fts5", "path": "tasks/live-web-research-sqlite-fts5"},
+      {"name": "skill-combination", "path": "tasks/skill-combination"},
+      {"name": "mint-diet-snack-log", "path": "tasks/mint-diet-snack-log"},
+      {"name": "social-media-posting", "path": "tasks/social-media-posting"},
+      {"name": "social-unlike-post", "path": "tasks/social-unlike-post"},
+      {"name": "expense-draft-delete", "path": "tasks/expense-draft-delete"},
       {"name": "insurance-deductible-selection", "path": "tasks/insurance-deductible-selection"},
-      {"name": "health-insurance-optimization", "path": "tasks/health-insurance-optimization"}
+      {"name": "health-insurance-optimization", "path": "tasks/health-insurance-optimization"},
+      {"name": "health-daily-record", "path": "tasks/health-daily-record"},
+      {"name": "smarthome-test", "path": "tasks/smarthome-test"},
+      {"name": "weather-aqi-report", "path": "tasks/weather-aqi-report"},
+      {"name": "grocery-reorder", "path": "tasks/grocery-reorder"}
     ]
   }
 ]
