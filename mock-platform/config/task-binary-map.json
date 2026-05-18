@@ -217,7 +217,14 @@
     "weather-city-travel-pick": { "binaries": ["weather"] },
     "weather-outdoor-window": { "binaries": ["weather"] },
     "pre-meeting-research-brief": {
-      "binaries": ["todolist"]
+      "binaries": ["todolist"],
+      "frontends": [
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
     },
     "vendor-due-diligence-brief": {
       "binaries": ["email"],
