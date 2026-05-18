@@ -18,13 +18,11 @@ if [ ! -f "$CALENDAR_DB" ]; then
   exit 0
 fi
 
-# Calculate the date of this coming Thursday (weekday 4 in Python, 0=Monday)
+# Calculate the date of this Thursday (today if Thursday, else the coming one)
 NEXT_THURSDAY=$(python3 - <<'PYEOF'
 from datetime import datetime, timedelta
 today = datetime.now()
 days_ahead = (3 - today.weekday()) % 7
-if days_ahead == 0:
-    days_ahead = 7
 thu = today + timedelta(days=days_ahead)
 print(thu.strftime("%Y-%m-%d"))
 PYEOF

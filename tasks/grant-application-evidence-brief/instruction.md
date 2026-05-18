@@ -15,3 +15,4 @@ Save the result to `~/.openclaw/output/result.json` with these fields:
 - `"novelty"` — string describing the project's differentiation (must reflect the latest understanding from the corpus)
 - `"evidence_gaps"` — list of strings (minimum 2)
 - `"next_steps"` — list of strings
+- `"corrections"` — list of strings, each describing one outdated claim from the draft and what it was corrected to (minimum 1; document every significant change you make)

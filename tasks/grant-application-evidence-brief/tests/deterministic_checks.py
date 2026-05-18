@@ -14,6 +14,7 @@ REQUIRED_FIELDS = [
     "novelty",
     "evidence_gaps",
     "next_steps",
+    "corrections",
 ]
 
 

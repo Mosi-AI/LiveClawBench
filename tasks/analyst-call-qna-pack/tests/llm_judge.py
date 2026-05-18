@@ -43,10 +43,9 @@ calendar_a1_used (cross-service coordination):
     instruction) and Q3 materials — partial calendar evidence of date lookup.
   - 0.5: Output uses the full event title "NXL Q3 Investor Call" or source "IR" context
     suggesting the calendar record was read, with Q3 materials.
-  - 0.25: Output uses Q3 Nexaline content with the full company name resolved, but no
-    explicit calendar field (date, time, or event title) is present.
-  - 0.0: Output is Q2-based, generic, or shows no evidence of calendar consultation;
-    do NOT award more than 0.0 if no calendar-specific detail appears.
+  - 0.0: No explicit calendar-specific field (date, time, or event title) is present in
+    the output — including outputs that use Q3 content derived only from corpus/workspace.
+    Do NOT award any positive score if no calendar detail appears.
 
 claim_repair (A2 — old draft correction):
   The old draft had these specific outdated claims:
