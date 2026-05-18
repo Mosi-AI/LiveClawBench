@@ -24,7 +24,7 @@ LiveClawBench 的设计目标是：构建一个能**系统性测量复杂度叠�
 
 我们将 assistant task 的复杂度分解为三个正交轴（orthogonal axes），每个轴包含可独立操控的 complexity factors。
 
-> 各因子的完整定义、42 case 标注表及统计数据，见 [Complexity Framework Reference](../reference/complexity-framework.md)。
+> 各因子的完整定义、32 case 标注表及统计数据，见 [Complexity Framework Reference](../reference/complexity-framework.md)。
 
 ### Axis A: Environment Complexity（外部世界的复杂性）
 

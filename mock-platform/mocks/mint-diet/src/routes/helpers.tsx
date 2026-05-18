@@ -1,18 +1,22 @@
 import type { AppEnv } from "mock-lib";
 import type { Context } from "hono";
-import { LOG_SLOTS, PLAN_SLOTS } from "../constants";
-import type { MealSlot, PlanMealSlot } from "../queries";
+import { LOG_SLOTS, PLAN_SLOTS, PLAN_STATUSES } from "../constants";
+import type { MealSlot, PlanMealSlot, PlanStatus } from "../queries";
+import { err } from "mock-lib";
+
+type ParsedBody = Awaited<ReturnType<Context<AppEnv>["req"]["parseBody"]>>;
 
 export function isResponse(value: unknown): value is Response {
   return value instanceof Response;
 }
 
-/**
- * Render a JSON error response.
- * Returns { success: false, message: string } for API consistency across mocks.
- */
-export function jsonError(c: Context<AppEnv>, message: string, status: 400 | 404 | 500) {
-  return c.json({ success: false, message }, status);
+export async function parseBodyOrBadRequest(c: Context<AppEnv>): Promise<ParsedBody | Response> {
+  try {
+    return await c.req.parseBody();
+  } catch (e) {
+    console.error("Failed to parse request body", e);
+    return c.json(err("Malformed request body"), 400);
+  }
 }
 
 /**
@@ -22,9 +26,9 @@ export function jsonError(c: Context<AppEnv>, message: string, status: 400 | 404
 export function runDbMutation<T>(c: Context<AppEnv>, action: () => T): T | Response {
   try {
     return action();
-  } catch (err) {
-    console.error("Database mutation failed", err);
-    return jsonError(c, "Could not save changes. Please try again.", 500);
+  } catch (e) {
+    console.error("Database mutation failed", e);
+    return c.json(err("Could not save changes. Please try again."), 500);
   }
 }
 
@@ -34,6 +38,10 @@ export function isMealSlot(value: string): value is MealSlot {
 
 export function isPlanMealSlot(value: string): value is PlanMealSlot {
   return (PLAN_SLOTS as readonly string[]).includes(value);
+}
+
+export function isPlanStatus(value: string): value is PlanStatus {
+  return (PLAN_STATUSES as readonly string[]).includes(value);
 }
 
 export function parsePositiveInt(s: string | undefined): number | null {
