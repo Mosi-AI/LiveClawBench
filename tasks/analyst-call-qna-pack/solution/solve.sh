@@ -23,7 +23,7 @@ with urllib.request.urlopen(req2) as r:
     events = json.loads(r.read())["events"]
 
 today = datetime.now()
-days_ahead = (3 - today.weekday()) % 7 or 7
+days_ahead = (3 - today.weekday()) % 7  # 0 when today IS Thursday
 thursday = (today + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
 
 call_event = next(
