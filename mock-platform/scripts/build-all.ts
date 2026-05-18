@@ -279,6 +279,11 @@ async function main() {
       let backedUpManifest = false;
 
       try {
+        // Pre-flight: remove any stale backup artifacts left by a previously interrupted build
+        // to prevent renameSync(finalPath, backupPath) from failing with EEXIST.
+        try { if (existsSync(backupPath)) unlinkSync(backupPath); } catch { /* ignore */ }
+        try { if (existsSync(backupManifestPath)) unlinkSync(backupManifestPath); } catch { /* ignore */ }
+
         // Step 1: Write new manifest to temp path (no final paths touched yet)
         writeBuildManifest(manifestSnapshots.get(result.name)!, tempManifestPath);
 
