@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runnability check: run all 30 tasks with kimi-k2.5 (moonshot provider)
+# Runnability check: run all 32 tasks with kimi-k2.5 (moonshot provider)
 # Usage: bash scripts/run_runnability_check.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 source .env
 BASE_URL="$OPENAI_BASE_URL"
 API_KEY="$OPENAI_API_KEY"
-JUDGE_TASKS="noise-filtering mixed-tool-memory incremental-update-ctp live-web-research-sqlite-fts5 conflict-repair-acb"
+JUDGE_TASKS="noise-filtering mixed-tool-memory incremental-update-ctp live-web-research-sqlite-fts5 conflict-repair-acb grant-application-evidence-brief analyst-call-qna-pack"
 MAX_CONCURRENT=4
 
 mkdir -p run_logs
