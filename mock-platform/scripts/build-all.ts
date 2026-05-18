@@ -279,10 +279,11 @@ async function main() {
       let backedUpManifest = false;
 
       try {
-        // Pre-flight: remove any stale backup artifacts left by a previously interrupted build
-        // to prevent renameSync(finalPath, backupPath) from failing with EEXIST.
-        try { if (existsSync(backupPath)) unlinkSync(backupPath); } catch { /* ignore */ }
-        try { if (existsSync(backupManifestPath)) unlinkSync(backupManifestPath); } catch { /* ignore */ }
+        // Pre-flight: remove stale backup artifacts from a previously interrupted build,
+        // but only when the corresponding final artifact still exists — if the final is gone,
+        // the backup is the last surviving copy and must be preserved.
+        try { if (existsSync(finalPath) && existsSync(backupPath)) unlinkSync(backupPath); } catch { /* ignore */ }
+        try { if (existsSync(finalManifestPath) && existsSync(backupManifestPath)) unlinkSync(backupManifestPath); } catch { /* ignore */ }
 
         // Step 1: Write new manifest to temp path (no final paths touched yet)
         writeBuildManifest(manifestSnapshots.get(result.name)!, tempManifestPath);

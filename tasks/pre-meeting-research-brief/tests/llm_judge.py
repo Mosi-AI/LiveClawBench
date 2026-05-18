@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime
 import json
 import os
 import urllib.error
@@ -44,8 +45,8 @@ Scoring rules — be strict, 1.0 is rare:
   - 0.25: Questions are generic ("What are your goals?", "How do you handle security?").
   - 0.0: No meaningful synthesis evident.
 
-- `meeting_summary_accuracy`: Does meeting_summary correctly identify the counterpart and key meeting details from the calendar entry provided? It must name the counterpart (Alex Morgan / NovaTech AI), reference Friday as the meeting date, and ideally include time (14:00) and location (Conference Room A). Do not reward fabricated or generic summaries not grounded in the calendar entry.
-  - 1.0: Counterpart name/company, date (Friday), and at least one of time or location correctly stated.
+- `meeting_summary_accuracy`: Does meeting_summary correctly identify the counterpart and key meeting details from the calendar entry provided? It must name the counterpart (Alex Morgan / NovaTech AI), reference the correct date (either as "Friday" or the ISO date shown in the calendar entry), and ideally include time (14:00) and location (Conference Room A). Do not reward fabricated or generic summaries not grounded in the calendar entry.
+  - 1.0: Counterpart name/company, correct date (weekday or ISO), and at least one of time or location correctly stated.
   - 0.75: Counterpart identified and date correct; time or location omitted but no fabrication.
   - 0.5: Counterpart identified but date or another key detail is wrong or fabricated.
   - 0.25: Meeting referenced but counterpart wrong or significantly fabricated.
@@ -257,9 +258,15 @@ def fetch_calendar_context() -> str:
             or "novatech" in title
             or "partnership" in description
         ):
+            date_str = todo.get("date", "")
+            try:
+                weekday = datetime.date.fromisoformat(date_str).strftime("%A")
+                date_display = f"{date_str} ({weekday})"
+            except (ValueError, TypeError):
+                date_display = date_str
             return (
                 f"Title: {todo.get('title', '')}\n"
-                f"Date: {todo.get('date', '')}\n"
+                f"Date: {date_display}\n"
                 f"Time: {todo.get('time', '')}\n"
                 f"Location: {todo.get('location', '')}\n"
                 f"Person: {todo.get('person', '')}\n"
