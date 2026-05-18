@@ -19,9 +19,11 @@ Return JSON only with this shape:
 {
   "grounding_quality": 0.0,
   "synthesis_quality": 0.0,
+  "meeting_summary_accuracy": 0.0,
   "rationales": {
     "grounding_quality": "...",
-    "synthesis_quality": "..."
+    "synthesis_quality": "...",
+    "meeting_summary_accuracy": "..."
   }
 }
 
@@ -41,6 +43,13 @@ Scoring rules — be strict, 1.0 is rare:
   - 0.5: Questions are adequate but could be asked without reading the corpus.
   - 0.25: Questions are generic ("What are your goals?", "How do you handle security?").
   - 0.0: No meaningful synthesis evident.
+
+- `meeting_summary_accuracy`: Does meeting_summary correctly identify the counterpart and key meeting details from the calendar entry provided? It must name the counterpart (Alex Morgan / NovaTech AI), reference Friday as the meeting date, and ideally include time (14:00) and location (Conference Room A). Do not reward fabricated or generic summaries not grounded in the calendar entry.
+  - 1.0: Counterpart name/company, date (Friday), and at least one of time or location correctly stated.
+  - 0.75: Counterpart identified and date correct; time or location omitted but no fabrication.
+  - 0.5: Counterpart identified but date or another key detail is wrong or fabricated.
+  - 0.25: Meeting referenced but counterpart wrong or significantly fabricated.
+  - 0.0: Completely fabricated, generic, or no reference to the seeded meeting details.
 """
 
 
@@ -312,6 +321,9 @@ def main() -> None:
         "structural_valid": det_scores["structural_valid"],
         "structure_completeness": det_scores["structure_completeness"],
         "anchor_coverage": det_scores["anchor_coverage"],
+        "meeting_summary_accuracy": clamp_score(
+            judge_payload.get("meeting_summary_accuracy")
+        ),
         "grounding_quality": clamp_score(judge_payload.get("grounding_quality")),
         "synthesis_quality": clamp_score(judge_payload.get("synthesis_quality")),
         "_meta_rationales": judge_payload.get("rationales", {}),

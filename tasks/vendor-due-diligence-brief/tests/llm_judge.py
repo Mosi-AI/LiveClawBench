@@ -19,9 +19,11 @@ Return JSON only with this shape:
 {
   "evidence_grounding": 0.0,
   "recommendation_quality": 0.0,
+  "vendor_background_quality": 0.0,
   "rationales": {
     "evidence_grounding": "...",
-    "recommendation_quality": "..."
+    "recommendation_quality": "...",
+    "vendor_background_quality": "..."
   }
 }
 
@@ -41,6 +43,13 @@ Scoring rules — be strict, 1.0 is rare:
   - 0.5: Generic recommendation that doesn't engage with the specific risks identified.
   - 0.25: Contradicts the evidence or ignores critical red flags.
   - 0.0: No meaningful recommendation or completely ungrounded.
+
+- `vendor_background_quality`: Does vendor_background correctly identify the vendor using details from the intro email and corpus, and does fit_assessment meaningfully engage with the technical need? vendor_background must include the contact name (Marcus Webb) and email address (partnerships@cloudedge.io) from the intro email, plus key corpus facts (DataGuard / AES-256-GCM, Series A / $18M, founded 2022). fit_assessment should address whether the product actually fits the stated use case — not generic statements.
+  - 1.0: Contact name and email correct from email; company facts (product, funding, founding year) from corpus; fit_assessment engages specifically with the technical use case.
+  - 0.75: Contact name correct but email missing, OR one corpus fact missing; fit_assessment adequate.
+  - 0.5: Company and product identified from corpus but contact info missing or wrong; fit_assessment generic.
+  - 0.25: Only company name correct; background mostly fabricated; fit_assessment absent or vague.
+  - 0.0: Wrong vendor, fabricated contact info, or background entirely missing.
 """
 
 
@@ -338,6 +347,9 @@ def main() -> None:
         "structural_valid": det_scores["structural_valid"],
         "red_flags_minimum": det_scores["red_flags_minimum"],
         "anchor_coverage": det_scores["anchor_coverage"],
+        "vendor_background_quality": clamp_score(
+            judge_payload.get("vendor_background_quality")
+        ),
         "evidence_grounding": clamp_score(judge_payload.get("evidence_grounding")),
         "recommendation_quality": clamp_score(
             judge_payload.get("recommendation_quality")
