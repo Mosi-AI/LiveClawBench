@@ -131,14 +131,12 @@ export function registerIngredientRoutes(
       return c.json(err("Plan not found"), 404);
     }
 
-    const quantityValue = parseFloat(body.quantity_value);
-
     const result = d.run(
       `INSERT INTO ingredient_item (meal_plan_id, name, quantity_value, quantity_unit, notes)
        VALUES (?, ?, ?, ?, ?)`,
       planId,
       body.name,
-      quantityValue,
+      body.quantity_value,
       body.quantity_unit,
       body.notes
     );
@@ -221,14 +219,12 @@ export function registerIngredientRoutes(
       return c.json(err("Ingredient not found"), 404);
     }
 
-    const quantityValue = parseFloat(body.quantity_value);
-
     d.run(
       `UPDATE ingredient_item SET
        name = ?, quantity_value = ?, quantity_unit = ?, notes = ?
        WHERE id = ?`,
       body.name,
-      quantityValue,
+      body.quantity_value,
       body.quantity_unit,
       body.notes,
       ingId
