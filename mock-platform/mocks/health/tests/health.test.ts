@@ -1,5 +1,10 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+import { mkdtempSync, rmSync, unlinkSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { Database } from "bun:sqlite";
 import { createTestApp, jsonRequest, cleanup } from "./setup";
+import { initDb } from "../src/db";
 
 describe("Health Snapshot & Metrics API", () => {
   let app: ReturnType<typeof createTestApp>;
@@ -171,5 +176,45 @@ describe("Health Snapshot & Metrics API", () => {
   test("GET /api/health/trends returns 400 for invalid metric type", async () => {
     const res = await app.request("/api/health/trends?metric_type=fake_metric&days=7");
     expect(res.status).toBe(400);
+  });
+});
+
+describe("Health DB path configuration", () => {
+  afterEach(() => {
+    cleanup();
+    delete process.env.HEALTH_DB_PATH;
+  });
+
+  test("initDb uses HEALTH_DB_PATH when set", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "health-db-"));
+    const dbPath = join(tempDir, "configured-health.db");
+
+    cleanup();
+    delete process.env.HEALTH_DB_PATH;
+    try { unlinkSync("health.db"); } catch {}
+
+    process.env.HEALTH_DB_PATH = dbPath;
+
+    const db = initDb();
+    db.close();
+    cleanup();
+
+    const configuredDb = new Database(dbPath, { readonly: true });
+    const tables = configuredDb
+      .query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'system_config'")
+      .all() as Array<{ name: string }>;
+    configuredDb.close();
+
+    expect(tables).toEqual([{ name: "system_config" }]);
+
+    try {
+      const strayDb = new Database("health.db", { readonly: true });
+      strayDb.close();
+      expect.unreachable("health.db should not be created when HEALTH_DB_PATH is set");
+    } catch {
+      expect(true).toBe(true);
+    }
+
+    rmSync(tempDir, { recursive: true, force: true });
   });
 });

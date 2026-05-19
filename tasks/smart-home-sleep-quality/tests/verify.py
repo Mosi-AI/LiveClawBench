@@ -47,7 +47,7 @@ def detect_direct_api_calls():
 
     # Patterns that indicate direct API calls (not browser-based)
     # These are backend API endpoints that should only be accessed via browser
-    # Patterns match both plain and shell-escaped forms
+    # Patterns are designed to match both plain and shell-escaped forms
     direct_api_patterns = [
         # HTTP verb patterns (any verb + absolute URL)
         r"(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+http://localhost:(?:5004|5007|1234)/api/",
@@ -62,10 +62,12 @@ def detect_direct_api_calls():
         r'"endpoint":\s*"/api/',
         # Bash/shell execution of API calls
         r"-X\s+(?:GET|POST|PUT|DELETE|PATCH)\s+.*localhost:(?:5004|5007|1234)/api/",
-        # Relative URL in JSON url field
+        # Relative URL in JSON url field (various quote/escape levels)
         r'"url":\s*"/api/',
-        # fetch() calls with relative URLs (handles both plain and escaped quotes)
-        r'fetch\s*\(\s*["\']?/api/',
+        r'\\"url\\":\s*\\"/api/',  # Shell-escaped: \"url\": \"/api/
+        r'\\\\"url\\\\\\":\s*\\\\"/api/',  # Double-escaped
+        # fetch() calls with relative URLs (handles plain, single-escaped, double-escaped quotes)
+        r'fetch\s*\(\s*["\']?/api/',  # Plain: fetch("/api/ or fetch('/api/
         r'fetch\s*\(\s*\\"/api/',  # Shell-escaped: fetch(\"/api/
         r'fetch\s*\(\s*\\\\"/api/',  # Double-escaped: fetch(\\"/api/
         # httpie-style commands (http POST localhost:5004/api/...)
@@ -76,9 +78,6 @@ def detect_direct_api_calls():
         r'requests\.(?:get|post|put|delete|patch)\s*\(\s*["\']http://localhost:(?:5004|5007|1234)/api/',
         # axios calls
         r'axios\.(?:get|post|put|delete|patch)\s*\(\s*["\']http://localhost:(?:5004|5007|1234)/api/',
-        # Shell-escaped URL patterns (for nested commands in exec)
-        r'\\"url\\":\s*\\"/api/',  # \"url\": \"/api/
-        r'\\\\\\"url\\\\\\":\s*\\\\\\"/api/',  # \\\"url\\\": \\\"/api/
     ]
 
     def extract_strings_recursive(obj, texts, depth=0):
@@ -95,11 +94,18 @@ def detect_direct_api_calls():
                 extract_strings_recursive(item, texts, depth + 1)
 
     def extract_text_from_entry(entry):
-        """Extract all text content from a harbor.jsonl entry for pattern matching."""
+        """Extract all text content from a harbor.jsonl entry for pattern matching.
+
+        Handles both harbor formats:
+        1. assistant message with content[] containing toolCall blocks
+        2. top-level tool_call entries
+        """
         texts = []
 
-        # Handle assistant messages with toolCall blocks
-        if entry.get("type") == "message":
+        entry_type = entry.get("type")
+
+        # Handle assistant messages with content array
+        if entry_type == "message":
             msg = entry.get("message", {})
             role = msg.get("role", "")
             content = msg.get("content")
@@ -117,35 +123,38 @@ def detect_direct_api_calls():
                         texts.append(block.get("text", ""))
 
                     # Harbor toolCall blocks (in assistant messages)
+                    # This is the primary format used by harbor for tool invocations
                     if block_type == "toolCall":
                         # Extract tool name
                         tool_name = block.get("name", "")
                         texts.append(tool_name)
-                        # Extract arguments recursively
+                        # Extract all arguments recursively (handles nested strings)
                         args = block.get("arguments", {})
-                        extract_strings_recursive(args, texts)
+                        if isinstance(args, dict):
+                            extract_strings_recursive(args, texts)
 
-                    # toolResult blocks may contain output
+                    # toolResult blocks may contain output with direct API traces
                     if block_type == "toolResult":
                         result_text = block.get("text", "")
                         texts.append(result_text)
 
-        # Handle top-level tool_call entries
-        if entry.get("type") == "tool_call":
+        # Handle top-level tool_call entries (alternative format)
+        if entry_type == "tool_call":
             tool_name = entry.get("tool_name", "") or entry.get("name", "")
             texts.append(tool_name)
             args = entry.get("arguments", {})
-            extract_strings_recursive(args, texts)
+            if isinstance(args, dict):
+                extract_strings_recursive(args, texts)
 
         return texts
 
     violations = []
     with open(actual_log_path, "r") as f:
         for line_num, line in enumerate(f, 1):
-            # First check raw line (handles escaped JSON in strings)
+            # First check raw line (handles escaped JSON strings before parsing)
             for pattern in direct_api_patterns:
                 if re.search(pattern, line):
-                    violations.append(f"Line {line_num}: direct API call detected")
+                    violations.append(f"Line {line_num} (raw): direct API call detected")
                     break  # Only count one violation per line
 
             # Then parse as JSON and check decoded content
@@ -155,14 +164,13 @@ def detect_direct_api_calls():
                 for text in texts:
                     for pattern in direct_api_patterns:
                         if re.search(pattern, text):
-                            violations.append(f"Line {line_num}: direct API call in tool args")
+                            violations.append(f"Line {line_num} (decoded): direct API call in tool content")
                             break
             except json.JSONDecodeError:
                 continue  # Skip non-JSON lines
 
     if violations:
         return True, "; ".join(violations[:5])  # Limit to first 5
-    return False, "No direct API calls detected"
     return False, "No direct API calls detected"
 
 

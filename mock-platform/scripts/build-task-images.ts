@@ -94,7 +94,7 @@ const ALL_TASK_NAMES = new Set([
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
   "finance-portfolio-rebalancing", "finance-monthly-close",
   "health-daily-record", "smarthome-test", "grocery-reorder",
-  "morning-comfort-setup",
+  "morning-comfort-setup", "smart-home-sleep-quality",
 ]);
 
 interface AssetMapping {
@@ -425,6 +425,10 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/expense-backend.log 2>&1 &`);
         lines.push(`echo "Expense frontend served by Bun on port ${port}" > /tmp/expense-frontend.log`);
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/expense-npm-install.log`);
+      } else if (bin === "health") {
+        lines.push(`export HEALTH_DB_PATH=/var/lib/mock-data/health/health.db`);
+        lines.push(`mkdir -p /var/lib/mock-data/health`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }

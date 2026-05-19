@@ -1,5 +1,13 @@
 import { getDb } from "mock-lib";
 import type { Database } from "bun:sqlite";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
+
+const DEFAULT_DB_PATH = "health.db";
+
+function resolveDbPath(): string {
+  return process.env.HEALTH_DB_PATH ?? DEFAULT_DB_PATH;
+}
 
 export function runMigrations(db: Database): void {
   db.exec(`
@@ -128,7 +136,11 @@ export function runMigrations(db: Database): void {
 let _lastDb: Database | null = null;
 
 export function initDb(): Database {
-  const db = getDb({ path: "health.db", autoMigrate: true });
+  const path = resolveDbPath();
+  if (path !== ":memory:") {
+    mkdirSync(dirname(path), { recursive: true });
+  }
+  const db = getDb({ path, autoMigrate: true });
   if (db !== _lastDb) {
     runMigrations(db);
     db.exec(`INSERT OR IGNORE INTO mock_user (id, username, display_name) VALUES (1, 'default', 'Health User')`);
