@@ -66,7 +66,7 @@ single, clean environment without structural complexity.
 |      35 | expense-draft-delete              |     E      |    |    |    |    | Finance & Data Analytics   |
 |      36 | insurance-deductible-selection    |     E      |    |    |    |    | E-commerce & Daily Svcs    |
 |      37 | health-insurance-optimization     |     M      | ✓  |    |    |    | E-commerce & Daily Svcs    |
-|      38 | health-daily-record               |     E      |    |    |    |    | Health & Wellness          |
+|      38 | health-daily-record               |     E      |    |    |    |    | Health & Fitness           |
 |      39 | meeting-reschedule-response       |     E      | ✓  |    |    |    | Calendar & Task Mgmt       |
 |      40 | candidate-interview-slot-confirm  |     E      | ✓  |    |    |    | Calendar & Task Mgmt       |
 |      41 | medication-prescription-sync      |     H      | ✓  | ✓  | ✓  |    | Health & Fitness           |

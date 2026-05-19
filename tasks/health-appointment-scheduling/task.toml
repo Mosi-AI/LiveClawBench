@@ -6,7 +6,7 @@ category = "open-world"
 tags = ["calendar_task_mgmt", "health_fitness", "communication_email"]
 
 domain = "Health & Fitness"
-domains_multi = ["Health & Fitness", "E-commerce & Daily Svcs", "Calendar & Task Mgmt", "Communication & Email"]
+domains_multi = ["Health & Fitness", "Calendar & Task Mgmt", "Communication & Email"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 1   # Cross-Service Dependency

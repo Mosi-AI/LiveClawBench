@@ -2,6 +2,8 @@ I received an email from the content team with a new content brief. Please check
 
 Login credentials for all services: peter.griffin@work.mosi.inc / password123
 
+> Note: All credentials above are local mock-only values used exclusively for testing within the isolated task environment. They are not real accounts.
+
 Social media platform (localhost:5004) uses a separate account: mosi_brand / demo123
 
 Let me know when everything is set up.
