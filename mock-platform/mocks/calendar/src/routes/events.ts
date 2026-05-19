@@ -58,4 +58,79 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
     if (!event) return c.json({ ok: false, error: "Event not found" }, 404);
     return c.json({ ok: true, event });
   });
+
+  const createRoute_ = createRoute({
+    method: "post",
+    path: "/api/events",
+    summary: "Create a calendar event",
+    responses: {
+      201: { content: { "application/json": { schema: z.object({ ok: z.boolean(), event: EventSchema }) } }, description: "Created" },
+      400: { content: { "application/json": { schema: ErrorResponse } }, description: "Bad Request" },
+      401: { content: { "application/json": { schema: ErrorResponse } }, description: "Unauthorized" },
+    },
+  });
+
+  app.openApiRoute(createRoute_, async (c) => {
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json({ ok: false, error: "Authentication required" }, 401);
+
+    let body: Record<string, unknown>;
+    try { body = await c.req.json(); } catch { return c.json({ ok: false, error: "Invalid JSON body" }, 400); }
+
+    const title = String(body.title ?? "");
+    const startTime = String(body.start_time ?? "");
+    const endTime = String(body.end_time ?? "");
+    const description = body.description != null ? String(body.description) : null;
+
+    if (!title || !startTime || !endTime) {
+      return c.json({ ok: false, error: "title, start_time and end_time are required" }, 400);
+    }
+
+    const startUtc = new Date(startTime).toISOString();
+    const endUtc = new Date(endTime).toISOString();
+    if (new Date(startUtc) >= new Date(endUtc)) {
+      return c.json({ ok: false, error: "end_time must be after start_time" }, 400);
+    }
+
+    const overlap = db
+      .query<{ count: number }, [number, string, string]>(
+        "SELECT COUNT(*) as count FROM calendar_event WHERE user_id = ? AND start_time < ? AND end_time > ?",
+      )
+      .get(userId, endUtc, startUtc);
+    if (overlap && overlap.count > 0) {
+      return c.json({ ok: false, error: "Time overlaps with an existing event" }, 400);
+    }
+
+    const result = db.run(
+      "INSERT INTO calendar_event (user_id, title, start_time, end_time, description) VALUES (?, ?, ?, ?, ?)",
+      [userId, title, startUtc, endUtc, description],
+    );
+    const event = db
+      .query("SELECT * FROM calendar_event WHERE id = ?")
+      .get(Number(result.lastInsertRowid)) as z.infer<typeof EventSchema>;
+    return c.json({ ok: true, event }, 201);
+  });
+
+  const deleteRoute = createRoute({
+    method: "delete",
+    path: "/api/events/:id",
+    summary: "Delete a calendar event",
+    responses: {
+      200: { content: { "application/json": { schema: z.object({ ok: z.boolean() }) } }, description: "OK" },
+      401: { content: { "application/json": { schema: ErrorResponse } }, description: "Unauthorized" },
+      404: { content: { "application/json": { schema: ErrorResponse } }, description: "Not found" },
+    },
+  });
+
+  app.openApiRoute(deleteRoute, async (c) => {
+    const userId = await getAuthUserId(c);
+    if (!userId) return c.json({ ok: false, error: "Authentication required" }, 401);
+    const id = parseInt(c.req.param("id"), 10);
+    const event = db
+      .query("SELECT id FROM calendar_event WHERE id = ? AND user_id = ?")
+      .get(id, userId) as { id: number } | null;
+    if (!event) return c.json({ ok: false, error: "Event not found" }, 404);
+    db.run("DELETE FROM calendar_event WHERE id = ?", [id]);
+    return c.json({ ok: true });
+  });
 }

@@ -8,7 +8,7 @@ Please help me manage my health insurance and schedule care appointments. I need
 
    Search for providers offering the relevant services, pick an available time slot for each, and book both appointments.
 
-3. **Create corresponding calendar events** on the company calendar (http://localhost:5003/) for each booked appointment:
+3. **Create corresponding calendar events** on the company calendar (http://localhost:5003/) for each booked appointment. Log in with email peter.griffin@work.mosi.inc and password password123. You can use the calendar UI at http://localhost:5003/ or the API at http://localhost:5003/api/events (POST with `Authorization: Bearer <token>` from `POST /api/auth/login`):
    - Each calendar event should match the appointment time and include the service name in the title (e.g., "Blood Test" and "Diet Consultation").
    - The two calendar events must not overlap in time.
 
