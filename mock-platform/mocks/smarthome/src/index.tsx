@@ -808,7 +808,7 @@ async function cancelSchedule() {
 const WearablePage: FC<{ data: WearableRecovery; date: string }> = ({ data, date }) => {
   return <Layout title="Wearable & Recovery" scripts={`
 function showReadinessFormula() {
-  alert('Readiness Formula:\\n\\nreadiness = sleep_quality × 0.4 + (100 - normalized_resting_heart_rate) × 0.3 + activity_factor × 0.3\\n\\n• sleep_quality: from health service (0-100)\\n• normalized_resting_heart_rate: (resting_heart_rate - 40) / 60 × 100\\n• activity_factor: min(total_activity_min / 60, 100)');
+  alert('Readiness Formula:\\n\\nreadiness = sleep_quality × 0.4 + (100 - normalized_resting_heart_rate) × 0.3 + activity_factor × 0.3\\n\\n• sleep_quality: from health service (0-100)\\n• normalized_resting_heart_rate: (resting_heart_rate - 40) / 60 × 100\\n• activity_factor: min(total_activity_min / 60 × 100, 100)');
 }
 
 function openSetValuesModal() {
