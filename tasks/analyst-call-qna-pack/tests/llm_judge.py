@@ -20,10 +20,10 @@ The agent was asked to: (1) check a calendar for Thursday's NXL analyst call, (2
 reflect Q3 2024 materials.
 
 The seeded calendar event is supplied as ground truth in the user message. Use it to
-verify that the agent's Call Details section matches the ACTUAL seeded meeting (not
-invented or hardcoded values). The event title, start_time, and end_time are uniquely
-generated per run; an agent that copied values from the instruction rather than querying
-the calendar will not match them exactly.
+verify that the agent's Call Details section matches the ACTUAL meeting. The event
+title ('NXL Q3 Investor Call') and times (14:00-16:00) are fixed each run, but the
+DATE (YYYY-MM-DD) is the actual Thursday of this run and changes per execution. An
+agent that did not query the calendar will lack the correct date for this run.
 
 Score only semantic quality. Be critical. Return JSON only:
 {

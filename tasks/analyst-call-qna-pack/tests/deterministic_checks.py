@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path.home() / ".openclaw"
 OUT = ROOT / "output"
 OUTPUT_PATH = OUT / "analyst_qna.md"
+CALENDAR_DB = Path("/var/lib/mock-data/calendar/calendar.db")
 
 
 def load_output() -> str:
@@ -78,25 +79,49 @@ def check_do_not_say(text: str) -> dict[str, float]:
     return {"do_not_say_ok": 1.0 if count >= 3 else round(count / 3, 2)}
 
 
+def _get_seeded_event_date() -> str:
+    """Return YYYY-MM-DD of the seeded NXL event from the calendar DB, or '' if unavailable."""
+    if not CALENDAR_DB.exists():
+        return ""
+    try:
+        import sqlite3
+
+        conn = sqlite3.connect(str(CALENDAR_DB))
+        rows = conn.execute(
+            "SELECT start_time FROM calendar_event WHERE title LIKE '%NXL%' LIMIT 1"
+        ).fetchall()
+        conn.close()
+        if rows:
+            return rows[0][0][:10]  # "YYYY-MM-DD" from "YYYY-MM-DDTHH:MM:SS"
+    except Exception:
+        pass
+    return ""
+
+
 def check_call_details(text: str) -> dict[str, float]:
-    """Check that the required ## Call Details section is present with date/time info."""
+    """Check that the ## Call Details section contains the meeting time AND the actual seeded date."""
     section = re.search(r"(?i)^##\s*call\s*details", text, re.MULTILINE)
     if not section:
         return {"call_details_ok": 0.0}
-    # Extract section content until next ## heading
     content_start = section.end()
     next_heading = re.search(r"\n##\s+", text[content_start:])
     section_text = text[
         content_start : content_start
         + (next_heading.start() if next_heading else len(text))
     ]
-    # Require the specific meeting start time (14:00 / 2 PM).
-    # That value only exists in the calendar API response — not in the corpus or workspace —
-    # so a fabricated or corpus-only entry cannot satisfy this check.
+    # Require the specific meeting start time (14:00 / 2 PM) — fixed in startup.sh.
     has_meeting_time = bool(
         re.search(r"14:00|2:00\s*[Pp][Mm]|2\s*[Pp][Mm]\b", section_text)
     )
-    return {"call_details_ok": 1.0 if has_meeting_time else 0.0}
+    if not has_meeting_time:
+        return {"call_details_ok": 0.0}
+    # Also require the run-specific Thursday date from the DB.
+    # The date changes each benchmark run; an agent that hardcodes only the fixed time
+    # but not the correct date cannot have used the calendar API.
+    seeded_date = _get_seeded_event_date()
+    if seeded_date and seeded_date not in section_text:
+        return {"call_details_ok": 0.0}
+    return {"call_details_ok": 1.0}
 
 
 def check_a2_corrections(text: str) -> dict[str, float]:
