@@ -686,6 +686,15 @@
         }
       ]
     },
-    "adas-accident-liability-allocation": { "binaries": [] }
+    "crispr-off-target-mitigation": { "binaries": [] },
+    "autonomous-weapons-ethics": { "binaries": [] },
+    "cross-border-data-privacy-comparison": { "binaries": [] },
+    "defi-systemic-risk-contagion": { "binaries": [] },
+    "formal-verification-vs-fuzzing": { "binaries": [] },
+    "mrna-cancer-vaccines-landscape": { "binaries": [] },
+    "digital-religion-ai-vr": { "binaries": [] },
+    "fusion-energy-commercial-viability": { "binaries": [] },
+    "ai-copyright-international-jurisprudence": { "binaries": [] },
+    "long-covid-neurological-hypotheses": { "binaries": [] }
   }
 }

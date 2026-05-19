@@ -1,4 +1,4 @@
-FROM liveclawbench-adas-accident-liability-allocation-base:latest
+FROM liveclawbench-ai-copyright-international-jurisprudence-base:latest
 
 ENV HOME=/home/node
 WORKDIR /home/node/.openclaw

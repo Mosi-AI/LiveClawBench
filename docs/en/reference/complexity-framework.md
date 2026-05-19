@@ -69,27 +69,29 @@ single, clean environment without structural complexity.
 |      38 | health-daily-record               |     E      |    |    |    |    | Health & Fitness          |
 |      39 | finance-portfolio-rebalancing     |     H      |    |    |    |    | Finance & Data Analytics   |
 |      40 | finance-monthly-close             |     M      |    |    |    |    | Finance & Data Analytics   |
-|      41 | nutrition-log-meal                |     E      |    |    |    |    | Health & Fitness          |
-|      42 | mint-diet-comprehensive           |     E      |    |    |    |    | Health & Fitness          |
-|      43 | smarthome-test                    |     M      |    |    | ✓  |    | E-commerce & Daily Svcs    |
-|      44 | grocery-reorder                   |     M      | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
-|      45 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    | Health & Fitness           |
-|      46 | weather-city-travel-pick          |     M      |    |    |    |    | Health & Fitness          |
-|      47 | weather-outdoor-window            |     H      |    |    |    |    | Health & Fitness          |
-|      48 | pre-meeting-research-brief        |     M      |    |    | ✓  | ✓  | Deep Research & Report     |
-|      49 | vendor-due-diligence-brief        |     M      | ✓  |    | ✓  |    | Deep Research & Report     |
-|      50 | social-schedule-audit             |     M      |    | ✓  |    |    | Social Media               |
-|      51 | social-keyword-cleanup            |     M      | ✓  |    | ✓  |    | Social Media               |
-|      52 | social-event-campaign             |     M      | ✓  |    | ✓  |    | Social Media               |
-|      53 | social-data-anomaly-report        |     H      | ✓  | ✓  | ✓  |    | Social Media               |
-|      54 | social-comment-moderation         |     H      | ✓  |    | ✓  |    | Social Media               |
-|      55 | social-cross-publish              |     H      | ✓  |    | ✓  |    | Social Media               |
-|      56 | social-pinned-post-update         |     H      | ✓  | ✓  | ✓  |    | Social Media               |
-|      57 | meeting-reschedule-response       |     E      | ✓  |    |    |    | Calendar & Task Mgmt       |
-|      58 | candidate-interview-slot-confirm  |     E      | ✓  |    |    |    | Calendar & Task Mgmt       |
-|      59 | medication-prescription-sync      |     H      | ✓  | ✓  | ✓  |    | Health & Fitness           |
-|      60 | health-appointment-scheduling     |     H      | ✓  | ✓  | ✓  |    | Health & Fitness           |
-|      61 | content-calendar-cross-publish    |     H      | ✓  | ✓  | ✓  |    | Calendar & Task Mgmt       |
+|      61 | smarthome-test                    |     M      |    |    | ✓  |    | E-commerce & Daily Svcs    |
+|      62 | grocery-reorder                   |     M      | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
+|      63 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    | Health & Fitness           |
+|      41 | first-price-auction-asymmetric-bidders |     M      |    |    |    |    | Deep Research & Report     |
+|      42 | horizontal-gene-transfer-plants-animals |     M      |    |    |    |    | Deep Research & Report     |
+|      43 | aigc-k12-classroom-applications   |     M      |    |    |    |    | Deep Research & Report     |
+|      44 | kubernetes-predictive-autoscaling |     M      |    |    |    |    | Deep Research & Report     |
+|      45 | post-wwii-developed-nation-paths  |     M      |    |    |    |    | Deep Research & Report     |
+|      46 | adas-accident-liability-allocation |     M      |    |    |    |    | Deep Research & Report     |
+|      47 | queer-japanese-language-media-influence |     M   |    |    |    |    | Deep Research & Report     |
+|      48 | piezoelectric-vibration-isolation-accuracy |     M |    |    |    |    | Deep Research & Report     |
+|      49 | ion-trap-quantum-computing-scaling |     M      |    |    |    |    | Deep Research & Report     |
+|      50 | fintech-ml-asset-allocation-models |     M      |    |    |    |    | Deep Research & Report     |
+|      51 | crispr-off-target-mitigation      |     M      |    |    |    |    | Deep Research & Report     |
+|      52 | autonomous-weapons-ethics         |     M      |    |    |    |    | Deep Research & Report     |
+|      53 | cross-border-data-privacy-comparison |     M   |    |    |    |    | Deep Research & Report     |
+|      54 | defi-systemic-risk-contagion      |     M      |    |    |    |    | Deep Research & Report     |
+|      55 | formal-verification-vs-fuzzing    |     M      |    |    |    |    | Deep Research & Report     |
+|      56 | mrna-cancer-vaccines-landscape    |     M      |    |    |    |    | Deep Research & Report     |
+|      57 | digital-religion-ai-vr            |     M      |    |    |    |    | Deep Research & Report     |
+|      58 | fusion-energy-commercial-viability |     M      |    |    |    |    | Deep Research & Report     |
+|      59 | ai-copyright-international-jurisprudence |     M  |    |    |    |    | Deep Research & Report     |
+|      60 | long-covid-neurological-hypotheses |     M      |    |    |    |    | Deep Research & Report     |
 
 ---
 
@@ -184,8 +186,7 @@ Factor count vs difficulty:
 | Hard       |             1.86 |           2          |       3       |       9      |
 
 The empirical reclassification (based on average solve rates across models) shows that Easy
-cases dominate (47.5%). Easy cases include both baselines (55.2%) and factor-bearing tasks
-(44.8%), indicating that many structural complexity factors do not pose significant difficulty
-for current agents. Hard cases concentrate around tasks combining B1 with A1 or A2
-(e.g. social-data-anomaly-report, social-pinned-post-update, medication-prescription-sync),
-contaminated DevOps environments, and high-precision domain execution (finance-portfolio-rebalancing, weather-outdoor-window).
+cases dominate (64.9%). Easy cases include both baselines (54.2%) and factor-bearing tasks
+(45.8%), indicating that many structural complexity factors do not pose significant difficulty
+for current agents. Hard cases are concentrated in tasks requiring constraint failure handling
+(B1) or specific challenging environments (A2 in DevOps).

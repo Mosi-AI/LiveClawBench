@@ -1,0 +1,114 @@
+{
+  "dimension_weights": {
+    "readability": 0.13,
+    "insight": 0.3,
+    "instruction_following": 0.22,
+    "comprehensiveness": 0.35
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of major ethical frameworks relevant to autonomous weapon systems",
+        "weight": 0.2
+      },
+      {
+        "criterion": "Coverage of the full range of core ethical arguments and counterarguments about AWS",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Inclusion of relevant empirical and operational evidence informing the debate",
+        "weight": 0.12
+      },
+      {
+        "criterion": "Coverage of legal and accountability frameworks tied to AWS regulation",
+        "weight": 0.14
+      },
+      {
+        "criterion": "Breadth of national approaches and comparative state positions",
+        "weight": 0.14
+      },
+      {
+        "criterion": "Coverage of international bodies, multilateral processes, and civil-society or expert initiatives",
+        "weight": 0.11
+      },
+      {
+        "criterion": "Attention to definitional, technical, and scope-setting debates",
+        "weight": 0.07
+      },
+      {
+        "criterion": "Inclusion of historical context, recent developments, and unresolved governance questions",
+        "weight": 0.05
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Depth of comparative ethical analysis",
+        "weight": 0.28
+      },
+      {
+        "criterion": "Critical evaluation of major arguments and counterarguments",
+        "weight": 0.24
+      },
+      {
+        "criterion": "Ability to connect ethical reasoning with regulatory and geopolitical positions",
+        "weight": 0.2
+      },
+      {
+        "criterion": "Conceptual precision and analytical handling of contested definitions",
+        "weight": 0.12
+      },
+      {
+        "criterion": "Synthesis of tensions, dilemmas, and unresolved questions",
+        "weight": 0.1
+      },
+      {
+        "criterion": "Originality and decision-usefulness of conclusions",
+        "weight": 0.06
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Directly answers the full research question",
+        "weight": 0.3111
+      },
+      {
+        "criterion": "Covers both required subject domains without drifting beyond scope",
+        "weight": 0.1778
+      },
+      {
+        "criterion": "Follows the mandated report structure and markdown-oriented organization",
+        "weight": 0.1667
+      },
+      {
+        "criterion": "Includes an explicit Sources section at the end listing consulted references and URLs",
+        "weight": 0.1556
+      },
+      {
+        "criterion": "Provides the specifically requested critical-analysis components",
+        "weight": 0.1888
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and accessibility of language: The article uses precise, straightforward wording, defines technical/legal/ethical terms (e.g., AWS, meaningful human control, IHL) when first introduced, and avoids unnecessary jargon or unexplained acronyms.",
+        "weight": 0.24
+      },
+      {
+        "criterion": "Logical organization and flow: The report is structured with clear sections and subsections, smooth transitions, and an argument sequence that helps readers move from ethical frameworks to national positions and regulatory debates without confusion.",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Sentence and paragraph readability: Sentences are concise and varied in length, paragraphs are focused on one main idea, and dense material is broken into digestible units that reduce reader fatigue.",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Effective use of formatting and signposting: Markdown headings, bullet points, tables, emphasis, and topic sentences are used appropriately to highlight comparisons, key claims, and regulatory distinctions across countries and institutions.",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Use of illustrative summaries and synthesis aids: Complex ethical arguments and governance positions are clarified through brief summaries, comparative tables, and synthesis statements that help non-specialist readers understand the main takeaways.",
+        "weight": 0.18
+      }
+    ]
+  }
+}

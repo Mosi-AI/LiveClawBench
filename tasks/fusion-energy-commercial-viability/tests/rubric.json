@@ -1,0 +1,118 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.22,
+    "insight": 0.32,
+    "comprehensiveness": 0.34,
+    "readability": 0.12
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of foundational fusion concepts relevant to commercialization",
+        "weight": 0.1
+      },
+      {
+        "criterion": "Coverage of tokamak-based fusion as a major pathway",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Coverage of inertial confinement fusion as a major pathway",
+        "weight": 0.14
+      },
+      {
+        "criterion": "Coverage of alternative fusion approaches beyond tokamak and inertial confinement",
+        "weight": 0.16
+      },
+      {
+        "criterion": "Coverage of commercialization outlook, timelines, and required milestones",
+        "weight": 0.16
+      },
+      {
+        "criterion": "Coverage of practical constraints affecting realism of commercial fusion",
+        "weight": 0.12
+      },
+      {
+        "criterion": "Coverage of empirical evidence and state-of-the-field across major actors",
+        "weight": 0.08
+      },
+      {
+        "criterion": "Coverage of claim-evaluation framework for fusion breakthroughs",
+        "weight": 0.06
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Distinguishes scientific progress from commercial viability",
+        "weight": 0.24
+      },
+      {
+        "criterion": "Uses a rigorous comparative framework across fusion approaches",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Critically evaluates breakthrough claims with appropriate metrics and caveats",
+        "weight": 0.21
+      },
+      {
+        "criterion": "Shows calibrated reasoning about timelines and uncertainty",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Synthesizes evidence into non-obvious, decision-useful conclusions",
+        "weight": 0.15
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Directly answers all parts of the stated research question",
+        "weight": 0.3409
+      },
+      {
+        "criterion": "Covers all explicitly required fusion approach categories",
+        "weight": 0.2045
+      },
+      {
+        "criterion": "Follows the required report format and structure in markdown",
+        "weight": 0.1591
+      },
+      {
+        "criterion": "Includes a dedicated Sources section at the end listing consulted references and URLs",
+        "weight": 0.1364
+      },
+      {
+        "criterion": "Performs the explicitly requested critical analysis rather than only summarizing",
+        "weight": 0.1591
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and precision of language: The article uses precise, straightforward wording, defines technical terms related to fusion physics, plasma confinement, and reactor engineering when first introduced, and avoids unnecessary jargon or unexplained acronyms.",
+        "weight": 0.24
+      },
+      {
+        "criterion": "Logical organization and navigability: The report is structured with clear sections and subsections, smooth transitions, and an argument sequence that helps readers move from tokamak approaches to inertial confinement, alternative methods, and commercialization timelines without confusion.",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Coherence and flow between ideas: Sentences are concise and varied in length, paragraphs are focused on one main idea, and dense technical material is broken into digestible units with clear transitions that reduce reader fatigue.",
+        "weight": 0.16
+      },
+      {
+        "criterion": "Effective presentation of complex information: Complex physics and engineering concepts, such as breakeven conditions and tritium breeding, are presented clearly with appropriate examples, comparisons, and visual aids that support comprehension.",
+        "weight": 0.14
+      },
+      {
+        "criterion": "Formatting and visual readability: Markdown headings, bullet points, tables, emphasis, and topic sentences are used appropriately to highlight milestone comparisons, breakthrough claims, and critical evaluations across different fusion approaches.",
+        "weight": 0.12
+      },
+      {
+        "criterion": "Terminology management and definition of technical terms: Technical terms (e.g., Q-factor, plasma beta, Lawson criterion) are defined on first use, used consistently throughout the report, and explained at a level appropriate for an informed reader interested in fusion energy.",
+        "weight": 0.07
+      },
+      {
+        "criterion": "Audience-appropriate tone and accessibility: The level of detail and terminology are tailored to an informed research audience, with sufficient background provided for readers to understand fusion approaches and their commercial prospects without requiring specialized plasma physics expertise.",
+        "weight": 0.05
+      }
+    ]
+  }
+}

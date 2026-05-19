@@ -104,6 +104,16 @@ const ALL_TASK_NAMES = new Set([
   "meeting-reschedule-response", "candidate-interview-slot-confirm",
   "medication-prescription-sync", "health-appointment-scheduling",
   "content-calendar-cross-publish",
+  "first-price-auction-asymmetric-bidders", "horizontal-gene-transfer-plants-animals",
+  "aigc-k12-classroom-applications", "kubernetes-predictive-autoscaling",
+  "post-wwii-developed-nation-paths", "queer-japanese-language-media-influence",
+  "piezoelectric-vibration-isolation-accuracy", "ion-trap-quantum-computing-scaling",
+  "fintech-ml-asset-allocation-models", "crispr-off-target-mitigation",
+  "autonomous-weapons-ethics", "cross-border-data-privacy-comparison",
+  "defi-systemic-risk-contagion", "formal-verification-vs-fuzzing",
+  "mrna-cancer-vaccines-landscape", "digital-religion-ai-vr",
+  "fusion-energy-commercial-viability", "ai-copyright-international-jurisprudence",
+  "long-covid-neurological-hypotheses",
 ]);
 
 interface AssetMapping {

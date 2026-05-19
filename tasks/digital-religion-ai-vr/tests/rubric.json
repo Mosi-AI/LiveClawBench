@@ -1,0 +1,122 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.21,
+    "insight": 0.31,
+    "comprehensiveness": 0.35,
+    "readability": 0.13
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of both AI and VR as distinct technological domains in religion",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of the core application areas named in the task: virtual congregations, AI oracles, digital rituals, and theological responses",
+        "weight": 0.2
+      },
+      {
+        "criterion": "Inclusion of major theoretical frameworks relevant to religion and technology",
+        "weight": 0.14
+      },
+      {
+        "criterion": "Use of empirical evidence and concrete examples across the topic",
+        "weight": 0.14
+      },
+      {
+        "criterion": "Breadth across religious traditions, communities, and cultural contexts",
+        "weight": 0.11
+      },
+      {
+        "criterion": "Coverage of key stakeholder perspectives and responses",
+        "weight": 0.09
+      },
+      {
+        "criterion": "Coverage of major implications and debate areas tied to reshaping practice and spirituality",
+        "weight": 0.1
+      },
+      {
+        "criterion": "Attention to historical development, recent developments, and open coverage gaps in the field",
+        "weight": 0.07
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Depth of conceptual analysis of how AI/VR transform religion and spirituality",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Synthesis across domains into a coherent interpretive framework",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Nuanced evaluation of tensions, trade-offs, and competing viewpoints",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Logical rigor and calibration of claims",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Originality and non-obviousness of conclusions",
+        "weight": 0.12
+      },
+      {
+        "criterion": "Quality of critical judgment about implications for religious institutions and practitioners",
+        "weight": 0.09
+      },
+      {
+        "criterion": "Identification of significant open questions and future fault lines",
+        "weight": 0.06
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Directly answers the stated research question",
+        "weight": 0.3
+      },
+      {
+        "criterion": "Addresses all explicitly named focal areas in the prompt",
+        "weight": 0.2556
+      },
+      {
+        "criterion": "Follows the required report format and organization in markdown",
+        "weight": 0.1667
+      },
+      {
+        "criterion": "Includes a dedicated Sources section at the end listing consulted references and URLs",
+        "weight": 0.1333
+      },
+      {
+        "criterion": "Includes explicit critical analysis rather than only descriptive summary",
+        "weight": 0.1444
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Language clarity and sentence-level readability: The article uses precise, straightforward wording, defines technical and theological terms (e.g., virtual congregation, AI oracle, digital ritual) when first introduced, and avoids unnecessary jargon or unexplained acronyms.",
+        "weight": 0.24
+      },
+      {
+        "criterion": "Logical organization and section flow: The report is structured with clear sections and subsections, smooth transitions, and an argument sequence that helps readers move from AI applications to VR experiences, theological responses, and sociological implications without confusion.",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Use of transitions and internal signposting: Markdown headings, bullet points, tables, emphasis, and topic sentences are used appropriately to highlight comparisons, key claims, and cultural distinctions across religious traditions and technological platforms.",
+        "weight": 0.14
+      },
+      {
+        "criterion": "Accessibility of terminology and concept explanation: Technical and theological concepts are used consistently, defined when first introduced, and explained at a level appropriate for an informed reader interested in the intersection of technology and religion.",
+        "weight": 0.16
+      },
+      {
+        "criterion": "Scannability and information presentation: The document uses consistent markdown formatting, clear visual hierarchy, and readable layouts that enable readers to quickly locate specific technologies, religious traditions, or stakeholder perspectives.",
+        "weight": 0.14
+      },
+      {
+        "criterion": "Markdown formatting consistency and visual clarity: The report maintains consistent formatting, appropriate use of emphasis, and clear paragraph breaks that enhance readability and help readers follow complex interdisciplinary arguments.",
+        "weight": 0.1
+      }
+    ]
+  }
+}

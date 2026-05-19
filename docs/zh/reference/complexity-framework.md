@@ -63,27 +63,29 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      38 | health-daily-record               |  E   |    |    |    |    | Health & Fitness          |
 |      39 | finance-portfolio-rebalancing     |  H   |    |    |    |    | Finance & Data Analytics   |
 |      40 | finance-monthly-close             |  M   |    |    |    |    | Finance & Data Analytics   |
-|      41 | nutrition-log-meal                |  E   |    |    |    |    | Health & Fitness          |
-|      42 | mint-diet-comprehensive           |  E   |    |    |    |    | Health & Fitness          |
-|      43 | smarthome-test                    |  M   |    |    | ✓  |    | E-commerce & Daily Svcs    |
-|      44 | grocery-reorder                   |  M   | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
-|      45 | morning-comfort-setup             |  M   |    | ✓  | ✓  |    | Health & Fitness           |
-|      46 | weather-city-travel-pick          |  M   |    |    |    |    | Health & Fitness          |
-|      47 | weather-outdoor-window            |  H   |    |    |    |    | Health & Fitness          |
-|      48 | pre-meeting-research-brief        |  M   |    |    | ✓  | ✓  | Deep Research & Report     |
-|      49 | vendor-due-diligence-brief        |  M   | ✓  |    | ✓  |    | Deep Research & Report     |
-|      50 | social-schedule-audit             |  M   |    | ✓  |    |    | Social Media               |
-|      51 | social-keyword-cleanup            |  M   | ✓  |    | ✓  |    | Social Media               |
-|      52 | social-event-campaign             |  M   | ✓  |    | ✓  |    | Social Media               |
-|      53 | social-data-anomaly-report        |  H   | ✓  | ✓  | ✓  |    | Social Media               |
-|      54 | social-comment-moderation         |  H   | ✓  |    | ✓  |    | Social Media               |
-|      55 | social-cross-publish              |  H   | ✓  |    | ✓  |    | Social Media               |
-|      56 | social-pinned-post-update         |  H   | ✓  | ✓  | ✓  |    | Social Media               |
-|      57 | meeting-reschedule-response       |  E   | ✓  |    |    |    | Calendar & Task Mgmt       |
-|      58 | candidate-interview-slot-confirm  |  E   | ✓  |    |    |    | Calendar & Task Mgmt       |
-|      59 | medication-prescription-sync      |  H   | ✓  | ✓  | ✓  |    | Health & Fitness           |
-|      60 | health-appointment-scheduling     |  H   | ✓  | ✓  | ✓  |    | Health & Fitness           |
-|      61 | content-calendar-cross-publish    |  H   | ✓  | ✓  | ✓  |    | Calendar & Task Mgmt       |
+|      61 | smarthome-test                    |  M   |    |    | ✓  |    | E-commerce & Daily Svcs    |
+|      62 | grocery-reorder                   |  M   | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
+|      63 | morning-comfort-setup             |  M   |    | ✓  | ✓  |    | Health & Fitness           |
+|      41 | first-price-auction-asymmetric-bidders |     M      |    |    |    |    | Deep Research & Report     |
+|      42 | horizontal-gene-transfer-plants-animals |     M      |    |    |    |    | Deep Research & Report     |
+|      43 | aigc-k12-classroom-applications   |     M      |    |    |    |    | Deep Research & Report     |
+|      44 | kubernetes-predictive-autoscaling |     M      |    |    |    |    | Deep Research & Report     |
+|      45 | post-wwii-developed-nation-paths  |     M      |    |    |    |    | Deep Research & Report     |
+|      46 | adas-accident-liability-allocation |     M      |    |    |    |    | Deep Research & Report     |
+|      47 | queer-japanese-language-media-influence |     M   |    |    |    |    | Deep Research & Report     |
+|      48 | piezoelectric-vibration-isolation-accuracy |     M |    |    |    |    | Deep Research & Report     |
+|      49 | ion-trap-quantum-computing-scaling |     M      |    |    |    |    | Deep Research & Report     |
+|      50 | fintech-ml-asset-allocation-models |     M      |    |    |    |    | Deep Research & Report     |
+|      51 | crispr-off-target-mitigation      |     M      |    |    |    |    | Deep Research & Report     |
+|      52 | autonomous-weapons-ethics         |     M      |    |    |    |    | Deep Research & Report     |
+|      53 | cross-border-data-privacy-comparison |     M   |    |    |    |    | Deep Research & Report     |
+|      54 | defi-systemic-risk-contagion      |     M      |    |    |    |    | Deep Research & Report     |
+|      55 | formal-verification-vs-fuzzing    |     M      |    |    |    |    | Deep Research & Report     |
+|      56 | mrna-cancer-vaccines-landscape    |     M      |    |    |    |    | Deep Research & Report     |
+|      57 | digital-religion-ai-vr            |     M      |    |    |    |    | Deep Research & Report     |
+|      58 | fusion-energy-commercial-viability |     M      |    |    |    |    | Deep Research & Report     |
+|      59 | ai-copyright-international-jurisprudence |     M  |    |    |    |    | Deep Research & Report     |
+|      60 | long-covid-neurological-hypotheses |     M      |    |    |    |    | Deep Research & Report     |
 
 ---
 
@@ -175,6 +177,5 @@ LiveClawBench 包含 2 个经验证具有有效难度梯度的控制对。
 | 中等 |       1.28 |              3 |      7 |      8 |
 | 困难 |       1.86 |              2 |      3 |      9 |
 
-基于多模型平均通过率的经验重分类显示，简单 case 占主导（47.5%）。简单 case 同时包含基准任务（55.2%）和带因子任务（44.8%），
-表明许多结构性复杂度因子对当前 agent 并不构成显著难度。困难 case 集中在 B1 与 A1 或 A2 组合的任务（如 social-data-anomaly-report、social-pinned-post-update、medication-prescription-sync）、
-污染初始状态的 DevOps 环境，以及高精度领域执行（finance-portfolio-rebalancing、weather-outdoor-window）。
+基于多模型平均通过率的经验重分类显示，简单 case 占主导（61.0%）。简单 case 同时包含基准任务（56.0%）和带因子任务（44.0%），
+表明许多结构性复杂度因子对当前 agent 并不构成显著难度。困难 case 集中在需要约束失败处理（B1）或特定挑战性环境（DevOps 中的 A2）的任务上。

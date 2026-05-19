@@ -2,7 +2,7 @@
 
 ## Research Question
 
-How is liability allocated in accidents involving ADAS (Advanced Driver Assistance Systems) with shared human-machine driving control, and what legal frameworks, precedents, and policy debates exist globally?
+What are the latest strategies and technologies for mitigating off-target effects in CRISPR-based genome editing, including guide RNA design tools, delivery modifications, and post-editing validation methods?
 
 ## Your Task
 

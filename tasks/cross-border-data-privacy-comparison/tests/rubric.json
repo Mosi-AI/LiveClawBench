@@ -1,0 +1,134 @@
+{
+  "dimension_weights": {
+    "readability": 0.12,
+    "insight": 0.31,
+    "instruction_following": 0.21,
+    "comprehensiveness": 0.36
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of all three target regulatory regimes and their core cross-border privacy architecture",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Complete treatment of extraterritorial scope across regimes",
+        "weight": 0.16
+      },
+      {
+        "criterion": "Complete treatment of cross-border data transfer mechanisms and restrictions",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Coverage of enforcement institutions, tools, and observable enforcement patterns",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Comparative synthesis across regimes on the requested dimensions",
+        "weight": 0.12
+      },
+      {
+        "criterion": "Breadth of US state-law coverage beyond California where materially relevant",
+        "weight": 0.08
+      },
+      {
+        "criterion": "Inclusion of key doctrinal and policy context shaping cross-border privacy regulation",
+        "weight": 0.05
+      },
+      {
+        "criterion": "Coverage of practical compliance implications and conflict points for multinational organizations",
+        "weight": 0.05
+      },
+      {
+        "criterion": "Inclusion of recent developments, live controversies, and unresolved issues relevant to the comparison",
+        "weight": 0.03
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Comparative synthesis across GDPR, PIPL, and US state regimes",
+        "weight": 0.26
+      },
+      {
+        "criterion": "Depth of analytical reasoning on legal and practical tensions",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Critical evaluation of enforcement patterns and real-world effect",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Interpretive nuance and handling of ambiguity or edge cases",
+        "weight": 0.14
+      },
+      {
+        "criterion": "Originality and value of higher-order conclusions",
+        "weight": 0.12
+      },
+      {
+        "criterion": "Logical consistency and evidentiary support of judgments",
+        "weight": 0.08
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Directly answers the assigned comparative research question",
+        "weight": 0.2474
+      },
+      {
+        "criterion": "Covers all explicitly required legal regimes",
+        "weight": 0.1856
+      },
+      {
+        "criterion": "Addresses all mandated comparison dimensions",
+        "weight": 0.1856
+      },
+      {
+        "criterion": "Uses a genuinely comparative approach rather than isolated summaries",
+        "weight": 0.1237
+      },
+      {
+        "criterion": "Follows the required report format and structure in markdown",
+        "weight": 0.1031
+      },
+      {
+        "criterion": "Includes a 'Sources' section at the end",
+        "weight": 0.0825
+      },
+      {
+        "criterion": "Includes the specifically requested critical-analysis elements",
+        "weight": 0.0721
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Logical organization and section flow: The report is structured with clear sections and subsections, smooth transitions, and an argument sequence that helps readers move from GDPR to PIPL to US state laws and their comparative dimensions without confusion.",
+        "weight": 0.24
+      },
+      {
+        "criterion": "Clarity and precision of language: The article uses precise, straightforward wording, defines legal and regulatory terms (e.g., extraterritorial scope, adequacy decisions, standard contractual clauses) when first introduced, and avoids unnecessary legal jargon or unexplained acronyms.",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Use of comparative framing and signposting: Markdown headings, bullet points, tables, emphasis, and topic sentences are used appropriately to highlight comparisons, key distinctions, and regulatory overlaps across jurisdictions.",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Formatting and visual scannability: The document uses consistent markdown formatting, clear visual hierarchy, and readable layouts that enable readers to quickly locate specific jurisdictions, mechanisms, or enforcement patterns.",
+        "weight": 0.14
+      },
+      {
+        "criterion": "Terminology management and accessibility to the intended audience: Legal and technical terms are used consistently, defined when first introduced, and explained at a level appropriate for an informed reader interested in cross-border data privacy regulation.",
+        "weight": 0.13
+      },
+      {
+        "criterion": "Paragraph coherence and local-level readability: Sentences are concise and varied in length, paragraphs are focused on one main idea, and dense regulatory material is broken into digestible units that reduce reader fatigue.",
+        "weight": 0.06
+      },
+      {
+        "criterion": "Concision and avoidance of unnecessary repetition: The report presents information efficiently without redundancy, using synthesis statements and summaries to reinforce key comparative points rather than repeating the same details across sections.",
+        "weight": 0.04
+      }
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.21,
+    "insight": 0.32,
+    "comprehensiveness": 0.35,
+    "readability": 0.12
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of the neurological symptom spectrum and clinical phenotypes",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Coverage of the leading mechanistic hypotheses for persistence",
+        "weight": 0.24
+      },
+      {
+        "criterion": "Coverage of biomarker categories and evidence types",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Coverage of treatment approaches across supportive, rehabilitative, and mechanism-targeted strategies",
+        "weight": 0.2
+      },
+      {
+        "criterion": "Representation of the current empirical evidence base",
+        "weight": 0.12
+      },
+      {
+        "criterion": "Inclusion of population heterogeneity, disease framing, and major scope-defining context",
+        "weight": 0.08
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Mechanistic synthesis across competing hypotheses",
+        "weight": 0.24
+      },
+      {
+        "criterion": "Critical appraisal of evidentiary strength and causal inference",
+        "weight": 0.2
+      },
+      {
+        "criterion": "Integration of biomarkers with pathophysiology and clinical meaning",
+        "weight": 0.16
+      },
+      {
+        "criterion": "Analytical evaluation of therapeutic strategies",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Handling of heterogeneity, uncertainty, and alternative interpretations",
+        "weight": 0.12
+      },
+      {
+        "criterion": "Value and nuance of conclusions, including open questions and research implications",
+        "weight": 0.1
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Directly answers the assigned research question and stays within scope",
+        "weight": 0.3226
+      },
+      {
+        "criterion": "Covers all explicitly requested topical components: leading hypotheses, treatment approaches, mechanisms of persistence, biomarkers, and emerging therapeutic strategies",
+        "weight": 0.2903
+      },
+      {
+        "criterion": "Delivers the response as a structured markdown report with clear sections and subsections",
+        "weight": 0.1505
+      },
+      {
+        "criterion": "Includes a distinct 'Sources' section at the end listing references, URLs, and consulted materials",
+        "weight": 0.129
+      },
+      {
+        "criterion": "Provides explicit critical-analysis elements rather than only summary",
+        "weight": 0.1076
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and accessibility of language: The article explains complex neurological, immunological, and clinical concepts in precise, plain language, defines technical terms on first use, and avoids unnecessary jargon.",
+        "weight": 0.24
+      },
+      {
+        "criterion": "Logical organization and flow: The article has a coherent structure with informative headings, smooth transitions, and a progression that helps readers move from background and mechanisms to biomarkers, treatments, and open questions.",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Conciseness and readability of prose: Sentences and paragraphs are appropriately sized, ideas are expressed efficiently without redundancy, and the writing remains easy to follow across a long-form report.",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Effective use of formatting and visual scaffolding: Markdown elements such as headings, bullet points, tables, emphasis, and summaries are used to improve scanability and help readers compare hypotheses, evidence, biomarkers, and therapies.",
+        "weight": 0.18
+      },
+      {
+        "criterion": "Interpretability of evidence presentation: Findings, uncertainties, and comparisons across studies are presented in a reader-friendly way, with clear explanation of what results mean and why they matter for understanding Long COVID neurological symptoms.",
+        "weight": 0.18
+      }
+    ]
+  }
+}
