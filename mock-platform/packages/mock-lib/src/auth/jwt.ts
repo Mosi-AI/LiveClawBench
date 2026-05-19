@@ -122,10 +122,10 @@ export interface JwtPayload {
 /**
  * Sign a payload into a JWT string (HS256, base64url encoding).
  */
-export async function sign(payload: JwtPayload): Promise<string> {
+export async function sign(payload: JwtPayload, expiresInSeconds?: number): Promise<string> {
   const header = { alg: ALGORITHM, typ: "JWT" };
   const now = Math.floor(Date.now() / 1000);
-  const signedPayload = { ...payload, iat: now, exp: now + getTokenExpirySeconds() };
+  const signedPayload = { ...payload, iat: now, exp: now + (expiresInSeconds ?? getTokenExpirySeconds()) };
 
   const headerB64 = base64urlEncode(JSON.stringify(header));
   const payloadB64 = base64urlEncode(JSON.stringify(signedPayload));

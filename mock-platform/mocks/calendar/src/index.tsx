@@ -13,7 +13,7 @@ import { registerAuthRoutes } from "./routes/auth";
 import { registerEventRoutes } from "./routes/events";
 import { registerPageRoutes } from "./page-routes";
 
-export function createCalendarApp(): MockAppV2 {
+export function createCalendarApp(options?: { dbPath?: string }): MockAppV2 {
   const mockApp = createMockApp({
     name: "calendar",
     port: 5003,
@@ -24,7 +24,7 @@ export function createCalendarApp(): MockAppV2 {
     },
   });
 
-  const db = getCalendarDb();
+  const db = getCalendarDb({ path: options?.dbPath });
   initSchema(db);
   seedDatabase(db);
 

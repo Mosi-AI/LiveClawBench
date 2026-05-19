@@ -37,9 +37,10 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const userId = Number(insertResult.lastInsertRowid);
     const user = getUserById(db, userId);
     const token = await sign({ userId });
+    const refreshToken = await sign({ userId, type: "refresh" }, 7 * 24 * 3600);
     const cookieStr = serializeCookie("token", token, tokenCookieOptions());
     c.header("Set-Cookie", cookieStr);
-    return c.json(ok({ user, access_token: token, refresh_token: token + "-refresh" }, "Registration successful"), 201);
+    return c.json(ok({ user, access_token: token, refresh_token: refreshToken }, "Registration successful"), 201);
   });
 
   // POST /api/auth/login
@@ -60,27 +61,25 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
     const user = getUserById(db, row.id);
     const token = await sign({ userId: row.id });
+    const refreshToken = await sign({ userId: row.id, type: "refresh" }, 7 * 24 * 3600);
     const cookieStr = serializeCookie("token", token, tokenCookieOptions());
     c.header("Set-Cookie", cookieStr);
-    return c.json(ok({ user, access_token: token, refresh_token: token + "-refresh" }, "Login successful"));
+    return c.json(ok({ user, access_token: token, refresh_token: refreshToken }, "Login successful"));
   });
 
   // POST /api/auth/refresh
   app.post("/api/auth/refresh", async (c) => {
     let body: Record<string, unknown> = {};
     try { body = await c.req.json(); } catch { /* body is optional */ }
-    const refreshToken = body.refresh_token ? String(body.refresh_token) : null;
-    if (!refreshToken || !refreshToken.endsWith("-refresh")) {
+    const refreshTokenStr = body.refresh_token ? String(body.refresh_token) : null;
+    if (!refreshTokenStr) {
       return c.json(err("Valid refresh_token required"), 401);
     }
-    const accessToken = refreshToken.slice(0, -"-refresh".length);
-    let payload: { userId: number };
-    try {
-      payload = await verify(accessToken) as { userId: number };
-    } catch {
+    const payload = await verify(refreshTokenStr);
+    if (!payload || payload.type !== "refresh" || !payload.userId) {
       return c.json(err("Invalid or expired refresh token"), 401);
     }
-    const token = await sign({ userId: payload.userId });
+    const token = await sign({ userId: payload.userId as number });
     return c.json(ok({ access_token: token }, "Token refreshed"));
   });
 
