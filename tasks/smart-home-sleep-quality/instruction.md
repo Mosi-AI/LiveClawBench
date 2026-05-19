@@ -1,0 +1,1 @@
+Check my sleep data from last night in the health app. If I had poor recovery (sleep score below 70 and readiness below 70), adjust my bedroom thermostat to 68°F and make sure my sleep aids are ready for tonight. Let me know what you found and what you did.

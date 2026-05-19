@@ -44,7 +44,9 @@
       {"name": "health-daily-record", "path": "tasks/health-daily-record"},
       {"name": "smarthome-test", "path": "tasks/smarthome-test"},
       {"name": "weather-aqi-report", "path": "tasks/weather-aqi-report"},
-      {"name": "grocery-reorder", "path": "tasks/grocery-reorder"}
+      {"name": "grocery-reorder", "path": "tasks/grocery-reorder"},
+      {"name": "morning-comfort-setup", "path": "tasks/morning-comfort-setup"},
+      {"name": "smart-home-sleep-quality", "path": "tasks/smart-home-sleep-quality"}
     ]
   }
 ]
