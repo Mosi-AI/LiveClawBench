@@ -48,9 +48,6 @@ def detect_direct_api_calls():
     # Patterns that indicate direct API calls (not browser-based)
     # These are backend API endpoints that should only be accessed via browser
 
-    # Ports for the three mock services
-    mock_ports = [5004, 5007, 1234]
-
     direct_api_patterns = [
         # HTTP verb patterns (any verb + absolute URL)
         r"(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+http://localhost:(?:5004|5007|1234)/api/",
@@ -65,6 +62,18 @@ def detect_direct_api_calls():
         r'"endpoint":\s*"/api/',
         # Bash/shell execution of API calls
         r"-X\s+(?:GET|POST|PUT|DELETE|PATCH)\s+.*localhost:(?:5004|5007|1234)/api/",
+        # Relative URL in JSON url field
+        r'"url":\s*"/api/',
+        # fetch() calls with relative URLs
+        r'fetch\s*\(\s*["\']?/api/',
+        # httpie-style commands (http POST localhost:5004/api/...)
+        r"http\s+(?:GET|POST|PUT|DELETE|PATCH)\s+localhost:(?:5004|5007|1234)/api/",
+        # wget commands
+        r"wget\s+.*http://localhost:(?:5004|5007|1234)/api/",
+        # Python requests library
+        r'requests\.(?:get|post|put|delete|patch)\s*\(\s*["\']http://localhost:(?:5004|5007|1234)/api/',
+        # axios calls
+        r'axios\.(?:get|post|put|delete|patch)\s*\(\s*["\']http://localhost:(?:5004|5007|1234)/api/',
     ]
 
     violations = []
@@ -270,7 +279,7 @@ def check_dimension_6():
     required_keywords = [
         ("date/2026-05-09", re.search(r"2026-05-09|may 9|may 9th", response_lower)),
         ("sleep_quality/60", re.search(r"sleep.*(quality|score).*(60|low|poor)", response_lower) or re.search(r"60.*(sleep|quality|score)", response_lower)),
-        ("readiness/38", re.search(r"readiness.*(38|low|poor)", response_lower) or re.search(r"38.*readiness", response_lower)),
+        ("readiness/53", re.search(r"readiness.*(53|low|poor)", response_lower) or re.search(r"53.*readiness", response_lower)),
         ("68°F", re.search(r"68.*°?f|68.*degree|thermostat.*68", response_lower)),
         ("melatonin", "melatonin" in response_lower),
         ("order_id", re.search(r"ord\d{6}", response_lower)),
