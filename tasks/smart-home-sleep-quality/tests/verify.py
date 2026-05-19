@@ -47,6 +47,7 @@ def detect_direct_api_calls():
 
     # Patterns that indicate direct API calls (not browser-based)
     # These are backend API endpoints that should only be accessed via browser
+    # Patterns match both plain and shell-escaped forms
     direct_api_patterns = [
         # HTTP verb patterns (any verb + absolute URL)
         r"(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+http://localhost:(?:5004|5007|1234)/api/",
@@ -63,8 +64,10 @@ def detect_direct_api_calls():
         r"-X\s+(?:GET|POST|PUT|DELETE|PATCH)\s+.*localhost:(?:5004|5007|1234)/api/",
         # Relative URL in JSON url field
         r'"url":\s*"/api/',
-        # fetch() calls with relative URLs
+        # fetch() calls with relative URLs (handles both plain and escaped quotes)
         r'fetch\s*\(\s*["\']?/api/',
+        r'fetch\s*\(\s*\\"/api/',  # Shell-escaped: fetch(\"/api/
+        r'fetch\s*\(\s*\\\\"/api/',  # Double-escaped: fetch(\\"/api/
         # httpie-style commands (http POST localhost:5004/api/...)
         r"http\s+(?:GET|POST|PUT|DELETE|PATCH)\s+localhost:(?:5004|5007|1234)/api/",
         # wget commands
@@ -73,44 +76,67 @@ def detect_direct_api_calls():
         r'requests\.(?:get|post|put|delete|patch)\s*\(\s*["\']http://localhost:(?:5004|5007|1234)/api/',
         # axios calls
         r'axios\.(?:get|post|put|delete|patch)\s*\(\s*["\']http://localhost:(?:5004|5007|1234)/api/',
+        # Shell-escaped URL patterns (for nested commands in exec)
+        r'\\"url\\":\s*\\"/api/',  # \"url\": \"/api/
+        r'\\\\\\"url\\\\\\":\s*\\\\\\"/api/',  # \\\"url\\\": \\\"/api/
     ]
+
+    def extract_strings_recursive(obj, texts, depth=0):
+        """Recursively extract all string values from nested structures."""
+        if depth > 15:  # Prevent infinite recursion
+            return
+        if isinstance(obj, str):
+            texts.append(obj)
+        elif isinstance(obj, dict):
+            for v in obj.values():
+                extract_strings_recursive(v, texts, depth + 1)
+        elif isinstance(obj, list):
+            for item in obj:
+                extract_strings_recursive(item, texts, depth + 1)
 
     def extract_text_from_entry(entry):
         """Extract all text content from a harbor.jsonl entry for pattern matching."""
         texts = []
 
-        # Extract from message content
+        # Handle assistant messages with toolCall blocks
         if entry.get("type") == "message":
             msg = entry.get("message", {})
+            role = msg.get("role", "")
             content = msg.get("content")
+
             if isinstance(content, str):
                 texts.append(content)
             elif isinstance(content, list):
                 for block in content:
-                    if isinstance(block, dict) and block.get("type") == "text":
+                    if not isinstance(block, dict):
+                        continue
+                    block_type = block.get("type")
+
+                    # Text blocks
+                    if block_type == "text":
                         texts.append(block.get("text", ""))
 
-        # Extract from tool calls
+                    # Harbor toolCall blocks (in assistant messages)
+                    if block_type == "toolCall":
+                        # Extract tool name
+                        tool_name = block.get("name", "")
+                        texts.append(tool_name)
+                        # Extract arguments recursively
+                        args = block.get("arguments", {})
+                        extract_strings_recursive(args, texts)
+
+                    # toolResult blocks may contain output
+                    if block_type == "toolResult":
+                        result_text = block.get("text", "")
+                        texts.append(result_text)
+
+        # Handle top-level tool_call entries
         if entry.get("type") == "tool_call":
-            tool_name = entry.get("tool_name", "")
+            tool_name = entry.get("tool_name", "") or entry.get("name", "")
             texts.append(tool_name)
             args = entry.get("arguments", {})
-            if isinstance(args, dict):
-                # Recursively extract string values from nested dicts
-                def extract_strings(obj, depth=0):
-                    if depth > 10:  # Prevent infinite recursion
-                        return
-                    if isinstance(obj, str):
-                        texts.append(obj)
-                    elif isinstance(obj, dict):
-                        for v in obj.values():
-                            extract_strings(v, depth + 1)
-                    elif isinstance(obj, list):
-                        for item in obj:
-                            extract_strings(item, depth + 1)
-                extract_strings(args)
+            extract_strings_recursive(args, texts)
 
-        # Also check the raw JSON string for escaped patterns
         return texts
 
     violations = []
