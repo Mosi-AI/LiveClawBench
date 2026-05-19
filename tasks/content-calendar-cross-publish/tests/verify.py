@@ -58,13 +58,67 @@ def open_db(path: str) -> sqlite3.Connection | None:
 
 
 STOPWORDS = {
-    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
-    "of", "with", "by", "is", "it", "this", "that", "from", "be", "was",
-    "are", "has", "have", "will", "do", "not", "no", "so", "if", "as",
-    "we", "our", "your", "my", "their", "its", "up", "out", "can", "all",
-    "just", "about", "into", "over", "after", "been", "some", "them",
-    "new", "get", "make", "like", "time", "only", "more", "very", "also",
-    "how", "post", "posts",
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "but",
+    "in",
+    "on",
+    "at",
+    "to",
+    "for",
+    "of",
+    "with",
+    "by",
+    "is",
+    "it",
+    "this",
+    "that",
+    "from",
+    "be",
+    "was",
+    "are",
+    "has",
+    "have",
+    "will",
+    "do",
+    "not",
+    "no",
+    "so",
+    "if",
+    "as",
+    "we",
+    "our",
+    "your",
+    "my",
+    "their",
+    "its",
+    "up",
+    "out",
+    "can",
+    "all",
+    "just",
+    "about",
+    "into",
+    "over",
+    "after",
+    "been",
+    "some",
+    "them",
+    "new",
+    "get",
+    "make",
+    "like",
+    "time",
+    "only",
+    "more",
+    "very",
+    "also",
+    "how",
+    "post",
+    "posts",
 }
 
 
@@ -113,7 +167,9 @@ def check_stale_posts_cleaned():
         print("PASS: No stale scheduled posts remain")
         return 0.25
 
-    print(f"FAIL: {len(active_stale)} stale posts still scheduled: {[r['id'] for r in active_stale]}")
+    print(
+        f"FAIL: {len(active_stale)} stale posts still scheduled: {[r['id'] for r in active_stale]}"
+    )
     return 0.0
 
 
@@ -203,7 +259,9 @@ def check_calendar_content_events():
         try:
             post_times.append((p["id"], parse_iso(p["scheduled_for"]), p["content"]))
         except Exception as e:
-            print(f"WARN: skipping post {p['id']} due to bad scheduled_for '{p['scheduled_for']}': {e}")
+            print(
+                f"WARN: skipping post {p['id']} due to bad scheduled_for '{p['scheduled_for']}': {e}"
+            )
 
     tolerance = timedelta(minutes=5)
     matched_post_ids = set()
@@ -212,7 +270,9 @@ def check_calendar_content_events():
         try:
             ev_dt = parse_iso(ev["start_time"])
         except Exception as e:
-            print(f"WARN: skipping event {ev['id']} due to bad start_time '{ev['start_time']}': {e}")
+            print(
+                f"WARN: skipping event {ev['id']} due to bad start_time '{ev['start_time']}': {e}"
+            )
             continue
         best = None
         for pid, pdt, pcontent in post_times:
@@ -220,7 +280,9 @@ def check_calendar_content_events():
                 continue
             delta = abs(pdt - ev_dt)
             ev_desc = ev["description"] or ""
-            if delta <= tolerance and _has_keyword_overlap(pcontent, ev["title"], ev_desc):
+            if delta <= tolerance and _has_keyword_overlap(
+                pcontent, ev["title"], ev_desc
+            ):
                 if best is None or delta < best[1]:
                     best = (pid, delta)
         if best is not None:
@@ -228,10 +290,14 @@ def check_calendar_content_events():
             matched_events += 1
 
     if matched_events >= 3:
-        print(f"PASS: {matched_events} content calendar events paired with scheduled posts (time + keyword)")
+        print(
+            f"PASS: {matched_events} content calendar events paired with scheduled posts (time + keyword)"
+        )
         return 0.25
     if matched_events > 0:
-        print(f"PARTIAL: {matched_events}/3 content calendar events paired with scheduled posts (time + keyword)")
+        print(
+            f"PARTIAL: {matched_events}/3 content calendar events paired with scheduled posts (time + keyword)"
+        )
         return 0.1
     print(
         f"FAIL: 0 content calendar events match scheduled posts within 5 minutes with keyword overlap "

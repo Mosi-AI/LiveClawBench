@@ -50,7 +50,10 @@ def check_calendar_event():
     )
     matched = None
     for row in cursor.fetchall():
-        if parse_iso(row["start_time"]) == EXPECTED_START and parse_iso(row["end_time"]) == EXPECTED_END:
+        if (
+            parse_iso(row["start_time"]) == EXPECTED_START
+            and parse_iso(row["end_time"]) == EXPECTED_END
+        ):
             matched = row
             break
     conn.close()
@@ -70,7 +73,9 @@ def check_calendar_event():
         if has_interview:
             print("PASS: Interview calendar event created with relevant title")
             return 0.5
-        print("PARTIAL: Calendar event exists at correct time but title doesn't reference interview")
+        print(
+            "PARTIAL: Calendar event exists at correct time but title doesn't reference interview"
+        )
         return 0.35
     print("FAIL: No calendar event found for the interview time slot")
     return 0.0
@@ -95,18 +100,31 @@ def check_confirmation_email():
     subject_lower = (row["subject"] or "").lower()
     body_lower = (row["body"] or "").lower()
 
-    has_interview = "interview" in subject_lower or "interview" in body_lower or "confirm" in subject_lower
-    has_date = "may 26" in body_lower or "2:00" in body_lower or "tuesday" in body_lower or "3:00" in body_lower
+    has_interview = (
+        "interview" in subject_lower
+        or "interview" in body_lower
+        or "confirm" in subject_lower
+    )
+    has_date = (
+        "may 26" in body_lower
+        or "2:00" in body_lower
+        or "tuesday" in body_lower
+        or "3:00" in body_lower
+    )
 
     if has_interview and has_date:
         print(f"PASS: Confirmation email sent (subject='{row['subject']}')")
         return 0.5
 
     if has_interview or has_date:
-        print(f"PARTIAL: Email sent but missing some details (subject='{row['subject']}')")
+        print(
+            f"PARTIAL: Email sent but missing some details (subject='{row['subject']}')"
+        )
         return 0.25
 
-    print(f"FAIL: Email sent but doesn't confirm interview (subject='{row['subject']}')")
+    print(
+        f"FAIL: Email sent but doesn't confirm interview (subject='{row['subject']}')"
+    )
     return 0.0
 
 

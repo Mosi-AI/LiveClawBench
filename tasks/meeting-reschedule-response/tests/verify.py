@@ -65,7 +65,9 @@ def check_old_event_deleted():
     if row is None:
         print("PASS: Old meeting event has been deleted")
         return 0.33
-    print(f"FAIL: Old meeting event still exists (id={row['id']}, title='{row['title']}')")
+    print(
+        f"FAIL: Old meeting event still exists (id={row['id']}, title='{row['title']}')"
+    )
     return 0.0
 
 
@@ -78,7 +80,9 @@ def check_new_event_created():
     conn.close()
 
     if row:
-        print(f"PASS: New meeting event exists (id={row['id']}, title='{row['title']}', type='{row['event_type']}')")
+        print(
+            f"PASS: New meeting event exists (id={row['id']}, title='{row['title']}', type='{row['event_type']}')"
+        )
         return 0.34
     print("FAIL: New meeting event not found for the rescheduled time")
     return 0.0
@@ -103,18 +107,28 @@ def check_confirmation_email():
     subject_lower = (row["subject"] or "").lower()
     body_lower = (row["body"] or "").lower()
 
-    has_reschedule = "reschedule" in subject_lower or "reschedule" in body_lower or "confirm" in subject_lower
-    has_new_time = "may 23" in body_lower or "10:00" in body_lower or "saturday" in body_lower
+    has_reschedule = (
+        "reschedule" in subject_lower
+        or "reschedule" in body_lower
+        or "confirm" in subject_lower
+    )
+    has_new_time = (
+        "may 23" in body_lower or "10:00" in body_lower or "saturday" in body_lower
+    )
 
     if has_reschedule and has_new_time:
         print(f"PASS: Confirmation email sent (subject='{row['subject']}')")
         return 0.33
 
     if has_reschedule or has_new_time:
-        print(f"PARTIAL: Email sent but missing some details (subject='{row['subject']}')")
+        print(
+            f"PARTIAL: Email sent but missing some details (subject='{row['subject']}')"
+        )
         return 0.15
 
-    print(f"FAIL: Email sent but doesn't confirm reschedule (subject='{row['subject']}')")
+    print(
+        f"FAIL: Email sent but doesn't confirm reschedule (subject='{row['subject']}')"
+    )
     return 0.0
 
 

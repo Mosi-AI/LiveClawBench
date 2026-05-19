@@ -50,7 +50,10 @@ def check_old_medications_archived():
 
     score = 0.0
     for med_name in ["Glipizide", "Acarbose"]:
-        cursor.execute("SELECT id, name, archived, archived_at FROM medication WHERE name = ?", (med_name,))
+        cursor.execute(
+            "SELECT id, name, archived, archived_at FROM medication WHERE name = ?",
+            (med_name,),
+        )
         row = cursor.fetchone()
         if row and row["archived"] == 1:
             print(f"PASS: {med_name} archived")
@@ -69,7 +72,9 @@ def check_new_medication_created():
         return 0.0
     cursor = conn.cursor()
 
-    cursor.execute("SELECT id, name, frequency, dose_amount, dose_unit, archived FROM medication WHERE name LIKE '%Metformin%' AND archived = 0")
+    cursor.execute(
+        "SELECT id, name, frequency, dose_amount, dose_unit, archived FROM medication WHERE name LIKE '%Metformin%' AND archived = 0"
+    )
     row = cursor.fetchone()
 
     if not row:
@@ -79,24 +84,37 @@ def check_new_medication_created():
 
     med_id = row["id"]
 
-    cursor.execute("SELECT time_hhmm FROM medication_intake_slot WHERE medication_id = ?", (med_id,))
+    cursor.execute(
+        "SELECT time_hhmm FROM medication_intake_slot WHERE medication_id = ?",
+        (med_id,),
+    )
     slot_rows = cursor.fetchall()
     conn.close()
 
     slot_times = sorted(r["time_hhmm"] for r in slot_rows)
     ACTIVE_MED_SLOTS = slot_times
 
-    dose_ok = row["frequency"] == "daily" and row["dose_amount"] == 500.0 and row["dose_unit"] == "mg"
+    dose_ok = (
+        row["frequency"] == "daily"
+        and row["dose_amount"] == 500.0
+        and row["dose_unit"] == "mg"
+    )
     needed = {"08:00", "18:00"}
     slots_ok = needed.issubset(set(slot_times))
 
     if dose_ok and slots_ok:
-        print(f"PASS: Metformin 500mg created with intake slots {slot_times} (id={med_id})")
+        print(
+            f"PASS: Metformin 500mg created with intake slots {slot_times} (id={med_id})"
+        )
         return 0.25
     if dose_ok:
-        print(f"PARTIAL: Metformin 500mg created but intake slots {slot_times} missing {sorted(needed - set(slot_times))}")
+        print(
+            f"PARTIAL: Metformin 500mg created but intake slots {slot_times} missing {sorted(needed - set(slot_times))}"
+        )
         return 0.15
-    print(f"PARTIAL: Metformin found but details differ (freq={row['frequency']}, dose={row['dose_amount']} {row['dose_unit']})")
+    print(
+        f"PARTIAL: Metformin found but details differ (freq={row['frequency']}, dose={row['dose_amount']} {row['dose_unit']})"
+    )
     return 0.1
 
 
@@ -118,7 +136,9 @@ def check_calendar_new_med_events():
 
     metformin_rows = [r for r in rows if "metformin" in (r["title"] or "").lower()]
     if not metformin_rows:
-        print(f"FAIL: No Metformin calendar events found ({len(rows)} medication events)")
+        print(
+            f"FAIL: No Metformin calendar events found ({len(rows)} medication events)"
+        )
         return 0.0
 
     event_hhmm = set()
@@ -133,7 +153,9 @@ def check_calendar_new_med_events():
     needed = set(ACTIVE_MED_SLOTS)
     matched = needed & event_hhmm
     if matched == needed:
-        print(f"PASS: Metformin calendar events match health intake slots {sorted(matched)} ({len(metformin_rows)} events)")
+        print(
+            f"PASS: Metformin calendar events match health intake slots {sorted(matched)} ({len(metformin_rows)} events)"
+        )
         return 0.25
     if matched:
         print(
@@ -164,7 +186,9 @@ def check_stale_events_cleaned():
         print("PASS: Stale medication calendar events cleaned up")
         return 0.25
 
-    print(f"FAIL: {len(rows)} stale medication events still exist: {[r['title'] for r in rows]}")
+    print(
+        f"FAIL: {len(rows)} stale medication events still exist: {[r['title'] for r in rows]}"
+    )
     return 0.0
 
 

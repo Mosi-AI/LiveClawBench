@@ -88,7 +88,9 @@ def check_in_network_booked():
         print("FAIL: No confirmed in-network appointment found")
         return 0.0
 
-    print(f"PASS: In-network appointment booked with {row['provider_name']} at {row['slot_start_time']}")
+    print(
+        f"PASS: In-network appointment booked with {row['provider_name']} at {row['slot_start_time']}"
+    )
     return 0.34
 
 
@@ -149,7 +151,10 @@ def check_calendar_event():
         except Exception as e:
             print(f"WARN: could not parse event {evt['id']} times: {e}")
             continue
-        if abs(ev_start - appt_start) <= tolerance and abs(ev_end - appt_end) <= tolerance:
+        if (
+            abs(ev_start - appt_start) <= tolerance
+            and abs(ev_end - appt_end) <= tolerance
+        ):
             print(
                 f"PASS: Appointment calendar event matches "
                 f"(title='{evt['title']}', start={evt['start_time']})"
