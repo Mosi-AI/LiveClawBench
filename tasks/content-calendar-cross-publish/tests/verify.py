@@ -6,10 +6,10 @@
 4. Orphan calendar events cleaned up.
 """
 
-import sqlite3
-import sys
 import os
 import re
+import sqlite3
+import sys
 from datetime import datetime, timedelta
 
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
