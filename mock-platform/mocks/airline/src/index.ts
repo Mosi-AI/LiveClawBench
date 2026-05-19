@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { existsSync } from "node:fs";
-import { createMockApp, createRoute, startServer, registerFrontendFallback, authOptional } from "mock-lib";
+import { createMockApp, createRoute, startServer, registerFrontendFallback, verify } from "mock-lib";
 import { getAirlineDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
 import { registerAuthRoutes } from "./routes/auth";
@@ -55,10 +55,20 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
 
   app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
-  // Extract userId from JWT/cookie when present, but never block unauthenticated requests.
-  // Browser-based tasks auto-fetch /api/profile on mount without auth; routes fall back
-  // to DEFAULT_USER_ID when no token is provided.
-  app.use("/api/*", authOptional);
+  // Validate token when present; reject expired/invalid tokens with 401.
+  // Requests with no token proceed without userId (routes fall back to DEFAULT_USER_ID).
+  app.use("/api/*", async (c, next) => {
+    const cookieToken = c.req.header("cookie")?.match(/(?:^|;\s*)token=([^;]*)/)?.[1];
+    const bearerToken = c.req.header("Authorization")?.startsWith("Bearer ")
+      ? c.req.header("Authorization")!.slice(7) : null;
+    const token = cookieToken ?? bearerToken ?? null;
+    if (token) {
+      const payload = await verify(token);
+      if (!payload) return c.json({ ok: false, error: "Invalid or expired token" }, 401);
+      c.set("userId", payload.userId as number);
+    }
+    await next();
+  });
 
   // Register all route modules
   registerAuthRoutes(app, db);

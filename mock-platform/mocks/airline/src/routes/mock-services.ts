@@ -13,7 +13,8 @@ function registerPaymentRoutes(app: OpenAPIApp, db: Database, prefix: string): v
 
     if (!bookingId) return c.json(err("booking_id is required"), 400);
 
-    const booking = db.query("SELECT * FROM bookings WHERE id = ?").get(bookingId) as Record<string, unknown> | null;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
+    const booking = db.query("SELECT * FROM bookings WHERE id = ? AND user_id = ?").get(bookingId, userId) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
     // Validate card (Visa test card)
