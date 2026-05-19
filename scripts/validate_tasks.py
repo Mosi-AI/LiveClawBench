@@ -74,7 +74,7 @@ def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
     toml_path = task_dir / "task.toml"
     if toml_path.exists():
         try:
-            data = tomllib.loads(toml_path.read_text())
+            data = tomllib.loads(toml_path.read_text(encoding="utf-8"))
         except Exception as e:
             errors.append(f"task.toml parse error: {e}")
             return errors, warnings
@@ -123,20 +123,28 @@ def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
                         f"task.toml: domains_multi[{idx}] '{dm}' not in VALID_DOMAINS"
                     )
 
+            # `tags` is a free-form label set that may include cross-cutting
+            # topic descriptors (e.g. "smart_home", "outdoor_exercise") in
+            # addition to domain markers; `domains_multi` is the structured
+            # domain classification. A length mismatch is therefore only a
+            # convention warning, not a data error.
             if len(tags) != len(domains_multi):
-                errors.append(
+                warnings.append(
                     f"task.toml: tags/domains_multi length mismatch: "
-                    f"{len(tags)} tags vs {len(domains_multi)} domains_multi"
+                    f"{len(tags)} tags vs {len(domains_multi)} domains_multi "
+                    f"(tags may include cross-cutting topic descriptors)"
                 )
-            else:
-                # tag↔domain canonical mapping check (WARNING only — tolerate legacy spellings)
-                for idx, (tag, dm) in enumerate(zip(tags, domains_multi)):
-                    valid_tags = DOMAIN_TO_TAG.get(dm, set())
-                    if valid_tags and tag not in valid_tags:
-                        warnings.append(
-                            f"task.toml: tag[{idx}] '{tag}' does not match "
-                            f"canonical tags for domain '{dm}' ({valid_tags})"
-                        )
+
+            # tag↔domain canonical mapping check (WARNING only — tolerate
+            # legacy spellings and topical tags). zip stops at the shorter
+            # list so extra topical tags are silently skipped.
+            for idx, (tag, dm) in enumerate(zip(tags, domains_multi)):
+                valid_tags = DOMAIN_TO_TAG.get(dm, set())
+                if valid_tags and tag not in valid_tags:
+                    warnings.append(
+                        f"task.toml: tag[{idx}] '{tag}' does not match "
+                        f"canonical tags for domain '{dm}' ({valid_tags})"
+                    )
 
             # capability_dimension should NOT exist
             if "capability_dimension" in meta:
@@ -157,13 +165,13 @@ def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
     # 4. Stub detection (warnings)
     instr_path = task_dir / "instruction.md"
     if instr_path.exists():
-        content = instr_path.read_text().strip()
+        content = instr_path.read_text(encoding="utf-8").strip()
         if len(content) < 50:
             warnings.append("instruction.md: stub content (< 50 chars)")
 
     test_path = task_dir / "tests" / "test.sh"
     if test_path.exists():
-        content = test_path.read_text().strip()
+        content = test_path.read_text(encoding="utf-8").strip()
         if content.endswith('echo "PASS"') or content == 'echo "PASS"':
             warnings.append("test.sh: stub test (only echo PASS)")
 
@@ -196,7 +204,7 @@ def main() -> int:
         toml_path = task_dir / "task.toml"
         if toml_path.exists():
             try:
-                data = tomllib.loads(toml_path.read_text())
+                data = tomllib.loads(toml_path.read_text(encoding="utf-8"))
                 cid = data.get("metadata", {}).get("case_id")
                 if isinstance(cid, int):
                     if cid in case_ids:

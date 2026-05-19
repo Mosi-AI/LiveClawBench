@@ -3,7 +3,7 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "insurance", "calendar", "mint-diet", "weather", "social", "expense", "health"],
+"binaries": ["airline", "email", "shop", "todolist", "doc-search", "insurance", "calendar", "mint-diet", "weather", "social", "expense", "health", "finance", "smarthome"],
   "tasks": {
     "weather-aqi-report": {
       "binaries": ["weather"]
@@ -227,6 +227,8 @@
       ]
     },
     "mint-diet-snack-log": { "binaries": ["mint-diet"] },
+    "nutrition-log-meal": { "binaries": ["mint-diet"] },
+    "mint-diet-comprehensive": { "binaries": ["mint-diet"] },
     "social-media-posting": { "binaries": ["social"] },
     "social-unlike-post": { "binaries": ["social"] },
     "expense-draft-delete": {
@@ -312,6 +314,55 @@
       "assets": [
         { "src": "tasks/social-pinned-post-update/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
       ],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "finance-portfolio-rebalancing": {
+      "binaries": ["finance"]
+    },
+    "finance-monthly-close": {
+      "binaries": ["finance"]
+    },
+    "smarthome-test": {
+      "binaries": ["smarthome"],
+      "assets": [
+        { "src": "tasks/smarthome-test/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
+      ]
+    },
+    "grocery-reorder": {
+      "binaries": ["smarthome", "shop"],
+      "startup_extra": "tasks/grocery-reorder/environment/startup.sh",
+      "assets": [
+        { "src": "tasks/grocery-reorder/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" },
+        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
+        { "src": "tasks/grocery-reorder/environment/products.json", "dest": "/opt/mock/static/shop/products.json" }
+      ]
+    },
+    "morning-comfort-setup": {
+      "binaries": ["smarthome"],
+      "assets": [
+        { "src": "tasks/morning-comfort-setup/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
+      ]
+    },
+    "weather-city-travel-pick": { "binaries": ["weather"] },
+    "weather-outdoor-window": { "binaries": ["weather"] },
+    "pre-meeting-research-brief": {
+      "binaries": ["todolist"],
+      "frontends": [
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "vendor-due-diligence-brief": {
+      "binaries": ["email"],
       "frontends": [
         {
           "src": "tasks/email-writing/environment/email-app/frontend",

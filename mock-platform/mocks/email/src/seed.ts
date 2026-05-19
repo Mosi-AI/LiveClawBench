@@ -14,6 +14,7 @@ const SENDER_LAU = { username: "lau.pai", email: "lau@coop-division.parrot-ai.or
 const SENDER_GKD = { username: "gkd.airline", email: "noreply@gkdairline.com" };
 const SENDER_BRIAN = { username: "brian.griffin", email: "brian.griffin@email.app" };
 const SENDER_LOIS = { username: "lois.griffin", email: "lois.griffin@email.app" };
+const SENDER_CLOUDEDGE = { username: "Marcus Webb", email: "partnerships@cloudedge.io" };
 
 // --- Baseline email content (email-writing) ---
 
@@ -542,6 +543,26 @@ Data Integrity Team`,
   is_read: 0,
 };
 
+const INBOX_VENDOR_INTRO = {
+  subject: "Vendor Introduction – CloudEdge Systems Security Middleware",
+  body: `Dear Peter,
+
+I hope this finds you well. I'm Marcus Webb, VP of Partnerships at CloudEdge Systems. Following up on our initial conversation at the TechConnect Summit last month, I wanted to formally introduce our data security middleware solution.
+
+CloudEdge Systems specializes in enterprise-grade security middleware that integrates seamlessly with existing cloud infrastructure. We work with organizations across financial services, healthcare, and government sectors to provide encrypted data pipelines and access control layers.
+
+I've compiled a set of supporting materials in your document workspace (corpus/) for your team's due diligence review. These include our technical proposal, security questionnaire responses, a customer case study, and pricing summary.
+
+We're excited about the potential to support your data infrastructure needs and would welcome a formal due diligence review from your team. Please feel free to reach out with any questions.
+
+Best regards,
+Marcus Webb
+VP Partnerships, CloudEdge Systems
+partnerships@cloudedge.io`,
+  days_ago: 1,
+  is_read: 0,
+};
+
 // --- Seed configuration per task ---
 
 interface SeedConfig {
@@ -714,6 +735,18 @@ function makeSeedConfig(taskName: string): SeedConfig {
         inbox: [
           ...baselineInbox,
           { senderUsername: "ceo.mosi", ...INBOX_ANOMALY_REPORT },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "vendor-due-diligence-brief": {
+      const senders = [...BASELINE_SENDERS, SENDER_CLOUDEDGE];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "Marcus Webb", ...INBOX_VENDOR_INTRO },
         ],
         sent: baselineSent,
       };

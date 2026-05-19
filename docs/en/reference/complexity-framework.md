@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 45-case annotation table (45 implemented),
+It covers factor definitions, the full 56-case annotation table (56 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 45-Case Factor Annotation Table
+## 1. 56-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -59,7 +59,7 @@ single, clean environment without structural complexity.
 |      27 | conflict-repair-acb               |     E      | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |      28 | mixed-tool-memory                 |     E      | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |     M      | ✓  |    |    | ✓  | Deep Research & Report     |
-|      31 | mint-diet-snack-log               |     E      |    |    |    |    | Health & Fitness           |
+|      31 | mint-diet-snack-log               |     E      |    |    |    |    | Health & Wellness          |
 |      32 | weather-aqi-report                |     E      |    |    |    |    | Deep Research & Report     |
 |      33 | social-media-posting              |     E      |    |    |    |    | Social Media               |
 |      34 | social-unlike-post                |     E      |    |    |    |    | Social Media               |
@@ -67,13 +67,24 @@ single, clean environment without structural complexity.
 |      36 | insurance-deductible-selection    |     E      |    |    |    |    | E-commerce & Daily Svcs    |
 |      37 | health-insurance-optimization     |     M      | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |      38 | health-daily-record               |     E      |    |    |    |    | Health & Wellness          |
-|      39 | social-schedule-audit             |     M      |    | ✓  |    |    | Social Media               |
-|      40 | social-keyword-cleanup            |     M      | ✓  |    | ✓  |    | Social Media               |
-|      41 | social-event-campaign             |     M      | ✓  |    | ✓  |    | Social Media               |
-|      42 | social-data-anomaly-report        |     H      | ✓  | ✓  | ✓  |    | Social Media               |
-|      43 | social-comment-moderation         |     H      | ✓  |    | ✓  |    | Social Media               |
-|      44 | social-cross-publish              |     H      | ✓  |    | ✓  |    | Social Media               |
-|      45 | social-pinned-post-update         |     H      | ✓  | ✓  | ✓  |    | Social Media               |
+|      39 | finance-portfolio-rebalancing     |     H      |    |    |    |    | Finance & Data Analytics   |
+|      40 | finance-monthly-close             |     M      |    |    |    |    | Finance & Data Analytics   |
+|      41 | nutrition-log-meal                |     E      |    |    |    |    | Health & Wellness          |
+|      42 | mint-diet-comprehensive           |     E      |    |    |    |    | Health & Wellness          |
+|      43 | smarthome-test                    |     M      |    |    | ✓  |    | E-commerce & Daily Svcs    |
+|      44 | grocery-reorder                   |     M      | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
+|      45 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    | Health & Fitness           |
+|      46 | weather-city-travel-pick          |     M      |    |    |    |    | Health & Wellness          |
+|      47 | weather-outdoor-window            |     H      |    |    |    |    | Health & Wellness          |
+|      48 | pre-meeting-research-brief        |     M      |    |    | ✓  | ✓  | Deep Research & Report     |
+|      49 | vendor-due-diligence-brief        |     M      | ✓  |    | ✓  |    | Deep Research & Report     |
+|      50 | social-schedule-audit             |     M      |    | ✓  |    |    | Social Media               |
+|      51 | social-keyword-cleanup            |     M      | ✓  |    | ✓  |    | Social Media               |
+|      52 | social-event-campaign             |     M      | ✓  |    | ✓  |    | Social Media               |
+|      53 | social-data-anomaly-report        |     H      | ✓  | ✓  | ✓  |    | Social Media               |
+|      54 | social-comment-moderation         |     H      | ✓  |    | ✓  |    | Social Media               |
+|      55 | social-cross-publish              |     H      | ✓  |    | ✓  |    | Social Media               |
+|      56 | social-pinned-post-update         |     H      | ✓  | ✓  | ✓  |    | Social Media               |
 
 ---
 
@@ -81,20 +92,20 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    17 |      37.8% | flight-seat-selection, email-watch-shop, conflict-repair-acb, social-keyword-cleanup |
-| A2     | Contaminated Initial State     |     9 |      20.0% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, social-schedule-audit |
-| B1     | Implicit Goal Resolution       |    10 |      22.2% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, social-keyword-cleanup |
-| B2     | Knowledge System Maintenance   |    11 |      24.4% | skill-creation, skill-dependency-fix, noise-filtering         |
+| A1     | Cross-Service Dependency       |    19 |      33.9% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, social-keyword-cleanup |
+| A2     | Contaminated Initial State     |    10 |      17.9% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, social-schedule-audit |
+| B1     | Implicit Goal Resolution       |    15 |      26.8% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, grocery-reorder, morning-comfort-setup, pre-meeting-research-brief, social-comment-moderation |
+| B2     | Knowledge System Maintenance   |    12 |      21.4% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief |
 
-> Percentages are relative to 45 implemented cases.
+> Percentages are relative to 56 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 15 cases (33.3%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record
-- Single factor: 16 cases (35.6%)
-- Dual factor: 11 cases (24.4%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), social-keyword-cleanup (A1+B1), social-event-campaign (A1+B1), social-comment-moderation (A1+B1), social-cross-publish (A1+B1)
-- Triple factor: 3 cases (6.7%) — conflict-repair-acb (A1+A2+B2), social-data-anomaly-report (A1+A2+B1), social-pinned-post-update (A1+A2+B1)
-- **Multi-factor (≥2 factors): 14 cases (31.1%)**
+- No factors (baseline): 21 cases (37.5%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, finance-portfolio-rebalancing, finance-monthly-close, nutrition-log-meal, mint-diet-comprehensive, weather-city-travel-pick, weather-outdoor-window
+- Single factor: 17 cases (30.4%)
+- Dual factor: 15 cases (26.8%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), grocery-reorder (A1+B1), morning-comfort-setup (A2+B1), pre-meeting-research-brief (B1+B2), vendor-due-diligence-brief (A1+B1), social-keyword-cleanup (A1+B1), social-event-campaign (A1+B1), social-comment-moderation (A1+B1), social-cross-publish (A1+B1)
+- Triple factor: 3 cases (5.4%) — conflict-repair-acb (A1+A2+B2), social-data-anomaly-report (A1+A2+B1), social-pinned-post-update (A1+A2+B1)
+- **Multi-factor (≥2 factors): 18 cases (32.1%)**
 
 ---
 
@@ -106,25 +117,24 @@ Factor occurrence frequency per primary domain:
 |----------------------------|----|----|----|----|-----------------------:|
 | Documents & Knowledge      |  2 |  2 |  0 |  9 |                     13 |
 | Communication & Email      |  0 |  0 |  0 |  0 |                      0 |
-| E-commerce & Daily Svcs    |  6 |  0 |  3 |  0 |                      9 |
+| E-commerce & Daily Svcs    |  7 |  0 |  5 |  0 |                     12 |
 | Calendar & Task Mgmt       |  2 |  0 |  1 |  0 |                      3 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |                      1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |                      2 |
-| Deep Research & Report     |  1 |  1 |  0 |  2 |                      4 |
-| Health & Fitness           |  0 |  0 |  0 |  0 |                      0 |
+| Deep Research & Report     |  2 |  1 |  2 |  3 |                      8 |
+| Health & Fitness           |  0 |  1 |  1 |  0 |                      2 |
 | Social Media               |  6 |  3 |  6 |  0 |                     15 |
 | Finance & Data Analytics   |  0 |  0 |  0 |  0 |                      0 |
 | Health & Wellness          |  0 |  0 |  0 |  0 |                      0 |
 
 Key observations:
-- **B2 is highly concentrated in Documents & Knowledge** (9/11), reflecting the nature of knowledge management tasks
+- **B2 is highly concentrated in Documents & Knowledge** (9/12), reflecting the nature of knowledge management tasks
 - **A1 is the most broadly distributed**, spanning 6 domains — cross-service coordination is a universal complexity source
-- **B1 appears in E-commerce, Calendar, and Social Media** — domains that most naturally produce implicit goals
+- **B1 appears across E-commerce, Calendar, Deep Research, Health & Fitness, and Social Media** — domains that most naturally produce implicit goals
 - **Communication & Email has no factors** — these cases serve as pure baselines
-- **Health & Fitness has no factors** — mint-diet-snack-log serves as a domain baseline
-- **Social Media's 9 tasks cover A1=6, A2=3, B1=6** — the 7 new tasks significantly expand factor coverage
-- **Finance & Data Analytics has no factors** — expense-draft-delete serves as a domain baseline
-- **Health & Wellness has no factors** — health-daily-record serves as a domain baseline
+- **Health & Fitness now carries A2+B1** through morning-comfort-setup, moving the domain from baseline to multi-factor
+- **Social Media (9 tasks) leads total factor instances (15)** — the 7 new tasks span A1=6, A2=3, B1=6
+- **Finance & Data Analytics and Health & Wellness remain baselines** — finance-* and weather-*/health-daily-record/mint-diet-* tasks serve as domain control points
 
 ---
 
@@ -157,20 +167,21 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    25 |      55.6% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record |
-| Medium     |    11 |      24.4% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, social-schedule-audit, social-keyword-cleanup, social-event-campaign |
-| Hard       |     9 |      20.0% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, social-data-anomaly-report, social-comment-moderation, social-cross-publish, social-pinned-post-update |
+| Easy       |    27 |      48.2% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive |
+| Medium     |    18 |      32.1% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-test, grocery-reorder, morning-comfort-setup, weather-city-travel-pick, pre-meeting-research-brief, vendor-due-diligence-brief, social-schedule-audit, social-keyword-cleanup, social-event-campaign |
+| Hard       |    11 |      19.6% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, weather-outdoor-window, social-data-anomaly-report, social-comment-moderation, social-cross-publish, social-pinned-post-update |
 
 Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
-| Easy       |             0.46 |          13          |       7       |       5      |
-| Medium     |             1.27 |          1           |       6       |       4      |
-| Hard       |             2.11 |          0           |       3       |       6      |
+| Easy       |             0.59 |          16          |       7       |       4      |
+| Medium     |             1.28 |           3          |       7       |       8      |
+| Hard       |             1.55 |           2          |       3       |       6      |
 
 The empirical reclassification (based on average solve rates across models) shows that Easy
-cases dominate (55.6%). Easy cases include both baselines (60.0%) and factor-bearing tasks
-(40.0%), indicating that many structural complexity factors do not pose significant difficulty
-for current agents. Hard cases are concentrated in tasks requiring constraint failure handling
-(B1), contaminated initial states (A2), or multi-factor combinations (e.g. A1+B1 in Social Media).
+cases dominate (48.2%). Easy cases include both baselines (59.3%) and factor-bearing tasks
+(40.7%), indicating that many structural complexity factors do not pose significant difficulty
+for current agents. Hard cases concentrate around tasks combining B1 with A1 or A2
+(e.g. social-data-anomaly-report, social-pinned-post-update), contaminated DevOps environments,
+and high-precision domain execution (finance-portfolio-rebalancing, weather-outdoor-window).
