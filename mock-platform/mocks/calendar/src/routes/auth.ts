@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute, sign } from "mock-lib";
-import { err, getUserByEmail, getUserById, verifyWerkzeugHash, getAuthUserId } from "../helpers";
+import { getUserByEmail, getUserById, verifyWerkzeugHash, getAuthUserId } from "../helpers";
 
 const LoginBody = z.object({ email: z.string(), password: z.string() });
 const UserSchema = z.object({ id: z.number(), email: z.string(), display_name: z.string(), created_at: z.string() });
@@ -26,9 +26,9 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const row = db
       .query("SELECT id, password_hash FROM users WHERE email = ?")
       .get(email) as { id: number; password_hash: string } | null;
-    if (!row) return c.json(err("Invalid email or password"), 401);
+    if (!row) return c.json({ ok: false, error: "Invalid email or password" }, 401);
     const valid = await verifyWerkzeugHash(row.password_hash, password);
-    if (!valid) return c.json(err("Invalid email or password"), 401);
+    if (!valid) return c.json({ ok: false, error: "Invalid email or password" }, 401);
     const user = getUserByEmail(db, email)!;
     const access_token = await sign({ userId: row.id });
     return c.json({ ok: true, message: "Login successful", access_token, user });
@@ -46,9 +46,9 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
   app.openApiRoute(meRoute, async (c) => {
     const userId = await getAuthUserId(c);
-    if (!userId) return c.json(err("Authentication required"), 401);
+    if (!userId) return c.json({ ok: false, error: "Authentication required" }, 401);
     const user = getUserById(db, userId);
-    if (!user) return c.json(err("User not found"), 404);
+    if (!user) return c.json({ ok: false, error: "User not found" }, 404);
     return c.json({ ok: true, user });
   });
 }

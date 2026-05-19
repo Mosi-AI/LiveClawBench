@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
-import { err, getAuthUserId } from "../helpers";
+import { getAuthUserId } from "../helpers";
 
 const EventSchema = z.object({
   id: z.number(),
@@ -30,7 +30,7 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
 
   app.openApiRoute(listRoute, async (c) => {
     const userId = await getAuthUserId(c);
-    if (!userId) return c.json(err("Authentication required"), 401);
+    if (!userId) return c.json({ ok: false, error: "Authentication required" }, 401);
     const events = db
       .query("SELECT * FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC")
       .all(userId) as z.infer<typeof EventSchema>[];
@@ -50,12 +50,12 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
 
   app.openApiRoute(getRoute, async (c) => {
     const userId = await getAuthUserId(c);
-    if (!userId) return c.json(err("Authentication required"), 401);
+    if (!userId) return c.json({ ok: false, error: "Authentication required" }, 401);
     const id = parseInt(c.req.param("id"), 10);
     const event = db
       .query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?")
       .get(id, userId) as z.infer<typeof EventSchema> | null;
-    if (!event) return c.json(err("Event not found"), 404);
+    if (!event) return c.json({ ok: false, error: "Event not found" }, 404);
     return c.json({ ok: true, event });
   });
 }

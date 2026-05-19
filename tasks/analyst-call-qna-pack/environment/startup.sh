@@ -18,12 +18,15 @@ if [ ! -f "$CALENDAR_DB" ]; then
   exit 0
 fi
 
-# Calculate the date of this Thursday (today if Thursday, else the coming one)
+# Calculate the date of the upcoming/current Thursday analyst call.
+# If today IS Thursday but the 14:00-16:00 slot has already passed, use next Thursday.
 NEXT_THURSDAY=$(python3 - <<'PYEOF'
 from datetime import datetime, timedelta
-today = datetime.now()
-days_ahead = (3 - today.weekday()) % 7
-thu = today + timedelta(days=days_ahead)
+now = datetime.now()
+days_ahead = (3 - now.weekday()) % 7  # 0 when today IS Thursday
+if days_ahead == 0 and now.hour >= 16:
+    days_ahead = 7
+thu = now + timedelta(days=days_ahead)
 print(thu.strftime("%Y-%m-%d"))
 PYEOF
 )
