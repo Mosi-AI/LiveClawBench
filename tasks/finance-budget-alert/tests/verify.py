@@ -3,10 +3,10 @@
 Verifier for finance-budget-alert task.
 
 Checks:
-  - finance_data_intact (0.1): Corrupted March 2026 records exist in finance DB
-  - email_sent_count (0.3): Correct number of alert emails sent (3 expected)
-  - correct_recipients (0.3): Emails sent to correct manager addresses
-  - email_content (0.3): Emails mention the department name and violation type
+  - finance_data_intact (0.0): Corrupted March 2026 records exist in finance DB (diagnostic only)
+  - email_sent_count (0.35): Correct number of alert emails sent (3 expected)
+  - correct_recipients (0.35): Emails sent to correct manager addresses
+  - email_content (0.30): Emails mention the department name and violation type
 
 Violating departments (3):
   - Engineering: over budget (180K > 150K), manager: eng.manager@example.com
