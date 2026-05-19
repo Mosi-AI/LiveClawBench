@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verifier for social-event-campaign task (case_id=41).
+Verifier for social-event-campaign task (case_id=52).
 
 The agent must:
   1. Read an email with instructions to publish a draft event campaign post

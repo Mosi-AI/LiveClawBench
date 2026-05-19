@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verifier for social-pinned-post-update task (case_id=45).
+Verifier for social-pinned-post-update task (case_id=56).
 
 The agent must:
   1. Read email with pinned post update instructions

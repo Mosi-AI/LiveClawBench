@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verifier for social-schedule-audit task (case_id=39).
+Verifier for social-schedule-audit task (case_id=50).
 
 Checks that the agent fixed 5 scheduling anomalies seeded into the social DB.
 Each anomaly is worth 0.2 points, total 1.0.

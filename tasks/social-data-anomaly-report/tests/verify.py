@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verifier for social-data-anomaly-report task (case_id=42).
+Verifier for social-data-anomaly-report task (case_id=53).
 
 Checks that the agent sent an anomaly report email via the email mock.
 Scoring:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verifier for social-cross-publish task (case_id=44).
+Verifier for social-cross-publish task (case_id=55).
 
 The agent must read email, check calendar for event date, then publish a post.
 

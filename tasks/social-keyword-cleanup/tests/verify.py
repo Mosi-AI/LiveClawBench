@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verifier for social-keyword-cleanup task (case_id=40).
+Verifier for social-keyword-cleanup task (case_id=51).
 
 The agent must:
   1. Read an email containing keyword deletion criteria ("giveaway" and "milestone")
