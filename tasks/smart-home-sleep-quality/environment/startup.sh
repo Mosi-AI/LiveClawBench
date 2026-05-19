@@ -11,6 +11,11 @@ mkdir -p /var/lib/mock-data/shop
 # Initialize health database with seed data
 # This sets system_config.current_date to 2026-05-09 and loads 30 days of health data
 if [ -f /opt/mock/data/health.sql ]; then
+    sqlite3 /var/lib/mock-data/health/health.db "
+    DELETE FROM health_metric_series;
+    DELETE FROM health_daily_snapshot;
+    DELETE FROM system_config WHERE key IN ('current_date', 'current_time');
+    "
     sqlite3 /var/lib/mock-data/health/health.db < /opt/mock/data/health.sql
 fi
 

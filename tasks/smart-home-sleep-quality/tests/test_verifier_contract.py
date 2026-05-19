@@ -21,6 +21,89 @@ spec.loader.exec_module(verify)
 
 
 class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
+    def test_health_seed_executes_to_complete_snapshot_and_metric_series(self):
+        conn = sqlite3.connect(":memory:")
+        conn.executescript(
+            """
+            CREATE TABLE mock_user (
+                id INTEGER PRIMARY KEY,
+                username TEXT NOT NULL UNIQUE,
+                display_name TEXT
+            );
+            CREATE TABLE system_config (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            CREATE TABLE health_daily_snapshot (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                steps INTEGER,
+                active_energy_kcal REAL,
+                sleep_hours REAL,
+                sleep_quality REAL,
+                light_sleep_hours REAL,
+                deep_sleep_hours REAL,
+                rem_sleep_hours REAL,
+                low_intensity_min REAL,
+                medium_intensity_min REAL,
+                high_intensity_min REAL,
+                total_activity_min REAL,
+                resting_heart_rate_bpm INTEGER,
+                avg_heart_rate_bpm INTEGER,
+                weight_kg REAL,
+                body_fat_percent REAL,
+                blood_oxygen_percent REAL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(user_id, date)
+            );
+            CREATE TABLE health_metric_series (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                metric_type TEXT NOT NULL,
+                date TEXT NOT NULL,
+                value REAL NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(user_id, metric_type, date)
+            );
+            """
+        )
+        conn.executescript(SEED_PATH.read_text())
+
+        rows = conn.execute(
+            """
+            SELECT date, light_sleep_hours, deep_sleep_hours, rem_sleep_hours,
+                   low_intensity_min, medium_intensity_min, high_intensity_min,
+                   avg_heart_rate_bpm, weight_kg, body_fat_percent, blood_oxygen_percent
+            FROM health_daily_snapshot
+            WHERE user_id = 1
+            ORDER BY date
+            """
+        ).fetchall()
+
+        self.assertEqual(30, len(rows))
+        for row in rows:
+            self.assertNotIn(None, row, msg=f"incomplete snapshot row: {row}")
+
+        metric_types = [
+            "steps", "active_energy_kcal", "sleep_hours", "sleep_quality",
+            "light_sleep_hours", "deep_sleep_hours", "rem_sleep_hours",
+            "low_intensity_min", "medium_intensity_min", "high_intensity_min", "total_activity_min",
+            "resting_heart_rate_bpm", "avg_heart_rate_bpm", "weight_kg",
+            "body_fat_percent", "blood_oxygen_percent",
+        ]
+        for metric_type in metric_types:
+            count = conn.execute(
+                "SELECT COUNT(*) FROM health_metric_series WHERE user_id = 1 AND metric_type = ?",
+                (metric_type,),
+            ).fetchone()[0]
+            self.assertEqual(30, count, msg=f"{metric_type} has {count} rows")
+
+    def test_startup_clears_default_health_metric_tables_before_seed_import(self):
+        text = (TASK_DIR / "environment" / "startup.sh").read_text()
+        self.assertIn("DELETE FROM health_metric_series", text)
+        self.assertIn("DELETE FROM health_daily_snapshot", text)
+
     def test_d6_does_not_fallback_to_response_file_when_harbor_exists(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             harbor = Path(tmpdir) / "harbor.jsonl"
