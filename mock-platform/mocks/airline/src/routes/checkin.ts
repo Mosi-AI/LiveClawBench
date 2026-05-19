@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err } from "../helpers";
+import { ok, err, DEFAULT_USER_ID } from "../helpers";
 
 export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
   // POST /api/checkin/:booking_reference
@@ -8,7 +8,7 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     const ref = c.req.param("booking_reference");
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     if (Number(booking.user_id) !== userId) {
       return c.json(err("Booking not found"), 404);
     }
@@ -67,7 +67,7 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     const ref = c.req.param("booking_reference");
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     if (Number(booking.user_id) !== userId) {
       return c.json(err("Booking not found"), 404);
     }
@@ -104,7 +104,7 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
     const now = new Date().toISOString().replace("T", " ").slice(0, 19);
     const future24h = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().replace("T", " ").slice(0, 19);
 
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const bookings = db.query(`
       SELECT b.* FROM bookings b
       JOIN flights f ON b.flight_id = f.id

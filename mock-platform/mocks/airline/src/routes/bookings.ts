@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, paginate, parsePageParams, generateBookingReference } from "../helpers";
+import { ok, err, paginate, parsePageParams, generateBookingReference, DEFAULT_USER_ID } from "../helpers";
 
 export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
   // GET /api/bookings
@@ -9,7 +9,7 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const { page, perPage, offset } = parsePageParams(query.page, query.per_page);
     const status = query.status;
 
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     let sql = "SELECT * FROM bookings WHERE user_id = ?";
     const params: (number | string)[] = [userId];
 
@@ -31,7 +31,7 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const ref = c.req.param("booking_reference");
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     if (Number(booking.user_id) !== userId) {
       return c.json(err("Booking not found"), 404);
     }
@@ -63,7 +63,7 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
 
     const totalPrice = basePrice * passengers.length;
 
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
 
     // Generate unique booking reference with retry loop
     let reference = generateBookingReference();
@@ -134,7 +134,7 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
 
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     if (Number(booking.user_id) !== userId) {
       return c.json(err("Booking not found"), 404);
     }
@@ -198,7 +198,7 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const ref = c.req.param("booking_reference");
     const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     if (Number(booking.user_id) !== userId) {
       return c.json(err("Booking not found"), 404);
     }

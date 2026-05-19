@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, paginate, parsePageParams } from "../helpers";
+import { ok, err, paginate, parsePageParams, DEFAULT_USER_ID } from "../helpers";
 
 export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
   // GET /api/claims
@@ -9,7 +9,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
     const { page, perPage, offset } = parsePageParams(query.page, query.per_page);
     const status = query.status;
 
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     let sql = "SELECT * FROM claims WHERE booking_id IN (SELECT id FROM bookings WHERE user_id = ?)";
     const params: (number | string)[] = [userId];
 
@@ -27,7 +27,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
   // GET /api/claims/:claim_id
   app.get("/api/claims/:claim_id", (c) => {
     const id = parseInt(c.req.param("claim_id"), 10);
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const item = db.query(
       "SELECT c.* FROM claims c JOIN bookings b ON c.booking_id = b.id WHERE c.id = ? AND b.user_id = ?"
     ).get(id, userId) as Record<string, unknown> | null;
@@ -37,6 +37,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
 
   // POST /api/claims
   app.post("/api/claims", async (c) => {
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const body = (await c.req.json()) as Record<string, unknown>;
     const bookingReference = String(body.booking_reference ?? "");
     const claimType = String(body.claim_type ?? "");
@@ -47,7 +48,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("booking_reference, claim_type, claim_amount and claim_reason are required"), 400);
     }
 
-    const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(bookingReference) as Record<string, unknown> | null;
+    const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ? AND user_id = ?").get(bookingReference, userId) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
     const insertResult = db.query(
@@ -62,7 +63,7 @@ export function registerClaimRoutes(app: OpenAPIApp, db: Database): void {
   // PUT /api/claims/:claim_id
   app.put("/api/claims/:claim_id", async (c) => {
     const id = parseInt(c.req.param("claim_id"), 10);
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const claim = db.query(
       "SELECT c.* FROM claims c JOIN bookings b ON c.booking_id = b.id WHERE c.id = ? AND b.user_id = ?"
     ).get(id, userId) as Record<string, unknown> | null;

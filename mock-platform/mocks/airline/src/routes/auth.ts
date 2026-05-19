@@ -2,7 +2,7 @@ import bcryptjs from "bcryptjs";
 import { sign, verify, BCRYPT_SALT_ROUNDS, tokenCookieOptions, serializeCookie } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, getUserById } from "../helpers";
+import { ok, err, getUserById, DEFAULT_USER_ID } from "../helpers";
 
 export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   // POST /api/auth/register
@@ -86,7 +86,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
   // GET /api/auth/profile
   app.get("/api/auth/profile", (c) => {
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const user = getUserById(db, userId);
     if (!user) return c.json(err("User not found"), 404);
     return c.json(ok(user));
@@ -94,7 +94,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
   // PUT /api/auth/profile
   app.put("/api/auth/profile", async (c) => {
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     let body: Record<string, unknown>;
     try {
       body = await c.req.json();
@@ -121,7 +121,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
   // POST /api/auth/change-password
   app.post("/api/auth/change-password", async (c) => {
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     let body: Record<string, unknown>;
     try {
       body = await c.req.json();

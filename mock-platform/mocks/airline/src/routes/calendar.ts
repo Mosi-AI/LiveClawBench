@@ -2,6 +2,7 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
 import { ok } from "mock-lib";
+import { DEFAULT_USER_ID } from "../helpers";
 import { OkSchema, CalendarEventSchema } from "../schemas";
 import { z } from "zod";
 
@@ -31,7 +32,7 @@ export function registerCalendarRoutes(app: OpenAPIApp, db: Database, prefix: st
     const startDate = query.start_date;
     const endDate = query.end_date;
 
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     let sql = "SELECT * FROM calendar_events WHERE user_id = ?";
     const params: (number | string)[] = [userId];
 

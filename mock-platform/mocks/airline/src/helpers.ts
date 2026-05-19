@@ -1,6 +1,9 @@
 import type { Database } from "bun:sqlite";
 import type { ApiResponse, PaginatedResult } from "./types";
 
+// Fallback for browser-based tasks where the UI auto-fetches without auth.
+export const DEFAULT_USER_ID = 1;
+
 export function ok<T>(data: T, message?: string): ApiResponse<T> {
   return { success: true, ...(message ? { message } : {}), data };
 }

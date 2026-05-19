@@ -1,11 +1,11 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, getUserById } from "../helpers";
+import { ok, err, getUserById, DEFAULT_USER_ID } from "../helpers";
 
 export function registerProfileRoutes(app: OpenAPIApp, db: Database): void {
   // GET /api/profile
   app.get("/api/profile", (c) => {
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const user = getUserById(db, userId);
     if (!user) return c.json(err("User not found"), 404);
     return c.json(ok(user));
@@ -13,7 +13,7 @@ export function registerProfileRoutes(app: OpenAPIApp, db: Database): void {
 
   // PUT /api/profile
   app.put("/api/profile", async (c) => {
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const body = (await c.req.json()) as Record<string, unknown>;
     const fields: string[] = [];
     const values: (string | null)[] = [];

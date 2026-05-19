@@ -2,7 +2,7 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { createRoute } from "mock-lib";
 import { ok, err } from "mock-lib";
-import { paginate, parsePageParams } from "../helpers";
+import { paginate, parsePageParams, DEFAULT_USER_ID } from "../helpers";
 import {
   OkSchema,
   ErrSchema,
@@ -41,7 +41,7 @@ export function registerMockEmailRoutes(app: OpenAPIApp, db: Database, prefix: s
     const emailType = query.type;
     const unreadOnly = query.unread_only === "true";
 
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     let sql = "SELECT * FROM email_notifications WHERE user_id = ?";
     const params: (number | string)[] = [userId];
 
@@ -85,7 +85,7 @@ export function registerMockEmailRoutes(app: OpenAPIApp, db: Database, prefix: s
   app.openApiRoute(detailRoute, (c) => {
     const { email_id } = c.req.valid("param");
     const id = parseInt(email_id, 10);
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const email = db.query("SELECT * FROM email_notifications WHERE id = ? AND user_id = ?").get(id, userId) as Record<string, unknown> | null;
     if (!email) return c.json(err("Email not found"), 404);
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { existsSync } from "node:fs";
-import { createMockApp, createRoute, startServer, registerFrontendFallback } from "mock-lib";
+import { createMockApp, createRoute, startServer, registerFrontendFallback, authOptional } from "mock-lib";
 import { getAirlineDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
 import { registerAuthRoutes } from "./routes/auth";
@@ -54,6 +54,11 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
   });
 
   app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
+
+  // Extract userId from JWT/cookie when present, but never block unauthenticated requests.
+  // Browser-based tasks auto-fetch /api/profile on mount without auth; routes fall back
+  // to DEFAULT_USER_ID when no token is provided.
+  app.use("/api/*", authOptional);
 
   // Register all route modules
   registerAuthRoutes(app, db);

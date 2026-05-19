@@ -377,7 +377,7 @@ function createFlightCancelClaimData(db: Database, peterId: number, now: Date): 
   console.log("airline: created cancelled GKD2001 for flight-cancel-claim");
 }
 
-function createFlightInfoChangeNoticeData(db: Database, peterId: number, now: Date): void {
+export function createFlightInfoChangeNoticeData(db: Database, peterId: number, now: Date): void {
   // GKD2001: day after tomorrow at 10:00 AM, initially scheduled, then delayed 4 hours
   const departureDate = new Date(now.getTime() + 2 * 86400000);
   departureDate.setHours(10, 0, 0, 0);

@@ -1,6 +1,7 @@
 import { initSchema } from "./db/schema";
 import { generateSeats } from "./db/seat-generation";
 import { formatDateTime } from "./helpers";
+import { createFlightInfoChangeNoticeData } from "./seed/tasks";
 import type { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import { generateBookingReference } from "./helpers";
@@ -177,7 +178,7 @@ export function seedDatabase(db: Database, taskName?: string) {
 
           // Skip flight number 2000 range only for tasks that need GKD2001
           // (flight-seat-selection, flight-seat-selection-failed, flight-cancel-claim)
-          const needsGKD2001 = ["flight-seat-selection", "flight-seat-selection-failed", "flight-cancel-claim"].includes(effectiveTaskName);
+          const needsGKD2001 = ["flight-seat-selection", "flight-seat-selection-failed", "flight-cancel-claim", "flight-info-change-notice"].includes(effectiveTaskName);
           if (needsGKD2001 && flightNumber === 2000) {
             flightNumber = 2100;
           }
@@ -254,6 +255,9 @@ function createTaskSpecificData(db: Database, taskName: string, userIds: number[
       break;
     case "flight-cancel-claim":
       createFlightCancelClaimData(db, peterId, now);
+      break;
+    case "flight-info-change-notice":
+      createFlightInfoChangeNoticeData(db, peterId, now);
       break;
     case "baggage-tracking-application":
       createBaggageTrackingData(db, peterId, now);

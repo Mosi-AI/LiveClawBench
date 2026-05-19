@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, paginate, parsePageParams } from "../helpers";
+import { ok, err, paginate, parsePageParams, DEFAULT_USER_ID } from "../helpers";
 
 function registerPaymentRoutes(app: OpenAPIApp, db: Database, prefix: string): void {
   app.post(`${prefix}/payment/process`, async (c) => {
@@ -63,7 +63,7 @@ function registerEmailRoutes(app: OpenAPIApp, db: Database, prefix: string): voi
     const emailType = query.type;
     const unreadOnly = query.unread_only === "true";
 
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     let sql = "SELECT * FROM email_notifications WHERE user_id = ?";
     const params: (number | string)[] = [userId];
 
@@ -89,7 +89,7 @@ function registerEmailRoutes(app: OpenAPIApp, db: Database, prefix: string): voi
 
   app.get(`${prefix}/emails/:email_id`, (c) => {
     const id = parseInt(c.req.param("email_id"), 10);
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const email = db.query("SELECT * FROM email_notifications WHERE id = ? AND user_id = ?").get(id, userId) as Record<string, unknown> | null;
     if (!email) return c.json(err("Email not found"), 404);
 
@@ -103,7 +103,7 @@ function registerCalendarRoutes(app: OpenAPIApp, db: Database, prefix: string): 
     const startDate = c.req.query("start_date");
     const endDate = c.req.query("end_date");
 
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     let sql = "SELECT * FROM calendar_events WHERE user_id = ?";
     const params: (number | string)[] = [userId];
 
@@ -123,7 +123,7 @@ function registerCalendarRoutes(app: OpenAPIApp, db: Database, prefix: string): 
 
 function registerChatRoutes(app: OpenAPIApp, db: Database, prefix: string): void {
   app.get(`${prefix}/chat/sessions`, (c) => {
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const status = c.req.query("status");
     let sql = "SELECT * FROM chat_sessions WHERE user_id = ?";
     const params: (number | string)[] = [userId];
@@ -138,7 +138,7 @@ function registerChatRoutes(app: OpenAPIApp, db: Database, prefix: string): void
   });
 
   app.post(`${prefix}/chat/sessions`, (c) => {
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const sessionId = `chat-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     db.query(
       "INSERT INTO chat_sessions (user_id, session_id, status) VALUES (?, ?, 'active')"
@@ -156,7 +156,7 @@ function registerChatRoutes(app: OpenAPIApp, db: Database, prefix: string): void
 
     if (!message) return c.json(err("message is required"), 400);
 
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const session = db.query("SELECT * FROM chat_sessions WHERE session_id = ? AND user_id = ?").get(sessionId, userId) as Record<string, unknown> | null;
     if (!session) return c.json(err("Session not found"), 404);
 
@@ -185,7 +185,7 @@ function registerChatRoutes(app: OpenAPIApp, db: Database, prefix: string): void
 
   app.post(`${prefix}/chat/sessions/:session_id/close`, (c) => {
     const sessionId = c.req.param("session_id");
-    const userId = c.get("userId")!;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
     const session = db.query("SELECT * FROM chat_sessions WHERE session_id = ? AND user_id = ?").get(sessionId, userId) as Record<string, unknown> | null;
     if (!session) return c.json(err("Session not found"), 404);
 
