@@ -56,8 +56,16 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
   app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
   // Validate token when present; reject expired/invalid tokens with 401.
+  // Auth endpoints (/login, /register, /refresh) are always exempt so clients
+  // can recover from expired sessions without clearing cookies manually.
   // Requests with no token proceed without userId (routes fall back to DEFAULT_USER_ID).
   app.use("/api/*", async (c, next) => {
+    const path = c.req.path;
+    const isAuthEndpoint = path === "/api/auth/login" || path === "/api/auth/register" || path === "/api/auth/refresh";
+    if (isAuthEndpoint) {
+      await next();
+      return;
+    }
     const cookieToken = c.req.header("cookie")?.match(/(?:^|;\s*)token=([^;]*)/)?.[1];
     const bearerToken = c.req.header("Authorization")?.startsWith("Bearer ")
       ? c.req.header("Authorization")!.slice(7) : null;

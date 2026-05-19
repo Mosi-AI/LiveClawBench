@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Start Bun mock services (airline + email binaries via per-task startup.d)
+sh /opt/mock/startup.d/${TASK_NAME}.sh
+
 # Start email-app backend (Flask) — verifier reads from this DB
 cd /workspace/environment/email-app/backend
 python3 app.py > /tmp/email-backend.log 2>&1 &

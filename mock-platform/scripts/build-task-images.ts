@@ -91,7 +91,7 @@ const ALL_TASK_NAMES = new Set([
   "skill-conflict-resolution", "skill-dependency-fix", "noise-filtering",
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
-  "mint-diet-snack-log", "weather-aqi-report",
+  "mint-diet-snack-log", "nutrition-log-meal", "mint-diet-comprehensive", "weather-aqi-report",
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
   "finance-portfolio-rebalancing", "finance-monthly-close",
   "health-daily-record", "smarthome-test", "grocery-reorder",
