@@ -234,8 +234,23 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `weather-aqi-report` | Deep Research & Report | easy | verify.py |
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
+| `health-daily-record` | Health & Wellness | easy | verify.py |
+| `finance-portfolio-rebalancing` | Finance & Data Analytics | hard | verify.py |
+| `finance-monthly-close` | Finance & Data Analytics | medium | verify.py |
+| `nutrition-log-meal` | Health & Wellness | easy | verify.py |
+| `mint-diet-comprehensive` | Health & Wellness | easy | verify.py |
+| `smarthome-test` | E-commerce & Daily Svcs | medium | verify.py |
+| `weather-city-travel-pick` | Health & Wellness | medium | verify.py |
+| `weather-outdoor-window` | Health & Wellness | hard | verify.py |
+| `grocery-reorder` | E-commerce & Daily Svcs | medium | verify.py |
+| `morning-comfort-setup` | Health & Wellness | medium | verify.py |
+| `social-media-posting` | Social Media | easy | verify.py |
+| `social-unlike-post` | Social Media | easy | verify.py |
+| `expense-draft-delete` | Finance & Data Analytics | easy | verify.py |
 | `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
 | `vendor-due-diligence-brief` | Deep Research & Report | medium | **llm_judge** |
+| `grant-application-evidence-brief` | Deep Research & Report | medium | **llm_judge** |
+| `analyst-call-qna-pack` | Deep Research & Report | hard | **llm_judge** |
 
 ## Docker Image Architecture
 
