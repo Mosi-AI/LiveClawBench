@@ -16,21 +16,10 @@ Log in to the finance system at **http://localhost:1235/** with credentials:
 - Username: `admin`
 - Password: `admin123`
 
-Check the existing invoices. The tax authority email references invoice INV-2026-010 from Acme Corp (dated 2026-03-01) which may not yet be in the finance system. If it's missing, create it using the API:
-- `POST /api/invoices` with body:
-  ```json
-  {
-    "vendor_id": 1,
-    "invoice_number": "INV-2026-010",
-    "invoice_date": "2026-03-01",
-    "items": [
-      {"description": "Software License Renewal", "category_code": "5300", "amount": 15000.00},
-      {"description": "Technical Support Package", "category_code": "5400", "amount": 5000.00}
-    ]
-  }
-  ```
+Check the existing invoices. The tax authority email references invoice INV-2026-010 from Acme Corp which may not yet be in the finance system. If it's missing, create it using the API:
+- `POST /api/invoices`
 
-You can also check the Acme Corp billing email in your inbox for the exact invoice details.
+Check the Acme Corp billing email in your inbox for the exact invoice details (vendor, invoice number, date, line items with category codes and amounts), then construct the POST request body accordingly.
 
 ## Step 3: Calculate VAT
 

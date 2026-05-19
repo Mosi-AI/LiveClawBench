@@ -3,7 +3,7 @@ version = "1.0"
 [metadata]
 difficulty = "hard"
 category = "open-world"
-tags = ["finance_data_analytics"]
+tags = ["finance_data_analytics", "communication_email"]
 domain = "Finance & Data Analytics"
 domains_multi = ["Finance & Data Analytics", "Communication & Email"]
 factor_a1 = 1

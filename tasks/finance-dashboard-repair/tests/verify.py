@@ -74,12 +74,21 @@ def main() -> None:
     formula_str = row[0]
     score = 0.0
 
+    # Detect seed state: if the broken seed formula's deprecated fields are still
+    # present, the agent has not modified the formula at all.
+    SEED_DEPRECATED_SIGNATURES = ["total_expenses", "budget_deviation"]
+    is_seed_state = any(sig in formula_str for sig in SEED_DEPRECATED_SIGNATURES)
+
     # --- Dimension 1: Formula is valid JSON (0.15) ---
     try:
         formula = json.loads(formula_str)
-        score += WEIGHTS["formula_parseable"]
-        dimension_scores["formula_parseable"] = WEIGHTS["formula_parseable"]
-        messages.append("PASS: formula_json is valid JSON")
+        if is_seed_state:
+            dimension_scores["formula_parseable"] = 0.0
+            messages.append("FAIL: formula_json is unchanged from seed state")
+        else:
+            score += WEIGHTS["formula_parseable"]
+            dimension_scores["formula_parseable"] = WEIGHTS["formula_parseable"]
+            messages.append("PASS: formula_json is valid JSON")
     except json.JSONDecodeError:
         dimension_scores["formula_parseable"] = 0.0
         messages.append("FAIL: formula_json is not valid JSON")
@@ -112,30 +121,34 @@ def main() -> None:
         messages.append(f"FAIL: invalid field names: {invalid}")
 
     # --- Dimension 4: Formula matches NAPI structure (0.15) ---
-    formula_compact = json.dumps(formula, separators=(",", ":"))
-    has_correct_consts = "0.1" in formula_compact and "0.05" in formula_compact
-    has_add = '"op":"add"' in formula_compact
-    has_subtract = '"op":"subtract"' in formula_compact
-    has_multiply = '"op":"multiply"' in formula_compact
-    has_revenue = '"revenue_amount"' in formula_compact
-    has_expense = '"actual_expense_amount"' in formula_compact
-    has_budget = '"budget_amount"' in formula_compact
-
-    structure_score = 0.0
-    if has_correct_consts:
-        structure_score += 0.05
-    if has_add and has_subtract and has_multiply:
-        structure_score += 0.05
-    if has_revenue and has_expense and has_budget:
-        structure_score += 0.05
-    dimension_scores["formula_structure"] = structure_score
-    score += structure_score
-    if structure_score >= WEIGHTS["formula_structure"]:
-        messages.append("PASS: formula matches NAPI structure")
+    if is_seed_state:
+        dimension_scores["formula_structure"] = 0.0
+        messages.append("FAIL: formula structure not evaluated — formula still in seed state")
     else:
-        messages.append(
-            f"FAIL: formula structure partial match ({structure_score:.2f}/{WEIGHTS['formula_structure']:.2f})"
-        )
+        formula_compact = json.dumps(formula, separators=(",", ":"))
+        has_correct_consts = "0.1" in formula_compact and "0.05" in formula_compact
+        has_add = '"op":"add"' in formula_compact
+        has_subtract = '"op":"subtract"' in formula_compact
+        has_multiply = '"op":"multiply"' in formula_compact
+        has_revenue = '"revenue_amount"' in formula_compact
+        has_expense = '"actual_expense_amount"' in formula_compact
+        has_budget = '"budget_amount"' in formula_compact
+
+        structure_score = 0.0
+        if has_correct_consts:
+            structure_score += 0.05
+        if has_add and has_subtract and has_multiply:
+            structure_score += 0.05
+        if has_revenue and has_expense and has_budget:
+            structure_score += 0.05
+        dimension_scores["formula_structure"] = structure_score
+        score += structure_score
+        if structure_score >= WEIGHTS["formula_structure"]:
+            messages.append("PASS: formula matches NAPI structure")
+        else:
+            messages.append(
+                f"FAIL: formula structure partial match ({structure_score:.2f}/{WEIGHTS['formula_structure']:.2f})"
+            )
 
     # --- Dimension 5: Policy file has audit notes (0.15) ---
     policy_content = ""

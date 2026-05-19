@@ -54,10 +54,10 @@ VIOLATING_DEPTS = {
 EXPECTED_RECIPIENTS = {v["manager_email"] for v in VIOLATING_DEPTS.values()}
 
 WEIGHTS = {
-    "finance_data_intact": 0.1,
-    "email_sent_count": 0.3,
-    "correct_recipients": 0.3,
-    "email_content": 0.3,
+    "finance_data_intact": 0.0,  # diagnostic only — seed integrity is env-guaranteed
+    "email_sent_count": 0.35,
+    "correct_recipients": 0.35,
+    "email_content": 0.30,
 }
 
 

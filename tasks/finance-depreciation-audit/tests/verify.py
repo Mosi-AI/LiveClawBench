@@ -95,23 +95,29 @@ def main() -> tuple[float, dict]:
             f"Only {corrected_count}/{len(EXPECTED_CORRECTIONS)} incorrect assets corrected",
         )
 
-        # 2. Check no false corrections
-        correct_untouched = 0
-        for asset_id, expected_dep in CORRECT_ASSETS.items():
-            row = conn.execute(
-                "SELECT annual_depreciation FROM asset_record WHERE id = ?",
-                (asset_id,),
-            ).fetchone()
-            if row and abs(row["annual_depreciation"] - expected_dep) <= TOLERANCE:
-                correct_untouched += 1
+        # 2. Check no false corrections (only meaningful if agent attempted corrections)
+        if corrected_count == 0:
+            details["dimension_scores"]["no_false_corrections"] = 0.0
+            details["messages"].append(
+                "FAIL: No corrections attempted — no_false_corrections not evaluated"
+            )
+        else:
+            correct_untouched = 0
+            for asset_id, expected_dep in CORRECT_ASSETS.items():
+                row = conn.execute(
+                    "SELECT annual_depreciation FROM asset_record WHERE id = ?",
+                    (asset_id,),
+                ).fetchone()
+                if row and abs(row["annual_depreciation"] - expected_dep) <= TOLERANCE:
+                    correct_untouched += 1
 
-        score += record_score(
-            details,
-            "no_false_corrections",
-            correct_untouched == len(CORRECT_ASSETS),
-            f"All {len(CORRECT_ASSETS)} correct assets untouched",
-            f"Only {correct_untouched}/{len(CORRECT_ASSETS)} correct assets untouched",
-        )
+            score += record_score(
+                details,
+                "no_false_corrections",
+                correct_untouched == len(CORRECT_ASSETS),
+                f"All {len(CORRECT_ASSETS)} correct assets untouched",
+                f"Only {correct_untouched}/{len(CORRECT_ASSETS)} correct assets untouched",
+            )
 
         # 3. Check correction reasons
         reasons_count = 0

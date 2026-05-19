@@ -110,16 +110,25 @@ def main() -> tuple[float, dict]:
             )
         score += earned_weight
 
-        # 2. No false positives: none of the normal transactions should be flagged
-        false_positives = NORMAL_IDS & flagged_ids
-        score += record_score(
-            details,
-            "no_false_positives",
-            len(false_positives) == 0,
-            "No false positives — normal transactions untouched",
-            f"False positives: normal transactions incorrectly flagged: "
-            f"{sorted(false_positives)}",
-        )
+        # 2. No false positives: none of the normal transactions should be flagged.
+        # If the agent flagged nothing at all, they made no detection attempt —
+        # this dimension must not award free credit.
+        if not flagged_ids:
+            details["dimension_scores"]["no_false_positives"] = 0.0
+            details["messages"].append(
+                "FAIL: No transactions flagged — no_false_positives not evaluated "
+                "(agent made no detection attempt)"
+            )
+        else:
+            false_positives = NORMAL_IDS & flagged_ids
+            score += record_score(
+                details,
+                "no_false_positives",
+                len(false_positives) == 0,
+                "No false positives — normal transactions untouched",
+                f"False positives: normal transactions incorrectly flagged: "
+                f"{sorted(false_positives)}",
+            )
 
         # 3. No false negatives (full credit handled above in anomaly_detection,
         #    but this dimension specifically tracks completeness)

@@ -25,15 +25,12 @@ Use the login endpoint with credentials:
 
 ## Asset Correction Payload
 
-```json
-{
-  "cost_basis": 80000.0,
-  "residual_value": 8000.0,
-  "useful_life_years": 4,
-  "depreciation_method": "straight_line",
-  "annual_depreciation": 18000.0,
-  "correction_reason": "Fixed: was using declining_balance rate for straight_line asset"
-}
-```
+When correcting an asset, POST to `/api/assets/{id}` with a JSON body containing all asset fields:
+- `cost_basis` (number)
+- `residual_value` (number)
+- `useful_life_years` (number)
+- `depreciation_method` (string: "straight_line" or "declining_balance")
+- `annual_depreciation` (number: must match the correct calculation per policy)
+- `correction_reason` (string: explain what was wrong and how you fixed it)
 
-All fields including `correction_reason` are required when correcting an asset.
+All fields are required when correcting an asset. Calculate the correct `annual_depreciation` based on the policy rules and include a meaningful `correction_reason`.
