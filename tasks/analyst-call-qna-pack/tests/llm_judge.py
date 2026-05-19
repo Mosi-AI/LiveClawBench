@@ -12,11 +12,18 @@ RUBRIC_PATH = Path(__file__).with_name("rubric.json")
 CORPUS_DIR = Path.home() / ".openclaw" / "corpus"
 OUTPUT_PATH = Path.home() / ".openclaw" / "output" / "analyst_qna.md"
 WORKSPACE_PATH = Path.home() / ".openclaw" / "workspace" / "analyst_prep_q2.md"
+CALENDAR_DB = Path("/var/lib/mock-data/calendar/calendar.db")
 
 SYSTEM_PROMPT = """You are a strict evaluator for an analyst call benchmark task.
 The agent was asked to: (1) check a calendar for Thursday's NXL analyst call, (2) resolve
 "NXL" to "Nexaline Therapeutics" using the corpus, and (3) update an outdated Q2 draft to
 reflect Q3 2024 materials.
+
+The seeded calendar event is supplied as ground truth in the user message. Use it to
+verify that the agent's Call Details section matches the ACTUAL seeded meeting (not
+invented or hardcoded values). The event title, start_time, and end_time are uniquely
+generated per run; an agent that copied values from the instruction rather than querying
+the calendar will not match them exactly.
 
 Score only semantic quality. Be critical. Return JSON only:
 {
@@ -121,6 +128,27 @@ def clamp(v) -> float:
         return 0.0
 
 
+def fetch_calendar_event() -> str:
+    """Read the seeded NXL analyst call from the SQLite DB as ground truth for the judge."""
+    if not CALENDAR_DB.exists():
+        return "(calendar DB not found at expected path)"
+    try:
+        import sqlite3
+
+        conn = sqlite3.connect(str(CALENDAR_DB))
+        rows = conn.execute(
+            "SELECT title, start_time, end_time, source FROM calendar_event "
+            "WHERE title LIKE '%NXL%' ORDER BY start_time LIMIT 1"
+        ).fetchall()
+        conn.close()
+        if not rows:
+            return "(NXL event not found in calendar)"
+        title, start_time, end_time, source = rows[0]
+        return f"Title: {title}\nStart: {start_time}\nEnd: {end_time}\nSource: {source}"
+    except Exception as exc:
+        return f"(calendar read error: {exc})"
+
+
 def call_judge(output_text: str) -> dict:
     base_url = os.environ.get("JUDGE_BASE_URL", "").rstrip("/")
     api_key = os.environ.get("JUDGE_API_KEY", "")
@@ -128,6 +156,8 @@ def call_judge(output_text: str) -> dict:
 
     if not base_url:
         raise RuntimeError("JUDGE_BASE_URL is not set")
+
+    calendar_event = fetch_calendar_event()
 
     corpus_summary = ""
     if CORPUS_DIR.is_dir():
@@ -139,7 +169,9 @@ def call_judge(output_text: str) -> dict:
         old_draft = WORKSPACE_PATH.read_text(encoding="utf-8")
 
     user_content = (
-        "## Agent's output (analyst_qna.md)\n"
+        "## Seeded calendar event (ground truth)\n"
+        + calendar_event
+        + "\n\n## Agent's output (analyst_qna.md)\n"
         + output_text
         + "\n\n## Old draft for comparison (analyst_prep_q2.md)\n"
         + old_draft
@@ -175,20 +207,18 @@ def main() -> None:
     llm_scores: dict = {}
     llm_rationales: dict = {}
     llm_total = 0.0
-    llm_error = None
 
     output_text = (
         OUTPUT_PATH.read_text(encoding="utf-8") if OUTPUT_PATH.exists() else ""
     )
     if output_text.strip():
-        try:
-            raw = call_judge(output_text)
-            for key in llm_rubric:
-                llm_scores[key] = clamp(raw.get(key, 0.0))
-            llm_rationales = raw.get("rationales", {})
-            llm_total = sum(llm_scores.get(k, 0.0) * w for k, w in llm_rubric.items())
-        except Exception as exc:
-            llm_error = str(exc)
+        # Fail closed: if the judge is unavailable, raise rather than silently passing
+        # on deterministic scores alone.
+        raw = call_judge(output_text)
+        for key in llm_rubric:
+            llm_scores[key] = clamp(raw.get(key, 0.0))
+        llm_rationales = raw.get("rationales", {})
+        llm_total = sum(llm_scores.get(k, 0.0) * w for k, w in llm_rubric.items())
 
     reward = round(det_total + llm_total, 4)
 
@@ -204,8 +234,6 @@ def main() -> None:
         "llm": llm_scores,
         "rationales": llm_rationales,
     }
-    if llm_error:
-        report["llm_error"] = llm_error
 
     out_dir = Path("/logs/verifier")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -215,8 +243,6 @@ def main() -> None:
     (out_dir / "reward.txt").write_text(str(reward) + "\n", encoding="utf-8")
 
     print(f"Score: {reward}/1.0")
-    if llm_error:
-        print(f"[LLM judge error: {llm_error}]")
     if reward < 0.5:
         raise SystemExit(1)
 

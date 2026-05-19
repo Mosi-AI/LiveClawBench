@@ -173,17 +173,15 @@ def main() -> None:
     llm_scores: dict = {}
     llm_rationales: dict = {}
     llm_total = 0.0
-    llm_error = None
 
     if result:
-        try:
-            raw = call_judge(result)
-            for key in llm_rubric:
-                llm_scores[key] = clamp(raw.get(key, 0.0))
-            llm_rationales = raw.get("rationales", {})
-            llm_total = sum(llm_scores.get(k, 0.0) * w for k, w in llm_rubric.items())
-        except Exception as exc:
-            llm_error = str(exc)
+        # Fail closed: if the judge is unavailable, raise rather than silently passing
+        # on deterministic scores alone.
+        raw = call_judge(result)
+        for key in llm_rubric:
+            llm_scores[key] = clamp(raw.get(key, 0.0))
+        llm_rationales = raw.get("rationales", {})
+        llm_total = sum(llm_scores.get(k, 0.0) * w for k, w in llm_rubric.items())
 
     reward = round(det_total + llm_total, 4)
 
@@ -200,8 +198,6 @@ def main() -> None:
         "llm": llm_scores,
         "rationales": llm_rationales,
     }
-    if llm_error:
-        report["llm_error"] = llm_error
 
     out_dir = Path("/logs/verifier")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -212,8 +208,6 @@ def main() -> None:
     reward_file.write_text(str(reward) + "\n", encoding="utf-8")
 
     print(f"Score: {reward}/1.0")
-    if llm_error:
-        print(f"[LLM judge error: {llm_error}]")
     if reward < 0.5:
         raise SystemExit(1)
 
