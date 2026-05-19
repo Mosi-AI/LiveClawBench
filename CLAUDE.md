@@ -12,7 +12,7 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 
 | Repository | Role | URL |
 |---|---|---|
-| **LiveClawBench** (this repo) | Task corpus — 37 harbor-format benchmark tasks | — |
+| **LiveClawBench** (this repo) | Task corpus — 45 harbor-format benchmark tasks | — |
 | **claw-harbor** | Evaluation framework (fork of harbor with OpenClaw support) | https://github.com/Mosi-AI/claw-harbor |
 | **OpenClaw** | Agent platform running inside task containers | https://github.com/openclaw/openclaw |
 
@@ -234,6 +234,17 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `weather-aqi-report` | Deep Research & Report | easy | verify.py |
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
+| `health-daily-record` | Health & Wellness | easy | verify.py |
+| `expense-draft-delete` | Finance & Data Analytics | easy | verify.py |
+| `social-media-posting` | Social Media | easy | verify.py |
+| `social-unlike-post` | Social Media | easy | verify.py |
+| `social-event-campaign` | Social Media | medium | verify.py |
+| `social-keyword-cleanup` | Social Media | medium | verify.py |
+| `social-schedule-audit` | Social Media | medium | verify.py |
+| `social-comment-moderation` | Social Media | hard | verify.py |
+| `social-cross-publish` | Social Media | hard | verify.py |
+| `social-data-anomaly-report` | Social Media | hard | verify.py |
+| `social-pinned-post-update` | Social Media | hard | verify.py |
 
 ## Docker Image Architecture
 
@@ -387,8 +398,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-37 implemented tasks: A1=12, A2=6, B1=4, B2=11.
-Difficulty: Easy=23, Medium=8, Hard=5.
+45 implemented tasks: A1=17, A2=9, B1=10, B2=11.
+Difficulty: Easy=25, Medium=11, Hard=9.
 
 ## Known Issues
 

@@ -3,7 +3,7 @@ version = "1.0"
 [metadata]
 difficulty = "hard"
 category = "open-world"
-tags = ["social_media"]
+tags = ["social_media", "communication_email", "calendar_task_mgmt"]
 
 domain = "Social Media"
 domains_multi = ["Social Media", "Communication & Email", "Calendar & Task Mgmt"]

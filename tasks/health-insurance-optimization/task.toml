@@ -3,7 +3,7 @@ version = "1.0"
 [metadata]
 difficulty = "medium"
 category = "open-world"
-tags = ["ecommerce_daily_svcs"]
+tags = ["ecommerce_daily_svcs", "calendar_task_mgmt"]
 
 domain = "E-commerce & Daily Svcs"
 domains_multi = ["E-commerce & Daily Svcs", "Calendar & Task Mgmt"]
