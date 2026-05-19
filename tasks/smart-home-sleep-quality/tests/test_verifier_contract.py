@@ -112,6 +112,24 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
         self.assertGreater(fridge_count, 0, "fridge should not be empty")
         self.assertGreater(pantry_count, 0, "pantry should not be empty")
 
+        melatonin_row = conn.execute(
+            """
+            SELECT quantity, unit, category
+            FROM inventory_item
+            WHERE location = 'pantry' AND item_name = 'Melatonin 5mg'
+            """
+        ).fetchone()
+        self.assertEqual((0.0, "tablets", "Supplements"), melatonin_row)
+
+        chamomile_row = conn.execute(
+            """
+            SELECT quantity, unit, category
+            FROM inventory_item
+            WHERE location = 'pantry' AND item_name = 'Chamomile Tea'
+            """
+        ).fetchone()
+        self.assertEqual((10.0, "bags", "Beverages"), chamomile_row)
+
     def test_health_seed_executes_to_complete_snapshot_and_metric_series(self):
         conn = sqlite3.connect(":memory:")
         conn.executescript(
@@ -246,6 +264,45 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
         text = VERIFY_PATH.read_text()
         self.assertNotIn("readiness = 38", text)
         self.assertIn("readiness = 53", text)
+
+    def test_d6_requires_chamomile_tea_sufficiency_language(self):
+        response = (
+            "I checked your sleep data from last night on 2026-05-09. "
+            "Your sleep score was 60 and readiness was 53, so I set the thermostat to 68°F. "
+            "Melatonin was out of stock, so I placed order ORD000004. "
+            "Chamomile Tea is also a sleep aid and you already have 10 bags, so no extra tea order was needed."
+        )
+        with mock.patch.object(verify, "get_last_assistant_message", return_value=response), \
+             mock.patch.object(verify, "find_harbor_log_path", return_value=Path("/tmp/fake-harbor.jsonl")):
+            passed, details = verify.check_dimension_6()
+        self.assertTrue(passed, details)
+
+    def test_d6_fails_when_chamomile_tea_is_omitted(self):
+        response = (
+            "I checked your sleep data from last night on 2026-05-09. "
+            "Your sleep score was 60 and readiness was 53, so I set the thermostat to 68°F. "
+            "Melatonin was out of stock, so I placed order ORD000004."
+        )
+        with mock.patch.object(verify, "get_last_assistant_message", return_value=response), \
+             mock.patch.object(verify, "find_harbor_log_path", return_value=Path("/tmp/fake-harbor.jsonl")):
+            passed, details = verify.check_dimension_6()
+        self.assertFalse(passed)
+        self.assertIn("chamomile", details.lower())
+
+    def test_reward_file_tracks_d6_subscores(self):
+        text = VERIFY_PATH.read_text()
+        self.assertIn('"D6a": float(results.get("D6a", False))', text)
+        self.assertIn('"D6b": float(results.get("D6b", False))', text)
+        self.assertIn('"D6c": float(results.get("D6c", False))', text)
+        self.assertIn('"D6d": float(results.get("D6d", False))', text)
+
+    def test_verify_source_declares_d6_subdimensions_and_all_required(self):
+        text = VERIFY_PATH.read_text()
+        self.assertIn("D6a", text)
+        self.assertIn("D6b", text)
+        self.assertIn("D6c", text)
+        self.assertIn("D6d", text)
+        self.assertIn("all([d1_pass, d2_pass, d3_pass, d4_pass, d5_pass, d6a_pass, d6b_pass, d6c_pass, d6d_pass])", text)
 
     def test_test_sh_writes_reward_files_contract(self):
         text = TEST_SH_PATH.read_text()

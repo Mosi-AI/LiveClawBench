@@ -16,12 +16,12 @@ VALUES (1, 0.0, 0.0, 0.0, 0.0);
 
 -- Inventory Items
 INSERT OR IGNORE INTO inventory_item (id, item_name, quantity, unit, location, expiry_date, category) VALUES
-(1, 'Melatonin 5mg', 0.0, 'tablets', 'bedroom', '2026-12-01', 'Supplements'),
+(1, 'Melatonin 5mg', 0.0, 'tablets', 'pantry', '2026-12-01', 'Supplements'),
 (2, 'Greek Yogurt', 2.0, 'cups', 'fridge', '2026-05-12', 'Dairy'),
 (3, 'Baby Spinach', 1.0, 'bag', 'fridge', '2026-05-11', 'Produce'),
 (4, 'Eggs', 12.0, 'count', 'fridge', '2026-05-20', 'Protein'),
 (5, 'Rolled Oats', 1.0, 'bag', 'pantry', '2026-11-01', 'Grains'),
-(6, 'Chamomile Tea', 1.0, 'box', 'pantry', '2027-01-15', 'Beverages'),
+(6, 'Chamomile Tea', 10.0, 'bags', 'pantry', '2027-01-15', 'Beverages'),
 (7, 'Almond Butter', 1.0, 'jar', 'pantry', '2026-10-10', 'Spreads');
 
 -- Grocery Products (existing entries with order references for pattern inference)
