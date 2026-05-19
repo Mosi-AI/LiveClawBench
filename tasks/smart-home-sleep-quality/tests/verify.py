@@ -47,16 +47,24 @@ def detect_direct_api_calls():
 
     # Patterns that indicate direct API calls (not browser-based)
     # These are backend API endpoints that should only be accessed via browser
+
+    # Ports for the three mock services
+    mock_ports = [5004, 5007, 1234]
+
     direct_api_patterns = [
-        r"POST\s+http://localhost:5004/api/",
-        r"GET\s+http://localhost:5004/api/",
-        r"POST\s+http://localhost:5007/api/",
-        r"GET\s+http://localhost:5007/api/",
-        r"POST\s+http://localhost:1234/api/",
-        r"GET\s+http://localhost:1234/api/",
-        r'"url":\s*"http://localhost:5004/api/',
-        r'"url":\s*"http://localhost:5007/api/',
-        r'"url":\s*"http://localhost:1234/api/',
+        # HTTP verb patterns (any verb + absolute URL)
+        r"(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+http://localhost:(?:5004|5007|1234)/api/",
+        # JSON url field with absolute URL
+        r'"url":\s*"http://localhost:(?:5004|5007|1234)/api/',
+        # Raw curl command with absolute URL (most common form)
+        r"curl\s+.*http://localhost:(?:5004|5007|1234)/api/",
+        # Shell command with quoted absolute URL
+        r'"http://localhost:(?:5004|5007|1234)/api/',
+        # Relative /api/ paths in tool invocations (indicates direct backend access)
+        r'"path":\s*"/api/',
+        r'"endpoint":\s*"/api/',
+        # Bash/shell execution of API calls
+        r"-X\s+(?:GET|POST|PUT|DELETE|PATCH)\s+.*localhost:(?:5004|5007|1234)/api/",
     ]
 
     violations = []
