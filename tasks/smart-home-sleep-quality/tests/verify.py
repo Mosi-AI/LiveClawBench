@@ -10,6 +10,9 @@ Dimensions:
 - D5: Reference link (0.10) - grocery_product.reference matches order_id format
 - D6: Agent response (0.10) - mentions date, sleep_quality, readiness, 68°F, melatonin, order_id
 
+UI-ONLY CONSTRAINT: Agent must interact through web UIs, NOT direct backend API calls.
+Direct API calls to mock service endpoints are detected and cause immediate failure.
+
 All 6 dimensions are REQUIRED - any failure results in 0 for that dimension.
 Final score = sum of dimension scores (weights sum to 1.0).
 Zero-work baseline: 0.0 (all checks fail).
@@ -20,6 +23,52 @@ import re
 import sqlite3
 import sys
 from pathlib import Path
+
+
+def detect_direct_api_calls():
+    """Check if agent made direct backend API calls instead of using web UIs.
+
+    Returns (violation_found, details).
+    """
+    fallback_log_paths = [
+        Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
+        Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
+        Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
+    ]
+
+    actual_log_path = None
+    for path in fallback_log_paths:
+        if path.exists():
+            actual_log_path = path
+            break
+
+    if actual_log_path is None:
+        return False, "No harbor.jsonl found (oracle mode)"
+
+    # Patterns that indicate direct API calls (not browser-based)
+    # These are backend API endpoints that should only be accessed via browser
+    direct_api_patterns = [
+        r"POST\s+http://localhost:5004/api/",
+        r"GET\s+http://localhost:5004/api/",
+        r"POST\s+http://localhost:5007/api/",
+        r"GET\s+http://localhost:5007/api/",
+        r"POST\s+http://localhost:1234/api/",
+        r"GET\s+http://localhost:1234/api/",
+        r'"url":\s*"http://localhost:5004/api/',
+        r'"url":\s*"http://localhost:5007/api/',
+        r'"url":\s*"http://localhost:1234/api/',
+    ]
+
+    violations = []
+    with open(actual_log_path, "r") as f:
+        for line_num, line in enumerate(f, 1):
+            for pattern in direct_api_patterns:
+                if re.search(pattern, line):
+                    violations.append(f"Line {line_num}: direct API call detected")
+
+    if violations:
+        return True, "; ".join(violations[:5])  # Limit to first 5
+    return False, "No direct API calls detected"
 
 
 def get_last_assistant_message():
@@ -71,8 +120,13 @@ def check_dimension_1(conn):
     Expected values (with tolerance for readiness):
     - sleep_hours = 6.5
     - sleep_score = 60
-    - readiness = 53 (±1 tolerance for floating-point rounding)
+    - readiness = 38 (±1 tolerance for floating-point rounding)
     - resting_heart_rate = 72
+
+    Readiness formula (per UI tooltip):
+    - normalized_rhr = (resting_heart_rate - 40) / 60 * 100
+    - activity_factor = min(total_activity_min / 60, 100)
+    - readiness = sleep_quality * 0.4 + (100 - normalized_rhr) * 0.3 + activity_factor * 0.3
 
     Returns (pass, details).
     """
@@ -208,7 +262,7 @@ def check_dimension_6():
     required_keywords = [
         ("date/2026-05-09", re.search(r"2026-05-09|may 9|may 9th", response_lower)),
         ("sleep_quality/60", re.search(r"sleep.*(quality|score).*(60|low|poor)", response_lower) or re.search(r"60.*(sleep|quality|score)", response_lower)),
-        ("readiness/53", re.search(r"readiness.*(53|low|poor)", response_lower) or re.search(r"53.*readiness", response_lower)),
+        ("readiness/38", re.search(r"readiness.*(38|low|poor)", response_lower) or re.search(r"38.*readiness", response_lower)),
         ("68°F", re.search(r"68.*°?f|68.*degree|thermostat.*68", response_lower)),
         ("melatonin", "melatonin" in response_lower),
         ("order_id", re.search(r"ord\d{6}", response_lower)),
@@ -228,6 +282,15 @@ def main():
     score = 0.0
     results = {}
     melatonin_order_id = None
+
+    # UI-ONLY constraint check: detect direct backend API calls
+    api_violation, api_details = detect_direct_api_calls()
+    if api_violation:
+        print("UI-ONLY CONSTRAINT VIOLATION: Agent made direct backend API calls")
+        print(f"    -> {api_details}")
+        print("Score: 0.0/1.0")
+        print("FAILED: Agent must interact through web UIs, NOT direct API calls")
+        sys.exit(1)
 
     # Connect to smarthome SQLite
     smarthome_path = "/tmp/mosi_smart_home.sqlite"
@@ -300,8 +363,11 @@ def main():
     print(f"    -> {d6_details}")
     print(f"Score: {score:.2f}/1.0")
 
-    # Exit code: 0 if score >= 0.5, non-zero otherwise
-    sys.exit(0 if score >= 0.5 else 1)
+    # All 6 dimensions are REQUIRED - exit 0 only if ALL pass
+    all_pass = all([d1_pass, d2_pass, d3_pass, d4_pass, d5_pass, d6_pass])
+    if not all_pass:
+        print("FAILED: All 6 dimensions are REQUIRED")
+    sys.exit(0 if all_pass else 1)
 
 
 if __name__ == "__main__":

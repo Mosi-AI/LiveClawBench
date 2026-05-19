@@ -8,7 +8,7 @@ echo "=== Smart Home Sleep Quality Oracle Solution ==="
 
 # Step 1: Get health data from health-mock
 echo "Step 1: Fetching health data from health-mock..."
-HEALTH_DATA=$(curl -s http://localhost:5007/api/health/snapshot/2026-05-09)
+HEALTH_DATA=$(curl -s "http://localhost:5007/api/health/snapshot?date=2026-05-09")
 echo "Health data: $HEALTH_DATA"
 
 # Parse health data
@@ -37,7 +37,7 @@ echo "  readiness: $READINESS"
 
 # Step 3: Sync to smarthome wearable
 echo "Step 3: Syncing to smarthome wearable..."
-curl -s -X POST http://localhost:5004/api/wearable/recovery \
+curl -s -X POST http://localhost:5004/api/wearable-recovery \
   -H "Content-Type: application/json" \
   -d "{\"sleep_hours\": $SLEEP_HOURS, \"sleep_score\": $SLEEP_QUALITY, \"readiness\": $READINESS, \"resting_heart_rate\": $RESTING_HEART_RATE}"
 echo ""
@@ -64,24 +64,28 @@ echo "  Melatonin quantity: $MELATONIN_QTY"
 if [ "$MELATONIN_QTY" -eq 0 ]; then
   echo "  Melatonin out of stock, ordering..."
 
-  # Step 6: Order Melatonin from shop
-  echo "Step 6: Ordering Melatonin from shop..."
-  ORDER_RESULT=$(curl -s -X POST http://localhost:1234/api/checkout \
+  # Step 6: Add Melatonin to cart and checkout
+  echo "Step 6: Adding Melatonin to cart..."
+  curl -s -X POST http://localhost:1234/api/cart/add \
     -H "Content-Type: application/json" \
-    -d '{"items": [{"product_id": "prod_melatonin", "quantity": 1}]}')
-  ORDER_ID=$(echo "$ORDER_RESULT" | python3 -c "import sys, json; print(json.load(sys.stdin).get('order_id', ''))")
+    -d '{"product_id": "prod_melatonin"}'
+  echo ""
+
+  echo "Step 7: Checking out..."
+  ORDER_RESULT=$(curl -s -X POST http://localhost:1234/api/checkout)
+  ORDER_ID=$(echo "$ORDER_RESULT" | python3 -c "import sys, json; data = json.load(sys.stdin); print(data.get('data', {}).get('order_id', ''))")
   echo "  Order placed: $ORDER_ID"
 
-  # Step 7: Add to shopping list with reference
-  echo "Step 7: Adding Melatonin to shopping list with order reference..."
-  curl -s -X POST http://localhost:5004/api/grocery \
+  # Step 8: Add to shopping list with reference
+  echo "Step 8: Adding Melatonin to shopping list with order reference..."
+  curl -s -X POST http://localhost:5004/api/grocery/products \
     -H "Content-Type: application/json" \
     -d "{\"product_id\": \"PROD_MELATONIN\", \"name\": \"Melatonin 5mg\", \"quantity\": 50, \"unit\": \"tablets\", \"stock_status\": \"insufficient\", \"reference\": \"$ORDER_ID\"}"
   echo ""
 fi
 
-# Step 8: Report findings
-echo "Step 8: Writing response..."
+# Step 9: Report findings
+echo "Step 9: Writing response..."
 mkdir -p /workspace/output
 cat > /workspace/output/response.txt << EOF
 I checked your sleep data from last night (2026-05-09) in the health app. Here's what I found:

@@ -52,7 +52,7 @@ INSERT OR REPLACE INTO health_daily_snapshot (user_id, date, steps, active_energ
 -- Day 30 (2026-05-09): OUTLIER - poor sleep and recovery
 -- sleep_quality=60 (< 70 threshold), resting_heart_rate_bpm=72 (higher than normal)
 -- total_activity_min=30 (low), sleep_hours=6.5 (less than 7)
--- Expected readiness calculation:
+-- Expected readiness calculation (per UI tooltip formula):
 --   normalized_rhr = (72 - 40) / 60 * 100 = 53.33
 --   activity_factor = min(30 / 60 * 100, 100) = 50
 --   readiness = 60 * 0.4 + (100 - 53.33) * 0.3 + 50 * 0.3 = 24 + 14 + 15 = 53

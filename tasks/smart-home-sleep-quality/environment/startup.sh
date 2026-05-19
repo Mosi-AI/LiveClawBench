@@ -1,9 +1,7 @@
 #!/bin/bash
-# Startup script for smart-home-sleep-quality task
-# Starts smarthome-mock (5004), health-mock (5007), shop-mock (1234)
-# Initializes health database with seed data
-
-set -e
+# startup_extra for smart-home-sleep-quality task
+# This runs AFTER mock binaries are already started by the platform
+# Only seed data initialization and symlinks go here
 
 # Create data directories
 mkdir -p /var/lib/mock-data/smarthome
@@ -79,31 +77,3 @@ EOF
 ln -sf /var/lib/mock-data/smarthome/smarthome.db /tmp/mosi_smart_home.sqlite
 ln -sf /var/lib/mock-data/health/health.db /workspace/health.db
 ln -sf /var/lib/mock-data/shop/mosi_shop_orders.json /tmp/mosi_shop_orders.json
-
-# Start mock services
-# smarthome-mock on port 5004
-/opt/mock/bin/mock-smarthome &
-SMARTHOME_PID=$!
-
-# health-mock on port 5007
-/opt/mock/bin/mock-health &
-HEALTH_PID=$!
-
-# shop-mock on port 1234
-/opt/mock/bin/mock-shop &
-SHOP_PID=$!
-
-# Wait for all services to be ready
-echo "Waiting for services to start..."
-for i in {1..30}; do
-    if curl -s http://localhost:5004/__mock_sentinel__/smarthome > /dev/null 2>&1 && \
-       curl -s http://localhost:5007/__mock_sentinel__/health > /dev/null 2>&1 && \
-       curl -s http://localhost:1234/__mock_sentinel__/shop > /dev/null 2>&1; then
-        echo "All services ready"
-        break
-    fi
-    sleep 1
-done
-
-# Keep foreground process running
-wait $SMARTHOME_PID $HEALTH_PID $SHOP_PID
