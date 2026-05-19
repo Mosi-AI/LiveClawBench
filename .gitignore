@@ -42,12 +42,16 @@ run_*.sh
 
 # Claude Code worktrees and session data
 .claude/
+.tmp-claude-global-template.md
 
 # Playwright MCP session logs
 .playwright-mcp/
 
 # Shell redirect artifacts (accidental `>&amp;` typos create files named `amp`)
 amp
+
+# Context creation pipeline (plan/spec files - local only)
+context_create_pipeline/
 
 # Humanize plugin state (drafts, plans, plan QA, bitlesson, config)
 .humanize/
@@ -59,6 +63,12 @@ docs/superpowers/
 .venv
 .venv/
 
+jobs-verify/
 tasks/**/airline-app/frontend/dist/
 tasks/**/email-app/frontend/dist/
 tasks/**/todolist-app/frontend/dist/
+
+# Mock platform runtime data
+mock-platform/data/
+
+# Unfinished  tasks (local work in progress, not tracked)

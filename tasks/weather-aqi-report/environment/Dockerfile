@@ -1,4 +1,4 @@
-﻿FROM liveclawbench-weather-aqi-report-base:latest
+FROM liveclawbench-weather-aqi-report-base:latest
 
 COPY . /workspace/environment/
 

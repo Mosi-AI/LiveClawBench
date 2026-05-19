@@ -1,5 +1,6 @@
 FROM liveclawbench-mint-diet-snack-log-base:latest
 
+# The per-task base image provides /opt/mock/entrypoint.sh and the Mint Diet startup script.
 HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 
 USER root

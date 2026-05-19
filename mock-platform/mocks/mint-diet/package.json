@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@hono/zod-openapi": "^0.19.5",
     "hono": "^4.8.0",
-    "mock-lib": "workspace:*"
+    "mock-lib": "workspace:*",
+    "zod": "^3.22.0"
   }
 }

@@ -1,9 +1,13 @@
 import type { Database } from "bun:sqlite";
-import { formatDateTime } from "mock-lib";
+import type { ApiResponse, PaginatedResult } from "./types";
 
-export { formatDateTime };
+export function ok<T>(data: T, message?: string): ApiResponse<T> {
+  return { success: true, ...(message ? { message } : {}), data };
+}
 
-export const DEFAULT_USER_ID = 1;
+export function err(message: string): ApiResponse<never> {
+  return { success: false, message };
+}
 
 export function paginate<T>(
   items: T[],
@@ -19,6 +23,10 @@ export function paginate<T>(
     per_page: perPage,
     pages: Math.ceil(total / perPage),
   };
+}
+
+export function formatDateTime(d: Date): string {
+  return d.toISOString().replace("T", " ").slice(0, 19);
 }
 
 export function parsePageParams(
@@ -39,51 +47,6 @@ export function generateBookingReference(): string {
   return ref;
 }
 
-import { pbkdf2Sync } from "node:crypto";
-
-/**
- * Verify a Werkzeug-generated password hash.
- * Format: pbkdf2:sha256:iterations$salt$hash
- */
-export async function verifyWerkzeugHash(hash: string, password: string): Promise<boolean> {
-  const parts = hash.split("$");
-  if (parts.length !== 3) return false;
-
-  const [methodPart, saltHex, storedHash] = parts;
-  const methodMatch = methodPart.match(/^pbkdf2:sha256:(\d+)$/);
-  if (!methodMatch) return false;
-
-  const iterations = parseInt(methodMatch[1], 10);
-  const salt = new TextEncoder().encode(saltHex);
-  const passwordBytes = new TextEncoder().encode(password);
-
-  const keyMaterial = await crypto.subtle.importKey("raw", passwordBytes, { name: "PBKDF2" }, false, ["deriveBits"]);
-  const derivedBits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
-    keyMaterial,
-    256,
-  );
-  const derivedHash = Array.from(new Uint8Array(derivedBits))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return derivedHash === storedHash;
-}
-
-/**
- * Synchronous variant for seedDatabase.
- */
-export function generateWerkzeugHashSync(password: string, iterations = 600000): string {
-  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
-  const saltHex = Array.from(saltBytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  const derived = pbkdf2Sync(password, saltHex, iterations, 32, "sha256");
-  const hashHex = Array.from(derived)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return `pbkdf2:sha256:${iterations}$${saltHex}$${hashHex}`;
-}
-
 export function getUserById(db: Database, userId: number) {
   return db
     .query(
@@ -99,4 +62,66 @@ export function getUserById(db: Database, userId: number) {
     is_verified: number;
     is_active: number;
   } | null;
+}
+
+import { pbkdf2Sync } from "node:crypto";
+
+/**
+ * Verify a Werkzeug-generated password hash.
+ *
+ * Werkzeug format: pbkdf2:sha256:iterations$salt$hash
+ * Uses Web Crypto API to replicate hashlib.pbkdf2_hmac('sha256', ...).
+ */
+export async function verifyWerkzeugHash(hash: string, password: string): Promise<boolean> {
+  const parts = hash.split("$");
+  if (parts.length !== 3) return false;
+
+  const [methodPart, saltHex, storedHash] = parts;
+  const methodMatch = methodPart.match(/^pbkdf2:sha256:(\d+)$/);
+  if (!methodMatch) return false;
+
+  const iterations = parseInt(methodMatch[1], 10);
+  const salt = new TextEncoder().encode(saltHex);
+  const passwordBytes = new TextEncoder().encode(password);
+
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    passwordBytes,
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"],
+  );
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    256,
+  );
+
+  const derivedHash = Array.from(new Uint8Array(derivedBits))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return derivedHash === storedHash;
+}
+
+/**
+ * Synchronous variant of generateWerkzeugHash for use in seedDatabase.
+ */
+export function generateWerkzeugHashSync(password: string, iterations = 600000): string {
+  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+  const saltHex = Array.from(saltBytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  const derived = pbkdf2Sync(password, saltHex, iterations, 32, "sha256");
+  const hashHex = Array.from(derived)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return `pbkdf2:sha256:${iterations}$${saltHex}$${hashHex}`;
 }

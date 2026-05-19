@@ -14,9 +14,11 @@ export { createMockApp, registerFrontendFallback } from "./create-app";
 export { startServer } from "./server";
 
 // Auth
-export { sign, verify, _resetSecret, tokenCookieOptions } from "./auth";
+export { sign, verify, _resetSecret, tokenCookieOptions, serializeCookie } from "./auth";
 export type { JwtPayload, TokenCookieOptions } from "./auth";
 export { authRequired, authOptional } from "./auth";
+export type { AuthOptions } from "./auth";
+export { BCRYPT_SALT_ROUNDS } from "./auth";
 
 // Database
 export { getDb, resetDb, migrate } from "./db";

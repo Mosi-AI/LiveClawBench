@@ -1,13 +1,12 @@
 import { z } from "zod";
 import { existsSync } from "node:fs";
-import { createMockApp, createRoute, startServer, registerFrontendFallback } from "mock-lib";
+import { createMockApp, createRoute, startServer, registerFrontendFallback, authRequired } from "mock-lib";
 import { getAirlineDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
 import { registerAuthRoutes } from "./routes/auth";
 import { registerProfileRoutes } from "./routes/profile";
 import { registerFlightRoutes } from "./routes/flights";
 import { registerBookingRoutes } from "./routes/bookings";
-import { registerSeatRoutes } from "./routes/seats";
 import { registerCheckinRoutes } from "./routes/checkin";
 import { registerClaimRoutes } from "./routes/claims";
 import { registerBaggageRoutes } from "./routes/baggage";
@@ -56,12 +55,27 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
 
   app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
+  // Global auth middleware: protect all /api/* routes except public ones
+  const PUBLIC_PATHS = ["/api/auth/login", "/api/auth/register"];
+  const PUBLIC_PREFIXES = [
+    "/api/flights",
+    "/api/announcements",
+    "/api/faq",
+    "/api/info",
+    "/api/claims/calculate-refund",
+  ];
+  app.use("/api/*", async (c, next) => {
+    const path = c.req.path;
+    if (PUBLIC_PATHS.includes(path)) return next();
+    if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return next();
+    return authRequired(c, next);
+  });
+
   // Register all route modules
   registerAuthRoutes(app, db);
   registerProfileRoutes(app, db);
   registerFlightRoutes(app, db);
   registerBookingRoutes(app, db);
-  registerSeatRoutes(app, db);
   registerCheckinRoutes(app, db);
   registerClaimRoutes(app, db);
   registerBaggageRoutes(app, db);

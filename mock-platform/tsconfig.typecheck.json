@@ -13,6 +13,12 @@
     "mocks/email/tests/**/*.ts",
     "mocks/todolist/src/**/*.ts",
     "mocks/todolist/tests/**/*.ts",
+    "mocks/insurance/src/**/*.ts",
+    "mocks/insurance/src/**/*.tsx",
+    "mocks/insurance/tests/**/*.ts",
+    "mocks/calendar/src/**/*.ts",
+    "mocks/calendar/src/**/*.tsx",
+    "mocks/calendar/tests/**/*.ts",
     "scripts/**/*.ts",
     "tools/**/*.ts"
   ],

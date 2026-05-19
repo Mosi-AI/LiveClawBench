@@ -44,3 +44,10 @@ python-version = "3.12"
 # TODO: expand to tasks/*/tests/ once verify.py files no longer use Docker-only import paths
 #   (verify.py runs sys.path.insert(0, "/workspace/environment/...") which only exists in-container)
 include = ["scripts"]
+
+[tool.ty.analysis]
+# scripts/extract_hf_parity.py is a one-off HuggingFace trajectory-analysis tool that
+# requires `datasets` and `pandas`. These are heavy ML deps not needed by the benchmark
+# itself; allowing the unresolved imports keeps the install footprint small while
+# still type-checking everything else in scripts/.
+allowed-unresolved-imports = ["datasets", "pandas"]

@@ -38,9 +38,16 @@ const BINARY_PORTS: Record<string, number> = {
   shop: 1234,
   todolist: 5002,
   "doc-search": 8123,
+  finance: 1235,
+  insurance: 6000,
+  calendar: 5006,
   "mint-diet": 5003,
   weather: 3000,
   calendar: 5003,
+  social: 5004,
+  expense: 5005,
+  health: 5007,
+  smarthome: 5004,
 };
 
 function portProxyLines(listenPort: number, targetPort: number): string[] {
@@ -73,7 +80,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 38 benchmark task names (canonical source of truth)
+// All benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -84,10 +91,14 @@ const ALL_TASK_NAMES = new Set([
   "skill-creation", "skill-repository-curation", "skill-supplementation",
   "skill-conflict-resolution", "skill-dependency-fix", "noise-filtering",
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
-  "conflict-repair-acb", "skill-combination", "mint-diet-snack-log", "weather-aqi-report",
+  "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
+  "mint-diet-snack-log", "weather-aqi-report",
+  "social-media-posting", "social-unlike-post", "expense-draft-delete",
+  "finance-portfolio-rebalancing", "finance-monthly-close",
+  "health-daily-record", "smarthome-test", "grocery-reorder",
+  "morning-comfort-setup",
   "weather-city-travel-pick", "weather-outdoor-window", "pre-meeting-research-brief",
-  "vendor-due-diligence-brief",
-  "grant-application-evidence-brief", "analyst-call-qna-pack",
+  "vendor-due-diligence-brief", "grant-application-evidence-brief", "analyst-call-qna-pack",
 ]);
 
 interface AssetMapping {
@@ -415,6 +426,13 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`export CALENDAR_DB_PATH=/var/lib/mock-data/calendar/calendar.db`);
         lines.push(`mkdir -p /var/lib/mock-data/calendar`);
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/calendar-backend.log 2>&1 &`);
+      } else if (bin === "expense") {
+        lines.push(`export EXPENSE_MOCK_DB_PATH=/var/lib/mock-data/expense/expense.db`);
+        lines.push(`export EXPENSE_MOCK_ATTACHMENTS_DIR=/var/lib/mock-data/expense/attachments`);
+        lines.push(`mkdir -p /var/lib/mock-data/expense/attachments`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/expense-backend.log 2>&1 &`);
+        lines.push(`echo "Expense frontend served by Bun on port ${port}" > /tmp/expense-frontend.log`);
+        lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/expense-npm-install.log`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }

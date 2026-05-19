@@ -1,0 +1,10 @@
+{
+  "name": "@mock/health",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "hono": "^4.8.0",
+    "mock-lib": "workspace:*",
+    "zod": "^3.22.0"
+  }
+}

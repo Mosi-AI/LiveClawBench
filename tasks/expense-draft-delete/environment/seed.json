@@ -1,0 +1,35 @@
+{
+  "users": [],
+  "drafts": [
+    {
+      "draft_code": "EXP-001",
+      "vendor_name": "Cloudflare",
+      "category": "software",
+      "amount": 150.0,
+      "currency": "USD",
+      "invoice_date": "2026-04-15",
+      "expense_date": "2026-04-15",
+      "notes": "April software",
+      "source_type": "manual",
+      "status": "draft",
+      "attachment_ref": null,
+      "owner_email": "alice@mosi.inc"
+    },
+    {
+      "draft_code": "EXP-002",
+      "vendor_name": "AWS",
+      "category": "transport",
+      "amount": 89.5,
+      "currency": "USD",
+      "invoice_date": "2026-04-20",
+      "expense_date": "2026-04-20",
+      "notes": "April cloud",
+      "source_type": "manual",
+      "status": "draft",
+      "attachment_ref": null,
+      "owner_email": "alice@mosi.inc"
+    }
+  ],
+  "attachments": [],
+  "activities": []
+}

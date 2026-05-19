@@ -1,8 +1,5 @@
 import type { OpenAPIApp } from "mock-lib";
-import { z } from "zod";
-import { createRoute } from "mock-lib";
-import { ok } from "mock-lib";
-import { OkSchema, RestaurantSchema, AirportInfoSchema } from "../schemas";
+import { ok } from "../helpers";
 
 const RESTAURANTS = [
   { id: 1, name: "Sky Bistro", cuisine: "International", location: "Terminal 1, Gate A", rating: 4.5, price_range: "$$$", hours: "06:00 - 22:00" },
@@ -22,40 +19,13 @@ const AIRPORT_INFO = {
 };
 
 export function registerInfoRoutes(app: OpenAPIApp): void {
-  const restaurantListResponse = OkSchema(z.object({ restaurants: z.array(RestaurantSchema) }));
-  const airportInfoResponse = OkSchema(z.object({ airport_info: AirportInfoSchema }));
-
   // GET /api/info/restaurant
-  const restaurantRoute = createRoute({
-    method: "get",
-    path: "/api/info/restaurant",
-    summary: "List restaurants",
-    responses: {
-      200: {
-        content: { "application/json": { schema: restaurantListResponse } },
-        description: "OK",
-      },
-    },
-  });
-
-  app.openApiRoute(restaurantRoute, (c) => {
+  app.get("/api/info/restaurant", (c) => {
     return c.json(ok({ restaurants: RESTAURANTS }));
   });
 
   // GET /api/info/airport
-  const airportRoute = createRoute({
-    method: "get",
-    path: "/api/info/airport",
-    summary: "Get airport info",
-    responses: {
-      200: {
-        content: { "application/json": { schema: airportInfoResponse } },
-        description: "OK",
-      },
-    },
-  });
-
-  app.openApiRoute(airportRoute, (c) => {
+  app.get("/api/info/airport", (c) => {
     return c.json(ok({ airport_info: AIRPORT_INFO }));
   });
 }
