@@ -2,10 +2,10 @@
 """Verify social-media-posting: check alice's post appears in public feed"""
 
 import json
+import sys
 import urllib.error
 import urllib.request
 
-SCORE = 0.0
 BASE_URL = "http://127.0.0.1:5004"
 
 
@@ -28,54 +28,40 @@ def api(path, method="GET", data=None, cookie=None):
         return 0, {"error": str(e)}
 
 
-# Step 1: Login as alice
-status, body = api(
-    "/api/auth/login", "POST", {"username": "alice", "password": "demo123"}
-)
-if status != 200 or not body.get("success"):
-    print(f"Score: {SCORE}/1.0")
-    print("FAIL: alice login failed")
-    exit(0 if SCORE >= 0.5 else 1)
+def main() -> float:
+    # Step 1: Login as alice
+    status, body = api(
+        "/api/auth/login", "POST", {"username": "alice", "password": "demo123"}
+    )
+    if status != 200 or not body.get("success"):
+        print("Score: 0.0/1.0")
+        print("FAIL: alice login failed")
+        return 0.0
 
-cookie = f"token={body.get('session_token', '')}"
-if not cookie or cookie == "token=":
-    # Try to extract from Set-Cookie header
-    print("Warning: no session_token in login response")
+    session_token = body.get("session_token", "")
+    if not session_token:
+        print("Warning: no session_token in login response")
 
-# Step 2: Create post "Hello from the test!"
-status, body = api(
-    "/api/posts",
-    "POST",
-    {"content": "Hello from the test!", "status": "published", "visibility": "public"},
-    cookie,
-)
+    # Step 2: Verify post appears in public feed (agent should have created it)
+    status, body = api("/api/posts")
+    if status != 200:
+        print("Score: 0.0/1.0")
+        print(f"FAIL: feed retrieval returned {status}")
+        return 0.0
 
-if status != 201:
-    print(f"Score: {SCORE}/1.0")
-    print(f"FAIL: post creation returned {status}")
-    exit(0 if SCORE >= 0.5 else 1)
+    posts = body if isinstance(body, list) else body.get("posts", [])
+    found = any(p.get("content") == "Hello from the test!" for p in posts)
 
-post_id = body.get("post_id")
-if not post_id:
-    print("FAIL: no post_id in response")
-    exit(0 if SCORE >= 0.5 else 1)
+    if found:
+        print("PASS: alice's post found in public feed")
+        return 1.0
 
-# Step 3: Verify post appears in public feed
-status, body = api("/api/posts")
-if status != 200:
-    print(f"Score: {SCORE}/1.0")
-    print(f"FAIL: feed retrieval returned {status}")
-    exit(0 if SCORE >= 0.5 else 1)
-
-posts = body if isinstance(body, list) else body.get("posts", [])
-found = any(p.get("content") == "Hello from the test!" for p in posts)
-
-if found:
-    SCORE = 1.0
-    print("PASS: alice's post found in public feed")
-else:
     print("FAIL: alice's post not found in feed")
     print(f"Available posts: {[p.get('content') for p in posts]}")
+    return 0.0
 
-print(f"Score: {SCORE}/1.0")
-exit(0 if SCORE >= 0.5 else 1)
+
+if __name__ == "__main__":
+    score = main()
+    print(f"Score: {score}/1.0")
+    sys.exit(0 if score >= 0.5 else 1)

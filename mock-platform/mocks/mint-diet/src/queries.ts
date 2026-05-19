@@ -31,7 +31,6 @@ export interface FoodCatalog {
 export type MealSlot = "breakfast" | "lunch" | "dinner" | "snacks";
 export type PlanMealSlot = Exclude<MealSlot, "snacks">;
 export type PlanStatus = "draft" | "active" | "archived";
-
 export interface FoodEntry {
   id: number;
   daily_log_id: number;
@@ -309,7 +308,6 @@ function localDateStr(date: Date): string {
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
-
 function eachDateInRange(start: string, end: string): string[] {
   const dates: string[] = [];
   const cur = new Date(start + "T00:00:00");

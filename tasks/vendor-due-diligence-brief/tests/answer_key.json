@@ -1,0 +1,13 @@
+{
+  "anchors": [
+    "AES-256-GCM",
+    "SOC 2 Type II audit is currently in progress",
+    "overage fees",
+    "IP dispute with ForgeNet",
+    "founded in 2022",
+    "marcus webb",
+    "partnerships@cloudedge.io"
+  ],
+  "required_fields": ["vendor_background", "fit_assessment", "red_flags", "recommendation"],
+  "min_red_flags": 3
+}

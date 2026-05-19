@@ -16,6 +16,7 @@
 
 import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync, readdirSync, realpathSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
+import { createHash } from "node:crypto";
 
 const DIST_DIR = join(import.meta.dir, "..", "dist");
 const CONFIG_PATH = join(import.meta.dir, "..", "config", "task-binary-map.json");
@@ -37,6 +38,7 @@ const BINARY_PORTS: Record<string, number> = {
   shop: 1234,
   todolist: 5002,
   "doc-search": 8123,
+  finance: 1235,
   insurance: 6000,
   calendar: 5006,
   "mint-diet": 5003,
@@ -44,6 +46,7 @@ const BINARY_PORTS: Record<string, number> = {
   social: 5004,
   expense: 5005,
   health: 5007,
+  smarthome: 5004,
 };
 
 function portProxyLines(listenPort: number, targetPort: number): string[] {
@@ -76,7 +79,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 43 benchmark task names (canonical source of truth)
+// All 54 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -90,7 +93,11 @@ const ALL_TASK_NAMES = new Set([
   "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
   "mint-diet-snack-log", "weather-aqi-report",
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
-  "health-daily-record",
+  "finance-portfolio-rebalancing", "finance-monthly-close",
+  "health-daily-record", "smarthome-test", "grocery-reorder",
+  "morning-comfort-setup",
+  "weather-city-travel-pick", "weather-outdoor-window", "pre-meeting-research-brief",
+  "vendor-due-diligence-brief",
   "meeting-reschedule-response", "candidate-interview-slot-confirm",
   "medication-prescription-sync", "health-appointment-scheduling",
   "content-calendar-cross-publish",
@@ -628,6 +635,7 @@ async function buildTaskImage(
   startupExtraPath?: string,
   assets?: AssetMapping[],
   frontends?: FrontendConfig[],
+  force = false,
 ): Promise<BuildTaskImageResult> {
   const imageTag = `liveclawbench-${task}-base:latest`;
 
@@ -650,7 +658,19 @@ async function buildTaskImage(
       };
     }
 
-    // Reject stale binaries (any source file newer than compiled artifact)
+    // Reject stale binaries using content-hash comparison.
+    //
+    // Manifests are written exclusively by `bun run build` (build-all.ts) after
+    // isolation verification and transactional publish: compile→temp, isolate,
+    // backup old artifacts, promote temp binary+manifest atomically, delete backups.
+    // This script never writes manifests; stale detection cannot self-clear on re-invocation.
+    //
+    // Manifest path: dist/manifest-<bin>.json  (gitignored alongside binaries)
+    // Format: { "<src-relative-path>": "<sha256-hex>", ... }
+    //         paths use forward slashes for cross-platform consistency.
+    //
+    // Missing manifest  → fail (binary has no build provenance; run `bun run build`).
+    // Corrupt/mismatched → fail (source changed; run `bun run build` to rebuild).
     const srcDir = join(MOCKS_DIR, bin, "src");
     const tsEp = join(srcDir, "index.ts");
     const tsxEp = join(srcDir, "index.tsx");
@@ -665,11 +685,8 @@ async function buildTaskImage(
       };
     }
 
-    const binaryStat = statSync(binaryPath);
-    // Check all .ts/.tsx files in the src directory, not just the entry point,
-    // since imported modules (e.g. search-algorithm.ts) may have changed.
+    // Collect all .ts/.tsx files in the src directory.
     function collectTsFiles(dir: string, visited = new Set<string>()): string[] {
-      // Symlink cycle protection: track realpaths to avoid infinite recursion
       let realDir: string;
       try {
         realDir = realpathSync(dir);
@@ -690,17 +707,53 @@ async function buildTaskImage(
       }
       return results;
     }
-    const srcFiles = collectTsFiles(srcDir);
-    const staleFile = srcFiles.find((f) => statSync(f).mtimeMs > binaryStat.mtimeMs);
-    if (staleFile) {
-      const sourceStat = statSync(staleFile);
-      return {
-        task,
-        success: false,
-        imageTag,
-        binariesIncluded: binaries,
-        error: `Stale binary: ${binaryPath} (source ${sourceStat.mtimeMs} newer than binary ${binaryStat.mtimeMs})`,
-      };
+
+    const srcFiles = collectTsFiles(srcDir).sort();
+
+    // Compute SHA-256 of each source file using src-relative forward-slash paths
+    // so manifests written on Linux (WSL bun run build) compare correctly on Windows.
+    // Normalize CRLF→LF before hashing to match build-all.ts manifest generation.
+    function sha256File(path: string): string {
+      const content = readFileSync(path, "utf-8").replace(/\r\n/g, "\n");
+      return createHash("sha256").update(content).digest("hex");
+    }
+    const currentHashes: Record<string, string> = {};
+    for (const f of srcFiles) {
+      const rel = relative(srcDir, f).replace(/\\/g, "/");
+      currentHashes[rel] = sha256File(f);
+    }
+
+    const manifestPath = join(DIST_DIR, `manifest-${bin}.json`);
+
+    // Image builder is read-only for manifests; build-all.ts owns manifest writes.
+    if (!force) {
+      if (!existsSync(manifestPath)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `No build manifest for mock-${bin}. Run \`bun run build\` in mock-platform/ to compile the binary and generate the manifest.`,
+        };
+      }
+      let isStale: boolean;
+      try {
+        const cached: Record<string, string> = JSON.parse(readFileSync(manifestPath, "utf-8"));
+        isStale =
+          Object.keys(currentHashes).some((r) => cached[r] !== currentHashes[r]) ||
+          Object.keys(cached).some((r) => !(r in currentHashes));
+      } catch {
+        isStale = true;
+      }
+      if (isStale) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Stale binary: mock-${bin} — source changed since last build. Run \`bun run build\` in mock-platform/ to rebuild.`,
+        };
+      }
     }
   }
 
@@ -1031,11 +1084,14 @@ async function buildTaskImage(
   writeFileSync(dockerfilePath, dockerfileLines.join("\n") + "\n");
 
   // Build context needs both dist/ (for binaries) and shared/ (for entrypoint.sh)
-  // We copy entrypoint.sh into the dist dir temporarily for the build context
+  // We copy entrypoint.sh into the dist dir temporarily for the build context.
+  // Normalize CRLF→LF so the shebang is executable on Linux regardless of
+  // the host OS checkout state (core.autocrlf=true writes CRLF on Windows).
   const entrypointDest = join(DIST_DIR, "entrypoint.sh");
   const entrypointSrc = ENTRYPOINT_SRC;
   if (existsSync(entrypointSrc)) {
-    writeFileSync(entrypointDest, readFileSync(entrypointSrc));
+    const raw = readFileSync(entrypointSrc, "utf-8");
+    writeFileSync(entrypointDest, raw.replace(/\r\n/g, "\n"), "utf-8");
   }
 
   if (dryRun) {
@@ -1064,11 +1120,16 @@ async function buildTaskImage(
 
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
+  const force = process.argv.includes("--force");
+  const taskArgIdx = process.argv.indexOf("--task");
+  const taskFilter = taskArgIdx !== -1 ? process.argv[taskArgIdx + 1] : undefined;
 
   console.log("=== LiveClawBench Task Image Builder ===\n");
   console.log(`Base image: ${BASE_IMAGE}`);
   console.log(`Mapping:    ${CONFIG_PATH}`);
   if (dryRun) console.log("Mode:       DRY RUN\n");
+  if (force) console.log("Mode:       FORCE (stale-check bypassed)\n");
+  if (taskFilter) console.log(`Filter:     --task ${taskFilter}\n`);
 
   // Schema validation gate — fail fast before any image build
   let mapping: MappingConfig;
@@ -1080,13 +1141,22 @@ async function main() {
     process.exit(1);
   }
 
+  // Apply optional task filter
+  if (taskFilter) {
+    if (!(taskFilter in mapping.tasks)) {
+      console.error(`Error: task "${taskFilter}" not found in task-binary-map.json`);
+      process.exit(1);
+    }
+    mapping.tasks = { [taskFilter]: mapping.tasks[taskFilter] };
+  }
+
   const taskCount = Object.keys(mapping.tasks).length;
   console.log(`Tasks:      ${taskCount}\n`);
 
   const results: BuildTaskImageResult[] = [];
   for (const [task, config] of Object.entries(mapping.tasks)) {
     process.stdout.write(`Building ${task} (${config.binaries.length} binaries)... `);
-    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontends);
+    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontends, force);
     results.push(result);
 
     if (result.success) {

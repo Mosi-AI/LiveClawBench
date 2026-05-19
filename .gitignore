@@ -42,6 +42,7 @@ run_*.sh
 
 # Claude Code worktrees and session data
 .claude/
+.tmp-claude-global-template.md
 
 # Playwright MCP session logs
 .playwright-mcp/
@@ -62,9 +63,12 @@ docs/superpowers/
 .venv
 .venv/
 
+jobs-verify/
 tasks/**/airline-app/frontend/dist/
 tasks/**/email-app/frontend/dist/
 tasks/**/todolist-app/frontend/dist/
 
 # Mock platform runtime data
 mock-platform/data/
+
+# Unfinished  tasks (local work in progress, not tracked)

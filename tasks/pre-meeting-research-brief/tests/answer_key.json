@@ -1,0 +1,14 @@
+{
+  "anchors": [
+    "founded in 2021",
+    "$85M Series B",
+    "500 enterprise clients",
+    "GDPR Article 28",
+    "Q3 2026"
+  ],
+  "required_fields": ["meeting_summary", "background", "discussion_points", "risks", "opportunities", "suggested_questions"],
+  "min_discussion_points": 3,
+  "min_questions": 3,
+  "min_risks": 1,
+  "min_opportunities": 1
+}
