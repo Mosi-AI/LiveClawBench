@@ -25,22 +25,25 @@ import sys
 from pathlib import Path
 
 
-def detect_direct_api_calls():
-    """Check if agent made direct backend API calls instead of using web UIs.
-
-    Returns (violation_found, details).
-    """
+def find_harbor_log_path():
     fallback_log_paths = [
         Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
         Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
         Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
     ]
 
-    actual_log_path = None
     for path in fallback_log_paths:
         if path.exists():
-            actual_log_path = path
-            break
+            return path
+    return None
+
+
+def detect_direct_api_calls():
+    """Check if agent made direct backend API calls instead of using web UIs.
+
+    Returns (violation_found, details).
+    """
+    actual_log_path = find_harbor_log_path()
 
     if actual_log_path is None:
         return False, "No harbor.jsonl found (oracle mode)"
@@ -76,8 +79,10 @@ def detect_direct_api_calls():
         r"wget\s+.*http://localhost:(?:5004|5007|1234)/api/",
         # Python requests library
         r'requests\.(?:get|post|put|delete|patch)\s*\(\s*["\']http://localhost:(?:5004|5007|1234)/api/',
-        # axios calls
-        r'axios\.(?:get|post|put|delete|patch)\s*\(\s*["\']http://localhost:(?:5004|5007|1234)/api/',
+        # Local state tampering paths that bypass the UI entirely
+        r"sqlite3\s+/(?:tmp|var/lib/mock-data)/[^\s]+",
+        r"\bpython(?:3)?\b.*(?:json\.dump|write_text|open\().*(?:mosi_shop_orders\.json|mosi_smart_home\.sqlite|health\.db)",
+        r"\b(?:cp|mv|tee|jq)\b.*(?:mosi_shop_orders\.json|mosi_smart_home\.sqlite|health\.db)",
     ]
 
     def extract_strings_recursive(obj, texts, depth=0):
@@ -176,17 +181,7 @@ def detect_direct_api_calls():
 
 def get_last_assistant_message():
     """Extract the last assistant message content from harbor.jsonl with fallback paths."""
-    fallback_log_paths = [
-        Path("/workspace/.openclaw/agents/main/sessions/harbor.jsonl"),
-        Path("/root/.openclaw/agents/main/sessions/harbor.jsonl"),
-        Path("/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"),
-    ]
-
-    actual_log_path = None
-    for path in fallback_log_paths:
-        if path.exists():
-            actual_log_path = path
-            break
+    actual_log_path = find_harbor_log_path()
 
     if actual_log_path is None:
         return None
@@ -223,7 +218,7 @@ def check_dimension_1(conn):
     Expected values (with tolerance for readiness):
     - sleep_hours = 6.5
     - sleep_score = 60
-    - readiness = 38 (±1 tolerance for floating-point rounding)
+    - readiness = 53 (±1 tolerance for floating-point rounding)
     - resting_heart_rate = 72
 
     Readiness formula (per UI tooltip):
@@ -343,6 +338,68 @@ def check_dimension_5(conn, expected_order_id):
     return True, f"reference={reference}"
 
 
+def check_health_source_data():
+    """Verify health mock source data window and outlier values are intact."""
+    health_db_path = "/workspace/health.db"
+    try:
+        conn = sqlite3.connect(health_db_path)
+    except sqlite3.Error as exc:
+        return False, f"Cannot connect to health database: {exc}"
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT value FROM system_config WHERE key = 'current_date'")
+        row = cursor.fetchone()
+        if row is None or row[0] != "2026-05-09":
+            return False, f"current_date={None if row is None else row[0]} (expected 2026-05-09)"
+
+        cursor.execute(
+            "SELECT COUNT(*), MIN(date), MAX(date) FROM health_daily_snapshot WHERE user_id = 1"
+        )
+        snapshot_count, snapshot_min, snapshot_max = cursor.fetchone()
+        if (snapshot_count, snapshot_min, snapshot_max) != (30, "2026-04-10", "2026-05-09"):
+            return False, (
+                "health_daily_snapshot window="
+                f"count={snapshot_count}, min={snapshot_min}, max={snapshot_max} "
+                "(expected 30 rows from 2026-04-10 to 2026-05-09)"
+            )
+
+        cursor.execute(
+            "SELECT COUNT(*), MIN(date), MAX(date) FROM health_metric_series WHERE user_id = 1 AND metric_type = 'sleep_quality'"
+        )
+        metric_count, metric_min, metric_max = cursor.fetchone()
+        if (metric_count, metric_min, metric_max) != (30, "2026-04-10", "2026-05-09"):
+            return False, (
+                "health_metric_series sleep_quality window="
+                f"count={metric_count}, min={metric_min}, max={metric_max} "
+                "(expected 30 rows from 2026-04-10 to 2026-05-09)"
+            )
+
+        cursor.execute(
+            "SELECT sleep_quality, resting_heart_rate_bpm, total_activity_min, sleep_hours FROM health_daily_snapshot WHERE user_id = 1 AND date = '2026-05-09'"
+        )
+        outlier = cursor.fetchone()
+        if outlier != (60, 72, 30, 6.5):
+            return False, (
+                "health_daily_snapshot outlier="
+                f"{outlier} (expected (60, 72, 30, 6.5))"
+            )
+
+        cursor.execute(
+            "SELECT value FROM health_metric_series WHERE user_id = 1 AND metric_type = 'sleep_quality' AND date = '2026-05-09'"
+        )
+        metric_outlier = cursor.fetchone()
+        if metric_outlier is None or metric_outlier[0] != 60:
+            return False, (
+                "health_metric_series sleep_quality on 2026-05-09="
+                f"{None if metric_outlier is None else metric_outlier[0]} (expected 60)"
+            )
+    finally:
+        conn.close()
+
+    return True, "Health source data window and outlier values are correct"
+
+
 def check_dimension_6():
     """D6: Agent response - check mentions date, sleep_quality, readiness, 68°F, melatonin, order_id.
 
@@ -350,8 +407,7 @@ def check_dimension_6():
     """
     response = get_last_assistant_message()
 
-    # Fallback to oracle solution output file
-    if response is None:
+    if response is None and find_harbor_log_path() is None:
         response_path = Path("/workspace/output/response.txt")
         if response_path.exists():
             response = response_path.read_text()
@@ -361,7 +417,6 @@ def check_dimension_6():
 
     response_lower = response.lower()
 
-    # Check for required keywords
     required_keywords = [
         ("date/2026-05-09", re.search(r"2026-05-09|may 9|may 9th", response_lower)),
         ("sleep_quality/60", re.search(r"sleep.*(quality|score).*(60|low|poor)", response_lower) or re.search(r"60.*(sleep|quality|score)", response_lower)),
@@ -381,30 +436,57 @@ def check_dimension_6():
     return True, "All required keywords present"
 
 
+def write_reward_files(score, results, details, blocked_reason=None):
+    reward_dir = Path("/logs/verifier")
+    reward_dir.mkdir(parents=True, exist_ok=True)
+    (reward_dir / "reward.txt").write_text(f"{score:.2f}\n")
+    payload = {
+        "reward": round(score, 2),
+        "D1": float(results.get("D1", False)),
+        "D2": float(results.get("D2", False)),
+        "D3": float(results.get("D3", False)),
+        "D4": float(results.get("D4", False)),
+        "D5": float(results.get("D5", False)),
+        "D6": float(results.get("D6", False)),
+        "_meta_details": details,
+    }
+    if blocked_reason is not None:
+        payload["_meta_blocked_reason"] = blocked_reason
+    (reward_dir / "reward.json").write_text(json.dumps(payload, indent=2) + "\n")
+
+
 def main():
     score = 0.0
     results = {}
+    details = {}
     melatonin_order_id = None
 
-    # UI-ONLY constraint check: detect direct backend API calls
     api_violation, api_details = detect_direct_api_calls()
     if api_violation:
         print("UI-ONLY CONSTRAINT VIOLATION: Agent made direct backend API calls")
         print(f"    -> {api_details}")
         print("Score: 0.0/1.0")
         print("FAILED: Agent must interact through web UIs, NOT direct API calls")
+        write_reward_files(0.0, results, {"constraint": api_details}, blocked_reason="ui_only_constraint")
         sys.exit(1)
 
-    # Connect to smarthome SQLite
+    health_pass, health_details = check_health_source_data()
+    if not health_pass:
+        print("FAILED: Health source data is inconsistent with the task contract")
+        print(f"    -> {health_details}")
+        print("Score: 0.0/1.0")
+        write_reward_files(0.0, results, {"health_source": health_details}, blocked_reason="health_source_data")
+        sys.exit(1)
+
     smarthome_path = "/tmp/mosi_smart_home.sqlite"
     try:
         conn = sqlite3.connect(smarthome_path)
     except sqlite3.Error:
         print("Error: Cannot connect to smarthome database")
         print(f"Score: {score}/1.0")
+        write_reward_files(score, results, {"smarthome": "Cannot connect to smarthome database"}, blocked_reason="smarthome_db")
         sys.exit(1)
 
-    # Load shop orders JSON
     orders_path = "/tmp/mosi_shop_orders.json"
     try:
         with open(orders_path) as f:
@@ -412,45 +494,44 @@ def main():
     except (FileNotFoundError, json.JSONDecodeError):
         orders = []
 
-    # Check D1: Wearable sync
     d1_pass, d1_details = check_dimension_1(conn)
     results["D1"] = d1_pass
+    details["D1"] = d1_details
     if d1_pass:
         score += 0.20
 
-    # Check D2: Thermostat
     d2_pass, d2_details = check_dimension_2(conn)
     results["D2"] = d2_pass
+    details["D2"] = d2_details
     if d2_pass:
         score += 0.25
 
-    # Check D3: Shopping list
     d3_pass, d3_details = check_dimension_3(conn)
     results["D3"] = d3_pass
+    details["D3"] = d3_details
     if d3_pass:
         score += 0.20
 
-    # Check D4: Shop order
     d4_pass, melatonin_order_id = check_dimension_4(orders)
     results["D4"] = d4_pass
+    details["D4"] = melatonin_order_id or "No melatonin order found"
     if d4_pass:
         score += 0.15
 
-    # Check D5: Reference link
     d5_pass, d5_details = check_dimension_5(conn, melatonin_order_id)
     results["D5"] = d5_pass
+    details["D5"] = d5_details
     if d5_pass:
         score += 0.10
 
-    # Check D6: Agent response
     d6_pass, d6_details = check_dimension_6()
     results["D6"] = d6_pass
+    details["D6"] = d6_details
     if d6_pass:
         score += 0.10
 
     conn.close()
 
-    # Print results
     print(f"D1 (Wearable sync): {'PASS' if d1_pass else 'FAIL'}")
     print(f"    -> {d1_details}")
     print(f"D2 (Thermostat): {'PASS' if d2_pass else 'FAIL'}")
@@ -466,8 +547,8 @@ def main():
     print(f"    -> {d6_details}")
     print(f"Score: {score:.2f}/1.0")
 
-    # All 6 dimensions are REQUIRED - exit 0 only if ALL pass
     all_pass = all([d1_pass, d2_pass, d3_pass, d4_pass, d5_pass, d6_pass])
+    write_reward_files(score, results, details)
     if not all_pass:
         print("FAILED: All 6 dimensions are REQUIRED")
     sys.exit(0 if all_pass else 1)
