@@ -1,3 +1,4 @@
+/** @jsxImportSource hono/jsx */
 import type { FC } from "hono/jsx";
 import { localDateStr, todayLocal } from "../date";
 import type { DailyTotals, EffectiveBudget, FoodCatalog, FoodEntry } from "../queries";

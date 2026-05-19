@@ -78,6 +78,12 @@ allow_internet = true   # 如果 agent 需要访问 LLM API 则必须设置
 | `environment.build_timeout_sec` | Docker 环境构建超时时间 |
 | `allow_internet` | 如果 agent 必须调用外部 LLM API，设置为 `true` |
 
+当前主要领域包括：`Browser & Web Scraping`、`Calendar & Task Mgmt`、
+`Coding & Software Dev`、`Communication & Email`、`Deep Research & Report`、
+`DevOps & Env Repair`、`Documents & Knowledge`、`E-commerce & Daily Svcs`、
+`Finance & Data Analytics`、`Health & Wellness`、`Social Media` 和
+`Voice & Multimodal`。
+
 **复杂度因子字段**（因子适用时设为 `1`，不适用时设为 `0`）：
 
 | 字段 | 因子 |

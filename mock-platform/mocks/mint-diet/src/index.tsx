@@ -1,11 +1,11 @@
-import { createMockApp, startServer } from "mock-lib";
-import type { MockAppV2 } from "mock-lib";
+import { createMockApp, startServer, createRoute, ok, err } from "mock-lib";
+import type { MockAppV2, OpenAPIApp } from "mock-lib";
 import { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
+import { z } from "zod";
 import { createTables } from "./schema";
 import { seedFoodCatalog } from "./seeds";
 import { registerRoutes } from "./routes";
-import type { MintDietApp } from "./routes/types";
 
 export function createMintDietApp(): MockAppV2 {
   let db: Database | undefined;
@@ -17,23 +17,51 @@ export function createMintDietApp(): MockAppV2 {
   const mockApp = createMockApp({
     name: "mint-diet",
     port: 5003,
-    routes: (app) => {
-      registerRoutes(app as unknown as MintDietApp, { getDatabase });
+    healthResponse: { ok: true, status: "healthy", service: "mint-diet" },
+    openApi: {
+      enabled: true,
+      title: "MintDiet Mock API",
+      version: "1.0.0",
     },
   });
 
-  mockApp.seed = () => {
-    const dataDir = process.env.MOCK_DATA_DIR ?? "/var/lib/mock-data/mint-diet";
-    const dbPath = `${dataDir}/mint-diet.sqlite`;
-    mkdirSync(dataDir, { recursive: true });
-    db = new Database(dbPath, { create: true });
-    db.run("PRAGMA journal_mode = WAL");
-    db.run("PRAGMA foreign_keys = ON");
-    createTables(db);
-    seedFoodCatalog(db);
-  };
+  const { app } = mockApp;
 
-  return mockApp;
+  // Sentinel route for binary isolation verification
+  const sentinelRoute = createRoute({
+    method: "get",
+    path: "/__mock_sentinel__/mint-diet",
+    summary: "Binary isolation probe",
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({ ok: z.boolean() }),
+          },
+        },
+        description: "OK",
+      },
+    },
+  });
+
+  app.openApiRoute(sentinelRoute, (c) => c.json(ok({ ok: true })));
+
+  // Register all routes
+  registerRoutes(app as OpenAPIApp, { getDatabase });
+
+  return {
+    ...mockApp,
+    seed: async () => {
+      const dataDir = process.env.MOCK_DATA_DIR ?? "/var/lib/mock-data/mint-diet";
+      const dbPath = `${dataDir}/mint-diet.sqlite`;
+      mkdirSync(dataDir, { recursive: true });
+      db = new Database(dbPath, { create: true });
+      db.run("PRAGMA journal_mode = WAL");
+      db.run("PRAGMA foreign_keys = ON");
+      createTables(db);
+      seedFoodCatalog(db);
+    },
+  };
 }
 
 if (import.meta.main) {

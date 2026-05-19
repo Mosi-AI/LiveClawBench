@@ -227,6 +227,8 @@
       ]
     },
     "mint-diet-snack-log": { "binaries": ["mint-diet"] },
+    "nutrition-log-meal": { "binaries": ["mint-diet"] },
+    "mint-diet-comprehensive": { "binaries": ["mint-diet"] },
     "social-media-posting": { "binaries": ["social"] },
     "social-unlike-post": { "binaries": ["social"] },
     "expense-draft-delete": {

@@ -1,3 +1,4 @@
+/** @jsxImportSource hono/jsx */
 import type { FC } from "hono/jsx";
 import { INGREDIENT_UNITS, PLAN_SLOTS } from "../constants";
 import type { IngredientItem, MealPlan, MealPlanDay, MealPlanItem } from "../queries";
