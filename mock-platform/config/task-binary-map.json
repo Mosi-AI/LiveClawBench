@@ -272,10 +272,19 @@
         { "src": "tasks/morning-comfort-setup/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
       ]
     },
-    "weather-city-travel-pick": { "binaries": [] },
-    "weather-outdoor-window": { "binaries": [] },
-    "pre-meeting-research-brief": { "binaries": ["calendar"] },
-    "vendor-due-diligence-brief": { "binaries": ["email"] },
+    "weather-city-travel-pick": { "binaries": ["weather"] },
+    "weather-outdoor-window": { "binaries": ["weather"] },
+    "pre-meeting-research-brief": { "binaries": ["todolist"] },
+    "vendor-due-diligence-brief": {
+      "binaries": ["email"],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
     "grant-application-evidence-brief": { "binaries": [] }
   }
 }
