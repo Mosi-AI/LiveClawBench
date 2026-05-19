@@ -185,11 +185,11 @@ def main() -> None:
 
     reward = round(det_total + llm_total, 4)
 
-    # A2 hard gate: the corrections field must be a non-empty list, proving the agent
-    # produced an incremental update rather than a silent full rewrite.  Semantic quality
-    # of the corrections (whether old values are explicitly named) is evaluated by the
-    # LLM judge's claim_repair rubric, not by exact token matching here.
-    if not result.get("corrections"):
+    # A2 hard gate: corrections must be a non-empty list (not merely truthy).
+    # A string, object, or empty list proves nothing; only a populated list signals
+    # that the agent produced an explicit incremental update.
+    corrections = result.get("corrections")
+    if not isinstance(corrections, list) or len(corrections) == 0:
         reward = min(reward, 0.49)
 
     report = {

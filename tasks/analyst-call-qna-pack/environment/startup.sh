@@ -35,9 +35,11 @@ PYEOF
 START_TIME="${NEXT_THURSDAY}T14:00:00"
 END_TIME="${NEXT_THURSDAY}T16:00:00"
 
-# Insert the analyst call event for user_id=1 (Peter Griffin, seeded by the mock)
+# Seed the analyst call event idempotently: delete any prior NXL events for this
+# user before inserting, so restarts always leave exactly one current event.
 sqlite3 "$CALENDAR_DB" <<SQL
-INSERT OR IGNORE INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
+DELETE FROM calendar_event WHERE user_id = 1 AND title LIKE '%NXL%';
+INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
 VALUES (
   1,
   'NXL Q3 Investor Call',

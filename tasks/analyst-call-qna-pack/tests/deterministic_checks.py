@@ -88,7 +88,7 @@ def _get_seeded_event_date() -> str:
 
         conn = sqlite3.connect(str(CALENDAR_DB))
         rows = conn.execute(
-            "SELECT start_time FROM calendar_event WHERE title LIKE '%NXL%' LIMIT 1"
+            "SELECT start_time FROM calendar_event WHERE title LIKE '%NXL%' ORDER BY start_time DESC LIMIT 1"
         ).fetchall()
         conn.close()
         if rows:
