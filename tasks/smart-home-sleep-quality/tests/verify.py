@@ -47,7 +47,6 @@ def detect_direct_api_calls():
 
     # Patterns that indicate direct API calls (not browser-based)
     # These are backend API endpoints that should only be accessed via browser
-
     direct_api_patterns = [
         # HTTP verb patterns (any verb + absolute URL)
         r"(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+http://localhost:(?:5004|5007|1234)/api/",
@@ -76,15 +75,68 @@ def detect_direct_api_calls():
         r'axios\.(?:get|post|put|delete|patch)\s*\(\s*["\']http://localhost:(?:5004|5007|1234)/api/',
     ]
 
+    def extract_text_from_entry(entry):
+        """Extract all text content from a harbor.jsonl entry for pattern matching."""
+        texts = []
+
+        # Extract from message content
+        if entry.get("type") == "message":
+            msg = entry.get("message", {})
+            content = msg.get("content")
+            if isinstance(content, str):
+                texts.append(content)
+            elif isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "text":
+                        texts.append(block.get("text", ""))
+
+        # Extract from tool calls
+        if entry.get("type") == "tool_call":
+            tool_name = entry.get("tool_name", "")
+            texts.append(tool_name)
+            args = entry.get("arguments", {})
+            if isinstance(args, dict):
+                # Recursively extract string values from nested dicts
+                def extract_strings(obj, depth=0):
+                    if depth > 10:  # Prevent infinite recursion
+                        return
+                    if isinstance(obj, str):
+                        texts.append(obj)
+                    elif isinstance(obj, dict):
+                        for v in obj.values():
+                            extract_strings(v, depth + 1)
+                    elif isinstance(obj, list):
+                        for item in obj:
+                            extract_strings(item, depth + 1)
+                extract_strings(args)
+
+        # Also check the raw JSON string for escaped patterns
+        return texts
+
     violations = []
     with open(actual_log_path, "r") as f:
         for line_num, line in enumerate(f, 1):
+            # First check raw line (handles escaped JSON in strings)
             for pattern in direct_api_patterns:
                 if re.search(pattern, line):
                     violations.append(f"Line {line_num}: direct API call detected")
+                    break  # Only count one violation per line
+
+            # Then parse as JSON and check decoded content
+            try:
+                entry = json.loads(line)
+                texts = extract_text_from_entry(entry)
+                for text in texts:
+                    for pattern in direct_api_patterns:
+                        if re.search(pattern, text):
+                            violations.append(f"Line {line_num}: direct API call in tool args")
+                            break
+            except json.JSONDecodeError:
+                continue  # Skip non-JSON lines
 
     if violations:
         return True, "; ".join(violations[:5])  # Limit to first 5
+    return False, "No direct API calls detected"
     return False, "No direct API calls detected"
 
 
