@@ -94,12 +94,12 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
     "doc-search": "/__mock_sentinel__/doc-search",
     finance: "/__mock_sentinel__/finance",
     insurance: "/__mock_sentinel__/insurance",
-    calendar: "/__mock_sentinel__/calendar",
     "mint-diet": "/__mock_sentinel__/mint-diet",
     weather: "/__mock_sentinel__/weather",
     social: "/__mock_sentinel__/social",
     expense: "/__mock_sentinel__/expense",
     health: "/__mock_sentinel__/health",
+    smarthome: "/__mock_sentinel__/smarthome",
   };
 
   const successfulMocks = results.filter((r) => r.success);

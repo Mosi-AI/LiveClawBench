@@ -9,7 +9,7 @@ interface CalendarEvent {
 }
 
 interface CalendarPageProps {
-  user: { first_name: string; last_name: string } | null;
+  user: { display_name: string } | null;
   events: CalendarEvent[];
   error?: string;
 }
@@ -36,7 +36,7 @@ export const CalendarPage: FC<CalendarPageProps> = ({ user, events, error }) => 
           </div>
           <div class="nav-user">
             {user ? (
-              <span>Welcome, {user.first_name} {user.last_name}</span>
+              <span>Welcome, {user.display_name}</span>
             ) : (
               <a href="/login">Login</a>
             )}

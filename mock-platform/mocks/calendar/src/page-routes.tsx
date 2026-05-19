@@ -1,8 +1,8 @@
 /** @jsxImportSource hono/jsx */
-import bcryptjs from "bcryptjs";
 import { sign, tokenCookieOptions, serializeCookie, authRequired } from "mock-lib";
 import type { AppEnv } from "mock-lib";
 import type { Database } from "bun:sqlite";
+import { verifyWerkzeugHash } from "./helpers";
 import { CalendarPage } from "./pages/calendar-page";
 import { LoginPage } from "./pages/login-page";
 import type { Hono } from "hono";
@@ -21,9 +21,9 @@ function getCurrentUser(
   return (
     db
       .query<
-        { id: number; first_name: string; last_name: string },
+        { id: number; display_name: string },
         [number]
-      >("SELECT id, first_name, last_name FROM users WHERE id = ?")
+      >("SELECT id, display_name FROM users WHERE id = ?")
       .get(userId) ?? null
   );
 }
@@ -60,16 +60,15 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
         {
           id: number;
           password_hash: string;
-          first_name: string;
-          last_name: string;
+          display_name: string;
         },
         [string]
       >(
-        "SELECT id, password_hash, first_name, last_name FROM users WHERE email = ?",
+        "SELECT id, password_hash, display_name FROM users WHERE email = ?",
       )
       .get(email);
 
-    if (!user || !bcryptjs.compareSync(password, user.password_hash)) {
+    if (!user || !(await verifyWerkzeugHash(user.password_hash, password))) {
       return c.html(<LoginPage error="Invalid email or password" />);
     }
 
