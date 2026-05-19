@@ -21,6 +21,97 @@ spec.loader.exec_module(verify)
 
 
 class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
+    def test_smarthome_seed_populates_fridge_and_pantry_inventory(self):
+        smarthome_seed = (TASK_DIR / "environment" / "seed.sql").read_text()
+        self.assertIn("inventory_item", smarthome_seed)
+
+        conn = sqlite3.connect(":memory:")
+        conn.executescript(
+            """
+            CREATE TABLE benchmark_clock (
+                id INTEGER PRIMARY KEY,
+                clock_time TEXT NOT NULL
+            );
+            CREATE TABLE thermostat_settings (
+                id INTEGER PRIMARY KEY,
+                mode TEXT,
+                temperature REAL,
+                updated_at TEXT
+            );
+            CREATE TABLE wearable_recovery_state (
+                id INTEGER PRIMARY KEY,
+                sleep_hours REAL,
+                sleep_score REAL,
+                readiness REAL,
+                resting_heart_rate REAL
+            );
+            CREATE TABLE inventory_item (
+                id INTEGER PRIMARY KEY,
+                item_name TEXT NOT NULL,
+                quantity REAL NOT NULL,
+                unit TEXT NOT NULL,
+                location TEXT NOT NULL,
+                expiry_date TEXT,
+                category TEXT
+            );
+            CREATE TABLE grocery_product (
+                product_id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                quantity REAL,
+                unit TEXT,
+                stock_status TEXT,
+                reference TEXT
+            );
+            CREATE TABLE calendar_event (
+                id INTEGER PRIMARY KEY,
+                title TEXT NOT NULL,
+                start_time TEXT NOT NULL,
+                event_type TEXT,
+                workout_type TEXT,
+                status TEXT,
+                updated_at TEXT
+            );
+            CREATE TABLE room_metrics (
+                id INTEGER PRIMARY KEY,
+                temperature REAL,
+                humidity REAL,
+                unit_temp TEXT,
+                noise REAL,
+                light REAL,
+                air_quality REAL
+            );
+            CREATE TABLE room (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL
+            );
+            CREATE TABLE coffee_schedule (
+                id INTEGER PRIMARY KEY,
+                start_time TEXT,
+                beans_grams REAL,
+                cancelled INTEGER,
+                updated_at TEXT
+            );
+            CREATE TABLE user_constraints (
+                id INTEGER PRIMARY KEY,
+                calorie_target REAL,
+                macro_targets TEXT,
+                allergy_constraints TEXT,
+                weekly_budget_limit REAL
+            );
+            """
+        )
+        conn.executescript(smarthome_seed)
+
+        fridge_count = conn.execute(
+            "SELECT COUNT(*) FROM inventory_item WHERE location = 'fridge'"
+        ).fetchone()[0]
+        pantry_count = conn.execute(
+            "SELECT COUNT(*) FROM inventory_item WHERE location = 'pantry'"
+        ).fetchone()[0]
+
+        self.assertGreater(fridge_count, 0, "fridge should not be empty")
+        self.assertGreater(pantry_count, 0, "pantry should not be empty")
+
     def test_health_seed_executes_to_complete_snapshot_and_metric_series(self):
         conn = sqlite3.connect(":memory:")
         conn.executescript(
