@@ -1,5 +1,5 @@
 import bcryptjs from "bcryptjs";
-import { sign, BCRYPT_SALT_ROUNDS, tokenCookieOptions, serializeCookie } from "mock-lib";
+import { sign, verify, BCRYPT_SALT_ROUNDS, tokenCookieOptions, serializeCookie } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ok, err, getUserById } from "../helpers";
@@ -67,9 +67,20 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
 
   // POST /api/auth/refresh
   app.post("/api/auth/refresh", async (c) => {
-    const userId = c.get("userId");
-    if (!userId) return c.json(err("Authentication required"), 401);
-    const token = await sign({ userId });
+    let body: Record<string, unknown> = {};
+    try { body = await c.req.json(); } catch { /* body is optional */ }
+    const refreshToken = body.refresh_token ? String(body.refresh_token) : null;
+    if (!refreshToken || !refreshToken.endsWith("-refresh")) {
+      return c.json(err("Valid refresh_token required"), 401);
+    }
+    const accessToken = refreshToken.slice(0, -"-refresh".length);
+    let payload: { userId: number };
+    try {
+      payload = await verify(accessToken) as { userId: number };
+    } catch {
+      return c.json(err("Invalid or expired refresh token"), 401);
+    }
+    const token = await sign({ userId: payload.userId });
     return c.json(ok({ access_token: token }, "Token refreshed"));
   });
 

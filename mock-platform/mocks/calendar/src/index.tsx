@@ -9,7 +9,7 @@ import {
 import type { MockAppV2 } from "mock-lib";
 import { getCalendarDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
-import { registerEventsRoutes } from "./routes/events";
+import { registerEventRoutes } from "./routes/events";
 import { registerPageRoutes } from "./page-routes";
 
 export function createCalendarApp(): MockAppV2 {
@@ -51,7 +51,7 @@ export function createCalendarApp(): MockAppV2 {
     c.json({ ok: true, mock: "calendar" }),
   );
 
-  registerEventsRoutes(mockApp.app, db);
+  registerEventRoutes(mockApp.app, db);
   registerStaticAssets(mockApp.app, {
     dir: "/opt/mock/static/calendar",
     prefix: "/static",

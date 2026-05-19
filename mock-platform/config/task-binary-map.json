@@ -271,6 +271,11 @@
       "assets": [
         { "src": "tasks/morning-comfort-setup/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
       ]
-    }
+    },
+    "weather-city-travel-pick": { "binaries": [] },
+    "weather-outdoor-window": { "binaries": [] },
+    "pre-meeting-research-brief": { "binaries": ["calendar"] },
+    "vendor-due-diligence-brief": { "binaries": ["email"] },
+    "grant-application-evidence-brief": { "binaries": [] }
   }
 }
