@@ -18,11 +18,12 @@ if [ ! -f "$CALENDAR_DB" ]; then
   exit 0
 fi
 
-# Calculate the date of the upcoming/current Thursday analyst call.
+# Calculate the date of the upcoming/current Thursday analyst call in Asia/Shanghai time.
 # If today IS Thursday but the 14:00-16:00 slot has already passed, use next Thursday.
 NEXT_THURSDAY=$(python3 - <<'PYEOF'
 from datetime import datetime, timedelta
-now = datetime.now()
+from zoneinfo import ZoneInfo
+now = datetime.now(ZoneInfo("Asia/Shanghai"))
 days_ahead = (3 - now.weekday()) % 7  # 0 when today IS Thursday
 if days_ahead == 0 and now.hour >= 16:
     days_ahead = 7

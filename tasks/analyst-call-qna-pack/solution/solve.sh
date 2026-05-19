@@ -5,7 +5,6 @@ mkdir -p ~/.openclaw/output
 
 python3 - <<'EOF'
 import json, urllib.request, urllib.parse, os, glob
-from datetime import datetime, timedelta
 from pathlib import Path
 
 # 1. Authenticate with calendar
@@ -22,12 +21,8 @@ req2 = urllib.request.Request(f"{base}/api/events",
 with urllib.request.urlopen(req2) as r:
     events = json.loads(r.read())["events"]
 
-today = datetime.now()
-days_ahead = (3 - today.weekday()) % 7  # 0 when today IS Thursday
-thursday = (today + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
-
 call_event = next(
-    (e for e in events if thursday in e.get("start_time", "") and "NXL" in e.get("title", "")),
+    (e for e in events if "NXL" in e.get("title", "")),
     None
 )
 company = "Nexaline Therapeutics"  # resolved from NXL ticker via corpus
