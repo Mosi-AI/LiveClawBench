@@ -205,6 +205,10 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       const oldPassword = String(body.old_password ?? "");
       const newPassword = String(body.new_password ?? "");
 
+      if (!newPassword) {
+        return c.json(err("new_password is required"), 400);
+      }
+
       const row = db.query("SELECT id, password_hash FROM users WHERE id = ?").get(userId) as { id: number; password_hash: string } | null;
       if (!row) return c.json(err("Current password is incorrect"), 401);
       const oldHashValid = row.password_hash.startsWith("pbkdf2:")

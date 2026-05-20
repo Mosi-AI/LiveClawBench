@@ -87,8 +87,13 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
       return c.json({ ok: false, error: "title, start_time and end_time are required" }, 400);
     }
 
-    const startUtc = new Date(startTime).toISOString();
-    const endUtc = new Date(endTime).toISOString();
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return c.json({ ok: false, error: "Invalid start_time or end_time" }, 400);
+    }
+    const startUtc = startDate.toISOString();
+    const endUtc = endDate.toISOString();
     if (new Date(startUtc) >= new Date(endUtc)) {
       return c.json({ ok: false, error: "end_time must be after start_time" }, 400);
     }
