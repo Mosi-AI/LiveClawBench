@@ -51,6 +51,9 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
     const passengers = (body.passengers ?? []) as Record<string, unknown>[];
 
     if (!flightId) return c.json(err("flight_id is required"), 400);
+    if (!Array.isArray(body.passengers) || passengers.length === 0) {
+      return c.json(err("passengers must be a non-empty array"), 400);
+    }
 
     const flight = db.query("SELECT * FROM flights WHERE id = ?").get(flightId) as Record<string, unknown> | null;
     if (!flight) return c.json(err("Flight not found"), 404);

@@ -3,7 +3,7 @@ import bcryptjs from "bcryptjs";
 import { sign, verify, BCRYPT_SALT_ROUNDS, tokenCookieOptions, serializeCookie, createRoute } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { ok, err, getUserById, DEFAULT_USER_ID } from "../helpers";
+import { ok, err, getUserById, DEFAULT_USER_ID, verifyWerkzeugHash } from "../helpers";
 
 const OkResponse = z.object({ ok: z.boolean() }).passthrough();
 const ErrResponse = z.object({ ok: z.boolean(), error: z.string() });
@@ -80,7 +80,11 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       const password = String(body.password ?? "");
 
       const row = db.query("SELECT id, password_hash FROM users WHERE email = ?").get(email) as { id: number; password_hash: string } | null;
-      if (!row || !bcryptjs.compareSync(password, row.password_hash)) {
+      if (!row) return c.json(err("Invalid email or password"), 401);
+      const hashValid = row.password_hash.startsWith("pbkdf2:")
+        ? await verifyWerkzeugHash(row.password_hash, password)
+        : bcryptjs.compareSync(password, row.password_hash);
+      if (!hashValid) {
         return c.json(err("Invalid email or password"), 401);
       }
 
@@ -116,6 +120,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
         return c.json(err("Invalid or expired refresh token"), 401);
       }
       const token = await sign({ userId: payload.userId as number });
+      c.header("Set-Cookie", serializeCookie("token", token, tokenCookieOptions()));
       return c.json(ok({ access_token: token }, "Token refreshed"));
     },
   );
