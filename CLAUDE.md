@@ -230,7 +230,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `live-web-research-sqlite-fts5` | Deep Research & Report | medium | **llm_judge** |
 | `conflict-repair-acb` | Documents & Knowledge | easy | **llm_judge** |
 | `skill-combination` | Documents & Knowledge | easy | evaluate.py |
-| `mint-diet-snack-log` | Health & Fitness | easy | verify.py |
+| `mint-diet-snack-log` | Health & Wellness | easy | verify.py |
 | `weather-aqi-report` | Deep Research & Report | easy | verify.py |
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |

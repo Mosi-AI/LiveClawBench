@@ -250,7 +250,7 @@ harbor run -p tasks/flight-seat-selection -a openclaw \
 
 ## Running the Full Dataset
 
-LiveClawBench registers its 30 tasks as a dataset named `liveclawbench@0.1.0` in the local `registry.json`.
+LiveClawBench registers its 32 tasks as a dataset named `liveclawbench@0.1.0` in the local `registry.json`.
 
 ### Option 1: Local registry (recommended for development)
 

@@ -44,7 +44,7 @@ def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
     toml_path = task_dir / "task.toml"
     if toml_path.exists():
         try:
-            data = tomllib.loads(toml_path.read_text())
+            data = tomllib.loads(toml_path.read_text(encoding="utf-8"))
         except Exception as e:
             errors.append(f"task.toml parse error: {e}")
             return errors, warnings
@@ -95,13 +95,13 @@ def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
     # 4. Stub detection (warnings)
     instr_path = task_dir / "instruction.md"
     if instr_path.exists():
-        content = instr_path.read_text().strip()
+        content = instr_path.read_text(encoding="utf-8").strip()
         if len(content) < 50:
             warnings.append("instruction.md: stub content (< 50 chars)")
 
     test_path = task_dir / "tests" / "test.sh"
     if test_path.exists():
-        content = test_path.read_text().strip()
+        content = test_path.read_text(encoding="utf-8").strip()
         if content.endswith('echo "PASS"') or content == 'echo "PASS"':
             warnings.append("test.sh: stub test (only echo PASS)")
 
@@ -134,7 +134,7 @@ def main() -> int:
         toml_path = task_dir / "task.toml"
         if toml_path.exists():
             try:
-                data = tomllib.loads(toml_path.read_text())
+                data = tomllib.loads(toml_path.read_text(encoding="utf-8"))
                 cid = data.get("metadata", {}).get("case_id")
                 if isinstance(cid, int):
                     if cid in case_ids:
