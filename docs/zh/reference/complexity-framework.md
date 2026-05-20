@@ -1,7 +1,7 @@
 # LiveClawBench 复杂度框架
 
 本文档是 LiveClawBench 任务复杂度标注的唯一参考来源。
-涵盖因子定义、完整的 45 case 标注表（45 个已实现）、
+涵盖因子定义、完整的 57 case 标注表（57 个已实现）、
 摘要统计、领域覆盖和控制对。
 
 ## 复杂度因子定义
@@ -17,7 +17,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 ---
 
-## 1. 43 Case 因子标注表
+## 1. 57 Case 因子标注表
 
 `✓` 表示该 case 包含对应因子。
 
@@ -61,8 +61,8 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      36 | insurance-deductible-selection    |  E   |    |    |    |    | E-commerce & Daily Svcs    |
 |      37 | health-insurance-optimization     |  M   | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |      38 | health-daily-record               |  E   |    |    |    |    | Health & Wellness          |
-|      39 | finance-portfolio-rebalancing     |  H   |    |    |    |    | Finance & Data Analytics   |
-|      40 | finance-monthly-close             |  M   |    |    |    |    | Finance & Data Analytics   |
+|      39 | finance-portfolio-rebalancing     |  H   |    |    | ✓  |    | Finance & Data Analytics   |
+|      40 | finance-monthly-close             |  M   |    | ✓  |    |    | Finance & Data Analytics   |
 |      41 | nutrition-log-meal                |  E   |    |    |    |    | Health & Wellness          |
 |      42 | mint-diet-comprehensive           |  E   |    |    |    |    | Health & Wellness          |
 |      43 | smarthome-test                    |  M   |    |    | ✓  |    | E-commerce & Daily Svcs    |
@@ -72,6 +72,14 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      47 | weather-outdoor-window            |  H   |    |    |    |    | Health & Wellness          |
 |      48 | pre-meeting-research-brief        |  M   |    |    | ✓  | ✓  | Deep Research & Report     |
 |      49 | vendor-due-diligence-brief        |  M   | ✓  |    | ✓  |    | Deep Research & Report     |
+|      50 | finance-expense-log               |  E   |    |    | ✓  |    | Finance & Data Analytics   |
+|      51 | finance-invoice-process           |  E   | ✓  |    |    |    | Finance & Data Analytics   |
+|      52 | finance-anomaly-detect            |  M   |    | ✓  | ✓  |    | Finance & Data Analytics   |
+|      53 | finance-budget-alert              |  M   | ✓  | ✓  |    |    | Finance & Data Analytics   |
+|      54 | finance-tax-prepare               |  H   | ✓  |    | ✓  | ✓  | Finance & Data Analytics   |
+|      55 | finance-analysis-generate         |  H   | ✓  |    | ✓  | ✓  | Finance & Data Analytics   |
+|      56 | finance-depreciation-audit        |  H   |    | ✓  | ✓  | ✓  | Finance & Data Analytics   |
+|      57 | finance-dashboard-repair          |  H   |    | ✓  |    | ✓  | Finance & Data Analytics   |
 
 ---
 

@@ -123,7 +123,9 @@ def main() -> None:
     # --- Dimension 4: Formula matches NAPI structure (0.15) ---
     if is_seed_state:
         dimension_scores["formula_structure"] = 0.0
-        messages.append("FAIL: formula structure not evaluated — formula still in seed state")
+        messages.append(
+            "FAIL: formula structure not evaluated — formula still in seed state"
+        )
     else:
         formula_compact = json.dumps(formula, separators=(",", ":"))
         has_correct_consts = "0.1" in formula_compact and "0.05" in formula_compact
