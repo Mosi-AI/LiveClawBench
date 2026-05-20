@@ -58,7 +58,9 @@ function unauthorized(
 ): Response {
   if (opts.onUnauthorized === "redirect") {
     const path = opts.loginPath ?? "/login";
-    return c.redirect(`${path}?next=${encodeURIComponent(c.req.path)}`);
+    const reqUrl = new URL(c.req.url);
+    const nextPath = reqUrl.pathname + reqUrl.search;
+    return c.redirect(`${path}?next=${encodeURIComponent(nextPath)}`);
   }
   const message =
     reason === "missing" ? "Authentication required" : "Invalid or expired token";

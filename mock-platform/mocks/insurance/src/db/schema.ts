@@ -178,7 +178,7 @@ export function initSchema(db: Database): void {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       provider_id INTEGER NOT NULL,
-      slot_id INTEGER NOT NULL,
+      slot_id INTEGER NOT NULL UNIQUE,
       provider_name TEXT NOT NULL,
       service_name_snapshot TEXT NOT NULL,
       check_item TEXT NOT NULL,

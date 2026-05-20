@@ -42,7 +42,7 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
     path: "/api/events/:id",
     summary: "Get a single calendar event",
     responses: {
-      200: { content: { "application/json": { schema: z.object({ ok: z.boolean(), event: EventSchema }) } }, description: "OK" },
+      200: { content: { "application/json": { schema: EventSchema } }, description: "OK" },
       401: { content: { "application/json": { schema: ErrorResponse } }, description: "Unauthorized" },
       404: { content: { "application/json": { schema: ErrorResponse } }, description: "Not found" },
     },
@@ -56,7 +56,7 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
       .query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?")
       .get(id, userId) as z.infer<typeof EventSchema> | null;
     if (!event) return c.json({ ok: false, error: "Event not found" }, 404);
-    return c.json({ ok: true, event });
+    return c.json(event);
   });
 
   const createRoute_ = createRoute({
@@ -64,9 +64,10 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
     path: "/api/events",
     summary: "Create a calendar event",
     responses: {
-      201: { content: { "application/json": { schema: z.object({ ok: z.boolean(), event: EventSchema }) } }, description: "Created" },
+      201: { content: { "application/json": { schema: EventSchema } }, description: "Created" },
       400: { content: { "application/json": { schema: ErrorResponse } }, description: "Bad Request" },
       401: { content: { "application/json": { schema: ErrorResponse } }, description: "Unauthorized" },
+      409: { content: { "application/json": { schema: ErrorResponse } }, description: "Conflict" },
     },
   });
 
@@ -98,7 +99,7 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
       )
       .get(userId, endUtc, startUtc);
     if (overlap && overlap.count > 0) {
-      return c.json({ ok: false, error: "Time overlaps with an existing event" }, 400);
+      return c.json({ ok: false, error: "Time overlaps with an existing event" }, 409);
     }
 
     const result = db.run(
@@ -108,7 +109,7 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
     const event = db
       .query("SELECT * FROM calendar_event WHERE id = ?")
       .get(Number(result.lastInsertRowid)) as z.infer<typeof EventSchema>;
-    return c.json({ ok: true, event }, 201);
+    return c.json(event, 201);
   });
 
   const deleteRoute = createRoute({
@@ -116,7 +117,7 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
     path: "/api/events/:id",
     summary: "Delete a calendar event",
     responses: {
-      200: { content: { "application/json": { schema: z.object({ ok: z.boolean() }) } }, description: "OK" },
+      204: { description: "No Content" },
       401: { content: { "application/json": { schema: ErrorResponse } }, description: "Unauthorized" },
       404: { content: { "application/json": { schema: ErrorResponse } }, description: "Not found" },
     },
@@ -131,6 +132,6 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
       .get(id, userId) as { id: number } | null;
     if (!event) return c.json({ ok: false, error: "Event not found" }, 404);
     db.run("DELETE FROM calendar_event WHERE id = ?", [id]);
-    return c.json({ ok: true });
+    return c.body(null, 204);
   });
 }
