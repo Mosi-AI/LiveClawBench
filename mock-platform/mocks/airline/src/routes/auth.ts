@@ -5,8 +5,8 @@ import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { ok, err, getUserById, DEFAULT_USER_ID, verifyWerkzeugHash } from "../helpers";
 
-const OkResponse = z.object({ ok: z.boolean() }).passthrough();
-const ErrResponse = z.object({ ok: z.boolean(), error: z.string() });
+const OkResponse = z.object({ success: z.boolean() }).passthrough();
+const ErrResponse = z.object({ success: z.boolean(), message: z.string() });
 
 export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   // POST /api/auth/register

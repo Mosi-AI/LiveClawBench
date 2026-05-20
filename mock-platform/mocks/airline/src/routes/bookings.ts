@@ -55,6 +55,12 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("passengers must be a non-empty array"), 400);
     }
 
+    for (const p of passengers) {
+      if (!String(p.first_name ?? "") || !String(p.last_name ?? "") || !String(p.date_of_birth ?? "")) {
+        return c.json(err("Each passenger must have first_name, last_name and date_of_birth"), 400);
+      }
+    }
+
     const flight = db.query("SELECT * FROM flights WHERE id = ?").get(flightId) as Record<string, unknown> | null;
     if (!flight) return c.json(err("Flight not found"), 404);
 
@@ -91,14 +97,11 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
 
     const bookingId = Number(insertResult.lastInsertRowid);
 
-    // Validate and insert passengers
+    // Insert passengers (already validated above)
     for (const p of passengers) {
       const pFirst = String(p.first_name ?? "");
       const pLast = String(p.last_name ?? "");
       const pDob = String(p.date_of_birth ?? "");
-      if (!pFirst || !pLast || !pDob) {
-        return c.json(err("Each passenger must have first_name, last_name and date_of_birth"), 400);
-      }
       db.query(
         "INSERT INTO passengers (booking_id, first_name, last_name, date_of_birth, nationality, meal_preference, special_assistance) VALUES (?, ?, ?, ?, ?, ?, ?)"
       ).run(

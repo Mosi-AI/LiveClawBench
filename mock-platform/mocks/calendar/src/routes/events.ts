@@ -39,7 +39,7 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
 
   const getRoute = createRoute({
     method: "get",
-    path: "/api/events/:id",
+    path: "/api/events/{id}",
     summary: "Get a single calendar event",
     responses: {
       200: { content: { "application/json": { schema: EventSchema } }, description: "OK" },
@@ -114,7 +114,7 @@ export function registerEventRoutes(app: OpenAPIApp, db: Database): void {
 
   const deleteRoute = createRoute({
     method: "delete",
-    path: "/api/events/:id",
+    path: "/api/events/{id}",
     summary: "Delete a calendar event",
     responses: {
       204: { description: "No Content" },
