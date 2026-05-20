@@ -18,9 +18,7 @@ import {
 import type { RouteDeps } from "../../types";
 
 export function registerIngredientPageRoutes(app: OpenAPIApp, { getDatabase }: RouteDeps) {
-  app.page("/plans/:planId/ingredients", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/plans/:planId/ingredients", async (c) => {
     const planId = parsePositiveInt(c.req.param("planId"));
     if (!planId) return c.html(<Layout title="Bad Request"><p>Invalid plan ID</p></Layout>, 400);
 
@@ -61,9 +59,7 @@ export function registerIngredientPageRoutes(app: OpenAPIApp, { getDatabase }: R
     return c.redirect(`/plans/${planId}?tab=ingredients`, 303);
   });
 
-  app.page("/plans/:planId/ingredients/:ingId", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/plans/:planId/ingredients/:ingId", async (c) => {
     const planId = parsePositiveInt(c.req.param("planId"));
     const ingId = parsePositiveInt(c.req.param("ingId"));
     if (!planId || !ingId) return c.html(<Layout title="Bad Request"><p>Invalid ID</p></Layout>, 400);
@@ -117,9 +113,7 @@ export function registerIngredientPageRoutes(app: OpenAPIApp, { getDatabase }: R
     return c.redirect(`/plans/${planId}?tab=ingredients`, 303);
   });
 
-  app.page("/plans/:planId/ingredients/:ingId/delete", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/plans/:planId/ingredients/:ingId/delete", async (c) => {
     const planId = parsePositiveInt(c.req.param("planId"));
     const ingId = parsePositiveInt(c.req.param("ingId"));
     if (!planId || !ingId) return c.html(<Layout title="Bad Request"><p>Invalid ID</p></Layout>, 400);

@@ -19,9 +19,7 @@ import {
 import type { RouteDeps } from "../../types";
 
 export function registerPlanItemPageRoutes(app: OpenAPIApp, { getDatabase }: RouteDeps) {
-  app.page("/plans/:planId/items", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/plans/:planId/items", async (c) => {
     const planId = parsePositiveInt(c.req.param("planId"));
     if (!planId) return c.html(<Layout title="Bad Request"><p>Invalid plan ID</p></Layout>, 400);
 
@@ -66,9 +64,7 @@ export function registerPlanItemPageRoutes(app: OpenAPIApp, { getDatabase }: Rou
     return c.redirect(`/plans/${planId}/days/${planDate}/slots/${mealSlot}/edit`, 303);
   });
 
-  app.page("/plans/:planId/items/:itemId", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/plans/:planId/items/:itemId", async (c) => {
     const planId = parsePositiveInt(c.req.param("planId"));
     const itemId = parsePositiveInt(c.req.param("itemId"));
     if (!planId || !itemId) {
@@ -121,9 +117,7 @@ export function registerPlanItemPageRoutes(app: OpenAPIApp, { getDatabase }: Rou
     return c.redirect(`/plans/${planId}/days/${planDate}/slots/${mealSlot}/edit`, 303);
   });
 
-  app.page("/plans/:planId/items/:itemId/delete", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/plans/:planId/items/:itemId/delete", async (c) => {
     const planId = parsePositiveInt(c.req.param("planId"));
     const itemId = parsePositiveInt(c.req.param("itemId"));
     if (!planId || !itemId) {

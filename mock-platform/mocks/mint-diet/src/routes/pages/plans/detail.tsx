@@ -60,9 +60,7 @@ export function registerPlanDetailRoutes(app: OpenAPIApp, { getDatabase }: Route
   });
 
   // POST /plans/:planId - Update plan
-  app.page("/plans/:planId", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/plans/:planId", async (c) => {
     const planId = parsePositiveInt(c.req.param("planId"));
     if (!planId) {
       return c.html(<Layout title="Bad Request"><p>Invalid plan ID</p></Layout>, 400);
@@ -134,9 +132,7 @@ export function registerPlanDetailRoutes(app: OpenAPIApp, { getDatabase }: Route
   });
 
   // POST /plans/:planId/delete - Delete plan
-  app.page("/plans/:planId/delete", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/plans/:planId/delete", async (c) => {
     const planId = parsePositiveInt(c.req.param("planId"));
     if (!planId) {
       return c.html(<Layout title="Bad Request"><p>Invalid plan ID</p></Layout>, 400);

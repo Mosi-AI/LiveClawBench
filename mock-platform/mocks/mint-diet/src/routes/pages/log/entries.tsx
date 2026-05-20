@@ -65,9 +65,7 @@ export function registerLogEntryRoutes(app: OpenAPIApp, { getDatabase }: RouteDe
   });
 
   // POST /log/entries/:entryId/delete - Delete entry
-  app.page("/log/entries/:entryId/delete", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/log/entries/:entryId/delete", async (c) => {
     const entryId = parsePositiveInt(c.req.param("entryId"));
     if (!entryId) {
       return c.html(<Layout title="Bad Request"><p>Invalid entry ID</p></Layout>, 400);

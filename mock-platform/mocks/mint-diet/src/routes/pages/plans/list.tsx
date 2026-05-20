@@ -28,9 +28,7 @@ export function registerPlanListRoutes(app: OpenAPIApp, { getDatabase }: RouteDe
   app.page("/plans/new", (c) => c.html(<PlanForm />));
 
   // POST /plans - Create new plan
-  app.page("/plans", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/plans", async (c) => {
     const body = await parseBodyOrBadRequest(c);
     if (isResponse(body)) return body;
 

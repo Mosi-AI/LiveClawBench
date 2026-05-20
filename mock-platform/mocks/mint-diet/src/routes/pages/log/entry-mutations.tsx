@@ -27,9 +27,7 @@ export function registerLogEntryMutationRoutes(
   app: OpenAPIApp,
   { getDatabase }: RouteDeps,
 ) {
-  app.page("/log/:date/entries", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/log/:date/entries", async (c) => {
     const { date } = c.req.param();
     if (!isValidLocalDate(date)) {
       return c.html(<Layout title="Bad Request"><p>Invalid date</p></Layout>, 400);
@@ -63,9 +61,7 @@ export function registerLogEntryMutationRoutes(
     return c.redirect(`/log/${date}`, 303);
   });
 
-  app.page("/log/entries/:entryId", async (c) => {
-    if (c.req.method !== "POST") return c.notFound();
-
+  app.post("/log/entries/:entryId", async (c) => {
     const entryId = parsePositiveInt(c.req.param("entryId"));
     if (!entryId) {
       return c.html(<Layout title="Bad Request"><p>Invalid entry ID</p></Layout>, 400);
