@@ -24,7 +24,7 @@ export function createCalendarApp(options?: { dbPath?: string }): MockAppV2 {
     },
   });
 
-  const db = getCalendarDb({ path: options?.dbPath });
+  const db = getCalendarDb({ dbPath: options?.dbPath });
   initSchema(db);
   seedDatabase(db);
 
