@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verify smarthome-test task: 8-dimension scoring.
+Verify smarthome-morning-checkup task: 8-dimension scoring.
 
 Dimensions (each 0.125 pts):
 - D1: Dashboard report — mentions temperature (68.5°F), humidity (52%), initial thermostat mode (eco)

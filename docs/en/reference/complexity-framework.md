@@ -69,7 +69,7 @@ single, clean environment without structural complexity.
 |      38 | health-daily-record               |     E      |    |    |    |    | Health & Wellness          |
 |      39 | finance-portfolio-rebalancing     |     H      |    |    |    |    | Finance & Data Analytics   |
 |      40 | finance-monthly-close             |     M      |    |    |    |    | Finance & Data Analytics   |
-|      41 | smarthome-test                    |     M      |    |    | ✓  |    | E-commerce & Daily Svcs    |
+|      41 | smarthome-morning-checkup          |     M      |    |    | ✓  |    | E-commerce & Daily Svcs    |
 |      42 | grocery-reorder                   |     M      | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
 |      43 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    | Health & Fitness           |
 |      44 | smarthome-sleep-quality          |     H      | ✓  | ✓  | ✓  |    | E-commerce & Daily Svcs    |
@@ -82,7 +82,7 @@ single, clean environment without structural complexity.
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
 | A1     | Cross-Service Dependency       |    13 |      29.5% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, smarthome-sleep-quality |
 | A2     | Contaminated Initial State     |     8 |      18.2% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, smarthome-sleep-quality |
-| B1     | Implicit Goal Resolution       |     8 |      18.2% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, grocery-reorder, smarthome-test, morning-comfort-setup, smarthome-sleep-quality |
+| B1     | Implicit Goal Resolution       |     8 |      18.2% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, grocery-reorder, smarthome-morning-checkup, morning-comfort-setup, smarthome-sleep-quality |
 | B2     | Knowledge System Maintenance   |    11 |      25.0% | skill-creation, skill-dependency-fix, noise-filtering         |
 
 > Percentages are relative to 44 implemented cases.
@@ -156,7 +156,7 @@ Pair design rationale:
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
 | Easy       |    25 |      58.1% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record |
-| Medium     |    12 |      27.3% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-test, grocery-reorder, morning-comfort-setup |
+| Medium     |    12 |      27.3% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-morning-checkup, grocery-reorder, morning-comfort-setup |
 | Hard       |     7 |      15.9% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, smarthome-sleep-quality |
 
 Factor count vs difficulty:

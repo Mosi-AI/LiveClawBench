@@ -56,7 +56,7 @@ INSERT OR IGNORE INTO grocery_product (product_id, name, quantity, unit, stock_s
 INSERT OR IGNORE INTO wearable_recovery_state (id, sleep_hours, sleep_score, readiness, resting_heart_rate)
 VALUES (1, 7.5, 82.0, 75.0, 58.0);
 
--- Calendar Events (today's schedule - no workout to avoid overlap with smarthome-test)
+-- Calendar Events (today's schedule - no workout to avoid overlap with smarthome-morning-checkup)
 INSERT OR IGNORE INTO calendar_event (id, title, start_time, event_type, workout_type, updated_at) VALUES
 (1, 'Team Standup', '2026-05-09T10:00:00Z', 'meeting', NULL, '2026-05-08T09:00:00Z'),
 (2, 'Lunch with Client', '2026-05-09T12:30:00Z', 'meeting', NULL, '2026-05-07T14:00:00Z'),

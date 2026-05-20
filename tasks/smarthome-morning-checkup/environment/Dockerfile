@@ -1,4 +1,4 @@
-FROM liveclawbench-smarthome-test-base:latest
+FROM liveclawbench-smarthome-morning-checkup-base:latest
 
 # Copy task-specific files
 # This allows seed.sql changes to take effect without rebuilding the base image

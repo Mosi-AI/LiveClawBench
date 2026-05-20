@@ -93,7 +93,7 @@ const ALL_TASK_NAMES = new Set([
   "mint-diet-snack-log", "weather-aqi-report",
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
   "finance-portfolio-rebalancing", "finance-monthly-close",
-  "health-daily-record", "smarthome-test", "grocery-reorder",
+  "health-daily-record", "smarthome-morning-checkup", "grocery-reorder",
   "morning-comfort-setup", "smarthome-sleep-quality",
 ]);
 

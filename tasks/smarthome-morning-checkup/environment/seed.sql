@@ -1,4 +1,4 @@
--- Seed data for smarthome-test task
+-- Seed data for smarthome-morning-checkup task
 -- Focus: Morning routine automation scenario
 
 -- Room

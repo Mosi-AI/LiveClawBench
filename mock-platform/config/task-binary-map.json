@@ -242,10 +242,10 @@
       "binaries": ["finance"]
     },
     "health-daily-record": { "binaries": ["health"] },
-    "smarthome-test": {
+    "smarthome-morning-checkup": {
       "binaries": ["smarthome"],
       "assets": [
-        { "src": "tasks/smarthome-test/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
+        { "src": "tasks/smarthome-morning-checkup/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
       ]
     },
     "grocery-reorder": {

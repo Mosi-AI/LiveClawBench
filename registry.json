@@ -42,7 +42,7 @@
       {"name": "insurance-deductible-selection", "path": "tasks/insurance-deductible-selection"},
       {"name": "health-insurance-optimization", "path": "tasks/health-insurance-optimization"},
       {"name": "health-daily-record", "path": "tasks/health-daily-record"},
-      {"name": "smarthome-test", "path": "tasks/smarthome-test"},
+      {"name": "smarthome-morning-checkup", "path": "tasks/smarthome-morning-checkup"},
       {"name": "weather-aqi-report", "path": "tasks/weather-aqi-report"},
       {"name": "grocery-reorder", "path": "tasks/grocery-reorder"},
       {"name": "morning-comfort-setup", "path": "tasks/morning-comfort-setup"},
