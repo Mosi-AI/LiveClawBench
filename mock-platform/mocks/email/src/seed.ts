@@ -636,21 +636,6 @@ Tax Authority Automated Notification System`,
   is_read: 0,
 };
 
-const SENT_GARY = {
-  recipient_email: "gaeuala@outlook.com",
-  subject: "LONG TIME NO SEE!!!",
-  body: `Dear Gary,
-
-Mary and I are so excited to hear that you're coming to our city soon! It's been ages since we last met back in the winter of 2024. I also heard you've started a new job—how's it going so far? I can't wait to catch up and hear all about your news.
-
-Let's pick a time to hang out! Mary will discuss this with you. She just got a Nintendo Switch, so we could head over to her place to play some games and chat.
-
-Looking forward to seeing you,
-
-Peter`,
-  days_ago: 5,
-};
-
 // --- Seed configuration per task ---
 
 interface SeedConfig {

@@ -67,8 +67,8 @@ single, clean environment without structural complexity.
 |      36 | insurance-deductible-selection    |     E      |    |    |    |    | E-commerce & Daily Svcs    |
 |      37 | health-insurance-optimization     |     M      | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |      38 | health-daily-record               |     E      |    |    |    |    | Health & Wellness          |
-|      39 | finance-portfolio-rebalancing     |     H      |    |    |    |    | Finance & Data Analytics   |
-|      40 | finance-monthly-close             |     M      |    |    |    |    | Finance & Data Analytics   |
+|      39 | finance-portfolio-rebalancing     |     H      |    |    | ✓  |    | Finance & Data Analytics   |
+|      40 | finance-monthly-close             |     M      |    | ✓  |    |    | Finance & Data Analytics   |
 |      41 | nutrition-log-meal                |     E      |    |    |    |    | Health & Wellness          |
 |      42 | mint-diet-comprehensive           |     E      |    |    |    |    | Health & Wellness          |
 |      43 | smarthome-test                    |     M      |    |    | ✓  |    | E-commerce & Daily Svcs    |
@@ -109,7 +109,7 @@ single, clean environment without structural complexity.
 
 Factor combination distribution:
 
-- No factors (baseline): 21 cases (37.5%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, finance-portfolio-rebalancing, finance-monthly-close, nutrition-log-meal, mint-diet-comprehensive, weather-city-travel-pick, weather-outdoor-window
+- No factors (baseline): 21 cases (37.5%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, weather-city-travel-pick, weather-outdoor-window
 - Single factor: 17 cases (30.4%)
 - Dual factor: 15 cases (26.8%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), grocery-reorder (A1+B1), morning-comfort-setup (A2+B1), pre-meeting-research-brief (B1+B2), vendor-due-diligence-brief (A1+B1), social-keyword-cleanup (A1+B1), social-event-campaign (A1+B1), social-comment-moderation (A1+B1), social-cross-publish (A1+B1)
 - Triple factor: 3 cases (5.4%) — conflict-repair-acb (A1+A2+B2), social-data-anomaly-report (A1+A2+B1), social-pinned-post-update (A1+A2+B1)
