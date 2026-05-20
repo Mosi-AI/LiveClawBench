@@ -43,7 +43,7 @@ const BINARY_PORTS: Record<string, number> = {
   calendar: 5006,
   "mint-diet": 5003,
   weather: 3000,
-  social: 5004,
+  social: 5008,
   expense: 5005,
   health: 5007,
   smarthome: 5004,
@@ -79,7 +79,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 54 benchmark task names (canonical source of truth)
+// All 61 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -91,13 +91,16 @@ const ALL_TASK_NAMES = new Set([
   "skill-conflict-resolution", "skill-dependency-fix", "noise-filtering",
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
-  "mint-diet-snack-log", "weather-aqi-report",
+  "mint-diet-snack-log", "mint-diet-comprehensive", "nutrition-log-meal", "weather-aqi-report",
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
+  "health-daily-record",
   "finance-portfolio-rebalancing", "finance-monthly-close",
-  "health-daily-record", "smarthome-test", "grocery-reorder",
-  "morning-comfort-setup",
-  "weather-city-travel-pick", "weather-outdoor-window", "pre-meeting-research-brief",
-  "vendor-due-diligence-brief",
+  "smarthome-test", "grocery-reorder", "morning-comfort-setup",
+  "weather-city-travel-pick", "weather-outdoor-window",
+  "pre-meeting-research-brief", "vendor-due-diligence-brief",
+  "social-schedule-audit", "social-keyword-cleanup", "social-event-campaign",
+  "social-data-anomaly-report", "social-comment-moderation",
+  "social-cross-publish", "social-pinned-post-update",
   "meeting-reschedule-response", "candidate-interview-slot-confirm",
   "medication-prescription-sync", "health-appointment-scheduling",
   "content-calendar-cross-publish",
@@ -431,6 +434,11 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/expense-backend.log 2>&1 &`);
         lines.push(`echo "Expense frontend served by Bun on port ${port}" > /tmp/expense-frontend.log`);
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/expense-npm-install.log`);
+      } else if (bin === "social") {
+        lines.push(`export MOCK_DATA_DIR=/opt/mock/data`);
+        lines.push(`mkdir -p /opt/mock/data/social`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/social-backend.log 2>&1 &`);
+        lines.push(`echo "Social frontend served by Bun on port ${port}" > /tmp/social-frontend.log`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }

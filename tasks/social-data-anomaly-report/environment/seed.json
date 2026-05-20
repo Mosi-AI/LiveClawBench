@@ -1,0 +1,41 @@
+{
+  "posts": [
+    {
+      "id": 101,
+      "author_username": "mosi_brand",
+      "content": "New product launch announcement coming soon!",
+      "status": "published",
+      "published_at": null
+    }
+  ],
+  "post_metrics": [
+    {
+      "post_id": 101,
+      "impressions": 0,
+      "likes": 50000,
+      "replies": 0,
+      "reposts": 0,
+      "clicks": 0,
+      "profile_visits": 0,
+      "new_followers": 0
+    }
+  ],
+  "action_logs": [
+    {
+      "post_id": 6,
+      "actor_username": "alice",
+      "action_type": "published",
+      "new_value": "published",
+      "created_at": "2026-01-23 14:30:00"
+    }
+  ],
+  "accounts": [],
+  "tags": [],
+  "post_tags": [],
+  "comments": [],
+  "follow_relations": [],
+  "keyword_rules": [],
+  "event_campaigns": [],
+  "post_likes": [],
+  "post_reposts": []
+}

@@ -1,0 +1,18 @@
+{
+  "posts": [
+    {"id": 101, "author_username": "mosi_brand", "content": "Exclusive giveaway for our loyal followers! Share this post to win prizes. #HolidayGiveaway", "status": "published", "published_at": "2026-02-14 10:00:00"},
+    {"id": 102, "author_username": "mosi_brand", "content": "Just reached a personal milestone - 100 days on this platform! #Milestone #Personal", "status": "published", "published_at": "2026-02-20 15:00:00"},
+    {"id": 103, "author_username": "mosi_brand", "content": "My latest video editing tutorial is now live! Check it out. #Tutorial #Editing", "status": "published", "published_at": "2026-02-25 09:00:00"}
+  ],
+  "tags": [],
+  "post_tags": [],
+  "post_metrics": [],
+  "action_logs": [],
+  "post_likes": [],
+  "post_reposts": [],
+  "comments": [],
+  "follow_relations": [],
+  "keyword_rules": [],
+  "event_campaigns": [],
+  "accounts": []
+}

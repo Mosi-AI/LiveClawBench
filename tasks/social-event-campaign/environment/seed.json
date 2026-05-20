@@ -1,0 +1,33 @@
+{
+  "posts": [
+    {
+      "id": 101,
+      "author_username": "mosi_brand",
+      "content": "Join us for the Mosi Tech Innovation Summit 2026! Early bird registration is now open. Three days of cutting-edge tech talks, workshops, and networking. #TechSummit #MosiEvents",
+      "status": "draft",
+      "has_event_cta": 1
+    }
+  ],
+  "event_campaigns": [
+    {
+      "post_id": 101,
+      "event_title": "Mosi Tech Innovation Summit 2026",
+      "start_at": "2026-07-20 09:00:00",
+      "end_at": "2026-07-22 18:00:00",
+      "registration_url": "https://events.mosi.inc/tech-summit-2026/register",
+      "registrations_count": 0,
+      "attendance_goal": 300,
+      "status": "draft"
+    }
+  ],
+  "accounts": [],
+  "tags": [],
+  "post_tags": [],
+  "post_metrics": [],
+  "action_logs": [],
+  "post_likes": [],
+  "post_reposts": [],
+  "comments": [],
+  "follow_relations": [],
+  "keyword_rules": []
+}

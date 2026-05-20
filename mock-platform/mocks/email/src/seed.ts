@@ -428,6 +428,41 @@ Peter`,
   days_ago: 5,
 };
 
+// --- Social media cross-service emails ---
+
+const SENDER_SOCIAL_TEAM = { username: "social.team", email: "social-team@mosi.inc" };
+const SENDER_COMM_MANAGER = { username: "comm.manager", email: "comm.manager@mosi.inc" };
+const SENDER_CEO = { username: "ceo.mosi", email: "ceo@mosi.inc" };
+
+const INBOX_CROSS_PUBLISH = {
+  subject: "Cross-Publish Content to Social Media",
+  body: `Hi,
+
+Our marketing team has prepared a new promotional post that needs to be published on the Mosi Social platform. Here's the content:
+
+Title: Summer Tech Summit 2026 - Early Bird Registration Open
+
+Content:
+"Join us for the biggest tech event of the year! The Summer Tech Summit 2026 brings together industry leaders, innovators, and tech enthusiasts for three days of keynotes, workshops, and networking.
+
+Key highlights:
+- 50+ speaker sessions
+- Hands-on workshops
+- Startup pitch competition
+- Evening networking events
+
+Early bird pricing ends June 30. Register now to save 30%!
+
+#TechSummit2026 #SummerSummit #TechConference"
+
+Please check the company calendar for the event date and recommended posting format, then publish this to our social media account.
+
+Best regards,
+Marketing Team`,
+  days_ago: 0,
+  is_read: 0,
+};
+
 // --- Calendar/scheduling task emails ---
 
 const SENDER_HR = { username: "hr.department", email: "hr@work.mosi.inc" };
@@ -450,6 +485,20 @@ If the new time doesn't work for you, please let me know by end of day today.
 Best regards,
 HR Department
 Mosi Inc.`,
+  days_ago: 0,
+  is_read: 0,
+};
+
+const INBOX_PINNED_POST = {
+  subject: "Update Pinned Post on Social Media",
+  body: `Hi,
+
+We need to update the pinned post on our social media account. The current pinned post about our launch is outdated.
+
+Please pin the post about our "10K followers giveaway" instead, and unpin the current one. You'll need a verification code from the calendar event titled "Social Media Q2 Content Plan" to complete this change.
+
+Best regards,
+Social Media Team`,
   days_ago: 0,
   is_read: 0,
 };
@@ -499,6 +548,20 @@ City Medical Center`,
   is_read: 0,
 };
 
+const INBOX_EVENT_CAMPAIGN = {
+  subject: "Publish Event Campaign Post",
+  body: `Hi,
+
+We have a draft post ready for our upcoming event campaign on the social media platform. It's currently saved as a draft under the Mosi Brand account.
+
+Please review the draft and publish it. After publishing, send a notification email to events@mosi.inc with the subject "Event Campaign Published" confirming the post is live.
+
+Thanks,
+Events Team`,
+  days_ago: 0,
+  is_read: 0,
+};
+
 const INBOX_HEALTH_SCHEDULE_CHECK = {
   subject: "Please Review Your Health Schedule",
   body: `Hi Peter,
@@ -516,6 +579,58 @@ Login: peter.griffin@work.mosi.inc / password123
 Thanks,
 HR Department
 Mosi Inc.`,
+  days_ago: 0,
+  is_read: 0,
+};
+
+const INBOX_KEYWORD_CLEANUP = {
+  subject: "Remove Posts with Specific Keywords",
+  body: `Hi,
+
+We need to clean up some posts on our social media account. Please delete all posts that contain any of the following keywords:
+
+- "giveaway"
+- "milestone"
+
+These posts were part of a completed campaign and should be removed. Delete each post one by one through the platform.
+
+Best regards,
+Content Moderation Team`,
+  days_ago: 0,
+  is_read: 0,
+};
+
+const INBOX_COMMENT_MODERATION = {
+  subject: "Moderate Comments on Recent Posts",
+  body: `Hi,
+
+Several comments on our social media posts need moderation. Please review the recent comments and reply to the ones that ask questions. Use the brand account (mosi_brand) for official replies.
+
+Also, check if any comments violate our keyword rules. If you find violations, hide or delete those comments.
+
+Important: some comments may need replies from different accounts. Use the account switch feature to respond appropriately.
+
+Best regards,
+Community Management`,
+  days_ago: 0,
+  is_read: 0,
+};
+
+const INBOX_ANOMALY_REPORT = {
+  subject: "Social Media Data Integrity Check",
+  body: `Hi,
+
+We suspect there might be data inconsistencies in our social media analytics. Please review the post metrics and action logs on the platform to identify any anomalies.
+
+Specifically check for:
+- Posts with metrics that don't match their action logs
+- Posts with inconsistent status and published_at values
+- Any orphaned or duplicate data entries
+
+Once you've identified all anomalies, send a detailed report to data-team@mosi.inc with the subject "Social Media Data Anomaly Report" listing each issue you found.
+
+Best regards,
+Data Integrity Team`,
   days_ago: 0,
   is_read: 0,
 };
@@ -668,6 +783,78 @@ function makeSeedConfig(taskName: string): SeedConfig {
           { senderUsername: "lau.pai", ...INBOX_PARTNERSHIP },
         ],
         sent: [...baselineSent, SENT_GARY],
+      };
+    }
+
+    case "social-cross-publish": {
+      const senders = [...BASELINE_SENDERS, SENDER_SOCIAL_TEAM];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "social.team", ...INBOX_CROSS_PUBLISH },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "social-pinned-post-update": {
+      const senders = [...BASELINE_SENDERS, SENDER_SOCIAL_TEAM];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "social.team", ...INBOX_PINNED_POST },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "social-event-campaign": {
+      const senders = [...BASELINE_SENDERS, SENDER_COMM_MANAGER];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "comm.manager", ...INBOX_EVENT_CAMPAIGN },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "social-keyword-cleanup": {
+      const senders = [...BASELINE_SENDERS, SENDER_COMM_MANAGER];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "comm.manager", ...INBOX_KEYWORD_CLEANUP },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "social-comment-moderation": {
+      const senders = [...BASELINE_SENDERS, SENDER_COMM_MANAGER];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "comm.manager", ...INBOX_COMMENT_MODERATION },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "social-data-anomaly-report": {
+      const senders = [...BASELINE_SENDERS, SENDER_CEO];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "ceo.mosi", ...INBOX_ANOMALY_REPORT },
+        ],
+        sent: baselineSent,
       };
     }
 

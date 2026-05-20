@@ -2,7 +2,7 @@
   {
     "name": "liveclawbench",
     "version": "0.1.0",
-    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 45 tasks with 4 complexity factors (A1/A2/B1/B2) across 10 task domains.",
+    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 56 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
     "tasks": [
       {"name": "skill-creation", "path": "tasks/skill-creation"},
       {"name": "skill-supplementation", "path": "tasks/skill-supplementation"},
@@ -48,7 +48,18 @@
       {"name": "smarthome-test", "path": "tasks/smarthome-test"},
       {"name": "weather-aqi-report", "path": "tasks/weather-aqi-report"},
       {"name": "grocery-reorder", "path": "tasks/grocery-reorder"},
-      {"name": "morning-comfort-setup", "path": "tasks/morning-comfort-setup"}
+      {"name": "morning-comfort-setup", "path": "tasks/morning-comfort-setup"},
+      {"name": "weather-city-travel-pick", "path": "tasks/weather-city-travel-pick"},
+      {"name": "weather-outdoor-window", "path": "tasks/weather-outdoor-window"},
+      {"name": "pre-meeting-research-brief", "path": "tasks/pre-meeting-research-brief"},
+      {"name": "vendor-due-diligence-brief", "path": "tasks/vendor-due-diligence-brief"},
+      {"name": "social-schedule-audit", "path": "tasks/social-schedule-audit"},
+      {"name": "social-keyword-cleanup", "path": "tasks/social-keyword-cleanup"},
+      {"name": "social-event-campaign", "path": "tasks/social-event-campaign"},
+      {"name": "social-data-anomaly-report", "path": "tasks/social-data-anomaly-report"},
+      {"name": "social-comment-moderation", "path": "tasks/social-comment-moderation"},
+      {"name": "social-cross-publish", "path": "tasks/social-cross-publish"},
+      {"name": "social-pinned-post-update", "path": "tasks/social-pinned-post-update"}
     ]
   }
 ]

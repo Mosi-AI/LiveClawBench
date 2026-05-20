@@ -12,7 +12,7 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 
 | Repository | Role | URL |
 |---|---|---|
-| **LiveClawBench** (this repo) | Task corpus — 37 harbor-format benchmark tasks | — |
+| **LiveClawBench** (this repo) | Task corpus — 61 harbor-format benchmark tasks | — |
 | **claw-harbor** | Evaluation framework (fork of harbor with OpenClaw support) | https://github.com/Mosi-AI/claw-harbor |
 | **OpenClaw** | Agent platform running inside task containers | https://github.com/openclaw/openclaw |
 
@@ -97,7 +97,7 @@ harbor run -p tasks/watch-shop -a openclaw \
 ### Full Dataset
 
 ```bash
-# Generic form (includes LLM judge credentials for the 5 judge tasks)
+# Generic form (includes LLM judge credentials for the 7 judge tasks)
 harbor run --dataset liveclawbench@0.1.0 -a openclaw \
   -m custom/<YOUR_MODEL_ID> \
   --n-concurrent 4 \
@@ -137,8 +137,9 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
 
-> **LLM-judge tasks** (5 tasks: `conflict-repair-acb`, `incremental-update-ctp`,
-> `live-web-research-sqlite-fts5`, `mixed-tool-memory`, `noise-filtering`) use `--ee` (not `--ae`)
+> **LLM-judge tasks** (7 tasks: `conflict-repair-acb`, `incremental-update-ctp`,
+> `live-web-research-sqlite-fts5`, `mixed-tool-memory`, `noise-filtering`,
+> `pre-meeting-research-brief`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
 > for judge credentials because `llm_judge.py` runs in the verifier phase, outside the OpenClaw
 > agent process. **Missing `--ee` will cause the verifier to fail with
 > `RuntimeError: JUDGE_BASE_URL is not set`.**
@@ -234,6 +235,28 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `weather-aqi-report` | Deep Research & Report | easy | verify.py |
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
+| `social-media-posting` | Social Media | easy | verify.py |
+| `social-unlike-post` | Social Media | easy | verify.py |
+| `expense-draft-delete` | Finance & Data Analytics | easy | verify.py |
+| `health-daily-record` | Health & Fitness | easy | verify.py |
+| `finance-portfolio-rebalancing` | Finance & Data Analytics | hard | verify.py |
+| `finance-monthly-close` | Finance & Data Analytics | medium | verify.py |
+| `nutrition-log-meal` | Health & Fitness | easy | verify.py |
+| `mint-diet-comprehensive` | Health & Fitness | easy | verify.py |
+| `smarthome-test` | E-commerce & Daily Svcs | medium | verify.py |
+| `grocery-reorder` | E-commerce & Daily Svcs | medium | verify.py |
+| `morning-comfort-setup` | Health & Fitness | medium | verify.py |
+| `weather-city-travel-pick` | Health & Fitness | medium | verify.py |
+| `weather-outdoor-window` | Health & Fitness | hard | verify.py |
+| `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
+| `vendor-due-diligence-brief` | Deep Research & Report | medium | **llm_judge** |
+| `social-schedule-audit` | Social Media | medium | verify.py |
+| `social-keyword-cleanup` | Social Media | medium | verify.py |
+| `social-event-campaign` | Social Media | medium | verify.py |
+| `social-data-anomaly-report` | Social Media | hard | verify.py |
+| `social-comment-moderation` | Social Media | hard | verify.py |
+| `social-cross-publish` | Social Media | hard | verify.py |
+| `social-pinned-post-update` | Social Media | hard | verify.py |
 | `meeting-reschedule-response` | Calendar & Task Mgmt | easy | verify.py |
 | `candidate-interview-slot-confirm` | Calendar & Task Mgmt | easy | verify.py |
 | `medication-prescription-sync` | Health & Fitness | hard | verify.py |
@@ -392,8 +415,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-43 implemented tasks: A1=16, A2=9, B1=7, B2=11.
-Difficulty: Easy=27, Medium=8, Hard=8.
+61 implemented tasks: A1=24, A2=13, B1=18, B2=12.
+Difficulty: Easy=29, Medium=18, Hard=14.
 
 ## Known Issues
 

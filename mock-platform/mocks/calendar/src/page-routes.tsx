@@ -16,6 +16,7 @@ interface CalEvent {
   event_type: string;
   start_time: string;
   end_time: string;
+  source_ref: string | null;
 }
 
 function formatEventError(error: string): string {
@@ -46,7 +47,7 @@ function getCurrentUser(
 function listEvents(db: Database, userId: number) {
   return db
     .query<CalEvent, [number]>(
-      "SELECT id, title, description, event_type, start_time, end_time FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC",
+      "SELECT id, title, description, event_type, start_time, end_time, source_ref FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC",
     )
     .all(userId);
 }
