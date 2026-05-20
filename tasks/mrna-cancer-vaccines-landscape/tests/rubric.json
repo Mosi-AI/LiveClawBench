@@ -1,129 +1,93 @@
 {
   "dimension_weights": {
-    "instruction_following": 0.2,
-    "insight": 0.31,
-    "comprehensiveness": 0.36,
-    "readability": 0.13
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
   },
   "criteria": {
     "comprehensiveness": [
       {
-        "criterion": "Coverage of the current clinical trial landscape across major programs, sponsors, phases, and cancer indications",
-        "weight": 0.28
-      },
-      {
-        "criterion": "Coverage of mechanisms of action relevant to mRNA cancer vaccines",
+        "criterion": "Coverage of clinical trial landscape",
         "weight": 0.15
       },
       {
-        "criterion": "Coverage of target antigen strategies",
+        "criterion": "Coverage of mechanisms and antigen strategies",
         "weight": 0.15
       },
       {
-        "criterion": "Coverage of delivery systems and formulation approaches used clinically",
-        "weight": 0.12
+        "criterion": "Coverage of delivery systems and formulations",
+        "weight": 0.15
       },
       {
-        "criterion": "Coverage of early efficacy signals from clinical studies",
-        "weight": 0.13
+        "criterion": "Coverage of specific regulatory designations",
+        "weight": 0.275
       },
       {
-        "criterion": "Coverage of safety and immunogenicity evidence as part of the clinical evidence base",
-        "weight": 0.07
-      },
-      {
-        "criterion": "Coverage of major therapeutic design paradigms and clinical use settings",
-        "weight": 0.06
-      },
-      {
-        "criterion": "Coverage of the translational and development context shaping the field",
-        "weight": 0.04
+        "criterion": "Coverage of combination therapy rationale",
+        "weight": 0.275
       }
     ],
     "insight": [
       {
-        "criterion": "Cross-trial synthesis and pattern recognition",
-        "weight": 0.24
+        "criterion": "Analytical linkage between mechanism and outcome",
+        "weight": 0.15
       },
       {
-        "criterion": "Analytical linkage between mechanism, antigen strategy, delivery system, and clinical outcomes",
-        "weight": 0.22
+        "criterion": "Critical evaluation of limitations",
+        "weight": 0.15
       },
       {
-        "criterion": "Quality of interpretation of early efficacy signals",
-        "weight": 0.2
+        "criterion": "Quality of interpretation of efficacy signals",
+        "weight": 0.15
       },
       {
-        "criterion": "Critical evaluation of strengths, limitations, and translational bottlenecks",
-        "weight": 0.16
+        "criterion": "Proposes a novel analytical framework or taxonomy",
+        "weight": 0.275
       },
       {
-        "criterion": "Soundness and logical consistency of conclusions",
-        "weight": 0.1
-      },
-      {
-        "criterion": "Usefulness and originality of higher-level judgments or future-oriented takeaways",
-        "weight": 0.08
+        "criterion": "Provides quantitative estimates with confidence ranges",
+        "weight": 0.275
       }
     ],
     "instruction_following": [
       {
-        "criterion": "Direct response to the stated research question",
-        "weight": 0.2105
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
       },
       {
-        "criterion": "Coverage of all four explicitly requested topical components",
-        "weight": 0.2526
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
       },
       {
-        "criterion": "Clinical trial landscape orientation",
-        "weight": 0.1895
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
       },
       {
-        "criterion": "Inclusion of required critical-analysis elements",
-        "weight": 0.1474
-      },
-      {
-        "criterion": "Adherence to requested report structure and markdown conventions",
-        "weight": 0.0842
-      },
-      {
-        "criterion": "Presence of a dedicated Sources section listing consulted references/URLs",
-        "weight": 0.0737
-      },
-      {
-        "criterion": "Scope discipline and relevance to current mRNA cancer vaccines",
-        "weight": 0.0421
+        "criterion": "Covers all four requested topical components",
+        "weight": 0.2
       }
     ],
     "readability": [
       {
-        "criterion": "Logical organization and navigability: The report is structured with clear sections and subsections, smooth transitions, and an argument sequence that helps readers move from clinical trial landscape to mechanisms of action, target antigens, delivery systems, and early efficacy signals without confusion.",
-        "weight": 0.24
-      },
-      {
-        "criterion": "Clarity and precision of prose: The article uses precise, straightforward wording, defines clinical and immunological terms (e.g., neoantigen, adjuvant, immunogenicity) when first introduced, and avoids unnecessary medical jargon or unexplained acronyms.",
+        "criterion": "Clarity and precision of language",
         "weight": 0.22
       },
       {
-        "criterion": "Digestibility of complex information: Complex oncological and molecular concepts, such as mRNA vaccine mechanisms and antigen selection strategies, are presented clearly with appropriate examples, comparisons, and visual aids that support comprehension.",
-        "weight": 0.18
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
       },
       {
-        "criterion": "Effective use of markdown formatting and visual hierarchy: Markdown headings, bullet points, tables, emphasis, and topic sentences are used appropriately to highlight trial data, comparative results, and critical evaluations across different vaccine platforms.",
-        "weight": 0.14
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
       },
       {
-        "criterion": "Terminology management and explanation of technical concepts: Medical and technical terms are used consistently, defined when first introduced, and explained at a level appropriate for an informed reader interested in mRNA cancer vaccine development.",
-        "weight": 0.12
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
       },
       {
-        "criterion": "Cohesion, transitions, and signposting: Sentences are concise and varied in length, paragraphs are focused on one main idea, and dense clinical material is broken into digestible units with clear transitions that reduce reader fatigue.",
-        "weight": 0.06
-      },
-      {
-        "criterion": "Audience-appropriate exposition: The level of detail and terminology are tailored to an informed research audience, with sufficient background provided for readers to understand mRNA cancer vaccine mechanisms and clinical trial data without requiring specialized oncology expertise.",
-        "weight": 0.04
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
       }
     ]
   }

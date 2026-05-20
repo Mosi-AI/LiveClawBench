@@ -1,105 +1,93 @@
 {
   "dimension_weights": {
-    "readability": 0.13,
-    "insight": 0.31,
-    "instruction_following": 0.2,
-    "comprehensiveness": 0.36
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
   },
   "criteria": {
     "insight": [
       {
-        "criterion": "Cross-layer synthesis of off-target mitigation strategies",
-        "weight": 0.24
-      },
-      {
-        "criterion": "Depth of comparative tradeoff analysis",
-        "weight": 0.22
+        "criterion": "Critical appraisal of evidence quality",
+        "weight": 0.15
       },
       {
         "criterion": "Mechanistic reasoning linking approach to outcome",
-        "weight": 0.16
+        "weight": 0.15
       },
       {
-        "criterion": "Context-sensitive evaluation and conditional recommendations",
-        "weight": 0.16
+        "criterion": "Context-sensitive evaluation and recommendations",
+        "weight": 0.15
       },
       {
-        "criterion": "Critical appraisal of evidence quality and limitations",
-        "weight": 0.12
+        "criterion": "Proposes a novel analytical framework or taxonomy",
+        "weight": 0.275
       },
       {
-        "criterion": "Identification of unresolved challenges and future directions",
-        "weight": 0.1
+        "criterion": "Provides quantitative estimates with confidence ranges",
+        "weight": 0.275
       }
     ],
     "instruction_following": [
       {
-        "criterion": "Direct alignment to the stated research question",
-        "weight": 0.2391
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
       },
       {
-        "criterion": "Addresses all three explicitly requested intervention areas",
-        "weight": 0.2609
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
       },
       {
-        "criterion": "Emphasizes latest or recent strategies and technologies",
-        "weight": 0.1304
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
       },
       {
-        "criterion": "Includes the explicitly required critical-analysis elements",
-        "weight": 0.1522
-      },
-      {
-        "criterion": "Follows the requested report structure and markdown organization",
-        "weight": 0.1087
-      },
-      {
-        "criterion": "Includes a dedicated 'Sources' section listing consulted references and URLs",
-        "weight": 0.1087
+        "criterion": "Addresses all three intervention areas",
+        "weight": 0.2
       }
     ],
     "readability": [
       {
-        "criterion": "Clarity and precision of language: The article uses precise, straightforward wording, defines technical terms related to CRISPR, genome editing, and molecular biology when first introduced, and avoids unnecessary jargon or unexplained acronyms.",
-        "weight": 0.24
-      },
-      {
-        "criterion": "Logical organization and section-level flow: The report is structured with clear sections and subsections, smooth transitions, and an argument sequence that helps readers move from off-target mechanisms to mitigation strategies and validation methods without confusion.",
+        "criterion": "Clarity and precision of language",
         "weight": 0.22
       },
       {
-        "criterion": "Paragraph coherence and sentence-to-sentence transitions: Sentences are concise and varied in length, paragraphs are focused on one main idea, and dense technical material is broken into digestible units that reduce reader fatigue.",
-        "weight": 0.16
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
       },
       {
-        "criterion": "Effective presentation of complex information: Complex biological and bioengineering concepts, such as guide RNA design and high-fidelity Cas9 variants, are presented clearly with appropriate examples, comparisons, and visual aids that support comprehension.",
-        "weight": 0.14
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
       },
       {
-        "criterion": "Formatting, markdown usage, and visual hierarchy: Markdown headings, bullet points, tables, emphasis, and topic sentences are used appropriately to highlight key findings, methodological comparisons, and critical evaluations across different mitigation approaches.",
-        "weight": 0.12
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
       },
       {
-        "criterion": "Audience-appropriate explanation of technical concepts: The level of detail and terminology are tailored to an informed research audience, with sufficient background provided for readers to understand CRISPR off-target mechanisms and their mitigation without requiring specialized domain expertise.",
-        "weight": 0.12
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
       }
     ],
     "comprehensiveness": [
       {
-        "criterion": "The report covers CRISPR off-target effect mechanisms and their biological consequences.",
-        "weight": 0.25
+        "criterion": "Coverage of off-target mechanisms",
+        "weight": 0.15
       },
       {
-        "criterion": "The report discusses guide RNA design tools and computational prediction methods for off-target reduction.",
-        "weight": 0.25
+        "criterion": "Coverage of guide RNA design tools",
+        "weight": 0.15
       },
       {
-        "criterion": "The report addresses delivery modifications and engineered variants (e.g., high-fidelity Cas9, base editors, prime editors).",
-        "weight": 0.25
+        "criterion": "Coverage of engineered variants and validation",
+        "weight": 0.15
       },
       {
-        "criterion": "The report covers post-editing validation methods and detection technologies.",
-        "weight": 0.25
+        "criterion": "Coverage of regulatory approval pathways",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Coverage of patient-specific risk factors",
+        "weight": 0.275
       }
     ]
   }

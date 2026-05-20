@@ -1,117 +1,93 @@
 {
   "dimension_weights": {
-    "instruction_following": 0.22,
-    "insight": 0.31,
-    "comprehensiveness": 0.34,
-    "readability": 0.13
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
   },
   "criteria": {
     "comprehensiveness": [
       {
-        "criterion": "Coverage of the two core approaches and their main variants",
-        "weight": 0.16
+        "criterion": "Coverage of core approaches and variants",
+        "weight": 0.15
       },
       {
-        "criterion": "Coverage of decision contexts for when formal verification should be preferred",
-        "weight": 0.14
+        "criterion": "Coverage of tradeoff dimensions",
+        "weight": 0.15
       },
       {
-        "criterion": "Coverage of decision contexts for when fuzzing should be preferred",
-        "weight": 0.14
+        "criterion": "Coverage of hybrid and complementary strategies",
+        "weight": 0.15
       },
       {
-        "criterion": "Coverage of the core tradeoff dimensions: cost, coverage, and scalability",
-        "weight": 0.18
+        "criterion": "Coverage of specific standard clauses and benchmarks",
+        "weight": 0.275
       },
       {
-        "criterion": "Coverage of both security and correctness assurance perspectives",
-        "weight": 0.1
-      },
-      {
-        "criterion": "Coverage of empirical evidence and real-world case material",
-        "weight": 0.1
-      },
-      {
-        "criterion": "Coverage of domain and system-type diversity within critical software",
-        "weight": 0.08
-      },
-      {
-        "criterion": "Coverage of hybrid, complementary, and workflow-integration perspectives",
-        "weight": 0.06
-      },
-      {
-        "criterion": "Coverage of limitations, prerequisites, and failure modes of each approach",
-        "weight": 0.04
+        "criterion": "Coverage of tool maturity and competitive evaluation",
+        "weight": 0.275
       }
     ],
     "insight": [
       {
-        "criterion": "Principled comparative reasoning between formal verification and fuzzing",
-        "weight": 0.22
+        "criterion": "Rigor in handling assumptions and guarantees",
+        "weight": 0.15
       },
       {
-        "criterion": "Rigor in handling assumptions, guarantees, and failure modes",
-        "weight": 0.2
+        "criterion": "Quality of tradeoff analysis",
+        "weight": 0.15
       },
       {
-        "criterion": "Quality of tradeoff analysis on cost, coverage, and scalability",
-        "weight": 0.2
+        "criterion": "Context-sensitive decision framework",
+        "weight": 0.15
       },
       {
-        "criterion": "Context-sensitive decision framework for critical systems",
-        "weight": 0.16
+        "criterion": "Proposes a novel analytical framework or taxonomy",
+        "weight": 0.275
       },
       {
-        "criterion": "Synthesis of complementary and hybrid strategies",
-        "weight": 0.12
-      },
-      {
-        "criterion": "Strength, originality, and practical value of conclusions",
-        "weight": 0.1
+        "criterion": "Identifies domains where both approaches fail",
+        "weight": 0.275
       }
     ],
     "instruction_following": [
       {
-        "criterion": "Directly answers the stated research question",
-        "weight": 0.3043
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
       },
       {
-        "criterion": "Covers all mandated comparison dimensions and context",
-        "weight": 0.2609
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
       },
       {
-        "criterion": "Includes explicit critical analysis beyond summary",
-        "weight": 0.1957
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
       },
       {
-        "criterion": "Follows the required report format and markdown structure",
-        "weight": 0.1304
-      },
-      {
-        "criterion": "Includes a 'Sources' section at the end with consulted materials",
-        "weight": 0.1087
+        "criterion": "Covers all mandated comparison dimensions",
+        "weight": 0.2
       }
     ],
     "readability": [
       {
-        "criterion": "Clarity and precision of language: Explains formal verification, fuzzing, and related concepts in clear, unambiguous prose with minimal unnecessary jargon; technical terms are defined when first introduced.",
-        "weight": 0.24
-      },
-      {
-        "criterion": "Logical organization and flow: Uses a coherent structure with effective sectioning, headings, and transitions so readers can easily follow the argument from background to tradeoffs, comparisons, and conclusions.",
+        "criterion": "Clarity and precision of language",
         "weight": 0.22
       },
       {
-        "criterion": "Accessibility of technical explanation: Makes complex methods, assumptions, and tradeoffs understandable to an informed research audience through concise explanations, examples, and well-integrated comparisons.",
-        "weight": 0.2
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
       },
       {
-        "criterion": "Effective presentation of evidence and visuals: Tables, figures, lists, and citations are readable, well-labeled, and directly support comprehension of cost, coverage, scalability, and security/correctness tradeoffs.",
-        "weight": 0.16
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
       },
       {
-        "criterion": "Style, concision, and formatting quality: Maintains a professional academic tone, avoids redundancy, uses consistent terminology and markdown formatting, and presents text in a polished, easy-to-scan manner.",
-        "weight": 0.18
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
       }
     ]
   }

@@ -1,129 +1,93 @@
 {
   "dimension_weights": {
-    "instruction_following": 0.22,
-    "insight": 0.31,
-    "comprehensiveness": 0.35,
-    "readability": 0.12
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
   },
   "criteria": {
     "comprehensiveness": [
       {
-        "criterion": "Coverage of foundational concepts and problem framing",
-        "weight": 0.12
+        "criterion": "Coverage of authorship and ownership rules",
+        "weight": 0.15
       },
       {
-        "criterion": "Breadth of jurisdictional coverage across major legal systems",
-        "weight": 0.2
+        "criterion": "Coverage of infringement issues",
+        "weight": 0.15
       },
       {
-        "criterion": "Coverage of authorship, ownership, and copyright subsistence rules for AI-generated outputs",
-        "weight": 0.18
+        "criterion": "Coverage of fair use and exceptions",
+        "weight": 0.15
       },
       {
-        "criterion": "Coverage of infringement issues across the AI lifecycle",
-        "weight": 0.16
+        "criterion": "Coverage of specific statutory articles and clauses",
+        "weight": 0.275
       },
       {
-        "criterion": "Coverage of fair use, fair dealing, and other copyright exceptions or limitations",
-        "weight": 0.14
-      },
-      {
-        "criterion": "Inclusion of leading cases, administrative rulings, and legislative or policy developments",
-        "weight": 0.1
-      },
-      {
-        "criterion": "Comparative synthesis of international trends and points of convergence/divergence",
-        "weight": 0.06
-      },
-      {
-        "criterion": "Coverage of unresolved and frontier issues relevant to the topic",
-        "weight": 0.04
+        "criterion": "Coverage of collective licensing positions",
+        "weight": 0.275
       }
     ],
     "insight": [
       {
-        "criterion": "Depth of legal reasoning on core doctrinal questions",
-        "weight": 0.24
+        "criterion": "Depth of legal reasoning",
+        "weight": 0.15
       },
       {
-        "criterion": "Comparative synthesis across jurisdictions",
-        "weight": 0.22
+        "criterion": "Nuanced treatment of ambiguity",
+        "weight": 0.15
       },
       {
-        "criterion": "Quality of trend identification and forward-looking judgment",
-        "weight": 0.2
+        "criterion": "Integration of normative and policy tensions",
+        "weight": 0.15
       },
       {
-        "criterion": "Nuanced treatment of ambiguity, uncertainty, and contested issues",
-        "weight": 0.14
+        "criterion": "Proposes specific doctrinal tests or frameworks",
+        "weight": 0.275
       },
       {
-        "criterion": "Integration of normative and policy tensions into the analysis",
-        "weight": 0.1
-      },
-      {
-        "criterion": "Originality and non-obviousness of conclusions",
-        "weight": 0.06
-      },
-      {
-        "criterion": "Actionable value of evaluative conclusions",
-        "weight": 0.04
+        "criterion": "Evaluates copyright interactions with other IP regimes",
+        "weight": 0.275
       }
     ],
     "instruction_following": [
       {
-        "criterion": "Directly answers the stated research question",
-        "weight": 0.2697
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
       },
       {
-        "criterion": "Addresses the three specifically named legal issue areas: authorship, infringement, and fair use (or functional equivalents)",
-        "weight": 0.2022
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
       },
       {
-        "criterion": "Maintains a genuinely cross-jurisdictional comparative scope",
-        "weight": 0.1798
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
       },
       {
-        "criterion": "Includes the explicitly requested critical analysis, not just description or summary",
-        "weight": 0.1461
-      },
-      {
-        "criterion": "Follows the required report structure and markdown-based organization",
-        "weight": 0.1124
-      },
-      {
-        "criterion": "Includes a dedicated 'Sources' section at the end listing consulted references and URLs",
-        "weight": 0.0898
+        "criterion": "Addresses all three named legal issue areas",
+        "weight": 0.2
       }
     ],
     "readability": [
       {
-        "criterion": "Clarity and precision of language: The article uses precise, straightforward wording, defines legal and technical terms (e.g., authorship, infringement, fair use, fair dealing) when first introduced, and avoids unnecessary legal jargon or unexplained acronyms.",
-        "weight": 0.24
-      },
-      {
-        "criterion": "Logical organization and flow: The report is structured with clear sections and subsections, smooth transitions, and an argument sequence that helps readers move from jurisdictional comparisons to authorship questions, infringement issues, and emerging trends without confusion.",
+        "criterion": "Clarity and precision of language",
         "weight": 0.22
       },
       {
-        "criterion": "Effective use of headings, signposting, and transitions: Markdown headings, bullet points, tables, emphasis, and topic sentences are used appropriately to highlight comparative findings, key legal distinctions, and doctrinal divergences across jurisdictions.",
-        "weight": 0.14
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
       },
       {
-        "criterion": "Information chunking and paragraph discipline: Sentences are concise and varied in length, paragraphs are focused on one main idea, and dense legal material is broken into digestible units that reduce reader fatigue and improve comprehension.",
-        "weight": 0.14
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
       },
       {
-        "criterion": "Formatting and visual scannability: The document uses consistent markdown formatting, clear visual hierarchy, and readable layouts that enable readers to quickly locate specific jurisdictions, legal issues, or case studies.",
-        "weight": 0.11
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
       },
       {
-        "criterion": "Audience-appropriate explanation of technical material: Legal and technical terms are used consistently, defined when first introduced, and explained at a level appropriate for an informed reader interested in AI-generated works and international copyright law.",
-        "weight": 0.1
-      },
-      {
-        "criterion": "Conciseness without loss of meaning: The report presents information efficiently without redundancy, using synthesis statements and summaries to reinforce key legal comparisons rather than repeating the same doctrinal details across sections.",
-        "weight": 0.05
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
       }
     ]
   }

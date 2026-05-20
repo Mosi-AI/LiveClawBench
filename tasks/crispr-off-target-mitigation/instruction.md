@@ -8,6 +8,10 @@ What are the latest strategies and technologies for mitigating off-target effect
 
 Conduct deep, independent research on this topic using the browser and any available tools. Your goal is to produce a comprehensive, well-structured markdown report that thoroughly answers the research question.
 
+## Initial Research Materials
+
+In `~/.openclaw/research/`, you will find some preliminary research documents related to this topic. These documents represent prior investigation efforts and may include background information, sub-topic analyses, and various perspectives. You may refer to them selectively.
+
 ## Report Requirements
 
 1. **Comprehensiveness**: Cover the major theoretical frameworks, empirical evidence, and key perspectives related to the topic.

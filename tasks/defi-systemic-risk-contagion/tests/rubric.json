@@ -1,121 +1,93 @@
 {
   "dimension_weights": {
-    "instruction_following": 0.21,
-    "insight": 0.31,
-    "comprehensiveness": 0.35,
-    "readability": 0.13
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
   },
   "criteria": {
     "comprehensiveness": [
       {
-        "criterion": "Coverage of systemic risk and contagion foundations in DeFi",
-        "weight": 0.16
+        "criterion": "Coverage of systemic risk foundations",
+        "weight": 0.15
       },
       {
-        "criterion": "Coverage of the major risk transmission mechanisms named in the task",
-        "weight": 0.26
+        "criterion": "Coverage of risk transmission mechanisms",
+        "weight": 0.15
       },
       {
-        "criterion": "Coverage of interconnections across the DeFi stack and ecosystem architecture",
-        "weight": 0.13
+        "criterion": "Coverage of mitigation and governance",
+        "weight": 0.15
       },
       {
-        "criterion": "Coverage of relevant theoretical frameworks and analytical lenses",
-        "weight": 0.14
+        "criterion": "Coverage of on-chain forensic analysis methods",
+        "weight": 0.275
       },
       {
-        "criterion": "Coverage of empirical evidence and historical case studies",
-        "weight": 0.14
-      },
-      {
-        "criterion": "Coverage of mitigation approaches, resilience mechanisms, and governance/regulatory perspectives",
-        "weight": 0.09
-      },
-      {
-        "criterion": "Coverage of competing perspectives, limitations, and open research questions",
-        "weight": 0.08
+        "criterion": "Coverage of stress testing and scenario frameworks",
+        "weight": 0.275
       }
     ],
     "insight": [
       {
         "criterion": "Mechanistic explanation of contagion pathways",
-        "weight": 0.28
+        "weight": 0.15
       },
       {
-        "criterion": "Systems-level synthesis across inter-protocol dependencies",
-        "weight": 0.24
+        "criterion": "Critical evaluation of competing explanations",
+        "weight": 0.15
       },
       {
-        "criterion": "Critical evaluation of competing explanations, evidence, and mitigation approaches",
-        "weight": 0.18
+        "criterion": "Nuance and conditional reasoning about risk",
+        "weight": 0.15
       },
       {
-        "criterion": "Nuance and conditional reasoning about risk transmission",
-        "weight": 0.14
+        "criterion": "Proposes a novel analytical framework or taxonomy",
+        "weight": 0.275
       },
       {
-        "criterion": "Originality and integrative perspective",
-        "weight": 0.08
-      },
-      {
-        "criterion": "Usefulness and depth of conclusions and open questions",
-        "weight": 0.08
+        "criterion": "Identifies conditions falsifying main conclusions",
+        "weight": 0.275
       }
     ],
     "instruction_following": [
       {
-        "criterion": "Direct response to the stated research question",
-        "weight": 0.2381
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
       },
       {
-        "criterion": "Addresses all explicitly named mechanism categories",
-        "weight": 0.2381
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
       },
       {
-        "criterion": "Maintains scope focus on DeFi systemic risk and contagion",
-        "weight": 0.119
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
       },
       {
-        "criterion": "Delivered as a structured markdown report",
-        "weight": 0.1429
-      },
-      {
-        "criterion": "Includes a dedicated Sources section at the end",
-        "weight": 0.119
-      },
-      {
-        "criterion": "Includes explicit critical analysis, not just summary",
-        "weight": 0.1429
+        "criterion": "Addresses all named mechanism categories",
+        "weight": 0.2
       }
     ],
     "readability": [
       {
-        "criterion": "Clarity and precision of language: The article uses precise, straightforward wording, defines technical terms related to decentralized finance, smart contracts, and blockchain protocols when first introduced, and avoids unnecessary jargon or unexplained acronyms.",
-        "weight": 0.24
-      },
-      {
-        "criterion": "Logical organization and section flow: The report is structured with clear sections and subsections, smooth transitions, and an argument sequence that helps readers move from systemic risk foundations to contagion mechanisms and mitigation strategies without confusion.",
+        "criterion": "Clarity and precision of language",
         "weight": 0.22
       },
       {
-        "criterion": "Scannability and navigational ease: The document uses consistent markdown formatting, clear visual hierarchy, and readable layouts that enable readers to quickly locate specific risk categories, protocols, or case studies.",
-        "weight": 0.16
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
       },
       {
-        "criterion": "Effective presentation of complex information: Complex financial and technical concepts, such as composability risks and cascading liquidations, are presented clearly with appropriate examples, diagrams, and visual aids that support comprehension.",
-        "weight": 0.14
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
       },
       {
-        "criterion": "Terminology definition and consistency: Technical terms (e.g., oracle failure, MEV, liquidity cascade) are defined on first use, used consistently throughout the report, and explained at a level appropriate for an informed reader interested in DeFi risk.",
-        "weight": 0.12
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
       },
       {
-        "criterion": "Audience-appropriate explanation depth: The level of detail and terminology are tailored to an informed research audience, with sufficient background provided for readers to understand DeFi systemic risk mechanisms without requiring specialized blockchain development expertise.",
-        "weight": 0.07
-      },
-      {
-        "criterion": "Concision and avoidance of unnecessary repetition: The report presents information efficiently without redundancy, using synthesis statements and summaries to reinforce key risk patterns rather than repeating the same details across sections.",
-        "weight": 0.05
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
       }
     ]
   }
