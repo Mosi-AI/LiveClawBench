@@ -24,6 +24,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).parent.parent
 TASKS_DIR = REPO_ROOT / "tasks"
@@ -68,9 +69,9 @@ KNOWN_AUTH_SHAPES = {
 # ---------------------------------------------------------------------------
 
 
-def scan_frontend():
+def scan_frontend() -> dict[str, dict[str, Any]]:
     """Scan all frontend source files and collect access patterns."""
-    results = defaultdict(
+    results: dict[str, dict[str, Any]] = defaultdict(
         lambda: {
             "nested_access": set(),
             "nested_destructure": set(),

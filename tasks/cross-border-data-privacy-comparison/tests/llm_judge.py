@@ -14,8 +14,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-RUBRIC = Path(__file__).with_name("rubric.json")
 import deterministic_checks as dc
+
+RUBRIC = Path(__file__).with_name("rubric.json")
 
 INSTRUCTION = dc.ROOT / "instruction.md"
 

@@ -17,6 +17,7 @@ import re
 import sys
 import time
 from pathlib import Path
+
 import requests
 
 TASKS_DIR = Path("tasks")
@@ -279,7 +280,7 @@ def get_prompts():
 
 
 # ── Generation logic ───────────────────────────────────────────────
-def generate_weights_for_task(ai_client: AIClient, prompt: str, sample_count: int = DEFAULT_SAMPLE_COUNT) -> dict:
+def generate_weights_for_task(ai_client: AIClient, prompt: str, sample_count: int = DEFAULT_SAMPLE_COUNT) -> dict | None:
     prompts = get_prompts()
     weight_prompt_template = prompts["weight_prompt"]
     user_prompt = weight_prompt_template.format(task_prompt=prompt)
@@ -364,7 +365,7 @@ def main():
         print("ERROR: OPENAI_API_KEY not set")
         sys.exit(1)
 
-    print(f"Using backend: openai")
+    print("Using backend: openai")
     print(f"Base URL: {base_url}")
     print(f"Model: {model}")
     print(f"Tasks to process: {len(TASKS)}")
