@@ -3,8 +3,9 @@
 # Run from the LiveClawBench/ directory.
 set -euo pipefail
 
-HARBOR_REPO_URL="https://github.com/Mosi-AI/claw-harbor.git"
-HARBOR_VERSION="v0.1.0"
+HARBOR_REPO_URL="${HARBOR_REPO_URL:-https://github.com/Mosi-AI/claw-harbor.git}"
+HARBOR_VERSION="${HARBOR_VERSION:-v0.1.0}"
+HARBOR_EXTRAS="${HARBOR_EXTRAS:-}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 VENV_DIR="$SCRIPT_DIR/.venv"
 
@@ -69,8 +70,14 @@ else
     echo "  Virtual environment .venv already exists — skipping creation."
 fi
 
-echo "  Installing harbor CLI from $HARBOR_REPO_URL @ $HARBOR_VERSION ..."
-uv pip install --quiet --python "$VENV_DIR/bin/python" "harbor @ git+${HARBOR_REPO_URL}@${HARBOR_VERSION}"
+if [ -n "$HARBOR_EXTRAS" ]; then
+    HARBOR_SPEC="harbor[$HARBOR_EXTRAS] @ git+${HARBOR_REPO_URL}@${HARBOR_VERSION}"
+    echo "  Installing harbor CLI from $HARBOR_REPO_URL @ $HARBOR_VERSION with extras: $HARBOR_EXTRAS ..."
+else
+    HARBOR_SPEC="harbor @ git+${HARBOR_REPO_URL}@${HARBOR_VERSION}"
+    echo "  Installing harbor CLI from $HARBOR_REPO_URL @ $HARBOR_VERSION ..."
+fi
+uv pip install --quiet --python "$VENV_DIR/bin/python" "$HARBOR_SPEC"
 
 HARBOR_BIN="$VENV_DIR/bin/harbor"
 if [ ! -f "$HARBOR_BIN" ]; then

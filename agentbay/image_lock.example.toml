@@ -1,0 +1,17 @@
+# Example AgentBay image lock for LiveClawBench.
+#
+# Copy this file to agentbay/image_lock.toml and replace placeholders with
+# image IDs that are active in your AgentBay account. The real lock is ignored
+# by git because it is account- and environment-specific.
+
+[images."liveclawbench/watch-shop/ffffffffffff"]
+agentbay_image_id = "imgc-xxxxxxxxxxxxxxxxx"
+activated = true
+benchmark = "liveclawbench"
+task = "watch-shop"
+env_hash12 = "ffffffffffff"
+environment_baked = true
+skip_environment_upload = true
+skip_setup = true
+workdir = "/workspace"
+entrypoint = ""
