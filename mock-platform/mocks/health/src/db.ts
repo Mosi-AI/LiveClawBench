@@ -132,8 +132,8 @@ export function initDb(): Database {
   if (db !== _lastDb) {
     runMigrations(db);
     db.exec(`INSERT OR IGNORE INTO mock_user (id, username, display_name) VALUES (1, 'default', 'Health User')`);
-    db.exec(`INSERT OR IGNORE INTO system_config (key, value) VALUES ('current_date', '2026-05-13')`);
-    db.exec(`INSERT OR IGNORE INTO system_config (key, value) VALUES ('current_time', '16:42')`);
+    db.exec(`INSERT OR IGNORE INTO system_config (key, value) VALUES ('current_date', date('now'))`);
+    db.exec(`INSERT OR IGNORE INTO system_config (key, value) VALUES ('current_time', strftime('%H:%M', 'now'))`);
     _lastDb = db;
   }
   return db;

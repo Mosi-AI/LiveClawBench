@@ -52,6 +52,20 @@ export function createInsuranceApp(): MockAppV2 {
     c.json({ ok: true, mock: "insurance" as const }),
   );
 
+  // Adapt insurance_token cookie → Bearer header so authRequired() can find it.
+  // Both the SSR portal and the API login write insurance_token; this lets API
+  // routes authenticate browser sessions that only have the cookie, not a
+  // separate Authorization header.
+  app.use("/api/*", async (c, next) => {
+    if (!c.req.header("Authorization")) {
+      const cookieToken = c.req.header("cookie")?.match(/(?:^|;\s*)insurance_token=([^;]*)/)?.[1];
+      if (cookieToken) {
+        c.req.raw.headers.set("Authorization", `Bearer ${cookieToken}`);
+      }
+    }
+    await next();
+  });
+
   // API routes
   registerAuthRoutes(app, db);
   registerClaimsRoutes(app, db);
