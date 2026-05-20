@@ -1,6 +1,6 @@
 /** @jsxImportSource hono/jsx */
 import type { OpenAPIApp } from "mock-lib";
-import { assertDb, deriveCoffeeStatus, getBenchmarkTime } from "../db";
+import { assertDb, canEditCoffeeDate, getBenchmarkDate, getBenchmarkTime, getCoffeeScheduleForDate, isValidIsoDate } from "../db";
 import {
   CalendarPage,
   CoffeePage,
@@ -50,15 +50,26 @@ export function registerPageRoutes(app: OpenAPIApp): void {
 
   app.page("/coffee", (c) => {
     const database = assertDb();
-    const schedule = database.query("SELECT start_time, beans_grams, cancelled, updated_at FROM coffee_schedule WHERE id = 1").get() as { start_time: string; beans_grams: number; cancelled: number; updated_at: string };
-    const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string };
+    const benchmarkDate = getBenchmarkDate();
+    const requestedDate = c.req.query("date") || benchmarkDate;
 
-    if (!schedule) {
+    if (!isValidIsoDate(requestedDate)) {
+      return c.html(<ErrorPage title="Bad Request" message="Invalid coffee date. Use YYYY-MM-DD format." />, 400);
+    }
+
+    const schedule = getCoffeeScheduleForDate(requestedDate);
+    if (!schedule.has_schedule && !database.query("SELECT id FROM benchmark_clock WHERE id = 1").get()) {
       return c.html(<ErrorPage title="Service Error" message="Coffee schedule data unavailable." />, 500);
     }
 
-    const status = clock ? deriveCoffeeStatus(schedule.start_time, clock.clock_time) : "scheduled";
-    return c.html(<CoffeePage schedule={{ start_time: schedule.start_time, status, beans_grams: schedule.beans_grams, cancelled: schedule.cancelled === 1, updated_at: schedule.updated_at }} />);
+    return c.html(
+      <CoffeePage
+        schedule={schedule}
+        selectedDate={requestedDate}
+        benchmarkDate={benchmarkDate}
+        editable={canEditCoffeeDate(requestedDate)}
+      />,
+    );
   });
 
   app.page("/inventory", (c) => {

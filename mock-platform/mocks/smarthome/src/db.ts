@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
-import type { ThermostatMode, WorkoutType } from "./types";
+import type { CoffeeSchedule, ThermostatMode, WorkoutType } from "./types";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -27,12 +27,59 @@ let db: Database | null = null;
 // Database initialization
 // ---------------------------------------------------------------------------
 
+type CoffeeScheduleRow = {
+  schedule_date: string;
+  start_time: string;
+  beans_grams: number;
+  cancelled: number;
+  updated_at: string;
+};
+
+function getBenchmarkDateFromDatabase(database: Database): string {
+  const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string } | null;
+  return clock?.clock_time.split("T")[0] || "2026-05-06";
+}
+
+function migrateLegacyCoffeeSchedule(database: Database): void {
+  const coffeeTable = database.query("PRAGMA table_info(coffee_schedule)").all() as { name: string }[];
+  if (coffeeTable.length === 0 || coffeeTable.some((column) => column.name === "schedule_date")) {
+    return;
+  }
+
+  const legacyRows = database.query("SELECT start_time, COALESCE(beans_grams, 20) AS beans_grams, COALESCE(cancelled, 0) AS cancelled, updated_at FROM coffee_schedule").all() as {
+    start_time: string;
+    beans_grams: number;
+    cancelled: number;
+    updated_at: string | null;
+  }[];
+  const fallbackDate = getBenchmarkDateFromDatabase(database);
+
+  database.exec(`
+    ALTER TABLE coffee_schedule RENAME TO coffee_schedule_legacy;
+    CREATE TABLE coffee_schedule (
+      schedule_date TEXT PRIMARY KEY,
+      start_time TEXT NOT NULL,
+      beans_grams INTEGER DEFAULT 20,
+      cancelled INTEGER DEFAULT 0,
+      updated_at TEXT NOT NULL
+    );
+  `);
+
+  const insertRow = database.query("INSERT OR REPLACE INTO coffee_schedule (schedule_date, start_time, beans_grams, cancelled, updated_at) VALUES (?, ?, ?, ?, ?)");
+  for (const row of legacyRows) {
+    const scheduleDate = row.updated_at?.split("T")[0] || fallbackDate;
+    insertRow.run(scheduleDate, row.start_time, row.beans_grams, row.cancelled, row.updated_at || `${scheduleDate}T00:00:00Z`);
+  }
+
+  database.exec("DROP TABLE coffee_schedule_legacy");
+}
+
 // Check if required singleton tables have seed data (thermostat, coffee, benchmark_clock)
 function hasRequiredSeedData(): boolean {
   if (!db) return false;
   try {
     const thermostat = db.query("SELECT id FROM thermostat_settings WHERE id = 1").get();
-    const coffee = db.query("SELECT id FROM coffee_schedule WHERE id = 1").get();
+    const coffee = db.query("SELECT schedule_date FROM coffee_schedule LIMIT 1").get();
     const clock = db.query("SELECT id FROM benchmark_clock WHERE id = 1").get();
     return thermostat !== null && coffee !== null && clock !== null;
   } catch (err) {
@@ -66,9 +113,9 @@ export function initDatabase(): void {
       updated_at TEXT NOT NULL
     );
 
-    -- Coffee schedule (singleton)
+    -- Coffee schedule (per date)
     CREATE TABLE IF NOT EXISTS coffee_schedule (
-      id INTEGER PRIMARY KEY CHECK (id = 1),
+      schedule_date TEXT PRIMARY KEY,
       start_time TEXT NOT NULL,
       beans_grams INTEGER DEFAULT 20,
       cancelled INTEGER DEFAULT 0,
@@ -202,6 +249,8 @@ export function initDatabase(): void {
     );
   `);
 
+  migrateLegacyCoffeeSchedule(db);
+
   // Load seed SQL if:
   // 1. Fresh DB (doesn't exist yet), OR
   // 2. Existing DB but required singleton tables are empty (handles restart after crash before seed)
@@ -272,8 +321,59 @@ export function getBenchmarkTime(): string {
   return clock.clock_time;
 }
 
-// Derive coffee status from start_time and benchmark_clock in a timezone-stable way
-export function deriveCoffeeStatus(startTime: string, currentTime: string): string {
+export function getBenchmarkDate(): string {
+  return getBenchmarkTime().split("T")[0];
+}
+
+export function isValidIsoDate(date: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return false;
+  }
+
+  const parsed = new Date(`${date}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().split("T")[0] === date;
+}
+
+export function canEditCoffeeDate(scheduleDate: string): boolean {
+  return scheduleDate >= getBenchmarkDate();
+}
+
+export function getCoffeeScheduleForDate(scheduleDate: string): CoffeeSchedule {
+  const database = assertDb();
+  const row = database.query("SELECT schedule_date, start_time, beans_grams, cancelled, updated_at FROM coffee_schedule WHERE schedule_date = ?").get(scheduleDate) as CoffeeScheduleRow | null;
+  if (!row) {
+    return {
+      schedule_date: scheduleDate,
+      start_time: null,
+      status: "unset",
+      beans_grams: null,
+      cancelled: false,
+      updated_at: null,
+      has_schedule: false,
+    };
+  }
+
+  return {
+    schedule_date: row.schedule_date,
+    start_time: row.start_time,
+    status: row.cancelled === 1 ? "cancelled" : deriveCoffeeStatus(row.schedule_date, row.start_time, getBenchmarkTime()),
+    beans_grams: row.beans_grams,
+    cancelled: row.cancelled === 1,
+    updated_at: row.updated_at,
+    has_schedule: true,
+  };
+}
+
+// Derive coffee status from the schedule date/start_time and benchmark clock in a timezone-stable way
+export function deriveCoffeeStatus(scheduleDate: string, startTime: string, currentTime: string): string {
+  const currentDate = currentTime.split("T")[0];
+  if (currentDate < scheduleDate) {
+    return "scheduled";
+  }
+  if (currentDate > scheduleDate) {
+    return "ready";
+  }
+
   // Parse HH:MM start time
   const [startHour, startMin] = startTime.split(":").map(Number);
   const startMinutes = startHour * 60 + startMin;

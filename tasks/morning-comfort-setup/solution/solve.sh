@@ -13,7 +13,7 @@ sleep 2
 sqlite3 "$DB_PATH" "UPDATE thermostat_settings SET mode='comfort', temperature=74 WHERE id=1;"
 
 # Fix coffee: start_time='06:30' (<= 06:30 for 7am departure with 30min brew)
-sqlite3 "$DB_PATH" "UPDATE coffee_schedule SET start_time='06:30' WHERE id=1;"
+sqlite3 "$DB_PATH" "UPDATE coffee_schedule SET start_time='06:30' WHERE schedule_date=(SELECT substr(clock_time,1,10) FROM benchmark_clock WHERE id=1);"
 
 # Add grocery entries for Blue Mountain (20g, expired) and Kenya AA (8g, insufficient)
 # Use valid stock_status values: 'insufficient' for items that need to be purchased

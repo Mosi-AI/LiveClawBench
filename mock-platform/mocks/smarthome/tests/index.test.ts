@@ -3,19 +3,23 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
-const tempDataDir = mkdtempSync(resolve(tmpdir(), "smarthome-mock-test-"));
-process.env.MOCK_DATA_DIR = tempDataDir;
-process.env.MOCK_SEED_PATH = resolve(
-  import.meta.dir,
-  "../../../../tasks/grocery-reorder/environment/seed.sql",
-);
-
 const { createSmarthomeApp } = await import("../src/index");
+
+function createSeededMockApp() {
+  process.env.MOCK_DATA_DIR = mkdtempSync(resolve(tmpdir(), "smarthome-mock-test-"));
+  process.env.MOCK_SEED_PATH = resolve(
+    import.meta.dir,
+    "../../../../tasks/grocery-reorder/environment/seed.sql",
+  );
+
+  const mockApp = createSmarthomeApp();
+  mockApp.seed?.();
+  return mockApp;
+}
 
 describe("smarthome mock", () => {
   test("OpenAPI document includes business API routes", () => {
-    const mockApp = createSmarthomeApp();
-    mockApp.seed?.();
+    const mockApp = createSeededMockApp();
 
     const document = mockApp.app.getOpenAPI31Document({
       openapi: "3.1.0",
@@ -45,9 +49,8 @@ describe("smarthome mock", () => {
     expect(document.paths?.["/api/meal-plan"]?.delete).toBeDefined();
   });
 
-  test("POST /api/coffee-schedule preserves response shape and persisted state", async () => {
-    const mockApp = createSmarthomeApp();
-    mockApp.seed?.();
+  test("POST /api/coffee-schedule without date updates the benchmark day", async () => {
+    const mockApp = createSeededMockApp();
 
     const updateRes = await mockApp.app.request("/api/coffee-schedule", {
       method: "POST",
@@ -61,7 +64,10 @@ describe("smarthome mock", () => {
 
     expect(updateRes.status).toBe(200);
     expect(await updateRes.json()).toEqual({
+      date: "2026-05-12",
+      has_schedule: true,
       start_time: "09:15",
+      status: "scheduled",
       beans_grams: 30,
       cancelled: false,
       updated_at: "2026-05-12T08:00:00Z",
@@ -70,6 +76,8 @@ describe("smarthome mock", () => {
     const readRes = await mockApp.app.request("/api/coffee-schedule");
     expect(readRes.status).toBe(200);
     expect(await readRes.json()).toEqual({
+      date: "2026-05-12",
+      has_schedule: true,
       start_time: "09:15",
       status: "scheduled",
       beans_grams: 30,
@@ -78,9 +86,79 @@ describe("smarthome mock", () => {
     });
   });
 
+  test("GET /api/coffee-schedule returns unset state for a date without a schedule", async () => {
+    const mockApp = createSeededMockApp();
+
+    const readRes = await mockApp.app.request("/api/coffee-schedule?date=2026-05-13");
+
+    expect(readRes.status).toBe(200);
+    expect(await readRes.json()).toEqual({
+      date: "2026-05-13",
+      has_schedule: false,
+      start_time: null,
+      status: "unset",
+      beans_grams: null,
+      cancelled: false,
+      updated_at: null,
+    });
+  });
+
+  test("POST /api/coffee-schedule can create a future schedule and rejects past dates", async () => {
+    const mockApp = createSeededMockApp();
+
+    const futureUpdateRes = await mockApp.app.request("/api/coffee-schedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date: "2026-05-13",
+        start_time: "06:45",
+        beans_grams: 25,
+        cancelled: false,
+      }),
+    });
+
+    expect(futureUpdateRes.status).toBe(200);
+    expect(await futureUpdateRes.json()).toEqual({
+      date: "2026-05-13",
+      has_schedule: true,
+      start_time: "06:45",
+      status: "scheduled",
+      beans_grams: 25,
+      cancelled: false,
+      updated_at: "2026-05-12T08:00:00Z",
+    });
+
+    const futureReadRes = await mockApp.app.request("/api/coffee-schedule?date=2026-05-13");
+    expect(futureReadRes.status).toBe(200);
+    expect(await futureReadRes.json()).toEqual({
+      date: "2026-05-13",
+      has_schedule: true,
+      start_time: "06:45",
+      status: "scheduled",
+      beans_grams: 25,
+      cancelled: false,
+      updated_at: "2026-05-12T08:00:00Z",
+    });
+
+    const pastUpdateRes = await mockApp.app.request("/api/coffee-schedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date: "2026-05-11",
+        start_time: "06:30",
+        beans_grams: 20,
+        cancelled: false,
+      }),
+    });
+
+    expect(pastUpdateRes.status).toBe(400);
+    expect(await pastUpdateRes.json()).toEqual({
+      error: "Cannot modify coffee schedule for past dates",
+    });
+  });
+
   test("POST /api/inventory preserves legacy validation error shape", async () => {
-    const mockApp = createSmarthomeApp();
-    mockApp.seed?.();
+    const mockApp = createSeededMockApp();
 
     const res = await mockApp.app.request("/api/inventory", {
       method: "POST",
@@ -95,8 +173,7 @@ describe("smarthome mock", () => {
   });
 
   test("PUT /api/calendar/:id preserves workout normalization and response shape", async () => {
-    const mockApp = createSmarthomeApp();
-    mockApp.seed?.();
+    const mockApp = createSeededMockApp();
 
     const res = await mockApp.app.request("/api/calendar/1", {
       method: "PUT",
@@ -117,8 +194,7 @@ describe("smarthome mock", () => {
   });
 
   test("GET /wearable preserves page availability", async () => {
-    const mockApp = createSmarthomeApp();
-    mockApp.seed?.();
+    const mockApp = createSeededMockApp();
 
     const res = await mockApp.app.request("/wearable");
 
@@ -127,8 +203,7 @@ describe("smarthome mock", () => {
   });
 
   test("GET /inventory preserves page availability", async () => {
-    const mockApp = createSmarthomeApp();
-    mockApp.seed?.();
+    const mockApp = createSeededMockApp();
 
     const res = await mockApp.app.request("/inventory");
 
@@ -137,8 +212,7 @@ describe("smarthome mock", () => {
   });
 
   test("all top-level HTML pages remain registered", async () => {
-    const mockApp = createSmarthomeApp();
-    mockApp.seed?.();
+    const mockApp = createSeededMockApp();
 
     const pagePaths = [
       "/",

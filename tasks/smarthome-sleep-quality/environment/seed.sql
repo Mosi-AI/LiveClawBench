@@ -43,8 +43,8 @@ VALUES (1, 72.0, 55.0, 'F', 30.0, 150.0, 85);
 INSERT OR IGNORE INTO room (id, name) VALUES (1, 'Bedroom');
 
 -- Coffee Schedule
-INSERT OR IGNORE INTO coffee_schedule (id, start_time, beans_grams, cancelled, updated_at)
-VALUES (1, '07:00', 20, 0, '2026-05-09T06:00:00Z');
+INSERT OR IGNORE INTO coffee_schedule (schedule_date, start_time, beans_grams, cancelled, updated_at)
+VALUES ('2026-05-09', '07:00', 20, 0, '2026-05-09T06:00:00Z');
 
 -- User Constraints
 INSERT OR IGNORE INTO user_constraints (id, calorie_target, macro_targets, allergy_constraints, weekly_budget_limit)

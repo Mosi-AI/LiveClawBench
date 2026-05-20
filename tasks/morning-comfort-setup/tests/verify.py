@@ -167,7 +167,9 @@ def check_d2_coffee_state():
     try:
         conn = sqlite3.connect(SQLITE_DB)
         cursor = conn.cursor()
-        cursor.execute("SELECT start_time FROM coffee_schedule WHERE id = 1")
+        cursor.execute(
+            "SELECT start_time FROM coffee_schedule WHERE schedule_date = (SELECT substr(clock_time, 1, 10) FROM benchmark_clock WHERE id = 1)"
+        )
         row = cursor.fetchone()
         conn.close()
 

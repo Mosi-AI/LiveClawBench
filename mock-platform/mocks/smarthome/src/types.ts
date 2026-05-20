@@ -24,11 +24,13 @@ export interface ThermostatSettings {
 
 // Coffee Schedule
 export interface CoffeeSchedule {
-  id: number;
-  start_time: string;
-  beans_grams: number;
+  schedule_date: string;
+  start_time: string | null;
+  status: string;
+  beans_grams: number | null;
   cancelled: boolean;
-  updated_at: string;
+  updated_at: string | null;
+  has_schedule: boolean;
 }
 
 // Inventory

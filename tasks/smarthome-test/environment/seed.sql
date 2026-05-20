@@ -13,8 +13,8 @@ INSERT OR IGNORE INTO thermostat_settings (id, mode, temperature, updated_at)
 VALUES (1, 'eco', 70.0, '2026-05-09T06:00:00Z');
 
 -- Coffee Schedule
-INSERT OR IGNORE INTO coffee_schedule (id, start_time, beans_grams, cancelled, updated_at)
-VALUES (1, '07:00', 20, 0, '2026-05-09T06:00:00Z');
+INSERT OR IGNORE INTO coffee_schedule (schedule_date, start_time, beans_grams, cancelled, updated_at)
+VALUES ('2026-05-09', '07:00', 20, 0, '2026-05-09T06:00:00Z');
 
 -- Benchmark Clock (morning time)
 INSERT OR IGNORE INTO benchmark_clock (id, clock_time)

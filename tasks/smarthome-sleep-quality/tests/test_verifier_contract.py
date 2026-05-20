@@ -85,7 +85,7 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
                 name TEXT NOT NULL
             );
             CREATE TABLE coffee_schedule (
-                id INTEGER PRIMARY KEY,
+                schedule_date TEXT PRIMARY KEY,
                 start_time TEXT,
                 beans_grams REAL,
                 cancelled INTEGER,

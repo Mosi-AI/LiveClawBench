@@ -4,9 +4,12 @@ import type { OpenAPIApp } from "mock-lib";
 import { z } from "zod";
 import {
   assertDb,
-  deriveCoffeeStatus,
+  canEditCoffeeDate,
   generatePlanId,
+  getBenchmarkDate,
   getBenchmarkTime,
+  getCoffeeScheduleForDate,
+  isValidIsoDate,
   isValidThermostatMode,
   isValidWorkoutType,
 } from "../db";
@@ -32,23 +35,16 @@ const ThermostatRequestSchema = z.object({
   temperature: z.any().optional(),
 });
 const CoffeeScheduleReadSchema = z.object({
-  start_time: z.string(),
+  date: z.string(),
+  has_schedule: z.boolean(),
+  start_time: z.string().nullable(),
   status: z.string(),
-  beans_grams: z.number(),
+  beans_grams: z.number().nullable(),
   cancelled: z.boolean(),
-  updated_at: z.string(),
-});
-const CoffeeScheduleUpdateSchema = z.object({
-  start_time: z.string(),
-  beans_grams: z.number(),
-  cancelled: z.boolean(),
-  updated_at: z.string(),
-});
-const CoffeeScheduleCancelSchema = z.object({
-  cancelled: z.literal(true),
-  updated_at: z.string(),
+  updated_at: z.string().nullable(),
 });
 const CoffeeScheduleRequestSchema = z.object({
+  date: z.any().optional(),
   start_time: z.any().optional(),
   beans_grams: z.any().optional(),
   cancelled: z.any().optional(),
@@ -185,9 +181,10 @@ const coffeeScheduleReadRoute = createRoute({
   method: "get",
   path: "/api/coffee-schedule",
   tags: ["coffee-schedule"],
+  request: { query: z.object({ date: z.string().optional() }) },
   responses: {
     200: { description: "Current coffee schedule", content: { "application/json": { schema: CoffeeScheduleReadSchema } } },
-    404: { description: "Coffee schedule not found", content: { "application/json": { schema: LegacyErrorSchema } } },
+    400: { description: "Invalid coffee date", content: { "application/json": { schema: LegacyErrorSchema } } },
   },
 });
 const coffeeScheduleUpdateRoute = createRoute({
@@ -196,7 +193,7 @@ const coffeeScheduleUpdateRoute = createRoute({
   tags: ["coffee-schedule"],
   request: { body: { content: { "application/json": { schema: CoffeeScheduleRequestSchema } } } },
   responses: {
-    200: { description: "Updated or cancelled coffee schedule", content: { "application/json": { schema: z.union([CoffeeScheduleUpdateSchema, CoffeeScheduleCancelSchema]) } } },
+    200: { description: "Updated or cancelled coffee schedule", content: { "application/json": { schema: CoffeeScheduleReadSchema } } },
     400: { description: "Invalid coffee schedule request", content: { "application/json": { schema: LegacyErrorSchema } } },
     503: { description: "Coffee schedule unavailable", content: { "application/json": { schema: LegacyErrorSchema } } },
   },
@@ -462,16 +459,25 @@ export function registerApiRoutes(app: OpenAPIApp): void {
   });
 
   app.openApiRoute(coffeeScheduleReadRoute, (c) => {
-    const database = assertDb();
-    const schedule = database.query("SELECT start_time, beans_grams, cancelled, updated_at FROM coffee_schedule WHERE id = 1").get() as { start_time: string; beans_grams: number; cancelled: number; updated_at: string };
-    const clock = database.query("SELECT clock_time FROM benchmark_clock WHERE id = 1").get() as { clock_time: string };
-    if (!schedule) return c.json({ error: "Coffee schedule not found" }, 404);
-    const status = clock ? deriveCoffeeStatus(schedule.start_time, clock.clock_time) : "scheduled";
-    return c.json({ start_time: schedule.start_time, status, beans_grams: schedule.beans_grams, cancelled: schedule.cancelled === 1, updated_at: schedule.updated_at });
+    const requestedDate = c.req.query("date") || getBenchmarkDate();
+    if (!isValidIsoDate(requestedDate)) {
+      return c.json({ error: "Invalid date format. Use YYYY-MM-DD format" }, 400);
+    }
+
+    const schedule = getCoffeeScheduleForDate(requestedDate);
+    return c.json({
+      date: schedule.schedule_date,
+      has_schedule: schedule.has_schedule,
+      start_time: schedule.start_time,
+      status: schedule.status,
+      beans_grams: schedule.beans_grams,
+      cancelled: schedule.cancelled,
+      updated_at: schedule.updated_at,
+    });
   });
 
   app.openApiRoute(coffeeScheduleUpdateRoute, async (c) => {
-    let body: { start_time?: string; beans_grams?: number; cancelled?: boolean };
+    let body: { date?: string; start_time?: string; beans_grams?: number; cancelled?: boolean };
     try {
       body = await c.req.json();
     } catch (err) {
@@ -481,14 +487,44 @@ export function registerApiRoutes(app: OpenAPIApp): void {
     }
 
     const database = assertDb();
-    if (!database.query("SELECT id FROM coffee_schedule WHERE id = 1").get()) {
+    if (!database.query("SELECT id FROM benchmark_clock WHERE id = 1").get()) {
       return c.json({ error: "Coffee schedule unavailable - required state not initialized" }, 503);
     }
 
+    const scheduleDate = body.date || getBenchmarkDate();
+    if (!isValidIsoDate(scheduleDate)) {
+      return c.json({ error: "Invalid date format. Use YYYY-MM-DD format" }, 400);
+    }
+    if (!canEditCoffeeDate(scheduleDate)) {
+      return c.json({ error: "Cannot modify coffee schedule for past dates" }, 400);
+    }
+
     const now = getBenchmarkTime();
+    const existingSchedule = getCoffeeScheduleForDate(scheduleDate);
+
     if (body.cancelled === true) {
-      database.query("UPDATE coffee_schedule SET cancelled = 1, updated_at = ? WHERE id = 1").run(now);
-      return c.json({ cancelled: true, updated_at: now });
+      const startTime = existingSchedule.start_time || "07:00";
+      const beansGrams = existingSchedule.beans_grams ?? 20;
+      database.query(`
+        INSERT INTO coffee_schedule (schedule_date, start_time, beans_grams, cancelled, updated_at)
+        VALUES (?, ?, ?, 1, ?)
+        ON CONFLICT(schedule_date) DO UPDATE SET
+          start_time = excluded.start_time,
+          beans_grams = excluded.beans_grams,
+          cancelled = 1,
+          updated_at = excluded.updated_at
+      `).run(scheduleDate, startTime, beansGrams, now);
+
+      const cancelledSchedule = getCoffeeScheduleForDate(scheduleDate);
+      return c.json({
+        date: cancelledSchedule.schedule_date,
+        has_schedule: cancelledSchedule.has_schedule,
+        start_time: cancelledSchedule.start_time,
+        status: cancelledSchedule.status,
+        beans_grams: cancelledSchedule.beans_grams,
+        cancelled: cancelledSchedule.cancelled,
+        updated_at: cancelledSchedule.updated_at,
+      });
     }
 
     const startTime = body.start_time;
@@ -498,8 +534,26 @@ export function registerApiRoutes(app: OpenAPIApp): void {
     const beansGrams = body.beans_grams ?? 20;
     if (typeof beansGrams !== "number" || beansGrams < 5 || beansGrams > 100) return c.json({ error: "Beans amount must be between 5g and 100g" }, 400);
 
-    database.query("UPDATE coffee_schedule SET start_time = ?, beans_grams = ?, cancelled = 0, updated_at = ? WHERE id = 1").run(startTime, beansGrams, now);
-    return c.json({ start_time: startTime, beans_grams: beansGrams, cancelled: false, updated_at: now });
+    database.query(`
+      INSERT INTO coffee_schedule (schedule_date, start_time, beans_grams, cancelled, updated_at)
+      VALUES (?, ?, ?, 0, ?)
+      ON CONFLICT(schedule_date) DO UPDATE SET
+        start_time = excluded.start_time,
+        beans_grams = excluded.beans_grams,
+        cancelled = 0,
+        updated_at = excluded.updated_at
+    `).run(scheduleDate, startTime, beansGrams, now);
+
+    const updatedSchedule = getCoffeeScheduleForDate(scheduleDate);
+    return c.json({
+      date: updatedSchedule.schedule_date,
+      has_schedule: updatedSchedule.has_schedule,
+      start_time: updatedSchedule.start_time,
+      status: updatedSchedule.status,
+      beans_grams: updatedSchedule.beans_grams,
+      cancelled: updatedSchedule.cancelled,
+      updated_at: updatedSchedule.updated_at,
+    });
   });
 
   app.openApiRoute(inventoryListRoute, (c) => {

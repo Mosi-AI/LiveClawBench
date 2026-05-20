@@ -1,30 +1,59 @@
 /** @jsxImportSource hono/jsx */
 import type { FC } from "hono/jsx";
 import { Layout } from "../components/layout";
-import type { ThermostatSettings, WearableRecovery } from "../types";
+import type { CoffeeSchedule, ThermostatSettings, WearableRecovery } from "../types";
 
-type CoffeePageData = {
-  start_time: string;
-  status: string;
-  beans_grams: number;
-  cancelled: boolean;
-  updated_at: string;
-};
-
-export const CoffeePage: FC<{ schedule: CoffeePageData }> = ({ schedule }) => {
-  const displayStartTime = schedule.cancelled ? "-" : schedule.start_time;
-  const displayStatus = schedule.cancelled ? "-" : schedule.status.toUpperCase();
-  const displayBeans = schedule.cancelled ? "-" : `${schedule.beans_grams}g`;
+export const CoffeePage: FC<{
+  schedule: CoffeeSchedule;
+  selectedDate: string;
+  benchmarkDate: string;
+  editable: boolean;
+}> = ({ schedule, selectedDate, benchmarkDate, editable }) => {
+  const displayStartTime = schedule.has_schedule && !schedule.cancelled ? schedule.start_time : "-";
+  const displayStatus = schedule.cancelled
+    ? "CANCELLED"
+    : schedule.has_schedule
+      ? schedule.status.toUpperCase()
+      : "NOT SET";
+  const displayBeans = schedule.has_schedule && !schedule.cancelled && schedule.beans_grams !== null ? `${schedule.beans_grams}g` : "-";
+  const displayUpdated = schedule.updated_at ?? "-";
   const statusBadgeClass = schedule.cancelled
-    ? ""
+    ? "status-brewing"
     : schedule.status === "ready"
       ? "status-ready"
-      : schedule.status === "brewing"
+      : schedule.status === "brewing" || schedule.status === "preparing"
         ? "status-brewing"
         : "status-scheduled";
+  const submitLabel = schedule.has_schedule ? "Update" : "Save";
 
   return <Layout title="Coffee Schedule" scripts={`
+const selectedDate = ${JSON.stringify(selectedDate)};
+const benchmarkDate = ${JSON.stringify(benchmarkDate)};
+const editable = ${JSON.stringify(editable)};
+
+function navigateByStep(step) {
+  const dateInput = document.getElementById('schedule-date');
+  const currentDate = new Date(dateInput.value + 'T00:00:00Z');
+  currentDate.setUTCDate(currentDate.getUTCDate() + step);
+  const nextDate = currentDate.toISOString().split('T')[0];
+  window.location.href = '/coffee?date=' + encodeURIComponent(nextDate);
+}
+
+function goToDate() {
+  const nextDate = document.getElementById('schedule-date').value;
+  if (!nextDate) return;
+  if (nextDate === benchmarkDate) {
+    window.location.href = '/coffee';
+    return;
+  }
+  window.location.href = '/coffee?date=' + encodeURIComponent(nextDate);
+}
+
 async function updateSchedule() {
+  if (!editable) {
+    alert('Past dates are read-only');
+    return;
+  }
   const startTime = document.getElementById('start-time').value;
   const beansGrams = parseInt(document.getElementById('beans-grams').value) || 20;
   if (!startTime) { alert('Please enter a start time'); return; }
@@ -33,32 +62,51 @@ async function updateSchedule() {
     const response = await fetch('/api/coffee-schedule', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ start_time: startTime, beans_grams: beansGrams, cancelled: false })
+      body: JSON.stringify({ date: selectedDate, start_time: startTime, beans_grams: beansGrams, cancelled: false })
     });
     const data = await response.json();
     const errorMessage = data.error || data.message;
     if (errorMessage) alert('Error: ' + errorMessage);
-    else location.reload();
+    else window.location.href = selectedDate === benchmarkDate ? '/coffee' : '/coffee?date=' + encodeURIComponent(selectedDate);
   } catch (err) { alert('Failed to update schedule'); }
 }
 
 async function cancelSchedule() {
+  if (!editable) {
+    alert('Past dates are read-only');
+    return;
+  }
   if (!confirm('Are you sure you want to cancel the coffee schedule?')) return;
   try {
     const response = await fetch('/api/coffee-schedule', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cancelled: true })
+      body: JSON.stringify({ date: selectedDate, cancelled: true })
     });
     const data = await response.json();
     const errorMessage = data.error || data.message;
     if (errorMessage) alert('Error: ' + errorMessage);
-    else location.reload();
+    else window.location.href = selectedDate === benchmarkDate ? '/coffee' : '/coffee?date=' + encodeURIComponent(selectedDate);
   } catch (err) { alert('Failed to cancel schedule'); }
 }
 `}>
     <h1>Coffee Schedule</h1>
     <div class="card">
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="navigateByStep(-1)">Previous Day</button>
+        <input type="date" id="schedule-date" value={selectedDate} onchange="goToDate()" style="margin-right:0;" />
+        <button class="btn btn-secondary" onclick="navigateByStep(1)">Next Day</button>
+      </div>
+      <p style="color:#666; font-size:14px; margin:12px 0 0 0;">
+        Today is {benchmarkDate}. Past dates are view-only. Today and future dates can be saved or updated.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="metric">
+        <span class="metric-label">Date</span>
+        <span class="metric-value">{selectedDate}</span>
+      </div>
       <div class="metric">
         <span class="metric-label">Start Time</span>
         <span class="metric-value">{displayStartTime}</span>
@@ -77,23 +125,27 @@ async function cancelSchedule() {
       </div>
       <div class="metric">
         <span class="metric-label">Last Updated</span>
-        <span class="metric-value">{schedule.updated_at}</span>
+        <span class="metric-value">{displayUpdated}</span>
       </div>
     </div>
 
-    <h2>Update Schedule</h2>
+    {!schedule.has_schedule ? (
+      <p style="color:#666;">No coffee schedule is set for this date yet.</p>
+    ) : null}
+
+    <h2>{editable ? "Update Schedule" : "View Schedule"}</h2>
     <div class="card">
       <div style="margin-bottom:12px;">
         <label style="display:block; margin-bottom:4px; font-weight:500;">Start Time</label>
-        <input type="time" id="start-time" value={schedule.start_time} style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        <input type="time" id="start-time" value={schedule.start_time ?? ""} disabled={!editable} style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
       </div>
       <div style="margin-bottom:12px;">
         <label style="display:block; margin-bottom:4px; font-weight:500;">Beans (grams)</label>
-        <input type="number" id="beans-grams" value={schedule.beans_grams} min="5" max="100" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
+        <input type="number" id="beans-grams" value={schedule.beans_grams ?? 20} min="5" max="100" disabled={!editable} style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" />
       </div>
       <div style="display:flex; gap:8px; justify-content:flex-end;">
-        <button class="btn btn-danger" onclick="cancelSchedule()">Cancel Schedule</button>
-        <button class="btn" onclick="updateSchedule()">Update</button>
+        {schedule.has_schedule ? <button class="btn btn-danger" onclick="cancelSchedule()" disabled={!editable}>Cancel Schedule</button> : null}
+        <button class="btn" onclick="updateSchedule()" disabled={!editable}>{submitLabel}</button>
       </div>
     </div>
 

@@ -20,8 +20,8 @@ VALUES (1, 'off', 95.0, '2026-05-09T06:00:00Z');
 -- Coffee Schedule (B1 implicit goal - timing inference required)
 -- start_time='08:00' is too late for 7am departure
 -- Agent must read brew_duration (30 min) from UI and infer start_time <= 06:30
-INSERT OR IGNORE INTO coffee_schedule (id, start_time, beans_grams, cancelled, updated_at)
-VALUES (1, '08:00', 20, 0, '2026-05-09T06:00:00Z');
+INSERT OR IGNORE INTO coffee_schedule (schedule_date, start_time, beans_grams, cancelled, updated_at)
+VALUES ('2026-05-09', '08:00', 20, 0, '2026-05-09T06:00:00Z');
 
 -- Benchmark Clock (morning time)
 INSERT OR IGNORE INTO benchmark_clock (id, clock_time)
