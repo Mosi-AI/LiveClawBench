@@ -140,7 +140,6 @@ window.onclick = function(event) {
             <option value="walking">Walking</option>
             <option value="cycling">Cycling</option>
             <option value="strength">Strength</option>
-            <option value="stretching">Stretching</option>
             <option value="swimming">Swimming</option>
             <option value="rest">Rest</option>
           </select>

@@ -64,7 +64,7 @@ export interface WearableRecovery {
 }
 
 // Calendar/Workout
-export type WorkoutType = "hiit" | "yoga" | "walking" | "cycling" | "strength" | "stretching" | "swimming" | "rest";
+export type WorkoutType = "hiit" | "yoga" | "walking" | "cycling" | "strength" | "swimming" | "rest";
 
 export interface CalendarEvent {
   id: number;

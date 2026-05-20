@@ -101,7 +101,7 @@ const CalendarEventSchema = z.object({
   title: z.string(),
   start_time: z.string(),
   event_type: z.string().nullable().optional(),
-  workout_type: z.enum(["hiit", "yoga", "walking", "cycling", "strength", "stretching", "swimming", "rest"]).nullable().optional(),
+  workout_type: z.enum(["hiit", "yoga", "walking", "cycling", "strength", "swimming", "rest"]).nullable().optional(),
   status: z.enum(["done", "undone"]),
   updated_at: z.string(),
 });
@@ -115,7 +115,7 @@ const CalendarCreateRequestSchema = z.object({
   title: z.string().min(1, "title is required"),
   start_time: z.string().min(1, "start_time is required"),
   event_type: z.string().optional(),
-  workout_type: z.enum(["hiit", "yoga", "walking", "cycling", "strength", "stretching", "swimming", "rest"]).optional(),
+  workout_type: z.enum(["hiit", "yoga", "walking", "cycling", "strength", "swimming", "rest"]).optional(),
 });
 const CalendarStatusUpdateRequestSchema = z.object({
   status: z.enum(["done", "undone"]),

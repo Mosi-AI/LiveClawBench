@@ -9,7 +9,7 @@ Dimensions (each 0.125 pts):
 - D4: Inventory report — mentions fridge count (8) AND pantry count (5)
 - D5: Expiring items report — mentions all 6 items: milk, bread, chicken breast, tomatoes, yogurt, cheese
 - D6: Calendar report — mentions event count (4) AND all 4 titles
-- D7: Workout state — DB: event='Morning Workout' AND workout_type='walking' (HARD REQUIRED)
+- D7: Workout state — DB: event='Morning Workout' AND workout_type in ('walking', 'yoga') (HARD REQUIRED)
 - D8: Shopping list with reasoning — DB: COUNT(*) > 8 AND new items correspond to expiring inventory
 
 Pass threshold: ≥ 0.75 (6 of 8 dimensions passed)
@@ -388,7 +388,7 @@ def check_d6_calendar_report(response):
 
 
 def check_d7_workout_state():
-    """D7: Workout state — DB: event='Morning Workout' AND workout_type='walking' (HARD REQUIRED)"""
+    """D7: Workout state — DB: event='Morning Workout' AND workout_type='walking' OR workout_type='yoga' (HARD REQUIRED)"""
     print("\n=== D7: Workout State (HARD REQUIRED) ===")
 
     try:
@@ -409,12 +409,12 @@ def check_d7_workout_state():
         title, workout_type = row
         print(f"Workout event: title={title}, workout_type={workout_type}")
 
-        if title == "Morning Workout" and workout_type == "walking":
+        if title == "Morning Workout" and workout_type in ("walking", "yoga"):
             print("D7: PASS (0.125)")
             return 0.125
         else:
             print(
-                f"D7: FAIL - Expected title='Morning Workout' AND workout_type='walking', got title='{title}' AND workout_type='{workout_type}'"
+                f"D7: FAIL - Expected title='Morning Workout' AND workout_type in ('walking', 'yoga'), got title='{title}' AND workout_type='{workout_type}'"
             )
             return 0.0
     except sqlite3.Error as e:

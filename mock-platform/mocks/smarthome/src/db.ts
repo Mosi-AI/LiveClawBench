@@ -193,7 +193,7 @@ export function initDatabase(): void {
       title TEXT NOT NULL,
       start_time TEXT NOT NULL,
       event_type TEXT,
-      workout_type TEXT CHECK (workout_type IN ('hiit', 'yoga', 'walking', 'cycling', 'strength', 'stretching', 'swimming', 'rest') OR workout_type IS NULL),
+      workout_type TEXT CHECK (workout_type IN ('hiit', 'yoga', 'walking', 'cycling', 'strength', 'swimming', 'rest') OR workout_type IS NULL),
       status TEXT NOT NULL DEFAULT 'undone' CHECK (status IN ('done', 'undone')),
       updated_at TEXT NOT NULL
     );
@@ -307,7 +307,7 @@ export function isValidThermostatMode(mode: string): mode is ThermostatMode {
 }
 
 export function isValidWorkoutType(type: string): type is WorkoutType {
-  return ["hiit", "yoga", "walking", "cycling", "strength", "stretching", "swimming", "rest"].includes(type.toLowerCase());
+  return ["hiit", "yoga", "walking", "cycling", "strength", "swimming", "rest"].includes(type.toLowerCase());
 }
 
 // Get deterministic timestamp from benchmark_clock (required for benchmark-verifiable state)

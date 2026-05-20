@@ -35,6 +35,23 @@ class SmarthomeTestSeedConsistency(unittest.TestCase):
         self.assertEqual(int(fridge_match.group(1)), fridge_count)
         self.assertEqual(int(pantry_match.group(1)), pantry_count)
 
+    def test_workout_seed_and_verifier_expectations_match_case_rules(self) -> None:
+        verify_path = Path(__file__).resolve().parent / "verify.py"
+        seed_path = Path(__file__).resolve().parents[1] / "environment" / "seed.sql"
+
+        verify_text = verify_path.read_text()
+        seed_text = seed_path.read_text()
+
+        morning_workout_row = re.search(
+            r"\(1,\s*'Morning Workout',\s*'[^']+',\s*'workout',\s*'([^']+)'",
+            seed_text,
+        )
+        self.assertIsNotNone(morning_workout_row)
+        self.assertEqual(morning_workout_row.group(1), "strength")
+
+        self.assertRegex(verify_text, r"workout_type in \('walking', 'yoga'\)")
+        self.assertRegex(verify_text, r"workout_type='walking' OR workout_type='yoga'")
+
 
 if __name__ == "__main__":
     unittest.main()
