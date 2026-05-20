@@ -14,7 +14,7 @@ factor_a2 = 1   # Contaminated Initial State
 factor_b1 = 1   # Implicit Goal Resolution
 factor_b2 = 0   # Knowledge System Maintenance
 
-case_id = 52
+case_id = 59
 
 [verifier]
 timeout_sec = 900.0

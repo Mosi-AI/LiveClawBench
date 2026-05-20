@@ -404,7 +404,6 @@
         }
       ]
     },
-    "health-daily-record": { "binaries": ["health"] },
     "social-schedule-audit": {
       "binaries": ["social"],
       "assets": [
