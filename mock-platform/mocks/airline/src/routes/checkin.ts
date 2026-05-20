@@ -119,7 +119,8 @@ export function registerCheckinRoutes(app: OpenAPIApp, db: Database): void {
   // GET /api/checkin/:booking_reference/seats
   app.get("/api/checkin/:booking_reference/seats", (c) => {
     const ref = c.req.param("booking_reference");
-    const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ?").get(ref) as Record<string, unknown> | null;
+    const userId = (c.get("userId") ?? DEFAULT_USER_ID);
+    const booking = db.query("SELECT * FROM bookings WHERE booking_reference = ? AND user_id = ?").get(ref, userId) as Record<string, unknown> | null;
     if (!booking) return c.json(err("Booking not found"), 404);
 
     const flightId = Number(booking.flight_id);

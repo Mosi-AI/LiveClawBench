@@ -206,7 +206,11 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
       const newPassword = String(body.new_password ?? "");
 
       const row = db.query("SELECT id, password_hash FROM users WHERE id = ?").get(userId) as { id: number; password_hash: string } | null;
-      if (!row || !bcryptjs.compareSync(oldPassword, row.password_hash)) {
+      if (!row) return c.json(err("Current password is incorrect"), 401);
+      const oldHashValid = row.password_hash.startsWith("pbkdf2:")
+        ? await verifyWerkzeugHash(row.password_hash, oldPassword)
+        : bcryptjs.compareSync(oldPassword, row.password_hash);
+      if (!oldHashValid) {
         return c.json(err("Current password is incorrect"), 401);
       }
 
