@@ -412,6 +412,27 @@ GKD Airline Customer Service Team`,
   is_read: 0,
 };
 
+const INBOX_VENDOR_INTRO = {
+  subject: "Vendor Introduction – CloudEdge Systems Security Middleware",
+  body: `Dear Peter,
+
+I hope this finds you well. I'm Marcus Webb, VP of Partnerships at CloudEdge Systems. Following up on our initial conversation at the TechConnect Summit last month, I wanted to formally introduce our data security middleware solution.
+
+CloudEdge Systems specializes in enterprise-grade security middleware that integrates seamlessly with existing cloud infrastructure. We work with organizations across financial services, healthcare, and government sectors to provide encrypted data pipelines and access control layers.
+
+I've compiled a set of supporting materials in your document workspace (corpus/) for your team's due diligence review. These include our technical proposal, security questionnaire responses, a customer case study, and pricing summary.
+
+We're excited about the potential to support your data infrastructure needs and would welcome a formal due diligence review from your team. Please feel free to reach out with any questions.
+
+Best regards,
+Marcus Webb
+VP Partnerships, CloudEdge Systems
+partnerships@cloudedge.io`,
+  days_ago: 1,
+  is_read: 0,
+};
+
+const SENDER_CLOUDEDGE = { username: "Marcus Webb", email: "partnerships@cloudedge.io" };
 const SENDER_ACME_BILLING = { username: "billing.acme", email: "billing@acmecorp.com" };
 const SENDER_INITECH_BILLING = { username: "billing.initech", email: "billing@initech.com" };
 const SENDER_TAX_AUTHORITY = { username: "tax.authority", email: "notifications@tax-authority.gov" };
@@ -602,6 +623,18 @@ function makeSeedConfig(taskName: string): SeedConfig {
           { senderUsername: "lau.pai", ...INBOX_PARTNERSHIP },
         ],
         sent: [...baselineSent, SENT_GARY],
+      };
+    }
+
+    case "vendor-due-diligence-brief": {
+      const senders = [...BASELINE_SENDERS, SENDER_CLOUDEDGE];
+      return {
+        senders,
+        inbox: [
+          ...baselineInbox,
+          { senderUsername: "Marcus Webb", ...INBOX_VENDOR_INTRO },
+        ],
+        sent: baselineSent,
       };
     }
 

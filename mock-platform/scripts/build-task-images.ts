@@ -45,6 +45,7 @@ const BINARY_PORTS: Record<string, number> = {
   social: 5004,
   expense: 5005,
   health: 5007,
+  smarthome: 5004,
 };
 
 function portProxyLines(listenPort: number, targetPort: number): string[] {
@@ -96,6 +97,10 @@ const ALL_TASK_NAMES = new Set([
   "finance-invoice-process", "finance-tax-prepare", "finance-analysis-generate",
   "finance-depreciation-audit", "finance-dashboard-repair",
   "health-daily-record",
+  "nutrition-log-meal", "mint-diet-comprehensive",
+  "smarthome-test", "grocery-reorder", "morning-comfort-setup",
+  "weather-city-travel-pick", "weather-outdoor-window",
+  "pre-meeting-research-brief", "vendor-due-diligence-brief",
 ]);
 
 interface AssetMapping {

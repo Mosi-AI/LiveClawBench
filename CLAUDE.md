@@ -234,6 +234,15 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `weather-aqi-report` | Deep Research & Report | easy | verify.py |
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
+| `nutrition-log-meal` | Health & Wellness | easy | verify.py |
+| `mint-diet-comprehensive` | Health & Wellness | easy | verify.py |
+| `smarthome-test` | E-commerce & Daily Svcs | medium | verify.py |
+| `grocery-reorder` | E-commerce & Daily Svcs | medium | verify.py |
+| `morning-comfort-setup` | Health & Fitness | medium | verify.py |
+| `weather-city-travel-pick` | Health & Wellness | medium | verify.py |
+| `weather-outdoor-window` | Health & Wellness | hard | verify.py |
+| `pre-meeting-research-brief` | Deep Research & Report | medium | verify.py |
+| `vendor-due-diligence-brief` | Deep Research & Report | medium | verify.py |
 | `finance-anomaly-detect` | Finance & Data Analytics | medium | verify.py |
 | `finance-expense-log` | Finance & Data Analytics | easy | verify.py |
 | `finance-invoice-process` | Finance & Data Analytics | easy | verify.py |
@@ -395,8 +404,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-48 implemented tasks: A1=15, A2=11, B1=10, B2=15.
-Difficulty: Easy=27, Medium=11, Hard=10.
+57 implemented tasks: A1=17, A2=12, B1=15, B2=16.
+Difficulty: Easy=34, Medium=14, Hard=9.
 
 ## Known Issues
 

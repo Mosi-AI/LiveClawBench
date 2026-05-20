@@ -10,7 +10,7 @@ factor_a1 = 0
 factor_a2 = 1
 factor_b1 = 0
 factor_b2 = 1
-case_id = 48
+case_id = 57
 
 [verifier]
 timeout_sec = 900.0
