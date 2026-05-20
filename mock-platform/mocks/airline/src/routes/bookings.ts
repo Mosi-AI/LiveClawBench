@@ -45,7 +45,12 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
 
   // POST /api/bookings
   app.post("/api/bookings", async (c) => {
-    const body = (await c.req.json()) as Record<string, unknown>;
+    let body: Record<string, unknown>;
+    try {
+      body = (await c.req.json()) as Record<string, unknown>;
+    } catch {
+      return c.json(err("Invalid JSON body"), 400);
+    }
     const flightId = parseInt(String(body.flight_id ?? "0"), 10);
     const cabinClass = String(body.cabin_class ?? "economy");
     const passengers = (body.passengers ?? []) as Record<string, unknown>[];
@@ -59,6 +64,11 @@ export function registerBookingRoutes(app: OpenAPIApp, db: Database): void {
       if (!String(p.first_name ?? "") || !String(p.last_name ?? "") || !String(p.date_of_birth ?? "")) {
         return c.json(err("Each passenger must have first_name, last_name and date_of_birth"), 400);
       }
+    }
+
+    const validCabinClasses = ["economy", "business", "first"];
+    if (!validCabinClasses.includes(cabinClass)) {
+      return c.json(err("cabin_class must be one of: economy, business, first"), 400);
     }
 
     const flight = db.query("SELECT * FROM flights WHERE id = ?").get(flightId) as Record<string, unknown> | null;

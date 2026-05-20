@@ -1,7 +1,8 @@
 /** @jsxImportSource hono/jsx */
 import bcryptjs from "bcryptjs";
-import { sign, tokenCookieOptions, serializeCookie, authRequired } from "mock-lib";
-import type { OpenAPIApp } from "mock-lib";
+import { sign, verify, tokenCookieOptions, serializeCookie } from "mock-lib";
+import type { OpenAPIApp, AppEnv } from "mock-lib";
+import type { Context, Next } from "hono";
 import type { Database } from "bun:sqlite";
 import { getUserByEmail } from "./routes/auth";
 import type { UserRow } from "./types";
@@ -15,7 +16,28 @@ import { PlansListPage } from "./components/plans-list-page";
 import { PlansCurrentPage } from "./components/plans-current-page";
 import { PlansSelectPage } from "./components/plans-select-page";
 
-const pageAuth = authRequired({ onUnauthorized: "redirect" });
+const INSURANCE_COOKIE = "insurance_token";
+
+async function pageAuth(c: Context<AppEnv>, next: Next): Promise<Response | undefined> {
+  const authHeader = c.req.header("Authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  const cookieToken = c.req.header("cookie")?.match(/(?:^|;\s*)insurance_token=([^;]*)/)?.[1] ?? null;
+  const token = bearerToken ?? cookieToken;
+  if (!token) {
+    const reqUrl = new URL(c.req.url);
+    const nextPath = reqUrl.pathname + reqUrl.search;
+    return c.redirect(`/login?next=${encodeURIComponent(nextPath)}`);
+  }
+  const payload = await verify(token);
+  if (!payload) {
+    const reqUrl = new URL(c.req.url);
+    const nextPath = reqUrl.pathname + reqUrl.search;
+    return c.redirect(`/login?next=${encodeURIComponent(nextPath)}`);
+  }
+  c.set("userId", payload.userId as number);
+  await next();
+  return undefined;
+}
 
 function getCurrentUser(database: Database, userId: number): UserRow {
   return database
@@ -67,7 +89,7 @@ export function registerPageRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const token = await sign({ userId: user.id });
-    const cookieStr = serializeCookie("token", token, tokenCookieOptions());
+    const cookieStr = serializeCookie(INSURANCE_COOKIE, token, tokenCookieOptions());
     c.header("Set-Cookie", cookieStr);
     return c.redirect(next);
   });
