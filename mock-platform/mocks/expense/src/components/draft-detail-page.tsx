@@ -70,9 +70,14 @@ document.querySelectorAll('[data-inline-edit]').forEach(function(el){
           <span class="detail-date">Created {draft.created_at}</span>
         </div>
         {isEditable && (
-          <form method="post" action={`/api/drafts/${draft.id}/submit`} class="detail-header-right">
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </form>
+          <div class="detail-header-right">
+            <form method="post" action={`/api/drafts/${draft.id}/submit`} style="display:inline">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+            <form method="post" action={`/drafts/${draft.id}/delete`} style="display:inline;margin-left:8px" onsubmit="return confirm('Delete this draft? This cannot be undone.')">
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+          </div>
         )}
       </div>
 

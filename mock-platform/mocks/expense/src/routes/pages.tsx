@@ -49,6 +49,11 @@ function fetchDraftsPage(db: ReturnType<typeof getExpenseDb>, userId: number, st
 }
 
 export function registerPageRoutes(app: OpenAPIApp): void {
+  // GET / — entry point; redirect to login (or dashboard if already authenticated)
+  app.page("/", async (c) => {
+    return c.redirect("/login", 302);
+  });
+
   // GET /login
   app.page("/login", async (c) => {
     const token = c.req.header("cookie")?.match(/(?:^|;\s*)token=([^;]*)/)?.[1];
@@ -258,6 +263,22 @@ export function registerPageRoutes(app: OpenAPIApp): void {
     if (!user) return redirectLogin(c);
 
     return c.html(<ProfilePage user={rowToUser(user)} />);
+  });
+
+  // POST /drafts/:id/delete
+  app.post("/drafts/:id/delete", async (c) => {
+    const userId = await requireAuthPage(c);
+    if (userId === null) return redirectLogin(c);
+
+    const id = parseInt(c.req.param("id"), 10);
+    const db = getExpenseDb();
+
+    const row = db.query("SELECT id, status FROM expense_draft WHERE id = ? AND user_id = ?").get(id, userId) as { id: number; status: string } | null;
+    if (row && row.status === "draft") {
+      db.query("DELETE FROM expense_draft WHERE id = ?").run(id);
+    }
+
+    return c.redirect("/dashboard", 302);
   });
 
   // POST /logout
