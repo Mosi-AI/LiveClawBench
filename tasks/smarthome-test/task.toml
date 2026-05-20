@@ -6,7 +6,7 @@ category = "open-world"
 tags = ["smart_home", "calendar_task_mgmt", "e_commerce_daily_svcs"]
 
 domain = "E-commerce & Daily Svcs"
-domains_multi = ["Calendar & Task Mgmt", "E-commerce & Daily Svcs"]
+domains_multi = ["Smart Home", "Calendar & Task Mgmt", "E-commerce & Daily Svcs"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 0   # Cross-Service Dependency (single mock service)

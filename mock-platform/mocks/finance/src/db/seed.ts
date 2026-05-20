@@ -3,23 +3,21 @@ import { readFileSync, existsSync } from "node:fs";
 import { round2 } from "../utils";
 import { generateWerkzeugHashSync } from "../helpers";
 
-export function runCustomSeed(db: Database): void {
-  const seedPath = process.env.MOCK_FINANCE_SEED_SQL ?? "/opt/mock/data/finance_seed.sql";
-  if (!existsSync(seedPath)) {
-    console.warn(`[finance] Custom seed file not found at ${seedPath}, falling back to default seed.`);
-    return;
-  }
-  try {
-    const sql = readFileSync(seedPath, "utf-8");
-    db.exec("PRAGMA foreign_keys = OFF");
-    db.exec(sql);
-    db.exec("PRAGMA foreign_keys = ON");
-  } catch {
-    console.warn(`[finance] Custom seed file not readable at ${seedPath}, falling back to default seed.`);
-  }
-}
-
 export function seed(db: Database): void {
+  const seedPath = process.env.MOCK_FINANCE_SEED_SQL ?? "/opt/mock/data/finance_seed.sql";
+
+  if (existsSync(seedPath)) {
+    try {
+      const sql = readFileSync(seedPath, "utf-8");
+      db.exec(sql);
+      return;
+    } catch {
+      console.warn(`[finance] Seed file not readable at ${seedPath}, falling back to default seed.`);
+    }
+  } else if (process.env.MOCK_FINANCE_SEED_SQL) {
+    console.warn(`[finance] Seed file not found at ${seedPath}, falling back to default seed.`);
+  }
+
   // Default fixtures
 
   // Users (passwords hashed with Werkzeug-compatible PBKDF2)

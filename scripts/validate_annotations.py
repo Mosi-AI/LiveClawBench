@@ -24,6 +24,14 @@ REGISTRY_CSVS = [
 ]
 
 DIFFICULTY_MAP = {"E": "easy", "M": "medium", "H": "hard"}
+DOMAINS_TOML = REPO_ROOT / "docs" / "metadata" / "domains.toml"
+
+
+def load_canonical_domains() -> set[str]:
+    if not DOMAINS_TOML.exists():
+        return set()
+    data = tomllib.loads(DOMAINS_TOML.read_text())
+    return {d["name"] for d in data.get("domain", [])}
 
 
 def load_toml_annotations() -> dict[str, dict]:
@@ -169,6 +177,21 @@ def compare_sources(
             errors.append(
                 f"[framework→toml] {case_name}: in framework but no task directory (planned?)"
             )
+
+    # Domain enum validation across all sources
+    canonical_domains = load_canonical_domains()
+    if canonical_domains:
+        for source_name, source_data in [
+            ("toml", toml_data),
+            (label, csv_data),
+            ("framework", framework_data),
+        ]:
+            for task_name, ann in source_data.items():
+                d = ann.get("domain")
+                if d and d not in canonical_domains:
+                    errors.append(
+                        f"[{source_name}] {task_name}: domain '{d}' not in canonical enum"
+                    )
 
     return errors
 

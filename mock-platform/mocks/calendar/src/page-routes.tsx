@@ -4,15 +4,30 @@ import { sign, tokenCookieOptions, serializeCookie, authRequired } from "mock-li
 import type { AppEnv } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { CalendarPage } from "./pages/calendar-page";
+import { EditEventPage } from "./pages/edit-event-page";
 import { LoginPage } from "./pages/login-page";
 import type { Hono } from "hono";
+import { createEvent, updateEvent } from "./routes/events";
 
 interface CalEvent {
   id: number;
   title: string;
+  description: string | null;
+  event_type: string;
   start_time: string;
   end_time: string;
   source_ref: string | null;
+}
+
+function formatEventError(error: string): string {
+  const messages: Record<string, string> = {
+    not_found: "Event not found",
+    invalid_time_range: "End time must be after start time",
+    time_overlap: "Time overlaps with an existing event",
+  };
+  return error.startsWith("invalid_request:")
+    ? "Invalid field value (event_type or date format)"
+    : (messages[error] ?? error);
 }
 
 function getCurrentUser(
@@ -32,9 +47,17 @@ function getCurrentUser(
 function listEvents(db: Database, userId: number) {
   return db
     .query<CalEvent, [number]>(
-      "SELECT id, title, start_time, end_time, source_ref FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC",
+      "SELECT id, title, description, event_type, start_time, end_time, source_ref FROM calendar_event WHERE user_id = ? ORDER BY start_time ASC",
     )
     .all(userId);
+}
+
+function getEvent(db: Database, userId: number, eventId: number) {
+  return db
+    .query<CalEvent, [number, number]>(
+      "SELECT id, title, description, event_type, start_time, end_time FROM calendar_event WHERE id = ? AND user_id = ?",
+    )
+    .get(eventId, userId);
 }
 
 export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
@@ -105,6 +128,8 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
       );
     }
     const title = String(body.title ?? "");
+    const description = String(body.description ?? "");
+    const eventType = String(body.event_type ?? "personal");
     const startTime = String(body.start_time ?? "");
     const endTime = String(body.end_time ?? "");
 
@@ -115,41 +140,110 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
       );
     }
 
-    const startUtc = new Date(startTime).toISOString();
-    const endUtc = new Date(endTime).toISOString();
-
-    if (new Date(startUtc) >= new Date(endUtc)) {
+    // createEvent() validates event_type through CreateEventSchema and parses
+    // start_time/end_time internally, so crafted form data (e.g. event_type=bad)
+    // or malformed dates are rejected before any database mutation.
+    const result = createEvent(db, userId, {
+      title,
+      description: description || undefined,
+      event_type: eventType,
+      start_time: startTime,
+      end_time: endTime,
+    });
+    if (!result.ok) {
       const events = listEvents(db, userId);
       return c.html(
-        <CalendarPage
-          user={user}
-          events={events}
-          error="End time must be after start time"
-        />,
+        <CalendarPage user={user} events={events} error={formatEventError(result.error)} />,
       );
     }
 
-    const overlap = db
-      .query<{ count: number }, [number, string, string]>(
-        "SELECT COUNT(*) as count FROM calendar_event WHERE user_id = ? AND start_time < ? AND end_time > ?",
-      )
-      .get(userId, endUtc, startUtc);
+    return c.redirect("/");
+  });
 
-    if (overlap && overlap.count > 0) {
+  // Edit form page (GET)
+  app.get("/events/:id/edit", pageAuth, (c) => {
+    const userId = c.get("userId")!;
+    const user = getCurrentUser(db, userId);
+    if (!user) return c.redirect("/login");
+    const id = Number(c.req.param("id"));
+    const event = getEvent(db, userId, id);
+    if (!event) {
       const events = listEvents(db, userId);
       return c.html(
-        <CalendarPage
-          user={user}
-          events={events}
-          error="Time overlaps with an existing event"
-        />,
+        <CalendarPage user={user} events={events} error="Event not found" />,
+      );
+    }
+    return c.html(<EditEventPage user={user} event={event} />);
+  });
+
+  // Edit form submission (POST bridge — delegates to shared update logic)
+  app.post("/events/:id/edit", pageAuth, async (c) => {
+    const userId = c.get("userId")!;
+    const user = getCurrentUser(db, userId);
+    if (!user) return c.redirect("/login");
+    const id = Number(c.req.param("id"));
+
+    let body: Record<string, string | File>;
+    try {
+      body = await c.req.parseBody();
+    } catch {
+      const event = getEvent(db, userId, id);
+      if (!event) {
+        const events = listEvents(db, userId);
+        return c.html(
+          <CalendarPage user={user} events={events} error="Event not found" />,
+        );
+      }
+      return c.html(
+        <EditEventPage user={user} event={event} error="Invalid form submission" />,
+        400,
       );
     }
 
-    db.run(
-      "INSERT INTO calendar_event (user_id, title, start_time, end_time) VALUES (?, ?, ?, ?)",
-      [userId, title, startUtc, endUtc],
-    );
+    const title = String(body.title ?? "");
+    const startTime = String(body.start_time ?? "");
+    const endTime = String(body.end_time ?? "");
+
+    if (!title || !startTime || !endTime) {
+      const event = getEvent(db, userId, id);
+      if (!event) {
+        const events = listEvents(db, userId);
+        return c.html(
+          <CalendarPage user={user} events={events} error="Event not found" />,
+        );
+      }
+      return c.html(
+        <EditEventPage user={user} event={event} error="All fields are required" />,
+      );
+    }
+
+    const eventType = String(body.event_type ?? "personal");
+    const description = String(body.description ?? "");
+
+    // Pass raw start_time/end_time strings to updateEvent so the helper's
+    // try/catch returns "invalid_request: ..." on malformed dates instead of
+    // letting RangeError escape from new Date(...).toISOString() here.
+    const updateData: Record<string, unknown> = {
+      title,
+      description: description || null,
+      event_type: eventType,
+      start_time: startTime,
+      end_time: endTime,
+    };
+
+    const result = updateEvent(db, userId, id, updateData);
+    if (!result.ok) {
+      const event = getEvent(db, userId, id);
+      if (!event) {
+        const events = listEvents(db, userId);
+        return c.html(
+          <CalendarPage user={user} events={events} error="Event not found" />,
+        );
+      }
+      return c.html(
+        <EditEventPage user={user} event={event} error={formatEventError(result.error)} />,
+      );
+    }
 
     return c.redirect("/");
   });

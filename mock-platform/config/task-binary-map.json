@@ -666,6 +666,112 @@
         "finance",
         "email"
       ]
+    },
+    "meeting-reschedule-response": {
+      "binaries": [
+        "email",
+        "calendar"
+      ],
+      "startup_extra": "tasks/meeting-reschedule-response/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/meeting-reschedule-response/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "candidate-interview-slot-confirm": {
+      "binaries": [
+        "email",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/candidate-interview-slot-confirm/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "medication-prescription-sync": {
+      "binaries": [
+        "email",
+        "health",
+        "calendar"
+      ],
+      "startup_extra": "tasks/medication-prescription-sync/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/medication-prescription-sync/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "health-appointment-scheduling": {
+      "binaries": [
+        "email",
+        "insurance",
+        "calendar"
+      ],
+      "startup_extra": "tasks/health-appointment-scheduling/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/insurance/css/style.css",
+          "dest": "/opt/mock/static/insurance/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/health-appointment-scheduling/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "content-calendar-cross-publish": {
+      "binaries": [
+        "email",
+        "calendar",
+        "social"
+      ],
+      "startup_extra": "tasks/content-calendar-cross-publish/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/content-calendar-cross-publish/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
     }
   }
 }

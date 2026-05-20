@@ -3,10 +3,10 @@ version = "1.0"
 [metadata]
 difficulty = "medium"
 category = "open-world"
-tags = ["travel_planning", "health_wellness"]
+tags = ["health_fitness"]
 
-domain = "Health & Wellness"
-domains_multi = ["Health & Wellness"]
+domain = "Health & Fitness"
+domains_multi = ["Health & Fitness"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 0   # Cross-Service Dependency

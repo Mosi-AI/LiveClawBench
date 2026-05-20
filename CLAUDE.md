@@ -12,7 +12,7 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 
 | Repository | Role | URL |
 |---|---|---|
-| **LiveClawBench** (this repo) | Task corpus — 56 harbor-format benchmark tasks | — |
+| **LiveClawBench** (this repo) | Task corpus — 69 harbor-format benchmark tasks | — |
 | **claw-harbor** | Evaluation framework (fork of harbor with OpenClaw support) | https://github.com/Mosi-AI/claw-harbor |
 | **OpenClaw** | Agent platform running inside task containers | https://github.com/openclaw/openclaw |
 
@@ -231,11 +231,11 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `live-web-research-sqlite-fts5` | Deep Research & Report | medium | **llm_judge** |
 | `conflict-repair-acb` | Documents & Knowledge | easy | **llm_judge** |
 | `skill-combination` | Documents & Knowledge | easy | evaluate.py |
-| `mint-diet-snack-log` | Health & Wellness | easy | verify.py |
+| `mint-diet-snack-log` | Health & Fitness | easy | verify.py |
 | `weather-aqi-report` | Deep Research & Report | easy | verify.py |
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
-| `health-daily-record` | Health & Wellness | easy | verify.py |
+| `health-daily-record` | Health & Fitness | easy | verify.py |
 | `expense-draft-delete` | Finance & Data Analytics | easy | verify.py |
 | `social-media-posting` | Social Media | easy | verify.py |
 | `social-unlike-post` | Social Media | easy | verify.py |
@@ -246,10 +246,10 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `social-cross-publish` | Social Media | hard | verify.py |
 | `social-data-anomaly-report` | Social Media | hard | verify.py |
 | `social-pinned-post-update` | Social Media | hard | verify.py |
-| `mint-diet-comprehensive` | Health & Wellness | easy | verify.py |
-| `nutrition-log-meal` | Health & Wellness | easy | verify.py |
-| `weather-city-travel-pick` | Health & Wellness | medium | verify.py |
-| `weather-outdoor-window` | Health & Wellness | hard | verify.py |
+| `mint-diet-comprehensive` | Health & Fitness | easy | verify.py |
+| `nutrition-log-meal` | Health & Fitness | easy | verify.py |
+| `weather-city-travel-pick` | Health & Fitness | medium | verify.py |
+| `weather-outdoor-window` | Health & Fitness | hard | verify.py |
 | `morning-comfort-setup` | Health & Fitness | medium | verify.py |
 | `finance-portfolio-rebalancing` | Finance & Data Analytics | hard | verify.py |
 | `finance-monthly-close` | Finance & Data Analytics | medium | verify.py |
@@ -257,7 +257,11 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `grocery-reorder` | E-commerce & Daily Svcs | medium | verify.py |
 | `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
 | `vendor-due-diligence-brief` | Deep Research & Report | medium | **llm_judge** |
-
+| `meeting-reschedule-response` | Calendar & Task Mgmt | easy | verify.py |
+| `candidate-interview-slot-confirm` | Calendar & Task Mgmt | easy | verify.py |
+| `medication-prescription-sync` | Health & Fitness | hard | verify.py |
+| `health-appointment-scheduling` | Health & Fitness | hard | verify.py |
+| `content-calendar-cross-publish` | Calendar & Task Mgmt | hard | verify.py |
 | `finance-anomaly-detect` | Finance & Data Analytics | medium | verify.py |
 | `finance-budget-alert` | Finance & Data Analytics | medium | verify.py |
 | `finance-dashboard-repair` | Finance & Data Analytics | hard | verify.py |
@@ -418,8 +422,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-56 implemented tasks: A1=19, A2=10, B1=15, B2=12.
-Difficulty: Easy=27, Medium=18, Hard=11.
+69 implemented tasks: A1=28, A2=18, B1=24, B2=16.
+Difficulty: Easy=31, Medium=20, Hard=18.
 
 ## Known Issues
 

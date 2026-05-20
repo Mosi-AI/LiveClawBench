@@ -59,6 +59,8 @@ export function initSchema(db: Database): void {
       title TEXT NOT NULL,
       start_time TEXT NOT NULL,
       end_time TEXT NOT NULL,
+      description TEXT,
+      event_type TEXT NOT NULL DEFAULT 'personal',
       source TEXT,
       source_ref TEXT,
       created_at TEXT DEFAULT (datetime('now')),
@@ -68,6 +70,20 @@ export function initSchema(db: Database): void {
   `);
   db.run(`CREATE INDEX IF NOT EXISTS idx_event_user ON calendar_event(user_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_event_time ON calendar_event(start_time, end_time)`);
+
+  // Migrate pre-existing databases that lack the new columns
+  for (const col of [
+    "description TEXT",
+    "event_type TEXT NOT NULL DEFAULT 'personal'",
+  ]) {
+    try { db.exec(`ALTER TABLE calendar_event ADD COLUMN ${col}`); } catch (_) {}
+  }
+  // updated_at needs a constant default (SQLite ALTER TABLE limitation),
+  // then backfill any rows that got NULL.
+  try {
+    db.exec(`ALTER TABLE calendar_event ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''`);
+    db.run(`UPDATE calendar_event SET updated_at = created_at WHERE updated_at = ''`);
+  } catch (_) {}
 
   console.log("calendar: schema initialized with WAL mode");
 }

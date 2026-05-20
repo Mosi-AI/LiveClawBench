@@ -20,25 +20,6 @@ export function registerInvoiceRoutes(app: OpenAPIApp, db: Database) {
     return c.json({ data: rows });
   }, { auth: "required" });
 
-  const listRoute = createRoute({
-    method: "get",
-    path: "/api/invoices",
-    summary: "List all invoices with line items",
-    responses: {
-      200: { description: "List of invoices" },
-    },
-  });
-
-  app.openApiRoute(listRoute, (c) => {
-    const invoices = db.query("SELECT * FROM invoice").all();
-    const items = db.query("SELECT * FROM invoice_line_item").all();
-    const enriched = invoices.map((inv: any) => ({
-      ...inv,
-      line_items: items.filter((item: any) => item.invoice_id === inv.id),
-    }));
-    return c.json({ data: enriched });
-  }, { auth: "required" });
-
   const createRouteDef = createRoute({
     method: "post",
     path: "/api/invoices",

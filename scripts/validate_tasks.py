@@ -22,6 +22,8 @@ REQUIRED_FILES = [
 ]
 VALID_DIFFICULTIES = {"easy", "medium", "hard"}
 DIR_NAME_PATTERN = re.compile(r"^[a-z0-9-]+$")
+DOMAINS_TOML = Path(__file__).parent.parent / "docs" / "metadata" / "domains.toml"
+
 VALID_DOMAINS = {
     "Browser & Web Scraping",
     "Calendar & Task Mgmt",
@@ -33,7 +35,7 @@ VALID_DOMAINS = {
     "E-commerce & Daily Svcs",
     "Finance & Data Analytics",
     "Health & Fitness",
-    "Health & Wellness",
+    "Smart Home",
     "Social Media",
     "Voice & Multimodal",
 }
@@ -48,13 +50,22 @@ DOMAIN_TO_TAG: dict[str, set[str]] = {
     "E-commerce & Daily Svcs": {"ecommerce_daily_svcs", "e-commerce_daily_svcs"},
     "Finance & Data Analytics": {"finance"},
     "Health & Fitness": {"health_fitness"},
-    "Health & Wellness": {"health_wellness"},
+    "Smart Home": {"smart_home"},
     "Social Media": {"social_media"},
     "Voice & Multimodal": {"voice_multimodal"},
 }
 
 
-def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
+def load_canonical_domains() -> set[str]:
+    if not DOMAINS_TOML.exists():
+        return set()
+    data = tomllib.loads(DOMAINS_TOML.read_text())
+    return {d["name"] for d in data.get("domain", [])}
+
+
+def validate_task(
+    task_dir: Path, canonical_domains: set[str]
+) -> tuple[list[str], list[str]]:
     """Return (errors, warnings) for a task directory."""
     errors: list[str] = []
     warnings: list[str] = []
@@ -123,18 +134,6 @@ def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
                         f"task.toml: domains_multi[{idx}] '{dm}' not in VALID_DOMAINS"
                     )
 
-            # `tags` is a free-form label set that may include cross-cutting
-            # topic descriptors (e.g. "smart_home", "outdoor_exercise") in
-            # addition to domain markers; `domains_multi` is the structured
-            # domain classification. A length mismatch is therefore only a
-            # convention warning, not a data error.
-            if len(tags) != len(domains_multi):
-                warnings.append(
-                    f"task.toml: tags/domains_multi length mismatch: "
-                    f"{len(tags)} tags vs {len(domains_multi)} domains_multi "
-                    f"(tags may include cross-cutting topic descriptors)"
-                )
-
             # tag↔domain canonical mapping check (WARNING only — tolerate
             # legacy spellings and topical tags). zip stops at the shorter
             # list so extra topical tags are silently skipped.
@@ -151,6 +150,31 @@ def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
                 errors.append(
                     "task.toml: capability_dimension is deprecated, remove it"
                 )
+
+            # Rule 1.13: tags length must match domains_multi length
+            tags = meta.get("tags", [])
+            domains_multi = meta.get("domains_multi", [])
+            if len(tags) != len(domains_multi):
+                errors.append(
+                    f"task.toml: len(tags)={len(tags)} != len(domains_multi)={len(domains_multi)}"
+                )
+
+            # Rule 1.17: domain enum validation
+            if canonical_domains:
+                domain = meta.get("domain")
+                if domain not in canonical_domains:
+                    errors.append(f"task.toml: domain '{domain}' not in canonical enum")
+                for dm in domains_multi:
+                    if dm not in canonical_domains:
+                        errors.append(
+                            f"task.toml: domains_multi entry '{dm}' not in canonical enum"
+                        )
+
+            # Factor completeness
+            for factor in ("factor_a1", "factor_a2", "factor_b1", "factor_b2"):
+                val = meta.get(factor)
+                if val not in (0, 1):
+                    errors.append(f"task.toml: {factor} must be 0 or 1, got {val!r}")
 
         # Required sections
         for section in ("verifier", "agent", "environment"):
@@ -197,8 +221,10 @@ def main() -> int:
     all_errors: list[tuple[str, list[str]]] = []
     all_warnings: list[tuple[str, list[str]]] = []
 
+    canonical_domains = load_canonical_domains()
+
     for task_dir in task_dirs:
-        errors, warnings = validate_task(task_dir)
+        errors, warnings = validate_task(task_dir, canonical_domains)
 
         # Check case_id uniqueness
         toml_path = task_dir / "task.toml"
