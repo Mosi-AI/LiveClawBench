@@ -66,10 +66,10 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
       await next();
       return;
     }
-    const cookieToken = c.req.header("cookie")?.match(/(?:^|;\s*)token=([^;]*)/)?.[1];
     const bearerToken = c.req.header("Authorization")?.startsWith("Bearer ")
       ? c.req.header("Authorization")!.slice(7) : null;
-    const token = cookieToken ?? bearerToken ?? null;
+    const cookieToken = c.req.header("cookie")?.match(/(?:^|;\s*)token=([^;]*)/)?.[1] ?? null;
+    const token = bearerToken ?? cookieToken;
     if (token) {
       const payload = await verify(token);
       if (!payload) return c.json({ ok: false, error: "Invalid or expired token" }, 401);

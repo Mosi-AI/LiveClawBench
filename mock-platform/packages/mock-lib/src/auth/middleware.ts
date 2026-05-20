@@ -31,21 +31,22 @@ export interface AuthOptions {
 }
 
 /**
- * Extract JWT from cookie (preferred) or Authorization header (fallback).
+ * Extract JWT from Authorization header (preferred) or cookie (fallback).
  *
- * Cookie-first ordering matches the canonical login flow: the server sets
- * `Set-Cookie: token=...` and the browser replays it on every request.
- * Authorization Bearer is the fallback for non-browser API clients.
+ * Bearer-first ordering ensures a fresh API token always wins over a stale
+ * browser cookie. This matters when clients re-authenticate after a session
+ * expires: the new bearer token is valid while the old cookie may still be
+ * present in the browser. Cookie is the fallback for SSR page flows.
  */
 function extractToken(c: Context<AppEnv>): string | null {
+  const authHeader = c.req.header("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.slice(7);
+  }
   const cookieHeader = c.req.header("cookie");
   if (cookieHeader) {
     const match = cookieHeader.match(/(?:^|;\s*)token=([^;]*)/);
     if (match) return match[1];
-  }
-  const authHeader = c.req.header("Authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    return authHeader.slice(7);
   }
   return null;
 }
