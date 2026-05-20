@@ -111,7 +111,50 @@ describe("smarthome mock", () => {
       start_time: "2026-05-12T08:00:00Z",
       event_type: "workout",
       workout_type: "walking",
+      status: "undone",
       updated_at: "2026-05-12T08:00:00Z",
     });
+  });
+
+  test("GET /wearable preserves page availability", async () => {
+    const mockApp = createSmarthomeApp();
+    mockApp.seed?.();
+
+    const res = await mockApp.app.request("/wearable");
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+  });
+
+  test("GET /inventory preserves page availability", async () => {
+    const mockApp = createSmarthomeApp();
+    mockApp.seed?.();
+
+    const res = await mockApp.app.request("/inventory");
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+  });
+
+  test("all top-level HTML pages remain registered", async () => {
+    const mockApp = createSmarthomeApp();
+    mockApp.seed?.();
+
+    const pagePaths = [
+      "/",
+      "/thermostat",
+      "/coffee",
+      "/inventory",
+      "/grocery",
+      "/wearable",
+      "/calendar",
+      "/meal-plan",
+    ];
+
+    for (const pagePath of pagePaths) {
+      const res = await mockApp.app.request(pagePath);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toContain("text/html");
+    }
   });
 });
