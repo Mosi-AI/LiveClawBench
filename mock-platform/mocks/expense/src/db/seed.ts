@@ -50,10 +50,9 @@ export function seed(): void {
     for (const u of BUILTIN_USERS) {
       const existing = db.query("SELECT id FROM user WHERE email = ?").get(u.email) as { id: number } | null;
       if (!existing) {
-        db.exec(
+        db.query(
           "INSERT INTO user (full_name, email, password, department, role, preferred_currency) VALUES (?, ?, ?, ?, ?, ?)",
-          [u.full_name, u.email, u.password, u.department, u.role, u.preferred_currency],
-        );
+        ).run(u.full_name, u.email, u.password, u.department, u.role, u.preferred_currency);
       }
     }
 
@@ -71,10 +70,9 @@ export function seed(): void {
       for (const u of seedData.users) {
         const existing = db.query("SELECT id FROM user WHERE email = ?").get(u.email) as { id: number } | null;
         if (!existing) {
-          db.exec(
+          db.query(
             "INSERT INTO user (full_name, email, password, department, role, preferred_currency) VALUES (?, ?, ?, ?, ?, ?)",
-            [u.full_name, u.email, u.password, u.department, u.role, u.preferred_currency],
-          );
+          ).run(u.full_name, u.email, u.password, u.department, u.role, u.preferred_currency);
         }
       }
     }
@@ -92,11 +90,10 @@ export function seed(): void {
         if (!user) {
           throw new Error(`Seed draft ${d.draft_code}: owner_email "${d.owner_email}" not found`);
         }
-        const result = db.exec(
+        const result = db.query(
           `INSERT INTO expense_draft (draft_code, user_id, vendor_name, category, amount, currency, invoice_date, expense_date, notes, source_type, status, attachment_ref)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [d.draft_code, user.id, d.vendor_name, d.category, d.amount, d.currency, d.invoice_date, d.expense_date, d.notes, d.source_type, d.status, d.attachment_ref],
-        );
+        ).run(d.draft_code, user.id, d.vendor_name, d.category, d.amount, d.currency, d.invoice_date, d.expense_date, d.notes, d.source_type, d.status, d.attachment_ref);
         draftIdMap.set(d.draft_code, Number(result.lastInsertRowid));
       }
     }
@@ -122,11 +119,10 @@ export function seed(): void {
           copyFileSync(sourcePath, storagePath);
         }
 
-        db.exec(
+        db.query(
           `INSERT INTO expense_attachment (draft_id, attachment_ref, original_filename, storage_path, mime_type, page_count, preview_text, extracted_vendor_name, extracted_amount, extracted_currency, extracted_invoice_date)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [draftId, a.attachment_ref, a.original_filename, storagePath, a.mime_type, a.page_count, a.preview_text, a.extracted_vendor_name, a.extracted_amount, a.extracted_currency, a.extracted_invoice_date],
-        );
+        ).run(draftId, a.attachment_ref, a.original_filename, storagePath, a.mime_type, a.page_count, a.preview_text, a.extracted_vendor_name, a.extracted_amount, a.extracted_currency, a.extracted_invoice_date);
       }
     }
 
@@ -147,18 +143,16 @@ export function seed(): void {
 
         if (explicitActivity) {
           const actor = db.query("SELECT id FROM user WHERE email = ?").get(explicitActivity.actor_email) as { id: number } | null;
-          db.exec(
+          db.query(
             "INSERT INTO expense_activity (draft_id, actor_user_id, action_type, created_at) VALUES (?, ?, ?, ?)",
-            [draftId, actor?.id ?? null, explicitActivity.action_type, explicitActivity.created_at],
-          );
+          ).run(draftId, actor?.id ?? null, explicitActivity.action_type, explicitActivity.created_at);
         } else if (!activityDraftCodes.has(d.draft_code)) {
           // Auto-generate 'created' activity
           const draftRow = db.query("SELECT created_at, user_id FROM expense_draft WHERE id = ?").get(draftId) as { created_at: string; user_id: number } | null;
           if (draftRow) {
-            db.exec(
+            db.query(
               "INSERT INTO expense_activity (draft_id, actor_user_id, action_type, created_at) VALUES (?, ?, 'created', ?)",
-              [draftId, draftRow.user_id, draftRow.created_at],
-            );
+            ).run(draftId, draftRow.user_id, draftRow.created_at);
           }
         }
       }
@@ -174,10 +168,9 @@ export function seed(): void {
         if (existingActivity) continue;
 
         const actor = db.query("SELECT id FROM user WHERE email = ?").get(a.actor_email) as { id: number } | null;
-        db.exec(
+        db.query(
           "INSERT INTO expense_activity (draft_id, actor_user_id, action_type, created_at) VALUES (?, ?, ?, ?)",
-          [draftId, actor?.id ?? null, a.action_type, a.created_at],
-        );
+        ).run(draftId, actor?.id ?? null, a.action_type, a.created_at);
       }
     }
 

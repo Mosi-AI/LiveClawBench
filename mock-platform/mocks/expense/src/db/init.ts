@@ -96,7 +96,7 @@ export function runMigrations(): void {
     const row = db.query("SELECT 1 FROM _migrations WHERE name = ?").get(m.name) as unknown;
     if (!row) {
       db.exec(m.sql);
-      db.exec("INSERT INTO _migrations (name) VALUES (?)", [m.name]);
+      db.query("INSERT INTO _migrations (name) VALUES (?)").run(m.name);
     }
   }
 }

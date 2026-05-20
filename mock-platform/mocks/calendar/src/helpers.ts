@@ -20,8 +20,10 @@ export function getUserById(db: Database, userId: number) {
 
 export async function getAuthUserId(c: Context<AppEnv>): Promise<number | null> {
   const authHeader = c.req.header("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) return null;
-  const token = authHeader.slice(7);
+  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  const cookieToken = c.req.header("cookie")?.match(/(?:^|;\s*)token=([^;]*)/)?.[1] ?? null;
+  const token = bearerToken ?? cookieToken;
+  if (!token) return null;
   try {
     const payload = await verify(token);
     if (payload?.userId) return payload.userId as number;

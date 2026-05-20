@@ -26,7 +26,7 @@ export function registerAuthRoutes(app: OpenAPIApp): void {
       return c.json({ error: "Invalid credentials" }, 401);
     }
 
-    db.exec("UPDATE user SET last_login_at = datetime('now') WHERE id = ?", [user.id]);
+    db.query("UPDATE user SET last_login_at = datetime('now') WHERE id = ?").run(user.id);
 
     const token = await sign({
       sub: email,

@@ -89,19 +89,18 @@ export function registerAttachmentRoutes(app: OpenAPIApp): void {
       } catch { /* best-effort */ }
     }
 
-    const result = db.exec(
+    const result = db.query(
       `INSERT INTO expense_attachment (draft_id, attachment_ref, original_filename, storage_path, mime_type, file_size_bytes, preview_text)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, attachmentRef, sanitized, storagePath, mimeType, file.size, previewText],
-    );
+    ).run(id, attachmentRef, sanitized, storagePath, mimeType, file.size, previewText);
 
     const attachmentId = Number(result.lastInsertRowid);
 
     if (!draft.attachment_ref) {
-      db.exec("UPDATE expense_draft SET attachment_ref = ?, updated_at = datetime('now') WHERE id = ?", [attachmentRef, id]);
+      db.query("UPDATE expense_draft SET attachment_ref = ?, updated_at = datetime('now') WHERE id = ?").run(attachmentRef, id);
     }
 
-    db.exec("INSERT INTO expense_activity (draft_id, actor_user_id, action_type, new_value) VALUES (?, ?, 'attachment_added', ?)", [id, userId, attachmentRef]);
+    db.query("INSERT INTO expense_activity (draft_id, actor_user_id, action_type, new_value) VALUES (?, ?, 'attachment_added', ?)").run(id, userId, attachmentRef);
 
     const attachment = db.query("SELECT * FROM expense_attachment WHERE id = ?").get(attachmentId) as Record<string, unknown>;
     return c.json({
@@ -203,8 +202,8 @@ export function registerAttachmentRoutes(app: OpenAPIApp): void {
 
     try { unlinkSync(attachment.storage_path as string); } catch { /* best-effort */ }
 
-    db.exec("UPDATE expense_draft SET attachment_ref = NULL WHERE attachment_ref = ?", [ref]);
-    db.exec("DELETE FROM expense_attachment WHERE attachment_ref = ?", [ref]);
+    db.query("UPDATE expense_draft SET attachment_ref = NULL WHERE attachment_ref = ?").run(ref);
+    db.query("DELETE FROM expense_attachment WHERE attachment_ref = ?").run(ref);
 
     return c.json({ success: true });
   }, { auth: "required" });

@@ -82,7 +82,7 @@ export function registerPageRoutes(app: OpenAPIApp): void {
       return c.html(<LoginPage error="Invalid email or password" />);
     }
 
-    db.exec("UPDATE user SET last_login_at = datetime('now') WHERE id = ?", [user.id]);
+    db.query("UPDATE user SET last_login_at = datetime('now') WHERE id = ?").run(user.id);
 
     const token = await sign({ sub: email, userId: user.id as number, role: user.role as string });
     const opts = tokenCookieOptions();
@@ -136,13 +136,12 @@ export function registerPageRoutes(app: OpenAPIApp): void {
     }
 
     const draftCode = generateDraftCode();
-    const result = db.exec(
+    const result = db.query(
       `INSERT INTO expense_draft (draft_code, user_id, vendor_name, category, amount, currency, invoice_date, expense_date, notes, source_type)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [draftCode, userId, vendor_name, category, amount, "USD", invoice_date, null, notes, "manual"],
-    );
+    ).run(draftCode, userId, vendor_name, category, amount, "USD", invoice_date, null, notes, "manual");
     const draftId = Number(result.lastInsertRowid);
-    db.exec("INSERT INTO expense_activity (draft_id, actor_user_id, action_type) VALUES (?, ?, 'created')", [draftId, userId]);
+    db.query("INSERT INTO expense_activity (draft_id, actor_user_id, action_type) VALUES (?, ?, 'created')").run(draftId, userId);
 
     // Handle file upload if present
     const file = body["file"];
@@ -157,12 +156,11 @@ export function registerPageRoutes(app: OpenAPIApp): void {
         const storagePath = join(attachmentsDir, `${attachmentRef}${ext ? "." + ext : ""}`);
         const buffer = Buffer.from(await file.arrayBuffer());
         writeFileSync(storagePath, buffer);
-        db.exec(
+        db.query(
           `INSERT INTO expense_attachment (draft_id, attachment_ref, original_filename, storage_path, mime_type, file_size_bytes)
            VALUES (?, ?, ?, ?, ?, ?)`,
-          [draftId, attachmentRef, sanitized, storagePath, mimeType, file.size],
-        );
-        db.exec("UPDATE expense_draft SET attachment_ref = ? WHERE id = ?", [attachmentRef, draftId]);
+        ).run(draftId, attachmentRef, sanitized, storagePath, mimeType, file.size);
+        db.query("UPDATE expense_draft SET attachment_ref = ? WHERE id = ?").run(attachmentRef, draftId);
       }
     }
 

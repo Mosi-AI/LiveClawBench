@@ -78,14 +78,13 @@ export function registerDraftRoutes(app: OpenAPIApp): void {
     const db = getExpenseDb();
 
     const draftCode = generateDraftCode();
-    const result = db.exec(
+    const result = db.query(
       `INSERT INTO expense_draft (draft_code, user_id, vendor_name, category, amount, currency, invoice_date, expense_date, notes, source_type)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [draftCode, userId, body.vendor_name, body.category ?? null, body.amount, body.currency, body.invoice_date, body.expense_date ?? null, body.notes ?? null, body.source_type],
-    );
+    ).run(draftCode, userId, body.vendor_name, body.category ?? null, body.amount, body.currency, body.invoice_date, body.expense_date ?? null, body.notes ?? null, body.source_type);
 
     const draftId = Number(result.lastInsertRowid);
-    db.exec("INSERT INTO expense_activity (draft_id, actor_user_id, action_type) VALUES (?, ?, 'created')", [draftId, userId]);
+    db.query("INSERT INTO expense_activity (draft_id, actor_user_id, action_type) VALUES (?, ?, 'created')").run(draftId, userId);
 
     const row = db.query("SELECT * FROM expense_draft WHERE id = ?").get(draftId) as Record<string, unknown>;
     return c.json(rowToDraft(row));
@@ -148,16 +147,15 @@ export function registerDraftRoutes(app: OpenAPIApp): void {
       if (String(oldValue ?? "") !== String(value ?? "")) {
         updates.push(`${key} = ?`);
         values.push(value);
-        db.exec(
+        db.query(
           "INSERT INTO expense_activity (draft_id, actor_user_id, action_type, field_name, old_value, new_value) VALUES (?, ?, 'edited', ?, ?, ?)",
-          [id, userId, key, String(oldValue ?? ""), String(value ?? "")],
-        );
+        ).run(id, userId, key, String(oldValue ?? ""), String(value ?? ""));
       }
     }
 
     if (updates.length > 0) {
       updates.push("updated_at = datetime('now')");
-      db.exec(`UPDATE expense_draft SET ${updates.join(", ")} WHERE id = ?`, [...values, id]);
+      db.query(`UPDATE expense_draft SET ${updates.join(", ")} WHERE id = ?`).run(...values, id);
     }
 
     const updated = db.query("SELECT * FROM expense_draft WHERE id = ?").get(id) as Record<string, unknown>;
@@ -194,8 +192,8 @@ export function registerDraftRoutes(app: OpenAPIApp): void {
       }, 400);
     }
 
-    db.exec("UPDATE expense_draft SET status = 'submitted', submitted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?", [id]);
-    db.exec("INSERT INTO expense_activity (draft_id, actor_user_id, action_type) VALUES (?, ?, 'submitted')", [id, userId]);
+    db.query("UPDATE expense_draft SET status = 'submitted', submitted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?").run(id);
+    db.query("INSERT INTO expense_activity (draft_id, actor_user_id, action_type) VALUES (?, ?, 'submitted')").run(id, userId);
 
     const updated = db.query("SELECT * FROM expense_draft WHERE id = ?").get(id) as Record<string, unknown>;
     return c.json({ success: true, draft: rowToDraft(updated), message: "Draft submitted successfully" });
@@ -221,7 +219,7 @@ export function registerDraftRoutes(app: OpenAPIApp): void {
     const row = db.query("SELECT id FROM expense_draft WHERE id = ? AND user_id = ?").get(id, userId) as { id: number } | null;
     if (!row) return c.json({ error: "Draft not found" }, 404);
 
-    db.exec("DELETE FROM expense_draft WHERE id = ?", [id]);
+    db.query("DELETE FROM expense_draft WHERE id = ?").run(id);
     return c.json({ success: true });
   }, { auth: "required" });
 
@@ -242,7 +240,7 @@ export function registerDraftRoutes(app: OpenAPIApp): void {
     const user = db.query("SELECT * FROM user WHERE id = ?").get(userId) as Record<string, unknown> | null;
     if (!user) return c.json({ error: "User not found" }, 404);
 
-    db.exec("UPDATE user SET last_login_at = datetime('now') WHERE id = ?", [userId]);
+    db.query("UPDATE user SET last_login_at = datetime('now') WHERE id = ?").run(userId);
 
     return c.json({
       id: user.id, full_name: user.full_name, email: user.email, department: user.department,
