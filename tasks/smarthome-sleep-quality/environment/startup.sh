@@ -1,5 +1,5 @@
 #!/bin/bash
-# startup_extra for smart-home-sleep-quality task
+# startup_extra for smarthome-sleep-quality task
 # This runs AFTER mock binaries are already started by the platform
 # Only seed data initialization and symlinks go here
 

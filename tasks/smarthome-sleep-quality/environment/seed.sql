@@ -1,4 +1,4 @@
--- Seed data for smart-home-sleep-quality task
+-- Seed data for smarthome-sleep-quality task
 -- Focus: Cross-service health data sync, thermostat adjustment, and sleep aid ordering
 
 -- Benchmark Clock (today = 2026-05-09)

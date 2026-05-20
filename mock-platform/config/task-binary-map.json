@@ -263,14 +263,14 @@
         { "src": "tasks/morning-comfort-setup/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
       ]
     },
-    "smart-home-sleep-quality": {
+    "smarthome-sleep-quality": {
       "binaries": ["smarthome", "health", "shop"],
-      "startup_extra": "tasks/smart-home-sleep-quality/environment/startup.sh",
+      "startup_extra": "tasks/smarthome-sleep-quality/environment/startup.sh",
       "assets": [
-        { "src": "tasks/smart-home-sleep-quality/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" },
-        { "src": "tasks/smart-home-sleep-quality/environment/health-seed.sql", "dest": "/opt/mock/data/health.sql" },
+        { "src": "tasks/smarthome-sleep-quality/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" },
+        { "src": "tasks/smarthome-sleep-quality/environment/health-seed.sql", "dest": "/opt/mock/data/health.sql" },
         { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/smart-home-sleep-quality/environment/products.json", "dest": "/opt/mock/static/shop/products.json" }
+        { "src": "tasks/smarthome-sleep-quality/environment/products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
     }
   }

@@ -1,4 +1,4 @@
--- Health seed data for smart-home-sleep-quality task
+-- Health seed data for smarthome-sleep-quality task
 -- 30 days of health data from 2026-04-10 to 2026-05-09
 -- All dashboard-visible metrics are populated from a single snapshot source of truth.
 

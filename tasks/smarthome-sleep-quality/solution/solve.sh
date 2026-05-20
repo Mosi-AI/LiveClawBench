@@ -1,5 +1,5 @@
 #!/bin/bash
-# Reference solution for smart-home-sleep-quality task
+# Reference solution for smarthome-sleep-quality task
 # This script implements the oracle path to achieve score 1.0
 
 set -e

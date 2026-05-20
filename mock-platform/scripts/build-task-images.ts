@@ -94,7 +94,7 @@ const ALL_TASK_NAMES = new Set([
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
   "finance-portfolio-rebalancing", "finance-monthly-close",
   "health-daily-record", "smarthome-test", "grocery-reorder",
-  "morning-comfort-setup", "smart-home-sleep-quality",
+  "morning-comfort-setup", "smarthome-sleep-quality",
 ]);
 
 interface AssetMapping {

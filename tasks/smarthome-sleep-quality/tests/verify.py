@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verify smart-home-sleep-quality task: 9-dimension scoring (all REQUIRED).
+Verify smarthome-sleep-quality task: 9-dimension scoring (all REQUIRED).
 
 Dimensions:
 - D1: Wearable sync (0.20) - smarthome wearable_recovery_state synced with health data
