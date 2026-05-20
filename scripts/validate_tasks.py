@@ -22,6 +22,36 @@ REQUIRED_FILES = [
 ]
 VALID_DIFFICULTIES = {"easy", "medium", "hard"}
 DIR_NAME_PATTERN = re.compile(r"^[a-z0-9-]+$")
+VALID_DOMAINS = {
+    "Browser & Web Scraping",
+    "Calendar & Task Mgmt",
+    "Coding & Software Dev",
+    "Communication & Email",
+    "Deep Research & Report",
+    "DevOps & Env Repair",
+    "Documents & Knowledge",
+    "E-commerce & Daily Svcs",
+    "Finance & Data Analytics",
+    "Health & Fitness",
+    "Health & Wellness",
+    "Social Media",
+    "Voice & Multimodal",
+}
+DOMAIN_TO_TAG: dict[str, set[str]] = {
+    "Browser & Web Scraping": {"browser_web_scraping"},
+    "Calendar & Task Mgmt": {"calendar_task_mgmt"},
+    "Coding & Software Dev": {"coding_software_dev"},
+    "Communication & Email": {"communication_email"},
+    "Deep Research & Report": {"deep_research_report"},
+    "DevOps & Env Repair": {"devops_env_repair"},
+    "Documents & Knowledge": {"documents_knowledge"},
+    "E-commerce & Daily Svcs": {"ecommerce_daily_svcs", "e-commerce_daily_svcs"},
+    "Finance & Data Analytics": {"finance"},
+    "Health & Fitness": {"health_fitness"},
+    "Health & Wellness": {"health_wellness"},
+    "Social Media": {"social_media"},
+    "Voice & Multimodal": {"voice_multimodal"},
+}
 
 
 def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
@@ -75,6 +105,46 @@ def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
             # domain
             if not meta.get("domain"):
                 errors.append("task.toml: domain must be non-empty")
+
+            # domain must be in known enum (rule 1.17)
+            domain = meta.get("domain")
+            if domain and domain not in VALID_DOMAINS:
+                errors.append(
+                    f"task.toml: domain '{domain}' is not in VALID_DOMAINS ({VALID_DOMAINS})"
+                )
+
+            # domains_multi must be in known enum and count must match tags (rule 1.13)
+            tags = meta.get("tags", [])
+            domains_multi = meta.get("domains_multi", [])
+
+            for idx, dm in enumerate(domains_multi):
+                if dm not in VALID_DOMAINS:
+                    errors.append(
+                        f"task.toml: domains_multi[{idx}] '{dm}' not in VALID_DOMAINS"
+                    )
+
+            # `tags` is a free-form label set that may include cross-cutting
+            # topic descriptors (e.g. "smart_home", "outdoor_exercise") in
+            # addition to domain markers; `domains_multi` is the structured
+            # domain classification. A length mismatch is therefore only a
+            # convention warning, not a data error.
+            if len(tags) != len(domains_multi):
+                warnings.append(
+                    f"task.toml: tags/domains_multi length mismatch: "
+                    f"{len(tags)} tags vs {len(domains_multi)} domains_multi "
+                    f"(tags may include cross-cutting topic descriptors)"
+                )
+
+            # tag↔domain canonical mapping check (WARNING only — tolerate
+            # legacy spellings and topical tags). zip stops at the shorter
+            # list so extra topical tags are silently skipped.
+            for idx, (tag, dm) in enumerate(zip(tags, domains_multi)):
+                valid_tags = DOMAIN_TO_TAG.get(dm, set())
+                if valid_tags and tag not in valid_tags:
+                    warnings.append(
+                        f"task.toml: tag[{idx}] '{tag}' does not match "
+                        f"canonical tags for domain '{dm}' ({valid_tags})"
+                    )
 
             # capability_dimension should NOT exist
             if "capability_dimension" in meta:

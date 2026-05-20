@@ -3,45 +3,103 @@
   "$id": "task-binary-map",
   "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
   "version": "1.1",
-  "binaries": ["airline", "email", "shop", "todolist", "doc-search", "insurance", "calendar", "mint-diet", "weather", "social", "expense", "health", "finance", "smarthome"],
+  "binaries": [
+    "airline",
+    "email",
+    "shop",
+    "todolist",
+    "doc-search",
+    "insurance",
+    "calendar",
+    "mint-diet",
+    "weather",
+    "social",
+    "expense",
+    "health",
+    "finance",
+    "smarthome"
+  ],
   "tasks": {
     "weather-aqi-report": {
-      "binaries": ["weather"]
+      "binaries": [
+        "weather"
+      ]
     },
     "watch-shop": {
-      "binaries": ["shop"],
+      "binaries": [
+        "shop"
+      ],
       "assets": [
-        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
       ]
     },
     "washer-shop": {
-      "binaries": ["shop"],
+      "binaries": [
+        "shop"
+      ],
       "assets": [
-        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
       ]
     },
     "info-change": {
-      "binaries": ["shop"],
+      "binaries": [
+        "shop"
+      ],
       "assets": [
-        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
       ]
     },
     "washer-change": {
-      "binaries": ["shop"],
+      "binaries": [
+        "shop"
+      ],
       "assets": [
-        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
       ]
     },
     "email-watch-shop": {
-      "binaries": ["shop", "email"],
+      "binaries": [
+        "shop",
+        "email"
+      ],
       "startup_extra": "tasks/email-watch-shop/environment/startup.sh",
       "assets": [
-        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
       ],
       "frontends": [
         {
@@ -52,11 +110,20 @@
       ]
     },
     "email-washer-change": {
-      "binaries": ["shop", "email"],
+      "binaries": [
+        "shop",
+        "email"
+      ],
       "startup_extra": "tasks/email-washer-change/environment/startup.sh",
       "assets": [
-        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "mock-platform/static/shop/sample_products.json", "dest": "/opt/mock/static/shop/products.json" }
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
       ],
       "frontends": [
         {
@@ -67,7 +134,9 @@
       ]
     },
     "email-writing": {
-      "binaries": ["email"],
+      "binaries": [
+        "email"
+      ],
       "frontends": [
         {
           "src": "tasks/email-writing/environment/email-app/frontend",
@@ -77,7 +146,9 @@
       ]
     },
     "email-reply": {
-      "binaries": ["email"],
+      "binaries": [
+        "email"
+      ],
       "frontends": [
         {
           "src": "tasks/email-reply/environment/email-app/frontend",
@@ -87,7 +158,11 @@
       ]
     },
     "schedule-change-request": {
-      "binaries": ["airline", "email", "todolist"],
+      "binaries": [
+        "airline",
+        "email",
+        "todolist"
+      ],
       "frontends": [
         {
           "src": "tasks/schedule-change-request/environment/email-app/frontend",
@@ -102,7 +177,9 @@
       ]
     },
     "flight-booking": {
-      "binaries": ["airline"],
+      "binaries": [
+        "airline"
+      ],
       "frontends": [
         {
           "src": "tasks/flight-booking/environment/airline-app/frontend",
@@ -112,7 +189,11 @@
       ]
     },
     "flight-info-change-notice": {
-      "binaries": ["airline", "email", "todolist"],
+      "binaries": [
+        "airline",
+        "email",
+        "todolist"
+      ],
       "frontends": [
         {
           "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
@@ -132,7 +213,10 @@
       ]
     },
     "flight-seat-selection": {
-      "binaries": ["airline", "email"],
+      "binaries": [
+        "airline",
+        "email"
+      ],
       "frontends": [
         {
           "src": "tasks/flight-seat-selection/environment/airline-app/frontend",
@@ -147,7 +231,10 @@
       ]
     },
     "flight-seat-selection-failed": {
-      "binaries": ["airline", "email"],
+      "binaries": [
+        "airline",
+        "email"
+      ],
       "frontends": [
         {
           "src": "tasks/flight-seat-selection-failed/environment/airline-app/frontend",
@@ -162,7 +249,10 @@
       ]
     },
     "flight-cancel-claim": {
-      "binaries": ["airline", "email"],
+      "binaries": [
+        "airline",
+        "email"
+      ],
       "frontends": [
         {
           "src": "tasks/flight-cancel-claim/environment/airline-app/frontend",
@@ -177,7 +267,9 @@
       ]
     },
     "baggage-tracking-application": {
-      "binaries": ["airline"],
+      "binaries": [
+        "airline"
+      ],
       "frontends": [
         {
           "src": "tasks/baggage-tracking-application/environment/airline-app/frontend",
@@ -186,119 +278,331 @@
         }
       ]
     },
-    "blog-site-from-scratch": { "binaries": [] },
-    "blog-site-completion-from-starter": { "binaries": [] },
-    "vue-build-fix-single": { "binaries": [] },
-    "vue-build-fix-chain": { "binaries": [] },
-    "skill-creation": { "binaries": [] },
-    "skill-repository-curation": { "binaries": [] },
-    "skill-supplementation": { "binaries": [] },
-    "skill-conflict-resolution": { "binaries": [] },
-    "skill-dependency-fix": { "binaries": [] },
-    "noise-filtering": { "binaries": [] },
+    "blog-site-from-scratch": {
+      "binaries": []
+    },
+    "blog-site-completion-from-starter": {
+      "binaries": []
+    },
+    "vue-build-fix-single": {
+      "binaries": []
+    },
+    "vue-build-fix-chain": {
+      "binaries": []
+    },
+    "skill-creation": {
+      "binaries": []
+    },
+    "skill-repository-curation": {
+      "binaries": []
+    },
+    "skill-supplementation": {
+      "binaries": []
+    },
+    "skill-conflict-resolution": {
+      "binaries": []
+    },
+    "skill-dependency-fix": {
+      "binaries": []
+    },
+    "noise-filtering": {
+      "binaries": []
+    },
     "mixed-tool-memory": {
-      "binaries": ["doc-search"],
+      "binaries": [
+        "doc-search"
+      ],
       "startup_extra": "tasks/mixed-tool-memory/environment/startup.sh",
       "assets": [
-        { "src": "tasks/mixed-tool-memory/environment/documents.sql", "dest": "/opt/mock/data/documents.sql" }
+        {
+          "src": "tasks/mixed-tool-memory/environment/documents.sql",
+          "dest": "/opt/mock/data/documents.sql"
+        }
       ]
     },
-    "incremental-update-ctp": { "binaries": [] },
-    "live-web-research-sqlite-fts5": { "binaries": [] },
+    "incremental-update-ctp": {
+      "binaries": []
+    },
+    "live-web-research-sqlite-fts5": {
+      "binaries": []
+    },
     "conflict-repair-acb": {
-      "binaries": ["doc-search"],
+      "binaries": [
+        "doc-search"
+      ],
       "startup_extra": "tasks/conflict-repair-acb/environment/startup.sh",
       "assets": [
-        { "src": "tasks/conflict-repair-acb/environment/documents.sql", "dest": "/opt/mock/data/documents.sql" }
+        {
+          "src": "tasks/conflict-repair-acb/environment/documents.sql",
+          "dest": "/opt/mock/data/documents.sql"
+        }
       ]
     },
-    "skill-combination": { "binaries": [] },
+    "skill-combination": {
+      "binaries": []
+    },
     "insurance-deductible-selection": {
-      "binaries": ["insurance"],
+      "binaries": [
+        "insurance"
+      ],
       "assets": [
-        { "src": "mock-platform/static/insurance/css/style.css", "dest": "/opt/mock/static/insurance/css/style.css" }
+        {
+          "src": "mock-platform/static/insurance/css/style.css",
+          "dest": "/opt/mock/static/insurance/css/style.css"
+        }
       ]
     },
     "health-insurance-optimization": {
-      "binaries": ["insurance", "calendar"],
+      "binaries": [
+        "insurance",
+        "calendar"
+      ],
       "assets": [
-        { "src": "mock-platform/static/insurance/css/style.css", "dest": "/opt/mock/static/insurance/css/style.css" },
-        { "src": "mock-platform/static/calendar/css/style.css", "dest": "/opt/mock/static/calendar/css/style.css" }
+        {
+          "src": "mock-platform/static/insurance/css/style.css",
+          "dest": "/opt/mock/static/insurance/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
       ]
     },
-    "mint-diet-snack-log": { "binaries": ["mint-diet"] },
-    "social-media-posting": { "binaries": ["social"] },
-    "social-unlike-post": { "binaries": ["social"] },
+    "mint-diet-snack-log": {
+      "binaries": [
+        "mint-diet"
+      ]
+    },
+    "nutrition-log-meal": {
+      "binaries": [
+        "mint-diet"
+      ]
+    },
+    "mint-diet-comprehensive": {
+      "binaries": [
+        "mint-diet"
+      ]
+    },
+    "social-media-posting": {
+      "binaries": [
+        "social"
+      ]
+    },
+    "social-unlike-post": {
+      "binaries": [
+        "social"
+      ]
+    },
     "expense-draft-delete": {
-      "binaries": ["expense"],
+      "binaries": [
+        "expense"
+      ],
       "assets": [
-        { "src": "tasks/expense-draft-delete/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+        {
+          "src": "tasks/expense-draft-delete/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ]
+    },
+    "health-daily-record": {
+      "binaries": [
+        "health"
+      ]
+    },
+    "social-schedule-audit": {
+      "binaries": [
+        "social"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-schedule-audit/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ]
+    },
+    "social-keyword-cleanup": {
+      "binaries": [
+        "social",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-keyword-cleanup/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "social-event-campaign": {
+      "binaries": [
+        "social",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-event-campaign/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "social-data-anomaly-report": {
+      "binaries": [
+        "social",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-data-anomaly-report/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "social-comment-moderation": {
+      "binaries": [
+        "social",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-comment-moderation/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "social-cross-publish": {
+      "binaries": [
+        "social",
+        "email",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-cross-publish/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "social-pinned-post-update": {
+      "binaries": [
+        "social",
+        "email",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-pinned-post-update/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
       ]
     },
     "finance-portfolio-rebalancing": {
-      "binaries": ["finance"]
+      "binaries": [
+        "finance"
+      ]
     },
     "finance-monthly-close": {
-      "binaries": ["finance"]
-    },
-    "finance-expense-log": {
-      "binaries": ["finance"],
-      "assets": [
-        { "src": "tasks/finance-expense-log/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      "binaries": [
+        "finance"
       ]
     },
-    "finance-anomaly-detect": {
-      "binaries": ["finance"],
-      "assets": [
-        { "src": "tasks/finance-anomaly-detect/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
-      ]
-    },
-    "finance-budget-alert": {
-      "binaries": ["finance", "email"],
-      "assets": [
-        { "src": "tasks/finance-budget-alert/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
-      ],
-      "frontends": [
-        { "src": "tasks/email-writing/environment/email-app/frontend", "buildDir": "dist", "dest": "/opt/mock/frontend/email" }
-      ]
-    },
-    "finance-invoice-process": {
-      "binaries": ["finance", "email"],
-      "assets": [
-        { "src": "tasks/finance-invoice-process/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
-      ],
-      "frontends": [
-        { "src": "tasks/email-writing/environment/email-app/frontend", "buildDir": "dist", "dest": "/opt/mock/frontend/email" }
-      ]
-    },
-    "health-daily-record": { "binaries": ["health"] },
-    "nutrition-log-meal": { "binaries": ["mint-diet"] },
-    "mint-diet-comprehensive": { "binaries": ["mint-diet"] },
     "smarthome-test": {
-      "binaries": ["smarthome"],
+      "binaries": [
+        "smarthome"
+      ],
       "assets": [
-        { "src": "tasks/smarthome-test/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
+        {
+          "src": "tasks/smarthome-test/environment/seed.sql",
+          "dest": "/opt/mock/data/smarthome.sql"
+        }
       ]
     },
     "grocery-reorder": {
-      "binaries": ["smarthome", "shop"],
+      "binaries": [
+        "smarthome",
+        "shop"
+      ],
       "startup_extra": "tasks/grocery-reorder/environment/startup.sh",
       "assets": [
-        { "src": "tasks/grocery-reorder/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" },
-        { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
-        { "src": "tasks/grocery-reorder/environment/products.json", "dest": "/opt/mock/static/shop/products.json" }
+        {
+          "src": "tasks/grocery-reorder/environment/seed.sql",
+          "dest": "/opt/mock/data/smarthome.sql"
+        },
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "tasks/grocery-reorder/environment/products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
       ]
     },
     "morning-comfort-setup": {
-      "binaries": ["smarthome"],
+      "binaries": [
+        "smarthome"
+      ],
       "assets": [
-        { "src": "tasks/morning-comfort-setup/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" }
+        {
+          "src": "tasks/morning-comfort-setup/environment/seed.sql",
+          "dest": "/opt/mock/data/smarthome.sql"
+        }
       ]
     },
-    "weather-city-travel-pick": { "binaries": ["weather"] },
-    "weather-outdoor-window": { "binaries": ["weather"] },
+    "weather-city-travel-pick": {
+      "binaries": [
+        "weather"
+      ]
+    },
+    "weather-outdoor-window": {
+      "binaries": [
+        "weather"
+      ]
+    },
     "pre-meeting-research-brief": {
-      "binaries": ["todolist"],
+      "binaries": [
+        "todolist"
+      ],
       "frontends": [
         {
           "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
@@ -308,7 +612,9 @@
       ]
     },
     "vendor-due-diligence-brief": {
-      "binaries": ["email"],
+      "binaries": [
+        "email"
+      ],
       "frontends": [
         {
           "src": "tasks/email-writing/environment/email-app/frontend",
@@ -317,34 +623,48 @@
         }
       ]
     },
+    "finance-anomaly-detect": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-budget-alert": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
     "finance-dashboard-repair": {
-      "binaries": ["finance"],
-      "assets": [
-        { "src": "tasks/finance-dashboard-repair/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      "binaries": [
+        "finance"
       ]
     },
     "finance-depreciation-audit": {
-      "binaries": ["finance"],
-      "assets": [
-        { "src": "tasks/finance-depreciation-audit/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-expense-log": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-invoice-process": {
+      "binaries": [
+        "finance",
+        "email"
       ]
     },
     "finance-tax-prepare": {
-      "binaries": ["finance", "email"],
-      "assets": [
-        { "src": "tasks/finance-tax-prepare/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
-      ],
-      "frontends": [
-        { "src": "tasks/email-writing/environment/email-app/frontend", "buildDir": "dist", "dest": "/opt/mock/frontend/email" }
+      "binaries": [
+        "finance",
+        "email"
       ]
     },
     "finance-analysis-generate": {
-      "binaries": ["finance", "email"],
-      "assets": [
-        { "src": "tasks/finance-analysis-generate/environment/seed.sql", "dest": "/opt/mock/data/finance_seed.sql" }
-      ],
-      "frontends": [
-        { "src": "tasks/email-writing/environment/email-app/frontend", "buildDir": "dist", "dest": "/opt/mock/frontend/email" }
+      "binaries": [
+        "finance",
+        "email"
       ]
     }
   }

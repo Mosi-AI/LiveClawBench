@@ -2,65 +2,264 @@
   {
     "name": "liveclawbench",
     "version": "0.1.0",
-    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 57 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
+    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 64 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
     "tasks": [
-      {"name": "skill-creation", "path": "tasks/skill-creation"},
-      {"name": "skill-supplementation", "path": "tasks/skill-supplementation"},
-      {"name": "skill-conflict-resolution", "path": "tasks/skill-conflict-resolution"},
-      {"name": "skill-repository-curation", "path": "tasks/skill-repository-curation"},
-      {"name": "skill-dependency-fix", "path": "tasks/skill-dependency-fix"},
-      {"name": "skill-combination", "path": "tasks/skill-combination"},
-      {"name": "email-writing", "path": "tasks/email-writing"},
-      {"name": "email-reply", "path": "tasks/email-reply"},
-      {"name": "flight-booking", "path": "tasks/flight-booking"},
-      {"name": "flight-seat-selection", "path": "tasks/flight-seat-selection"},
-      {"name": "flight-seat-selection-failed", "path": "tasks/flight-seat-selection-failed"},
-      {"name": "flight-cancel-claim", "path": "tasks/flight-cancel-claim"},
-      {"name": "flight-info-change-notice", "path": "tasks/flight-info-change-notice"},
-      {"name": "baggage-tracking-application", "path": "tasks/baggage-tracking-application"},
-      {"name": "schedule-change-request", "path": "tasks/schedule-change-request"},
-      {"name": "blog-site-from-scratch", "path": "tasks/blog-site-from-scratch"},
-      {"name": "blog-site-completion-from-starter", "path": "tasks/blog-site-completion-from-starter"},
-      {"name": "washer-shop", "path": "tasks/washer-shop"},
-      {"name": "watch-shop", "path": "tasks/watch-shop"},
-      {"name": "washer-change", "path": "tasks/washer-change"},
-      {"name": "info-change", "path": "tasks/info-change"},
-      {"name": "email-watch-shop", "path": "tasks/email-watch-shop"},
-      {"name": "email-washer-change", "path": "tasks/email-washer-change"},
-      {"name": "vue-build-fix-single", "path": "tasks/vue-build-fix-single"},
-      {"name": "vue-build-fix-chain", "path": "tasks/vue-build-fix-chain"},
-      {"name": "noise-filtering", "path": "tasks/noise-filtering"},
-      {"name": "incremental-update-ctp", "path": "tasks/incremental-update-ctp"},
-      {"name": "conflict-repair-acb", "path": "tasks/conflict-repair-acb"},
-      {"name": "mixed-tool-memory", "path": "tasks/mixed-tool-memory"},
-      {"name": "live-web-research-sqlite-fts5", "path": "tasks/live-web-research-sqlite-fts5"},
-      {"name": "mint-diet-snack-log", "path": "tasks/mint-diet-snack-log"},
-      {"name": "social-media-posting", "path": "tasks/social-media-posting"},
-      {"name": "social-unlike-post", "path": "tasks/social-unlike-post"},
-      {"name": "expense-draft-delete", "path": "tasks/expense-draft-delete"},
-      {"name": "insurance-deductible-selection", "path": "tasks/insurance-deductible-selection"},
-      {"name": "health-insurance-optimization", "path": "tasks/health-insurance-optimization"},
-      {"name": "health-daily-record", "path": "tasks/health-daily-record"},
-      {"name": "finance-portfolio-rebalancing", "path": "tasks/finance-portfolio-rebalancing"},
-      {"name": "finance-monthly-close", "path": "tasks/finance-monthly-close"},
-      {"name": "nutrition-log-meal", "path": "tasks/nutrition-log-meal"},
-      {"name": "mint-diet-comprehensive", "path": "tasks/mint-diet-comprehensive"},
-      {"name": "smarthome-test", "path": "tasks/smarthome-test"},
-      {"name": "weather-aqi-report", "path": "tasks/weather-aqi-report"},
-      {"name": "grocery-reorder", "path": "tasks/grocery-reorder"},
-      {"name": "morning-comfort-setup", "path": "tasks/morning-comfort-setup"},
-      {"name": "weather-city-travel-pick", "path": "tasks/weather-city-travel-pick"},
-      {"name": "weather-outdoor-window", "path": "tasks/weather-outdoor-window"},
-      {"name": "pre-meeting-research-brief", "path": "tasks/pre-meeting-research-brief"},
-      {"name": "vendor-due-diligence-brief", "path": "tasks/vendor-due-diligence-brief"},
-      {"name": "finance-expense-log", "path": "tasks/finance-expense-log"},
-      {"name": "finance-invoice-process", "path": "tasks/finance-invoice-process"},
-      {"name": "finance-anomaly-detect", "path": "tasks/finance-anomaly-detect"},
-      {"name": "finance-budget-alert", "path": "tasks/finance-budget-alert"},
-      {"name": "finance-tax-prepare", "path": "tasks/finance-tax-prepare"},
-      {"name": "finance-analysis-generate", "path": "tasks/finance-analysis-generate"},
-      {"name": "finance-depreciation-audit", "path": "tasks/finance-depreciation-audit"},
-      {"name": "finance-dashboard-repair", "path": "tasks/finance-dashboard-repair"}
+      {
+        "name": "skill-creation",
+        "path": "tasks/skill-creation"
+      },
+      {
+        "name": "skill-supplementation",
+        "path": "tasks/skill-supplementation"
+      },
+      {
+        "name": "skill-conflict-resolution",
+        "path": "tasks/skill-conflict-resolution"
+      },
+      {
+        "name": "skill-repository-curation",
+        "path": "tasks/skill-repository-curation"
+      },
+      {
+        "name": "skill-dependency-fix",
+        "path": "tasks/skill-dependency-fix"
+      },
+      {
+        "name": "skill-combination",
+        "path": "tasks/skill-combination"
+      },
+      {
+        "name": "email-writing",
+        "path": "tasks/email-writing"
+      },
+      {
+        "name": "email-reply",
+        "path": "tasks/email-reply"
+      },
+      {
+        "name": "flight-booking",
+        "path": "tasks/flight-booking"
+      },
+      {
+        "name": "flight-seat-selection",
+        "path": "tasks/flight-seat-selection"
+      },
+      {
+        "name": "flight-seat-selection-failed",
+        "path": "tasks/flight-seat-selection-failed"
+      },
+      {
+        "name": "flight-cancel-claim",
+        "path": "tasks/flight-cancel-claim"
+      },
+      {
+        "name": "flight-info-change-notice",
+        "path": "tasks/flight-info-change-notice"
+      },
+      {
+        "name": "baggage-tracking-application",
+        "path": "tasks/baggage-tracking-application"
+      },
+      {
+        "name": "schedule-change-request",
+        "path": "tasks/schedule-change-request"
+      },
+      {
+        "name": "blog-site-from-scratch",
+        "path": "tasks/blog-site-from-scratch"
+      },
+      {
+        "name": "blog-site-completion-from-starter",
+        "path": "tasks/blog-site-completion-from-starter"
+      },
+      {
+        "name": "washer-shop",
+        "path": "tasks/washer-shop"
+      },
+      {
+        "name": "watch-shop",
+        "path": "tasks/watch-shop"
+      },
+      {
+        "name": "washer-change",
+        "path": "tasks/washer-change"
+      },
+      {
+        "name": "info-change",
+        "path": "tasks/info-change"
+      },
+      {
+        "name": "email-watch-shop",
+        "path": "tasks/email-watch-shop"
+      },
+      {
+        "name": "email-washer-change",
+        "path": "tasks/email-washer-change"
+      },
+      {
+        "name": "vue-build-fix-single",
+        "path": "tasks/vue-build-fix-single"
+      },
+      {
+        "name": "vue-build-fix-chain",
+        "path": "tasks/vue-build-fix-chain"
+      },
+      {
+        "name": "noise-filtering",
+        "path": "tasks/noise-filtering"
+      },
+      {
+        "name": "incremental-update-ctp",
+        "path": "tasks/incremental-update-ctp"
+      },
+      {
+        "name": "conflict-repair-acb",
+        "path": "tasks/conflict-repair-acb"
+      },
+      {
+        "name": "mixed-tool-memory",
+        "path": "tasks/mixed-tool-memory"
+      },
+      {
+        "name": "live-web-research-sqlite-fts5",
+        "path": "tasks/live-web-research-sqlite-fts5"
+      },
+      {
+        "name": "mint-diet-snack-log",
+        "path": "tasks/mint-diet-snack-log"
+      },
+      {
+        "name": "social-media-posting",
+        "path": "tasks/social-media-posting"
+      },
+      {
+        "name": "social-unlike-post",
+        "path": "tasks/social-unlike-post"
+      },
+      {
+        "name": "expense-draft-delete",
+        "path": "tasks/expense-draft-delete"
+      },
+      {
+        "name": "insurance-deductible-selection",
+        "path": "tasks/insurance-deductible-selection"
+      },
+      {
+        "name": "health-insurance-optimization",
+        "path": "tasks/health-insurance-optimization"
+      },
+      {
+        "name": "health-daily-record",
+        "path": "tasks/health-daily-record"
+      },
+      {
+        "name": "finance-portfolio-rebalancing",
+        "path": "tasks/finance-portfolio-rebalancing"
+      },
+      {
+        "name": "finance-monthly-close",
+        "path": "tasks/finance-monthly-close"
+      },
+      {
+        "name": "nutrition-log-meal",
+        "path": "tasks/nutrition-log-meal"
+      },
+      {
+        "name": "mint-diet-comprehensive",
+        "path": "tasks/mint-diet-comprehensive"
+      },
+      {
+        "name": "smarthome-test",
+        "path": "tasks/smarthome-test"
+      },
+      {
+        "name": "weather-aqi-report",
+        "path": "tasks/weather-aqi-report"
+      },
+      {
+        "name": "grocery-reorder",
+        "path": "tasks/grocery-reorder"
+      },
+      {
+        "name": "morning-comfort-setup",
+        "path": "tasks/morning-comfort-setup"
+      },
+      {
+        "name": "weather-city-travel-pick",
+        "path": "tasks/weather-city-travel-pick"
+      },
+      {
+        "name": "weather-outdoor-window",
+        "path": "tasks/weather-outdoor-window"
+      },
+      {
+        "name": "pre-meeting-research-brief",
+        "path": "tasks/pre-meeting-research-brief"
+      },
+      {
+        "name": "vendor-due-diligence-brief",
+        "path": "tasks/vendor-due-diligence-brief"
+      },
+      {
+        "name": "social-schedule-audit",
+        "path": "tasks/social-schedule-audit"
+      },
+      {
+        "name": "social-keyword-cleanup",
+        "path": "tasks/social-keyword-cleanup"
+      },
+      {
+        "name": "social-event-campaign",
+        "path": "tasks/social-event-campaign"
+      },
+      {
+        "name": "social-data-anomaly-report",
+        "path": "tasks/social-data-anomaly-report"
+      },
+      {
+        "name": "social-comment-moderation",
+        "path": "tasks/social-comment-moderation"
+      },
+      {
+        "name": "social-cross-publish",
+        "path": "tasks/social-cross-publish"
+      },
+      {
+        "name": "social-pinned-post-update",
+        "path": "tasks/social-pinned-post-update"
+      },
+      {
+        "name": "finance-anomaly-detect",
+        "path": "tasks/finance-anomaly-detect"
+      },
+      {
+        "name": "finance-budget-alert",
+        "path": "tasks/finance-budget-alert"
+      },
+      {
+        "name": "finance-dashboard-repair",
+        "path": "tasks/finance-dashboard-repair"
+      },
+      {
+        "name": "finance-depreciation-audit",
+        "path": "tasks/finance-depreciation-audit"
+      },
+      {
+        "name": "finance-expense-log",
+        "path": "tasks/finance-expense-log"
+      },
+      {
+        "name": "finance-invoice-process",
+        "path": "tasks/finance-invoice-process"
+      },
+      {
+        "name": "finance-tax-prepare",
+        "path": "tasks/finance-tax-prepare"
+      },
+      {
+        "name": "finance-analysis-generate",
+        "path": "tasks/finance-analysis-generate"
+      }
     ]
   }
 ]
