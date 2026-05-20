@@ -26,7 +26,7 @@ cat > /var/lib/mock-data/shop/mosi_shop_orders.json << 'EOF'
       }
     ],
     "total_amount": 4.99,
-    "status": "Delivered",
+    "status": "Shipped",
     "create_time": "2026-05-10 10:00:00",
     "shipping_address": "1234 Innovation Drive, San Francisco, CA 94105, USA"
   },
@@ -43,7 +43,7 @@ cat > /var/lib/mock-data/shop/mosi_shop_orders.json << 'EOF'
       }
     ],
     "total_amount": 3.49,
-    "status": "Delivered",
+    "status": "Shipped",
     "create_time": "2026-05-11 14:00:00",
     "shipping_address": "1234 Innovation Drive, San Francisco, CA 94105, USA"
   }
