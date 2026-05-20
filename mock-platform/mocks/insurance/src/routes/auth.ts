@@ -162,7 +162,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     }
 
     const token = await sign({ userId: newUser.id });
-    const cookieStr = serializeCookie("token", token, tokenCookieOptions());
+    const cookieStr = serializeCookie("insurance_token", token, tokenCookieOptions());
     c.header("Set-Cookie", cookieStr);
 
     const { password_hash: _, ...safeUser } = newUser;
