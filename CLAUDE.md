@@ -137,9 +137,10 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
 
-> **LLM-judge tasks** (7 tasks: `conflict-repair-acb`, `incremental-update-ctp`,
+> **LLM-judge tasks** (9 tasks: `conflict-repair-acb`, `incremental-update-ctp`,
 > `live-web-research-sqlite-fts5`, `mixed-tool-memory`, `noise-filtering`,
-> `pre-meeting-research-brief`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
+> `pre-meeting-research-brief`, `vendor-due-diligence-brief`,
+> `policy-conflict-checklist-update`, `omni-morning-decision-brief`) use `--ee` (not `--ae`)
 > for judge credentials because `llm_judge.py` runs in the verifier phase, outside the OpenClaw
 > agent process. **Missing `--ee` will cause the verifier to fail with
 > `RuntimeError: JUDGE_BASE_URL is not set`.**
@@ -270,6 +271,10 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `finance-invoice-process` | Finance & Data Analytics | easy | verify.py |
 | `finance-tax-prepare` | Finance & Data Analytics | hard | verify.py |
 | `finance-analysis-generate` | Finance & Data Analytics | hard | verify.py |
+| `sticker-store-acquire` | E-commerce & Daily Svcs | medium | verify.py |
+| `chat-sticker-engagement` | E-commerce & Daily Svcs | hard | verify.py |
+| `policy-conflict-checklist-update` | Documents & Knowledge | medium | **llm_judge** |
+| `omni-morning-decision-brief` | Deep Research & Report | hard | **llm_judge** |
 ## Docker Image Architecture
 
 LiveClawBench uses a three-layer Docker image architecture:
@@ -422,8 +427,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-69 implemented tasks: A1=28, A2=18, B1=24, B2=16.
-Difficulty: Easy=31, Medium=20, Hard=18.
+71 implemented tasks: A1=29, A2=19, B1=25, B2=18.
+Difficulty: Easy=31, Medium=21, Hard=19.
 
 ## Known Issues
 
