@@ -1,15 +1,36 @@
 #!/usr/bin/env python3
 """Mock pricing website server for pricing-matrix-reconcile task."""
+
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
 # Canonical plan ID → website display label mapping (agent must infer this)
 PLAN_META = {
-    "PLAN_F": {"label": "Starter", "tier": "free-tier", "users": "1 user", "storage": "1 GB"},
-    "PLAN_P": {"label": "Growth",  "tier": "team-5",    "users": "5 users", "storage": "10 GB"},
-    "PLAN_B": {"label": "Scale",   "tier": "team-20",   "users": "20 users", "storage": "50 GB"},
-    "PLAN_E": {"label": "Horizon", "tier": "enterprise", "users": "Unlimited users", "storage": "200 GB"},
+    "PLAN_F": {
+        "label": "Starter",
+        "tier": "free-tier",
+        "users": "1 user",
+        "storage": "1 GB",
+    },
+    "PLAN_P": {
+        "label": "Growth",
+        "tier": "team-5",
+        "users": "5 users",
+        "storage": "10 GB",
+    },
+    "PLAN_B": {
+        "label": "Scale",
+        "tier": "team-20",
+        "users": "20 users",
+        "storage": "50 GB",
+    },
+    "PLAN_E": {
+        "label": "Horizon",
+        "tier": "enterprise",
+        "users": "Unlimited users",
+        "storage": "200 GB",
+    },
 }
 
 # Pricing data: region → billing_cycle → plan_label → {price, api_calls}
@@ -17,30 +38,30 @@ PLAN_META = {
 PRICING = {
     "US": {
         "monthly": {
-            "Starter": {"price": "$0/mo",    "api_calls": "500"},
-            "Growth":  {"price": "$29/mo",   "api_calls": "5,000"},
-            "Scale":   {"price": "$99/mo",   "api_calls": "25,000"},
-            "Horizon": {"price": "$299/mo",  "api_calls": "Unlimited"},
+            "Starter": {"price": "$0/mo", "api_calls": "500"},
+            "Growth": {"price": "$29/mo", "api_calls": "5,000"},
+            "Scale": {"price": "$99/mo", "api_calls": "25,000"},
+            "Horizon": {"price": "$299/mo", "api_calls": "Unlimited"},
         },
         "annual": {
-            "Starter": {"price": "$0/mo",    "api_calls": "500"},
-            "Growth":  {"price": "$23/mo",   "api_calls": "5,000"},
-            "Scale":   {"price": "$79/mo",   "api_calls": "25,000"},
-            "Horizon": {"price": "$239/mo",  "api_calls": "Unlimited"},
+            "Starter": {"price": "$0/mo", "api_calls": "500"},
+            "Growth": {"price": "$23/mo", "api_calls": "5,000"},
+            "Scale": {"price": "$79/mo", "api_calls": "25,000"},
+            "Horizon": {"price": "$239/mo", "api_calls": "Unlimited"},
         },
     },
     "EU": {
         "monthly": {
-            "Starter": {"price": "€0/mo",    "api_calls": "500"},
-            "Growth":  {"price": "€27/mo",   "api_calls": "5,000"},
-            "Scale":   {"price": "€91/mo",   "api_calls": "25,000"},
-            "Horizon": {"price": "€275/mo",  "api_calls": "Unlimited"},
+            "Starter": {"price": "€0/mo", "api_calls": "500"},
+            "Growth": {"price": "€27/mo", "api_calls": "5,000"},
+            "Scale": {"price": "€91/mo", "api_calls": "25,000"},
+            "Horizon": {"price": "€275/mo", "api_calls": "Unlimited"},
         },
         "annual": {
-            "Starter": {"price": "€0/mo",    "api_calls": "500"},
-            "Growth":  {"price": "€21/mo",   "api_calls": "5,000"},
-            "Scale":   {"price": "€73/mo",   "api_calls": "25,000"},
-            "Horizon": {"price": "€220/mo",  "api_calls": "Unlimited"},
+            "Starter": {"price": "€0/mo", "api_calls": "500"},
+            "Growth": {"price": "€21/mo", "api_calls": "5,000"},
+            "Scale": {"price": "€73/mo", "api_calls": "25,000"},
+            "Horizon": {"price": "€220/mo", "api_calls": "Unlimited"},
         },
     },
 }
@@ -49,7 +70,10 @@ PRICING = {
 LEGACY_PRICING = {
     "US": {
         "monthly": {
-            "Starter": "$0/mo", "Growth": "$39/mo", "Scale": "$119/mo", "Horizon": "$349/mo",
+            "Starter": "$0/mo",
+            "Growth": "$39/mo",
+            "Scale": "$119/mo",
+            "Horizon": "$349/mo",
         },
     },
 }
@@ -81,10 +105,17 @@ footer { margin-top: 3rem; padding: 1.2rem 2rem; background: #eee; text-align: c
 footer a { color: #555; }
 """
 
-JS = """
-const PRICING = """ + json.dumps(PRICING) + """;
-const PLAN_META = """ + json.dumps(PLAN_META) + """;
-const PLAN_ORDER = """ + json.dumps(PLAN_ORDER) + """;
+JS = (
+    """
+const PRICING = """
+    + json.dumps(PRICING)
+    + """;
+const PLAN_META = """
+    + json.dumps(PLAN_META)
+    + """;
+const PLAN_ORDER = """
+    + json.dumps(PLAN_ORDER)
+    + """;
 
 let currentRegion = 'US';
 let currentCycle = 'monthly';
@@ -130,6 +161,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 render();
 """
+)
 
 MAIN_PAGE = """<!doctype html>
 <html lang="en">
@@ -252,6 +284,7 @@ class PricingHandler(BaseHTTPRequestHandler):
 
 def main() -> None:
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8200)

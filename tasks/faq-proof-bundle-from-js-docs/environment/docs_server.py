@@ -14,6 +14,7 @@ Archived / outdated page (contaminated initial state, A2 factor):
 
 The agent must use current docs, not the archived page.
 """
+
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
@@ -51,16 +52,31 @@ code { background: #f0f0f0; padding: 0.1rem 0.35rem; border-radius: 3px; font-si
 """
 
 SEARCH_DATA = [
-    {"title": "Single Sign-On (SSO)", "url": "/docs/sso",
-     "snippet": "Configure single sign-on via SAML 2.0 and OAuth 2.0 for your organization."},
-    {"title": "Audit Logs", "url": "/docs/audit-logs",
-     "snippet": "Full audit log retention for 90 days. Export logs for compliance."},
-    {"title": "Data Export", "url": "/docs/data-export",
-     "snippet": "Export your data in CSV or JSON format at any time from the dashboard."},
-    {"title": "API Reference", "url": "/docs/api",
-     "snippet": "Complete REST API reference with authentication and rate limits."},
-    {"title": "FAQ", "url": "/faq",
-     "snippet": "Frequently asked questions about features, billing, and security."},
+    {
+        "title": "Single Sign-On (SSO)",
+        "url": "/docs/sso",
+        "snippet": "Configure single sign-on via SAML 2.0 and OAuth 2.0 for your organization.",
+    },
+    {
+        "title": "Audit Logs",
+        "url": "/docs/audit-logs",
+        "snippet": "Full audit log retention for 90 days. Export logs for compliance.",
+    },
+    {
+        "title": "Data Export",
+        "url": "/docs/data-export",
+        "snippet": "Export your data in CSV or JSON format at any time from the dashboard.",
+    },
+    {
+        "title": "API Reference",
+        "url": "/docs/api",
+        "snippet": "Complete REST API reference with authentication and rate limits.",
+    },
+    {
+        "title": "FAQ",
+        "url": "/faq",
+        "snippet": "Frequently asked questions about features, billing, and security.",
+    },
 ]
 
 SEARCH_JS = f"""
@@ -153,7 +169,7 @@ def page(title: str, inner: str, extra_js: str = "") -> str:
   </main>
 </div>
 <footer>&copy; 2026 Nexora Inc.</footer>
-{('<script>' + extra_js + '</script>') if extra_js else ''}
+{("<script>" + extra_js + "</script>") if extra_js else ""}
 </body>
 </html>"""
 
@@ -347,12 +363,15 @@ class DocsHandler(BaseHTTPRequestHandler):
             self.send_html(200, page("FAQ (Archive)", ARCHIVE_FAQ_INNER))
             return
 
-        not_found = page("Not Found", "<h2>Page not found</h2><p><a href='/'>Back to docs</a></p>")
+        not_found = page(
+            "Not Found", "<h2>Page not found</h2><p><a href='/'>Back to docs</a></p>"
+        )
         self.send_html(404, not_found)
 
 
 def main() -> None:
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8201)

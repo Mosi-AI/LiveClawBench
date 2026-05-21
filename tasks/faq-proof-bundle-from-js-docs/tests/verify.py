@@ -15,6 +15,7 @@ Scoring:
   0.5 — some files present/partially correct but at least one claim has evidence
   0.0 — proof bundle missing or all evidence from archived page
 """
+
 import json
 import re
 import sys
@@ -51,8 +52,8 @@ URL_ALLOWLIST = {"/docs/sso", "/docs/audit-logs", "/docs/data-export", "/faq"}
 def find_urls(text: str) -> list[str]:
     # Match http://... or relative paths like /docs/sso
     patterns = [
-        r'https?://[^\s\)\]\>\"\']+',
-        r'/(?:docs|faq)[^\s\)\]\>\"\']*',
+        r"https?://[^\s\)\]\>\"\']+",
+        r"/(?:docs|faq)[^\s\)\]\>\"\']*",
     ]
     urls: list[str] = []
     for pat in patterns:
@@ -62,7 +63,7 @@ def find_urls(text: str) -> list[str]:
     for u in urls:
         if u.startswith("http"):
             # extract path
-            m = re.search(r'https?://[^/]+(/.*)$', u)
+            m = re.search(r"https?://[^/]+(/.*)$", u)
             if m:
                 normalised.append(m.group(1).rstrip(".,;)>\"'"))
         else:
@@ -78,7 +79,11 @@ def main() -> None:
     if not PROOF_DIR.exists():
         score = 0.0
         REWARD_TXT.write_text("0.0\n")
-        REWARD_JSON.write_text(json.dumps({"reward": score, "_meta_errors": ["faq_proof/ directory not found"]}))
+        REWARD_JSON.write_text(
+            json.dumps(
+                {"reward": score, "_meta_errors": ["faq_proof/ directory not found"]}
+            )
+        )
         print("Score: 0.0/1.0")
         sys.exit(1)
 
@@ -94,7 +99,9 @@ def main() -> None:
         urls_in_summary = find_urls(summary_text)
 
         if ARCHIVE_SENTENCE in summary_text:
-            errors.append("summary.md contains the archived-page sentence — sourced from wrong page")
+            errors.append(
+                "summary.md contains the archived-page sentence — sourced from wrong page"
+            )
             summary_archive_contaminated = True
 
         archive_urls_found = [u for u in urls_in_summary if ARCHIVE_URL_PREFIX in u]
@@ -104,11 +111,21 @@ def main() -> None:
 
         # Check at least one URL per claim keyword
         claims_found = 0
-        for keyword in ("SSO", "sso", "single sign-on", "audit log", "Audit log", "data export", "Data export"):
+        for keyword in (
+            "SSO",
+            "sso",
+            "single sign-on",
+            "audit log",
+            "Audit log",
+            "data export",
+            "Data export",
+        ):
             if keyword.lower() in summary_text.lower():
                 claims_found += 1
         if claims_found < 3:
-            errors.append(f"summary.md appears to cover only {claims_found}/3 required claims (SSO, audit logs, data export)")
+            errors.append(
+                f"summary.md appears to cover only {claims_found}/3 required claims (SSO, audit logs, data export)"
+            )
             summary_ok = False
         else:
             passed.append("summary.md covers all 3 claims")
@@ -125,12 +142,16 @@ def main() -> None:
         text = fpath.read_text(encoding="utf-8", errors="replace")
 
         if ARCHIVE_SENTENCE in text:
-            errors.append(f"{spec['filename']}: contains archived-page sentence — sourced from wrong page")
+            errors.append(
+                f"{spec['filename']}: contains archived-page sentence — sourced from wrong page"
+            )
             evidence_scores[key] = False
             continue
 
         if len(text.strip()) < spec["min_len"]:
-            errors.append(f"{spec['filename']}: too short ({len(text.strip())} chars, minimum {spec['min_len']})")
+            errors.append(
+                f"{spec['filename']}: too short ({len(text.strip())} chars, minimum {spec['min_len']})"
+            )
             evidence_scores[key] = False
             continue
 
@@ -146,11 +167,7 @@ def main() -> None:
 
     # Compute score
     n_evidence_ok = sum(1 for ok in evidence_scores.values() if ok)
-    all_ok = (
-        summary_ok
-        and not summary_archive_contaminated
-        and n_evidence_ok == 3
-    )
+    all_ok = summary_ok and not summary_archive_contaminated and n_evidence_ok == 3
 
     if all_ok:
         score = 1.0
@@ -161,15 +178,19 @@ def main() -> None:
 
     REWARD_TXT.write_text(f"{score}\n")
     REWARD_JSON.write_text(
-        json.dumps({
-            "reward": score,
-            "evidence_ok": n_evidence_ok,
-            "summary_ok": summary_ok,
-            "_meta_errors": errors,
-            "_meta_passed": passed,
-        })
+        json.dumps(
+            {
+                "reward": score,
+                "evidence_ok": n_evidence_ok,
+                "summary_ok": summary_ok,
+                "_meta_errors": errors,
+                "_meta_passed": passed,
+            }
+        )
     )
-    print(f"Score: {score}/1.0  (evidence files ok: {n_evidence_ok}/3, summary ok: {summary_ok})")
+    print(
+        f"Score: {score}/1.0  (evidence files ok: {n_evidence_ok}/3, summary ok: {summary_ok})"
+    )
     for err in errors[:10]:
         print(f"  - {err}")
     if score < 0.5:
