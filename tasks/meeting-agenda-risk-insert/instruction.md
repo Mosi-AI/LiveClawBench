@@ -1,6 +1,8 @@
 I have a partnership meeting with TerraScale Logistics tomorrow and I want to go in well-prepared. Please check my calendar (http://localhost:5006/) for the meeting details.
 
-To access the calendar API, first authenticate: `POST http://localhost:5006/api/auth/login` with body `{"username": "peter.griffin@work.mosi.inc", "password": "password123"}` — the response contains an `access_token`. Include it as `Authorization: Bearer <token>` in all subsequent requests. List events via `GET http://localhost:5006/api/events`.
+Login credentials for the calendar: `peter.griffin@work.mosi.inc` / `password123`
+
+To access the calendar API programmatically, authenticate by POSTing to `http://localhost:5006/login` with form fields `email` and `password` (Content-Type: application/x-www-form-urlencoded). The response sets a `token` cookie; extract it and use as `Authorization: Bearer <token>` in subsequent API requests. List events via `GET http://localhost:5006/api/events`.
 
 Review the background materials in `corpus/` (available at `~/.openclaw/corpus/`) — there are several documents covering our history with TerraScale that are relevant to the meeting.
 

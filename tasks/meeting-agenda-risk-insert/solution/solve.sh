@@ -5,23 +5,32 @@ mkdir -p "${HOME}/.openclaw/output"
 python3 - <<'PYEOF'
 import json
 import urllib.request
+import urllib.parse
+from http.cookiejar import CookieJar
 from pathlib import Path
 
 CALENDAR_BASE = "http://localhost:5006"
 CORPUS = Path.home() / ".openclaw" / "corpus"
 
-# --- Step 0: Authenticate ---
+# --- Step 0: Authenticate via form login (cookie-based) ---
+cj = CookieJar()
+opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+login_data = urllib.parse.urlencode({
+    "email": "peter.griffin@work.mosi.inc",
+    "password": "password123",
+}).encode("utf-8")
 login_req = urllib.request.Request(
-    f"{CALENDAR_BASE}/api/auth/login",
-    data=json.dumps({"username": "peter.griffin@work.mosi.inc", "password": "password123"}).encode("utf-8"),
-    headers={"Content-Type": "application/json"},
+    f"{CALENDAR_BASE}/login",
+    data=login_data,
+    headers={"Content-Type": "application/x-www-form-urlencoded"},
     method="POST",
 )
-with urllib.request.urlopen(login_req, timeout=10) as r:
-    login_data = json.loads(r.read().decode("utf-8"))
-TOKEN = (login_data.get("data") or {}).get("access_token")
+with opener.open(login_req, timeout=10):
+    pass
+
+TOKEN = next((c.value for c in cj if c.name == "token"), None)
 if not TOKEN:
-    raise SystemExit("ERROR: Calendar auth failed")
+    raise SystemExit("ERROR: Calendar auth failed — no token cookie")
 AUTH = {"Authorization": f"Bearer {TOKEN}"}
 
 
@@ -33,7 +42,7 @@ def fetch_json(url, headers=None):
 
 # --- Step 1: Find TerraScale meeting ---
 events_data = fetch_json(f"{CALENDAR_BASE}/api/events", headers=AUTH)
-events = events_data.get("data", {}).get("events", [])
+events = events_data.get("events", [])
 
 terrascale_event = None
 for event in events:
