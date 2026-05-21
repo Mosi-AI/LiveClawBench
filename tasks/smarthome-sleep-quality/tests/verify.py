@@ -115,7 +115,6 @@ def detect_direct_api_calls():
         # Handle assistant messages with content array
         if entry_type == "message":
             msg = entry.get("message", {})
-            role = msg.get("role", "")
             content = msg.get("content")
 
             if isinstance(content, str):

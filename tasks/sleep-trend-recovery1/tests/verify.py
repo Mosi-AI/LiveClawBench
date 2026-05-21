@@ -346,12 +346,6 @@ def score_response(response):
             name for name, passed in action_checks.items() if not passed
         ]
 
-    schedule_changed = re.search(
-        r"(?:this|today(?:'s)?)\s+(?:coffee\s+)?schedule\s*(?:was\s*)?(?:changed|updated|delayed|moved|set)|"
-        r"(?:changed|updated|delayed|moved|set)\s+(?:today(?:'s)?\s+)?(?:coffee\s+)?schedule|"
-        r"schedule\s+change\s+cannot\s+affect",
-        text,
-    )
     ready_language = re.search(r"ready|already\s*(?:brewed|made|done|complete)", text)
     impact_language = re.search(
         r"cannot|can't|won't|will not|does not|doesn't", text

@@ -3,10 +3,10 @@ version = "1.0"
 [metadata]
 difficulty = "medium"
 category = "open-world"
-tags = ["health_wellness", "smart_home"]
+tags = ["health_fitness", "smart_home"]
 
-domain = "Health & Wellness"
-domains_multi = ["Health & Wellness", "Smart Home"]
+domain = "Health & Fitness"
+domains_multi = ["Health & Fitness", "Smart Home"]
 
 factor_a1 = 1
 factor_a2 = 1

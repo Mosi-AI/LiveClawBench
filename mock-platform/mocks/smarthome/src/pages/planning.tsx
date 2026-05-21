@@ -2,7 +2,7 @@
 import type { FC } from "hono/jsx";
 import { Layout } from "../components/layout";
 import type { CalendarEvent, MealPlan, Recipe, UserConstraints } from "../types";
-import { escJs } from "./utils";
+import { escJs, safeJsonForHtml } from "./utils";
 
 export const CalendarPage: FC<{ events: CalendarEvent[] }> = ({ events }) => {
   return <Layout title="Calendar" scripts={`
@@ -242,7 +242,7 @@ function closePlanModal() {
 function renderPlanEditor(days) {
   const container = document.getElementById('plan-days');
   const mealTypes = ['breakfast', 'lunch', 'dinner'];
-  const recipes = ${JSON.stringify(recipes.map((recipe) => ({ id: recipe.id, name: recipe.name, meal_type: recipe.meal_type, calories_total: recipe.calories_total })))};
+  const recipes = ${safeJsonForHtml(recipes.map((recipe) => ({ id: recipe.id, name: recipe.name, meal_type: recipe.meal_type, calories_total: recipe.calories_total })))};
 
   let html = '';
   for (let i = 0; i < days.length; i++) {
@@ -267,7 +267,7 @@ function renderPlanEditor(days) {
 }
 
 function updateCalories() {
-  const recipes = ${JSON.stringify(recipes.map((recipe) => ({ id: recipe.id, calories_total: recipe.calories_total })))};
+  const recipes = ${safeJsonForHtml(recipes.map((recipe) => ({ id: recipe.id, calories_total: recipe.calories_total })))};
   const container = document.getElementById('plan-days');
   const dayCards = container.querySelectorAll('.day-card');
   const numDays = dayCards.length;
@@ -343,7 +343,7 @@ window.onclick = function(event) {
 `}>
     <h1>Meal Planning</h1>
 
-    <script id="current-plan-data" type="application/json">{currentPlan ? JSON.stringify(currentPlan) : ""}</script>
+    <script id="current-plan-data" type="application/json">{currentPlan ? safeJsonForHtml(currentPlan) : ""}</script>
 
     <h2>Your Constraints</h2>
     <div class="card">
@@ -380,8 +380,8 @@ window.onclick = function(event) {
           <tbody id="current-plan-table"></tbody>
         </table>
         <script>{`
-          const planData = ${JSON.stringify(currentPlan.plan_data)};
-          const recipes = ${JSON.stringify(recipes)};
+          const planData = ${safeJsonForHtml(currentPlan.plan_data)};
+          const recipes = ${safeJsonForHtml(recipes)};
           const table = document.getElementById('current-plan-table');
           let html = '';
           for (const day of JSON.parse(planData)) {

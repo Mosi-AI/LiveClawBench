@@ -2,6 +2,7 @@
 import type { FC } from "hono/jsx";
 import { Layout } from "../components/layout";
 import type { CoffeeSchedule, ThermostatSettings, WearableRecovery } from "../types";
+import { safeJsonForHtml } from "./utils";
 
 export const CoffeePage: FC<{
   schedule: CoffeeSchedule;
@@ -27,9 +28,9 @@ export const CoffeePage: FC<{
   const submitLabel = schedule.has_schedule ? "Update" : "Save";
 
   return <Layout title="Coffee Schedule" scripts={`
-const selectedDate = ${JSON.stringify(selectedDate)};
-const benchmarkDate = ${JSON.stringify(benchmarkDate)};
-const editable = ${JSON.stringify(editable)};
+const selectedDate = ${safeJsonForHtml(selectedDate)};
+const benchmarkDate = ${safeJsonForHtml(benchmarkDate)};
+const editable = ${safeJsonForHtml(editable)};
 
 function navigateByStep(step) {
   const dateInput = document.getElementById('schedule-date');

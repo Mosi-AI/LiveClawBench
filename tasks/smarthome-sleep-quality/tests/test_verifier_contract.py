@@ -2,12 +2,10 @@ import importlib.util
 import json
 import os
 import sqlite3
-import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
-
 
 TASK_DIR = Path(__file__).resolve().parent.parent
 VERIFY_PATH = TASK_DIR / "tests" / "verify.py"
@@ -226,6 +224,7 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
                 "I checked 2026-05-09 sleep quality 60 readiness 53 thermostat 68F melatonin order ORD000004"
             )
 
+            real_exists = Path.exists
             real_read_text = Path.read_text
 
             def fake_exists(self):
@@ -238,7 +237,7 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
                     return True
                 if s == "/workspace/output/response.txt":
                     return True
-                return real_path_class(s).exists()
+                return real_exists(Path(s))
 
             def fake_read_text(self, *args, **kwargs):
                 if str(self) == "/workspace/output/response.txt":

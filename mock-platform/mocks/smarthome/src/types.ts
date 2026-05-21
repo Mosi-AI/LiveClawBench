@@ -103,5 +103,5 @@ export interface MealPlan {
 // Benchmark Clock
 export interface BenchmarkClock {
   id: number;
-  current_time: string;
+  clock_time: string;
 }

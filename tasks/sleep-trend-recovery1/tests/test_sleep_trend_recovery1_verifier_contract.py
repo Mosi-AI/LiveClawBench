@@ -812,7 +812,7 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             registry,
         )
         metadata = tomllib.loads(TASK_TOML_PATH.read_text())["metadata"]
-        self.assertEqual(["Health & Wellness", "Smart Home"], metadata["domains_multi"])
+        self.assertEqual(["Health & Fitness", "Smart Home"], metadata["domains_multi"])
 
         registry_text = CASES_REGISTRY_PATH.read_text()
         case_row = next(
@@ -821,8 +821,8 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             if ",sleep-trend-recovery1," in line
         )
         self.assertIn("reflective diagnosis,sleep-trend-recovery1", case_row)
-        self.assertIn("Health & Wellness ; Smart Home", case_row)
-        self.assertNotIn("Health & Wellness ; E-commerce & Daily Svcs", case_row)
+        self.assertIn("Health & Fitness ; Smart Home", case_row)
+        self.assertNotIn("Health & Fitness ; E-commerce & Daily Svcs", case_row)
 
         registry_zh_text = CASES_REGISTRY_ZH_PATH.read_text()
         case_zh_row = next(
@@ -831,9 +831,9 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             if ",sleep-trend-recovery1," in line
         )
         self.assertIn("reflective diagnosis,sleep-trend-recovery1", case_zh_row)
-        self.assertIn("Health & Wellness ; Smart Home", case_zh_row)
+        self.assertIn("Health & Fitness ; Smart Home", case_zh_row)
         self.assertNotIn(
-            "Health & Wellness ; E-commerce & Daily Svcs", case_zh_row
+            "Health & Fitness ; E-commerce & Daily Svcs", case_zh_row
         )
         self.assertIn('"sleep-trend-recovery1"', BUILD_IMAGES_PATH.read_text())
 
