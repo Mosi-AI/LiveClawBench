@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package kvstore;
+
+service KVStore {
+  rpc Get (GetRequest) returns (GetResponse) {}
+  rpc Set (SetRequest) returns (SetResponse) {}
+  rpc Delete (DeleteRequest) returns (DeleteResponse) {}
+  rpc Health (HealthRequest) returns (HealthResponse) {}
+}
+
+message GetRequest {
+  string key = 1;
+}
+
+message GetResponse {
+  string key = 1;
+  string value = 2;
+  bool found = 3;
+}
+
+message SetRequest {
+  string key = 1;
+  string value = 2;
+}
+
+message SetResponse {
+  bool success = 1;
+}
+
+message DeleteRequest {
+  string key = 1;
+}
+
+message DeleteResponse {
+  bool success = 1;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+}

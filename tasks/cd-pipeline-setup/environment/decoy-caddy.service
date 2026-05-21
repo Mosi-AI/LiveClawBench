@@ -1,0 +1,24 @@
+# Systemd unit left behind by a previous engineer.
+# NOTE: port here does NOT match what ops actually runs — leftover from the
+# abandoned Caddy migration. Kept in-tree "in case we switch back".
+[Unit]
+Description=Caddy web server (legacy, pre-nginx migration)
+Documentation=https://caddyserver.com/docs/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=caddy
+Group=caddy
+# Listens on 8081 (NOT the production 80) — do not enable without coordinating with ops.
+ExecStart=/usr/bin/caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+ExecReload=/usr/bin/caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+TimeoutStopSec=5s
+LimitNOFILE=1048576
+PrivateTmp=true
+ProtectSystem=full
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

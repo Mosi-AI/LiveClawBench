@@ -30,7 +30,7 @@ function lastInsertId(db: Database): number {
 /**
  * Seeds the insurance database with a deterministic baseline:
  *   - 1 user (peter.griffin@work.mosi.inc, password "password123" — bcryptjs hashed)
- *   - 12 providers, each offering 3-6 services across the 6 check_item categories
+ *   - 18 providers (14 in-network + 4 out-of-network), each offering 2-6 services across the 6 check_item categories
  *   - 3-5 appointment_slot rows per provider_service over the next 14 days
  *   - 3 insurance_plans (A/B/C, effective_year 2027) each with 6 plan_benefit rows
  *   - 1 active current_policy on user 1 (Plan A)
@@ -62,7 +62,7 @@ export function seedDatabase(db: Database): void {
   );
   const insertProvider = db.query(
     `INSERT INTO provider (name, district, distance_km, network_status)
-     VALUES (?, ?, ?, 'in_network')`,
+     VALUES (?, ?, ?, ?)`,
   );
   const insertProviderService = db.query(
     `INSERT INTO provider_service (provider_id, check_item, service_name, cost)
@@ -110,7 +110,7 @@ export function seedDatabase(db: Database): void {
 
     let serviceCounter = 0;
     for (const provider of PROVIDERS) {
-      insertProvider.run(provider.name, provider.district, provider.distance_km);
+      insertProvider.run(provider.name, provider.district, provider.distance_km, provider.network_status);
       const providerId = lastInsertId(db);
 
       for (const checkItem of provider.offers) {

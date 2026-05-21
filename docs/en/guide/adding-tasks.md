@@ -306,7 +306,7 @@ The validator checks:
 - `case_id` is unique across all tasks
 - Stub warnings: short `instruction.md`, echo-only `test.sh`, missing `solve.sh`
 
-All 30 existing tasks must continue to pass.
+All 42 existing tasks must continue to pass.
 
 ## Submission Checklist
 

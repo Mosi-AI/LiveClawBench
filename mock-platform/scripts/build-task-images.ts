@@ -16,6 +16,7 @@
 
 import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync, readdirSync, realpathSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
+import { createHash } from "node:crypto";
 
 const DIST_DIR = join(import.meta.dir, "..", "dist");
 const CONFIG_PATH = join(import.meta.dir, "..", "config", "task-binary-map.json");
@@ -33,16 +34,18 @@ const BASE_IMAGE = "liveclawbench-base:latest";
  */
 const BINARY_PORTS: Record<string, number> = {
   airline: 5000,
+  chat: 5003,
   email: 5001,
   shop: 1234,
   todolist: 5002,
   "doc-search": 8123,
+  workspace: 5009,
   finance: 1235,
   insurance: 6000,
   calendar: 5006,
   "mint-diet": 5003,
   weather: 3000,
-  social: 5004,
+  social: 5008,
   expense: 5005,
   health: 5007,
   smarthome: 5004,
@@ -78,7 +81,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 45 benchmark task names (canonical source of truth)
+// Benchmark task names supported by mock-platform image builds.
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -90,11 +93,32 @@ const ALL_TASK_NAMES = new Set([
   "skill-conflict-resolution", "skill-dependency-fix", "noise-filtering",
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
-  "mint-diet-snack-log", "weather-aqi-report",
+  "mint-diet-snack-log", "mint-diet-comprehensive", "nutrition-log-meal", "weather-aqi-report",
   "social-media-posting", "social-unlike-post", "expense-draft-delete",
+  "health-daily-record",
   "finance-portfolio-rebalancing", "finance-monthly-close",
-  "health-daily-record", "smarthome-morning-checkup", "grocery-reorder",
-  "morning-comfort-setup", "smarthome-sleep-quality", "sleep-trend-recovery1",
+  "finance-expense-log", "finance-anomaly-detect", "finance-budget-alert",
+  "finance-invoice-process", "finance-tax-prepare", "finance-analysis-generate",
+  "finance-depreciation-audit", "finance-dashboard-repair",
+  "smarthome-morning-checkup", "grocery-reorder", "morning-comfort-setup",
+  "smarthome-sleep-quality", "sleep-trend-recovery1",
+  "weather-city-travel-pick", "weather-outdoor-window",
+  "pre-meeting-research-brief", "vendor-due-diligence-brief",
+  "social-schedule-audit", "social-keyword-cleanup", "social-event-campaign",
+  "social-data-anomaly-report", "social-comment-moderation",
+  "social-cross-publish", "social-pinned-post-update",
+  "meeting-reschedule-response", "candidate-interview-slot-confirm",
+  "medication-prescription-sync", "health-appointment-scheduling",
+  "content-calendar-cross-publish",
+  // Upstream PR #72 — chat-app mock and its tasks (case_ids 70, 71)
+  "sticker-store-acquire", "chat-sticker-engagement",
+  // PR #54 Safety tasks migrated to mock-platform (case_ids 85-94 subset)
+  "email-phishing-injection",
+  "cross-service-credential-handling",
+  "email-shop-privacy-leak",
+  "phishing-in-inbox",
+  "flight-calendar-overshare",
+  "fake-system-notification",
 ]);
 
 interface AssetMapping {
@@ -113,6 +137,35 @@ interface FrontendConfig {
   dest: string;
 }
 
+/**
+ * Reserved infrastructure — no current consumers in task-binary-map.json.
+ *
+ * The 6 PR #54 Safety tasks intentionally use the `TASK_NAME` switch
+ * inside each mock's `seed.ts` instead of declaring `extraSeeds` here,
+ * because that compiles adversarial content into the Bun binary and
+ * keeps it unreadable from disk inside the container. See JSDoc on
+ * `applySupplementalSeed` in `packages/mock-lib/src/db/supplemental-seed.ts`.
+ *
+ * Keep this interface for future non-Safety tasks that need per-task
+ * SQL seed customisation without security sensitivity.
+ */
+interface ExtraSeedMapping {
+  /**
+   * Mock service name that owns this supplemental seed.
+   * Must be a member of the task's `binaries` array (and must be one of the
+   * sqlite-backed mocks that wire `applySupplementalSeed` in their `index.ts`:
+   * currently `email`, `airline`, `todolist`).
+   */
+  service: string;
+  /**
+   * Source path relative to the repository root, pointing to a `.sql` file
+   * containing INSERT statements that augment the baseline `seedDatabase()`.
+   * Runtime contract documented in
+   * `mock-platform/packages/mock-lib/src/db/supplemental-seed.ts`.
+   */
+  src: string;
+}
+
 interface TaskMapping {
   binaries: string[];
   startup_extra?: string;
@@ -120,6 +173,12 @@ interface TaskMapping {
   assets?: AssetMapping[];
   /** Optional multiple frontend SPA build configurations */
   frontends?: FrontendConfig[];
+  /**
+   * Optional supplemental SQL seed files copied to
+   * /opt/mock/extra-seed/<service>.sql in the per-task image.
+   * Mocks apply them at startup via `applySupplementalSeed(db, service)`.
+   */
+  extraSeeds?: ExtraSeedMapping[];
 }
 
 interface MappingConfig {
@@ -271,6 +330,54 @@ function validateMapping(raw: unknown): MappingConfig {
           for (const key of Object.keys(feObj)) {
             if (!allowedFrontendKeys.has(key)) {
               errors.push(`Task "${taskName}" 'frontends[${fi}]' has unknown key: "${key}"`);
+            }
+          }
+        }
+      }
+    }
+
+    // Validate optional extraSeeds array.
+    // Each entry must declare a `service` that belongs to this task's
+    // `binaries` array — protects against accidentally seeding a mock the
+    // task doesn't actually start (silent no-op surprise at runtime).
+    if ("extraSeeds" in taskObj) {
+      const seeds = taskObj.extraSeeds;
+      if (!Array.isArray(seeds)) {
+        errors.push(`Task "${taskName}" 'extraSeeds' must be an array`);
+      } else {
+        const seenServices = new Set<string>();
+        for (let si = 0; si < seeds.length; si++) {
+          const seed = seeds[si];
+          if (typeof seed !== "object" || seed === null) {
+            errors.push(`Task "${taskName}" extraSeeds[${si}] must be an object`);
+            continue;
+          }
+          const seedObj = seed as Record<string, unknown>;
+          if (typeof seedObj.service !== "string" || !seedObj.service) {
+            errors.push(`Task "${taskName}" extraSeeds[${si}] missing 'service' string`);
+          } else {
+            const svc = seedObj.service as string;
+            if (!taskBinSet.has(svc)) {
+              errors.push(
+                `Task "${taskName}" extraSeeds[${si}] service "${svc}" is not in this task's binaries`,
+              );
+            }
+            if (seenServices.has(svc)) {
+              errors.push(
+                `Task "${taskName}" extraSeeds has duplicate service "${svc}"`,
+              );
+            }
+            seenServices.add(svc);
+          }
+          if (typeof seedObj.src !== "string" || !seedObj.src) {
+            errors.push(`Task "${taskName}" extraSeeds[${si}] missing 'src' string`);
+          }
+          const allowedSeedKeys = new Set(["service", "src"]);
+          for (const key of Object.keys(seedObj)) {
+            if (!allowedSeedKeys.has(key)) {
+              errors.push(
+                `Task "${taskName}" extraSeeds[${si}] has unknown key: "${key}"`,
+              );
             }
           }
         }
@@ -430,6 +537,11 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`mkdir -p /var/lib/mock-data/health`);
         lines.push(`ln -sf /var/lib/mock-data/health/health.db /workspace/health.db`);
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
+      } else if (bin === "social") {
+        lines.push(`export MOCK_DATA_DIR=/opt/mock/data`);
+        lines.push(`mkdir -p /opt/mock/data/social`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/social-backend.log 2>&1 &`);
+        lines.push(`echo "Social frontend served by Bun on port ${port}" > /tmp/social-frontend.log`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }
@@ -634,6 +746,8 @@ async function buildTaskImage(
   startupExtraPath?: string,
   assets?: AssetMapping[],
   frontends?: FrontendConfig[],
+  extraSeeds?: ExtraSeedMapping[],
+  force = false,
 ): Promise<BuildTaskImageResult> {
   const imageTag = `liveclawbench-${task}-base:latest`;
 
@@ -656,7 +770,19 @@ async function buildTaskImage(
       };
     }
 
-    // Reject stale binaries (any source file newer than compiled artifact)
+    // Reject stale binaries using content-hash comparison.
+    //
+    // Manifests are written exclusively by `bun run build` (build-all.ts) after
+    // isolation verification and transactional publish: compile→temp, isolate,
+    // backup old artifacts, promote temp binary+manifest atomically, delete backups.
+    // This script never writes manifests; stale detection cannot self-clear on re-invocation.
+    //
+    // Manifest path: dist/manifest-<bin>.json  (gitignored alongside binaries)
+    // Format: { "<src-relative-path>": "<sha256-hex>", ... }
+    //         paths use forward slashes for cross-platform consistency.
+    //
+    // Missing manifest  → fail (binary has no build provenance; run `bun run build`).
+    // Corrupt/mismatched → fail (source changed; run `bun run build` to rebuild).
     const srcDir = join(MOCKS_DIR, bin, "src");
     const tsEp = join(srcDir, "index.ts");
     const tsxEp = join(srcDir, "index.tsx");
@@ -671,11 +797,8 @@ async function buildTaskImage(
       };
     }
 
-    const binaryStat = statSync(binaryPath);
-    // Check all .ts/.tsx files in the src directory, not just the entry point,
-    // since imported modules (e.g. search-algorithm.ts) may have changed.
+    // Collect all .ts/.tsx files in the src directory.
     function collectTsFiles(dir: string, visited = new Set<string>()): string[] {
-      // Symlink cycle protection: track realpaths to avoid infinite recursion
       let realDir: string;
       try {
         realDir = realpathSync(dir);
@@ -696,17 +819,53 @@ async function buildTaskImage(
       }
       return results;
     }
-    const srcFiles = collectTsFiles(srcDir);
-    const staleFile = srcFiles.find((f) => statSync(f).mtimeMs > binaryStat.mtimeMs);
-    if (staleFile) {
-      const sourceStat = statSync(staleFile);
-      return {
-        task,
-        success: false,
-        imageTag,
-        binariesIncluded: binaries,
-        error: `Stale binary: ${binaryPath} (source ${sourceStat.mtimeMs} newer than binary ${binaryStat.mtimeMs})`,
-      };
+
+    const srcFiles = collectTsFiles(srcDir).sort();
+
+    // Compute SHA-256 of each source file using src-relative forward-slash paths
+    // so manifests written on Linux (WSL bun run build) compare correctly on Windows.
+    // Normalize CRLF→LF before hashing to match build-all.ts manifest generation.
+    function sha256File(path: string): string {
+      const content = readFileSync(path, "utf-8").replace(/\r\n/g, "\n");
+      return createHash("sha256").update(content).digest("hex");
+    }
+    const currentHashes: Record<string, string> = {};
+    for (const f of srcFiles) {
+      const rel = relative(srcDir, f).replace(/\\/g, "/");
+      currentHashes[rel] = sha256File(f);
+    }
+
+    const manifestPath = join(DIST_DIR, `manifest-${bin}.json`);
+
+    // Image builder is read-only for manifests; build-all.ts owns manifest writes.
+    if (!force) {
+      if (!existsSync(manifestPath)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `No build manifest for mock-${bin}. Run \`bun run build\` in mock-platform/ to compile the binary and generate the manifest.`,
+        };
+      }
+      let isStale: boolean;
+      try {
+        const cached: Record<string, string> = JSON.parse(readFileSync(manifestPath, "utf-8"));
+        isStale =
+          Object.keys(currentHashes).some((r) => cached[r] !== currentHashes[r]) ||
+          Object.keys(cached).some((r) => !(r in currentHashes));
+      } catch {
+        isStale = true;
+      }
+      if (isStale) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `Stale binary: mock-${bin} — source changed since last build. Run \`bun run build\` in mock-platform/ to rebuild.`,
+        };
+      }
     }
   }
 
@@ -973,6 +1132,68 @@ async function buildTaskImage(
     dockerfileLines.push(...assetCopyLines);
   }
 
+  // Stage and COPY per-task supplemental seed SQL files.
+  // Convention path: /opt/mock/extra-seed/<service>.sql — the runtime hook
+  // `applySupplementalSeed(db, service)` in mock-lib reads from here.
+  // Path containment is enforced (same logic as assets) to prevent escapes.
+  if (extraSeeds && extraSeeds.length > 0) {
+    const repoRoot = resolve(import.meta.dir, "..", "..");
+    const canonicalRepoRoot = realpathSync(repoRoot);
+    const seedCopyLines: string[] = [];
+
+    for (let i = 0; i < extraSeeds.length; i++) {
+      const seed = extraSeeds[i];
+
+      const srcAbsPath = resolve(repoRoot, seed.src);
+      if (!srcAbsPath.startsWith(repoRoot + sep)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `extraSeeds[${i}].src escapes repo root: "${seed.src}" -> ${srcAbsPath}`,
+        };
+      }
+
+      if (!existsSync(srcAbsPath)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `extraSeeds[${i}].src not found: ${srcAbsPath}`,
+        };
+      }
+
+      const canonicalSrcPath = realpathSync(srcAbsPath);
+      if (
+        canonicalSrcPath !== canonicalRepoRoot &&
+        !canonicalSrcPath.startsWith(canonicalRepoRoot + sep)
+      ) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `extraSeeds[${i}].src escapes repo root (symlink): "${seed.src}" -> ${canonicalSrcPath}`,
+        };
+      }
+
+      // Stage the file into the Docker build context (DIST_DIR) under a
+      // unique name, then emit a COPY line pointing it at the conventional
+      // /opt/mock/extra-seed/<service>.sql path inside the image.
+      const contextName = `extra-seed-${task}-${seed.service}.sql`;
+      writeFileSync(join(DIST_DIR, contextName), readFileSync(srcAbsPath));
+      seedCopyLines.push(
+        `COPY ${contextName} /opt/mock/extra-seed/${seed.service}.sql`,
+      );
+    }
+
+    // Create the destination dir once before COPYs.
+    dockerfileLines.push("RUN mkdir -p /opt/mock/extra-seed");
+    dockerfileLines.push(...seedCopyLines);
+  }
+
   // COPY pre-built frontend SPA files (if configured)
   for (let fi = 0; fi < frontendBuildDirs.length; fi++) {
     const { buildDir, dest } = frontendBuildDirs[fi];
@@ -1037,11 +1258,14 @@ async function buildTaskImage(
   writeFileSync(dockerfilePath, dockerfileLines.join("\n") + "\n");
 
   // Build context needs both dist/ (for binaries) and shared/ (for entrypoint.sh)
-  // We copy entrypoint.sh into the dist dir temporarily for the build context
+  // We copy entrypoint.sh into the dist dir temporarily for the build context.
+  // Normalize CRLF→LF so the shebang is executable on Linux regardless of
+  // the host OS checkout state (core.autocrlf=true writes CRLF on Windows).
   const entrypointDest = join(DIST_DIR, "entrypoint.sh");
   const entrypointSrc = ENTRYPOINT_SRC;
   if (existsSync(entrypointSrc)) {
-    writeFileSync(entrypointDest, readFileSync(entrypointSrc));
+    const raw = readFileSync(entrypointSrc, "utf-8");
+    writeFileSync(entrypointDest, raw.replace(/\r\n/g, "\n"), "utf-8");
   }
 
   if (dryRun) {
@@ -1070,11 +1294,16 @@ async function buildTaskImage(
 
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
+  const force = process.argv.includes("--force");
+  const taskArgIdx = process.argv.indexOf("--task");
+  const taskFilter = taskArgIdx !== -1 ? process.argv[taskArgIdx + 1] : undefined;
 
   console.log("=== LiveClawBench Task Image Builder ===\n");
   console.log(`Base image: ${BASE_IMAGE}`);
   console.log(`Mapping:    ${CONFIG_PATH}`);
   if (dryRun) console.log("Mode:       DRY RUN\n");
+  if (force) console.log("Mode:       FORCE (stale-check bypassed)\n");
+  if (taskFilter) console.log(`Filter:     --task ${taskFilter}\n`);
 
   // Schema validation gate — fail fast before any image build
   let mapping: MappingConfig;
@@ -1086,13 +1315,22 @@ async function main() {
     process.exit(1);
   }
 
+  // Apply optional task filter
+  if (taskFilter) {
+    if (!(taskFilter in mapping.tasks)) {
+      console.error(`Error: task "${taskFilter}" not found in task-binary-map.json`);
+      process.exit(1);
+    }
+    mapping.tasks = { [taskFilter]: mapping.tasks[taskFilter] };
+  }
+
   const taskCount = Object.keys(mapping.tasks).length;
   console.log(`Tasks:      ${taskCount}\n`);
 
   const results: BuildTaskImageResult[] = [];
   for (const [task, config] of Object.entries(mapping.tasks)) {
     process.stdout.write(`Building ${task} (${config.binaries.length} binaries)... `);
-    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontends);
+    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontends, config.extraSeeds, force);
     results.push(result);
 
     if (result.success) {

@@ -1,0 +1,33 @@
+{
+  "posts": [
+    {
+      "id": 101,
+      "author_username": "mosi_brand",
+      "content": "Our latest product update brings improved performance and new features! What do you think?",
+      "status": "published",
+      "published_at": "2026-03-01 10:00:00"
+    }
+  ],
+  "comments": [
+    {"id": 101, "post_id": 101, "author_username": "alice", "author_name": "Anonymous User", "body": "This is a scam! Don't trust this company!", "status": "visible"},
+    {"id": 102, "post_id": 101, "author_username": "bob_creator", "author_name": "Happy Customer", "body": "I love the new features! When will the mobile app be updated?", "status": "visible"},
+    {"id": 103, "post_id": 101, "author_username": "bob_creator", "author_name": "Troll Account", "body": "fake news! This product is garbage", "status": "visible"},
+    {"id": 104, "post_id": 1, "author_username": "alice", "author_name": "Spam Bot", "body": "Free money! Click here for spam offers!", "status": "visible"}
+  ],
+  "keyword_rules": [
+    {"owner_username": "mosi_brand", "phrase": "scam", "match_mode": "exact", "scope": "comment", "action": "block", "is_active": 1},
+    {"owner_username": "mosi_brand", "phrase": "fake news", "match_mode": "contains", "scope": "comment", "action": "hide", "is_active": 1},
+    {"owner_username": "mosi_brand", "phrase": "spam", "match_mode": "contains", "scope": "comment", "action": "block", "is_active": 1}
+  ],
+  "post_metrics": [
+    {"post_id": 101, "impressions": 500, "likes": 10, "replies": 4, "reposts": 2}
+  ],
+  "accounts": [],
+  "tags": [],
+  "post_tags": [],
+  "action_logs": [],
+  "post_likes": [],
+  "post_reposts": [],
+  "follow_relations": [],
+  "event_campaigns": []
+}

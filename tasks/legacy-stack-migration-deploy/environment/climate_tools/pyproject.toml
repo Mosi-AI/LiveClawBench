@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "climate-tools"
+version = "1.0.0"
+description = "Climate analysis toolkit"
+requires-python = ">=2.7"
+dependencies = [
+    # Pinned back when the repo was still on Python 2.7.
+    # Flask 0.10.1 has been yanked from PyPI; pip install will fail loudly.
+    "flask==0.10.1",
+]

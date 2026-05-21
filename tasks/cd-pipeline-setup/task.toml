@@ -1,0 +1,30 @@
+version = "1.0"
+
+[metadata]
+difficulty = "medium"
+category = "open-world"
+tags = ["devops_env_repair", "coding_software_dev"]
+
+domain = "DevOps & Env Repair"
+domains_multi = ["DevOps & Env Repair", "Coding & Software Dev"]
+
+# Triple-Axis Complexity Factors (0 = absent, 1 = present)
+factor_a1 = 1   # Cross-Service Dependency (Git SSH + Nginx + Email)
+factor_a2 = 1   # Contaminated Initial State (port conflict + CRLF hook error)
+factor_b1 = 1   # Implicit Goal Resolution (goal-oriented, no recipe)
+factor_b2 = 1   # Knowledge System Maintenance (deployment runbook)
+
+case_id = 72
+
+[verifier]
+timeout_sec = 900.0
+
+[agent]
+timeout_sec = 1800.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 10240
+allow_internet = true

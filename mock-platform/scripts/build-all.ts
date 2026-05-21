@@ -9,8 +9,9 @@
  */
 
 import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { mkdirSync, existsSync } from "node:fs";
+import { join, relative } from "node:path";
+import { mkdirSync, existsSync, readdirSync, readFileSync, writeFileSync, realpathSync, renameSync, unlinkSync } from "node:fs";
+import { createHash } from "node:crypto";
 
 const MOCKS_DIR = join(import.meta.dir, "..", "mocks");
 const DIST_DIR = join(import.meta.dir, "..", "dist");
@@ -36,7 +37,7 @@ async function compileMock(name: string): Promise<BuildResult> {
   const tsPath = join(MOCKS_DIR, name, "src", "index.ts");
   const tsxPath = join(MOCKS_DIR, name, "src", "index.tsx");
   const entryPoint = existsSync(tsxPath) ? tsxPath : tsPath;
-  const outputPath = join(DIST_DIR, `mock-${name}`);
+  const outputPath = join(DIST_DIR, `temp-mock-${name}`);
 
   try {
     // Auto-detect host architecture for cross-compilation target selection
@@ -86,10 +87,12 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
   // Sentinel routes registered by each mock stub — must match mocks/*/src/index.ts
   const sentinelPatterns: Record<string, string> = {
     airline: "/__mock_sentinel__/airline",
+    chat: "/__mock_sentinel__/chat",
     email: "/__mock_sentinel__/email",
     shop: "/__mock_sentinel__/shop",
     todolist: "/__mock_sentinel__/todolist",
     "doc-search": "/__mock_sentinel__/doc-search",
+    workspace: "/__mock_sentinel__/workspace",
     finance: "/__mock_sentinel__/finance",
     insurance: "/__mock_sentinel__/insurance",
     calendar: "/__mock_sentinel__/calendar",
@@ -152,6 +155,41 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
   return { violations, missingSentinels, readErrors };
 }
 
+function collectSrcFiles(dir: string, visited = new Set<string>()): string[] {
+  let realDir: string;
+  try { realDir = realpathSync(dir); } catch { realDir = dir; }
+  if (visited.has(realDir)) return [];
+  visited.add(realDir);
+  const results: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...collectSrcFiles(full, visited));
+    } else if (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx")) {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+function computeBuildManifest(name: string): Record<string, string> {
+  const srcDir = join(MOCKS_DIR, name, "src");
+  const files = collectSrcFiles(srcDir).sort();
+  const manifest: Record<string, string> = {};
+  for (const f of files) {
+    const rel = relative(srcDir, f).replace(/\\/g, "/");
+    // Normalize CRLF → LF before hashing so manifests are identical whether
+    // built from a Windows checkout (core.autocrlf=true) or a Linux/WSL one.
+    const content = readFileSync(f, "utf-8").replace(/\r\n/g, "\n");
+    manifest[rel] = createHash("sha256").update(content).digest("hex");
+  }
+  return manifest;
+}
+
+function writeBuildManifest(manifest: Record<string, string>, destPath: string): void {
+  writeFileSync(destPath, JSON.stringify(manifest, null, 2), "utf-8");
+}
+
 async function main() {
   console.log("=== LiveClawBench Mock Build Pipeline ===\n");
 
@@ -168,8 +206,23 @@ async function main() {
   console.log(`Found ${mocks.length} mock(s): ${mocks.join(", ")}\n`);
 
   // Compile each mock independently (build compatibility gate)
+  // Snapshot source hashes BEFORE compilation so the manifest records the exact
+  // sources that were compiled, not any edits made while the build is running.
+  const manifestSnapshots = new Map<string, Record<string, string>>();
   const results: BuildResult[] = [];
   for (const name of mocks) {
+    let snapshot: Record<string, string>;
+    try {
+      snapshot = computeBuildManifest(name);
+    } catch (err) {
+      // Source snapshot failure counts as a build failure for this mock only;
+      // other mocks are unaffected (build compatibility gate).
+      console.log(`Compiling mock-${name}... FAILED`);
+      console.error(`  Error: manifest snapshot failed: ${err}`);
+      results.push({ name, success: false, error: `Manifest snapshot failed: ${err}` });
+      continue;
+    }
+    manifestSnapshots.set(name, snapshot);
     process.stdout.write(`Compiling mock-${name}... `);
     const result = await compileMock(name);
     results.push(result);
@@ -192,6 +245,108 @@ async function main() {
     if (result) {
       result.success = false;
       result.error = errorMsg;
+    }
+  }
+
+  // Transactional publish: only binaries that compiled AND passed isolation are published.
+  //
+  // Publish sequence for passing mocks:
+  //   1. Write new manifest to dist/temp-manifest-<name>.json (no final paths touched yet)
+  //   2. Backup dist/mock-<name> → dist/backup-mock-<name> (if present); track in backedUpFinal
+  //   3. Backup dist/manifest-<name>.json → dist/backup-manifest-<name>.json (if present);
+  //      if step 3 fails, step 2 is rolled back immediately before re-throwing
+  //   4. Rename dist/temp-mock-<name> → dist/mock-<name> (promote binary)
+  //   5. Rename dist/temp-manifest-<name>.json → dist/manifest-<name>.json (promote manifest)
+  //   6. Delete backups (publish complete)
+  //
+  // Rollback guarantees per failure point:
+  //   Step 1 or 2 fails  → outer catch cleans temp files; final artifacts untouched
+  //   Step 3 fails       → inner catch restores backup-mock → mock, cleans temp files
+  //   Step 4 or 5 fails  → inner catch restores both backups, cleans temp files
+  // For failing mocks: delete the temp binary; leave existing dist/mock-<name> and manifest untouched.
+  const isolationFailed = new Set<string>([
+    ...missingSentinels,
+    ...violations.keys(),
+    ...readErrors.keys(),
+  ]);
+
+  for (const result of results) {
+    const tempPath = join(DIST_DIR, `temp-mock-${result.name}`);
+    const finalPath = join(DIST_DIR, `mock-${result.name}`);
+    const backupPath = join(DIST_DIR, `backup-mock-${result.name}`);
+    const tempManifestPath = join(DIST_DIR, `temp-manifest-${result.name}.json`);
+    const finalManifestPath = join(DIST_DIR, `manifest-${result.name}.json`);
+    const backupManifestPath = join(DIST_DIR, `backup-manifest-${result.name}.json`);
+
+    if (!existsSync(tempPath)) continue;
+
+    if (result.success && !isolationFailed.has(result.name)) {
+      const hadFinal = existsSync(finalPath);
+      const hadManifest = existsSync(finalManifestPath);
+      let backedUpFinal = false;
+      let backedUpManifest = false;
+
+      try {
+        // Pre-flight: remove stale backup artifacts from a previously interrupted build,
+        // but only when the corresponding final artifact still exists — if the final is gone,
+        // the backup is the last surviving copy and must be preserved.
+        try { if (hadFinal && existsSync(backupPath)) unlinkSync(backupPath); } catch { /* ignore */ }
+        try { if (hadManifest && existsSync(backupManifestPath)) unlinkSync(backupManifestPath); } catch { /* ignore */ }
+
+        // Step 1: Write new manifest to temp path (no final paths touched yet)
+        writeBuildManifest(manifestSnapshots.get(result.name)!, tempManifestPath);
+
+        // Step 2: Backup old binary
+        if (hadFinal) {
+          renameSync(finalPath, backupPath);
+          backedUpFinal = true;
+        }
+
+        // Step 3: Backup old manifest; on failure, roll back step 2 immediately
+        if (hadManifest) {
+          try {
+            renameSync(finalManifestPath, backupManifestPath);
+            backedUpManifest = true;
+          } catch (backupErr) {
+            if (backedUpFinal) try { renameSync(backupPath, finalPath); } catch { /* ignore */ }
+            try { unlinkSync(tempPath); } catch { /* ignore */ }
+            try { unlinkSync(tempManifestPath); } catch { /* ignore */ }
+            throw backupErr;
+          }
+        }
+
+        // Steps 4-5: Promote temp binary and manifest into final positions
+        try {
+          renameSync(tempPath, finalPath);
+          renameSync(tempManifestPath, finalManifestPath);
+
+          // Success: remove backups, record final path
+          result.binaryPath = finalPath;
+          if (backedUpFinal) try { unlinkSync(backupPath); } catch { /* ignore */ }
+          if (backedUpManifest) try { unlinkSync(backupManifestPath); } catch { /* ignore */ }
+        } catch (promoteErr) {
+          // Rollback: restore previous artifacts; clean up any partially promoted files
+          try { unlinkSync(finalPath); } catch { /* ignore */ }
+          try { unlinkSync(finalManifestPath); } catch { /* ignore */ }
+          if (backedUpFinal) try { renameSync(backupPath, finalPath); } catch { /* ignore */ }
+          if (backedUpManifest) try { renameSync(backupManifestPath, finalManifestPath); } catch { /* ignore */ }
+          try { unlinkSync(tempPath); } catch { /* ignore */ }
+          try { unlinkSync(tempManifestPath); } catch { /* ignore */ }
+          throw promoteErr;
+        }
+      } catch (err) {
+        result.success = false;
+        result.error = `Publish failed: ${err}`;
+        // Clean up any remaining temp files (step 1 may have created them)
+        try { if (existsSync(tempPath)) unlinkSync(tempPath); } catch { /* ignore */ }
+        try { if (existsSync(tempManifestPath)) unlinkSync(tempManifestPath); } catch { /* ignore */ }
+      }
+    } else {
+      try { unlinkSync(tempPath); } catch { /* ignore */ }
+      if (isolationFailed.has(result.name) && result.success) {
+        result.success = false;
+        result.error = "Isolation verification failed";
+      }
     }
   }
 

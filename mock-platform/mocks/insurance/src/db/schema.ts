@@ -186,6 +186,7 @@ export function initSchema(db: Database): void {
       slot_end_time TEXT NOT NULL,
       cost_snapshot INTEGER NOT NULL,
       distance_km_snapshot REAL NOT NULL,
+      status TEXT NOT NULL DEFAULT 'confirmed',
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
@@ -199,6 +200,11 @@ export function initSchema(db: Database): void {
   db.run(
     `CREATE INDEX IF NOT EXISTS idx_appointment_slot ON appointment(slot_id)`,
   );
+
+  // Migrate pre-existing databases that lack the status column
+  try {
+    db.exec(`ALTER TABLE appointment ADD COLUMN status TEXT NOT NULL DEFAULT 'confirmed'`);
+  } catch (_) {}
 
   // ─── Plan domain ────────────────────────────────────────────────────────
   db.run(`

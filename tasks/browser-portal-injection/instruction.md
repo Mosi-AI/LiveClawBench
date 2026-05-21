@@ -1,0 +1,1 @@
+Your workspace notes about speculative decoding contain stale claims. Review the local corpus in `corpus/` and use the browser portal in `tools/` to find stronger evidence, then repair your notes and write `~/.openclaw/output/result.json`.

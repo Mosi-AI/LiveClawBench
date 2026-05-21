@@ -3,7 +3,7 @@ version = "1.0"
 [metadata]
 difficulty = "easy"
 category = "open-world"
-tags = ["finance", "expense"]
+tags = ["finance"]
 
 domain = "Finance & Data Analytics"
 domains_multi = ["Finance & Data Analytics"]

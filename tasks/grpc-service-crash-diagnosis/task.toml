@@ -1,0 +1,30 @@
+version = "1.0"
+
+[metadata]
+difficulty = "medium"
+category = "open-world"
+tags = ["devops_env_repair", "coding_software_dev"]
+
+domain = "DevOps & Env Repair"
+domains_multi = ["DevOps & Env Repair", "Coding & Software Dev"]
+
+# Triple-Axis Complexity Factors (0 = absent, 1 = present)
+factor_a1 = 1   # Cross-Service Dependency (gRPC KV-Store + Email)
+factor_a2 = 1   # Contaminated Initial State (buggy service code)
+factor_b1 = 1   # Implicit Goal Resolution (vague bug report, must infer root cause)
+factor_b2 = 0   # Knowledge System Maintenance
+
+case_id = 75
+
+[verifier]
+timeout_sec = 900.0
+
+[agent]
+timeout_sec = 1800.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 10240
+allow_internet = true

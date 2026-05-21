@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
-import { mkdirSync } from "fs";
-import { dirname } from "node:path";
+import { existsSync, mkdirSync, readFileSync } from "fs";
+import { dirname, join } from "node:path";
 
 const DB_PATH = process.env.MOCK_DATA_DIR
   ? `${process.env.MOCK_DATA_DIR}/social/social.db`
@@ -110,7 +110,7 @@ function initSchema(database: Database) {
     CREATE TABLE IF NOT EXISTS post_action_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       post_id INTEGER NOT NULL REFERENCES post(id) ON DELETE CASCADE,
-      actor_account_id INTEGER NOT NULL REFERENCES account(id) ON DELETE SET NULL,
+      actor_account_id INTEGER REFERENCES account(id) ON DELETE SET NULL,
       action_type TEXT NOT NULL CHECK (action_type IN ('created', 'updated', 'scheduled', 'published', 'deleted', 'pinned', 'unpinned', 'moderation_changed')),
       old_value TEXT,
       new_value TEXT,
@@ -214,23 +214,314 @@ function initSchema(database: Database) {
   `);
 }
 
+interface SocialSeedAccount {
+  username: string;
+  password: string;
+  display_name: string;
+  account_type: string;
+  timezone?: string;
+  bio?: string;
+}
+
+interface SocialSeedPost {
+  id?: number;
+  author_username: string;
+  content: string;
+  status: string;
+  visibility?: string;
+  scheduled_for?: string | null;
+  published_at?: string | null;
+  is_pinned?: number;
+  has_event_cta?: number;
+}
+
+interface SocialSeedTag {
+  id?: number;
+  label_text: string;
+  normalized_name: string;
+}
+
+interface SocialSeedPostTag {
+  post_id: number;
+  tag_id: number;
+  sort_order?: number;
+}
+
+interface SocialSeedComment {
+  id?: number;
+  post_id: number;
+  author_username?: string | null;
+  author_name: string;
+  body: string;
+  status?: string;
+  parent_comment_id?: number | null;
+  created_at?: string;
+}
+
+interface SocialSeedFollow {
+  follower_username: string;
+  target_username: string;
+  status?: string;
+}
+
+interface SocialSeedKeywordRule {
+  owner_username: string;
+  phrase: string;
+  match_mode?: string;
+  scope?: string;
+  action?: string;
+  is_active?: number;
+}
+
+interface SocialSeedMetric {
+  post_id: number;
+  impressions?: number;
+  likes?: number;
+  replies?: number;
+  reposts?: number;
+  clicks?: number;
+  profile_visits?: number;
+  new_followers?: number;
+  last_synced_at?: string;
+}
+
+interface SocialSeedCampaign {
+  post_id: number;
+  event_title: string;
+  start_at: string;
+  end_at?: string | null;
+  registration_url: string;
+  registrations_count?: number;
+  attendance_goal?: number;
+  status?: string;
+}
+
+interface SocialSeedActionLog {
+  post_id: number;
+  actor_username?: string | null;
+  action_type: string;
+  old_value?: string | null;
+  new_value?: string | null;
+  note?: string | null;
+  created_at?: string;
+}
+
+interface SocialSeedLike {
+  post_id: number;
+  username: string;
+}
+
+interface SocialSeedRepost {
+  post_id: number;
+  username: string;
+}
+
+interface SocialSeedData {
+  accounts?: SocialSeedAccount[];
+  posts?: SocialSeedPost[];
+  tags?: SocialSeedTag[];
+  post_tags?: SocialSeedPostTag[];
+  comments?: SocialSeedComment[];
+  follow_relations?: SocialSeedFollow[];
+  keyword_rules?: SocialSeedKeywordRule[];
+  post_metrics?: SocialSeedMetric[];
+  event_campaigns?: SocialSeedCampaign[];
+  action_logs?: SocialSeedActionLog[];
+  post_likes?: SocialSeedLike[];
+  post_reposts?: SocialSeedRepost[];
+}
+
+function loadLayer1Seed(database: Database): void {
+  const dataDir = process.env.MOCK_DATA_DIR || "/opt/mock/data";
+  const seedPath = join(dataDir, "seed.json");
+
+  const nowISO = () => new Date().toISOString().replace("T", " ").replace(/\.\d+Z$/, "");
+
+  if (!existsSync(seedPath)) return;
+
+  console.log(`[social] Loading Layer 1 seed from ${seedPath}`);
+  const raw = readFileSync(seedPath, "utf-8");
+  let seed: SocialSeedData;
+  try {
+    seed = JSON.parse(raw);
+  } catch (e) {
+    throw new Error(`[social] Malformed seed.json: ${(e as Error).message}`);
+  }
+
+  const resolveAccount = (username: string): number | null => {
+    const row = database.query("SELECT id FROM account WHERE username = ?").get(username) as { id: number } | null;
+    return row ? row.id : null;
+  };
+
+  const requireAccount = (username: string, context: string): number => {
+    const id = resolveAccount(username);
+    if (id === null) throw new Error(`[social] Seed ${context}: account "${username}" not found`);
+    return id;
+  };
+
+  if (seed.accounts) {
+    for (const a of seed.accounts) {
+      if (resolveAccount(a.username)) continue;
+      database.prepare(
+        `INSERT INTO account (username, password, display_name, account_type, timezone, bio, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, 1)`
+      ).run(a.username, a.password, a.display_name, a.account_type, a.timezone || "UTC", a.bio || null);
+    }
+  }
+
+  if (seed.posts) {
+    for (const p of seed.posts) {
+      const authorId = resolveAccount(p.author_username);
+      if (!authorId) throw new Error(`[social] Seed post: account "${p.author_username}" not found`);
+
+      if (p.id) {
+        const existing = database.query("SELECT id FROM post WHERE id = ?").get(p.id) as { id: number } | null;
+        if (existing) continue;
+      }
+
+      const cols = p.id ? "id, " : "";
+      const placeholders = p.id ? "?, " : "";
+      const params = p.id ? [p.id] : [];
+
+      database.prepare(
+        `INSERT INTO post (${cols}author_account_id, content, status, visibility, scheduled_for, published_at, is_pinned, has_event_cta)
+         VALUES (${placeholders}?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(...params, authorId, p.content, p.status, p.visibility || "public", p.scheduled_for ?? null, p.published_at ?? null, p.is_pinned ?? 0, p.has_event_cta ?? 0);
+    }
+  }
+
+  if (seed.tags) {
+    for (const t of seed.tags) {
+      const existing = database.query("SELECT id FROM tag WHERE normalized_name = ?").get(t.normalized_name) as { id: number } | null;
+      if (existing) continue;
+
+      if (t.id) {
+        database.prepare("INSERT INTO tag (id, label_text, normalized_name) VALUES (?, ?, ?)").run(t.id, t.label_text, t.normalized_name);
+      } else {
+        database.prepare("INSERT INTO tag (label_text, normalized_name) VALUES (?, ?)").run(t.label_text, t.normalized_name);
+      }
+    }
+  }
+
+  if (seed.post_tags) {
+    for (const pt of seed.post_tags) {
+      const existing = database.query("SELECT 1 FROM post_tag WHERE post_id = ? AND tag_id = ?").get(pt.post_id, pt.tag_id);
+      if (existing) continue;
+      database.prepare("INSERT INTO post_tag (post_id, tag_id, sort_order) VALUES (?, ?, ?)").run(pt.post_id, pt.tag_id, pt.sort_order ?? 0);
+    }
+  }
+
+  if (seed.comments) {
+    for (const c of seed.comments) {
+      if (c.id) {
+        const existing = database.query("SELECT id FROM comment WHERE id = ?").get(c.id) as { id: number } | null;
+        if (existing) continue;
+      }
+
+      const authorId = c.author_username ? requireAccount(c.author_username, "comment author") : null;
+      const cols = c.id ? "id, " : "";
+      const placeholders = c.id ? "?, " : "";
+      const params = c.id ? [c.id] : [];
+
+      database.prepare(
+        `INSERT INTO comment (${cols}post_id, author_account_id, author_name, body, status, parent_comment_id, created_at)
+         VALUES (${placeholders}?, ?, ?, ?, ?, ?, ?)`
+      ).run(...params, c.post_id, authorId, c.author_name, c.body, c.status || "visible", c.parent_comment_id ?? null, c.created_at ?? nowISO());
+    }
+  }
+
+  if (seed.follow_relations) {
+    for (const f of seed.follow_relations) {
+      const followerId = requireAccount(f.follower_username, "follow_relation follower");
+      const targetId = requireAccount(f.target_username, "follow_relation target");
+
+      const existing = database.query("SELECT 1 FROM follow_relation WHERE follower_account_id = ? AND target_account_id = ?").get(followerId, targetId);
+      if (existing) continue;
+      database.prepare("INSERT INTO follow_relation (follower_account_id, target_account_id, status) VALUES (?, ?, ?)").run(followerId, targetId, f.status || "following");
+    }
+  }
+
+  if (seed.keyword_rules) {
+    for (const r of seed.keyword_rules) {
+      const ownerId = requireAccount(r.owner_username, "keyword_rule owner");
+
+      const existing = database.query("SELECT 1 FROM keyword_rule WHERE owner_account_id = ? AND phrase = ? AND scope = ?").get(ownerId, r.phrase, r.scope || "post");
+      if (existing) continue;
+      database.prepare(
+        `INSERT INTO keyword_rule (owner_account_id, phrase, match_mode, scope, action, is_active)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      ).run(ownerId, r.phrase, r.match_mode || "contains", r.scope || "post", r.action || "warn", r.is_active ?? 1);
+    }
+  }
+
+  if (seed.post_metrics) {
+    for (const m of seed.post_metrics) {
+      const existing = database.query("SELECT 1 FROM post_metric WHERE post_id = ?").get(m.post_id);
+      if (existing) continue;
+      database.prepare(
+        `INSERT INTO post_metric (post_id, impressions, likes, replies, reposts, clicks, profile_visits, new_followers, last_synced_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(m.post_id, m.impressions ?? 0, m.likes ?? 0, m.replies ?? 0, m.reposts ?? 0, m.clicks ?? 0, m.profile_visits ?? 0, m.new_followers ?? 0, m.last_synced_at ?? nowISO());
+    }
+  }
+
+  if (seed.event_campaigns) {
+    for (const ec of seed.event_campaigns) {
+      const existing = database.query("SELECT 1 FROM event_campaign WHERE post_id = ?").get(ec.post_id);
+      if (existing) continue;
+      database.prepare(
+        `INSERT INTO event_campaign (post_id, event_title, start_at, end_at, registration_url, registrations_count, attendance_goal, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(ec.post_id, ec.event_title, ec.start_at, ec.end_at ?? null, ec.registration_url, ec.registrations_count ?? 0, ec.attendance_goal ?? 0, ec.status || "draft");
+    }
+  }
+
+  if (seed.action_logs) {
+    for (const al of seed.action_logs) {
+      const actorId = al.actor_username ? requireAccount(al.actor_username, "action_log actor") : null;
+      database.prepare(
+        `INSERT INTO post_action_log (post_id, actor_account_id, action_type, old_value, new_value, note, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`
+      ).run(al.post_id, actorId, al.action_type, al.old_value ?? null, al.new_value ?? null, al.note ?? null, al.created_at ?? nowISO());
+    }
+  }
+
+  if (seed.post_likes) {
+    for (const pl of seed.post_likes) {
+      const accountId = requireAccount(pl.username, "post_like account");
+      const existing = database.query("SELECT 1 FROM post_like WHERE post_id = ? AND account_id = ?").get(pl.post_id, accountId);
+      if (existing) continue;
+      database.prepare("INSERT INTO post_like (post_id, account_id) VALUES (?, ?)").run(pl.post_id, accountId);
+    }
+  }
+
+  if (seed.post_reposts) {
+    for (const pr of seed.post_reposts) {
+      const accountId = requireAccount(pr.username, "post_repost account");
+      const existing = database.query("SELECT 1 FROM post_repost WHERE post_id = ? AND account_id = ?").get(pr.post_id, accountId);
+      if (existing) continue;
+      database.prepare("INSERT INTO post_repost (post_id, account_id) VALUES (?, ?)").run(pr.post_id, accountId);
+    }
+  }
+}
+
 function seedData(database: Database) {
   const count = database.query("SELECT COUNT(*) as count FROM account").get() as { count: number };
-  const hasAccounts = count.count > 0;
-
-  // Only skip full re-seed if accounts are already seeded; post_like seed still runs
-  if (hasAccounts) {
-    console.log(`[social] Skipping account/post re-seed: ${count.count} account(s) already exist.`);
-    // Seed alice's post_like even on restart (social-unlike-post task needs it)
-    const existingLike = database.query(
-      "SELECT 1 as ok FROM post_like WHERE post_id = 1 AND account_id = 2",
-    ).get();
-    if (!existingLike) {
-      console.log("[social] Seeding alice->post_id=1 post_like for social-unlike-post task...");
-      database.exec("INSERT INTO post_like (post_id, account_id) VALUES (1, 2)");
-    } else {
-      console.log("[social] alice->post_id=1 post_like already seeded.");
+  if (count.count > 0) {
+    console.log(`[social] Skipping re-seed: ${count.count} account(s) already exist.`);
+    // Compatibility backfill: ensure alice's like exists for social-unlike-post (case_id=33).
+    // On reused DBs a previous agent run may have deleted this like, and the full
+    // seed transaction above is skipped because accounts already exist.
+    const likeExists = database.query("SELECT 1 FROM post_like WHERE post_id = 1 AND account_id = 2").get();
+    if (!likeExists) {
+      const post1Exists = database.query("SELECT 1 FROM post WHERE id = 1").get();
+      if (post1Exists) {
+        database.prepare("INSERT INTO post_like (post_id, account_id) VALUES (1, 2)").run();
+        console.log("[social] Restored alice's post_like seed (post_id=1, account_id=2)");
+      }
     }
+    // Layer 1 seeds must load even when Layer 0 accounts already exist.
+    loadLayer1Seed(database);
     return;
   }
   console.log("[social] Seeding fresh demo data into empty social.db...");
@@ -368,7 +659,10 @@ function seedData(database: Database) {
     insertLog.run(9, 1, "published", "published");
 
     // Seed alice's post_like for social-unlike-post task (case_id=33)
-    database.exec("INSERT INTO post_like (post_id, account_id) VALUES (1, 2)");
+    database.prepare("INSERT INTO post_like (post_id, account_id) VALUES (1, 2)").run();
+
+    // Layer 1: optional per-task seed.json
+    loadLayer1Seed(database);
   });
 
   tx();

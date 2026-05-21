@@ -1,0 +1,168 @@
+from agentbay import AgentBay, CreateSessionParams
+import os
+import json
+import subprocess
+
+
+def run_conversation(session, command: str, cwd: str=None, timeout_ms: int = 500000) -> str:
+    """Execute command and return output. Prints the command before execution and result after."""
+    print(f"[CMD]: {command}")
+    result = session.command.run(command, timeout_ms=timeout_ms, cwd=cwd)
+    if result.success:
+        output = json.loads(result.output)["result"]["payloads"]
+        print(f"[OUTPUT]: {output if output else '(no output)'}")
+        return output
+    else:
+        error_msg = result.error_message or "Command execution failed"
+        print(f"[ERROR]: {error_msg}")
+        raise RuntimeError(error_msg)
+
+
+def run_command(session, command: str, cwd: str=None, timeout_ms: int = 500000) -> str:
+    """Execute command and return output. Prints the command before execution and result after."""
+    print(f"[CMD]: {command}")
+    result = session.command.run(command, timeout_ms=timeout_ms, cwd=cwd)
+    if result.success:
+        output = (result.output or "").strip()
+        print(f"[OUTPUT]: {output if output else '(no output)'}")
+        return output
+    else:
+        error_msg = result.error_message or "Command execution failed"
+        print(f"[ERROR]: {error_msg}")
+        raise RuntimeError(error_msg)
+
+
+# 1.初始化agentbay session
+os.environ['AGENTBAY_API_KEY'] = 'akm-fc80dd86-705a-4689-be1a-f1e2e2798cc7'
+agent_bay = AgentBay()
+session = agent_bay.create(CreateSessionParams(image_id="openclaw-linux-ubuntu-2204")).session
+
+
+# 2.部署环境（上传文件/安装service）
+subprocess.run(["tar", "-zcvf", "/tmp/environment.tar.gz", "environment"]) # 压缩需要上传的环境文件夹
+upload_result = session.file_system.upload_file(
+    local_path="/tmp/environment.tar.gz",
+    remote_path="/tmp/environment.tar.gz"
+)
+if upload_result.success:
+    print(f"Upload successful!")
+    print(f"   Bytes sent: {upload_result.bytes_sent}")
+    print(f"   HTTP status: {upload_result.http_status}")
+    print(f"   Remote path: {upload_result.path}")
+else:
+    print(f"Upload failed: {upload_result.error_message}")
+
+run_command(session, "tar -xzvf /tmp/environment.tar.gz -C /tmp/")
+run_command(session, "python3 --version")
+run_command(session, "python3 -m pip install --upgrade pip")
+
+# 安装web shop的前后端并启动
+run_command(session, "pip install -r requirements.txt", cwd="/tmp/environment/shop-app/backend")
+run_command(session, "bash start.sh > shop.log 2>&1 &", cwd="/tmp/environment/shop-app")
+
+# 安装email app的前后端并启动
+run_command(session, "pip install -r requirements.txt", cwd="/tmp/environment/email-app/backend")
+run_command(session, "python3 scripts/inject_data.py", cwd="/tmp/environment/email-app/backend") # 初始化数据库 & 注入数据
+run_command(session, "python3 app.py > email-backend.log 2>&1 &", cwd="/tmp/environment/email-app/backend")
+run_command(session, "npm install", cwd="/tmp/environment/email-app/frontend")
+run_command(session, "npm run dev > email-frontend.log 2>&1 &", cwd="/tmp/environment/email-app/frontend")
+
+
+# 3.运行任务对话
+# 修改openclaw配置（选择模型）并重启gateway
+# 如果需要浏览器则需要添加相应配置并启动托管浏览器
+python_script = """
+import json
+config_path = "/home/wuying/.openclaw/openclaw.json"
+with open(config_path, "r") as f:
+    config = json.load(f)
+
+config["models"]["providers"]["ark"] = {
+"baseUrl": "https://ark.cn-beijing.volces.com/api/coding/v3",
+"apiKey": "50106bfe-c1be-49a2-ba5a-40cda9f9e38b",
+"api": "openai-completions",
+"models": [{"id": "Kimi-K2.5", "name": "Kimi-K2.5"}]
+}
+
+config["agents"]["defaults"]["model"]["primary"] = "ark/Kimi-K2.5"
+
+config["browser"] = {
+    "enabled": True,
+    "remoteCdpTimeoutMs": 1500,
+    "remoteCdpHandshakeTimeoutMs": 3000,
+    "defaultProfile": "openclaw",
+    "color": "#FF4500",
+    "headless": False,
+    "noSandbox": False,
+    "attachOnly": False,
+    "executablePath": "/usr/bin/google-chrome-stable",
+    "profiles": {
+        "openclaw": {
+            "cdpPort": 18800,
+            "color": "#FF4500"
+        },
+        # "work": {
+        #     "cdpPort": 18801,
+        #     "color": "#0066CC"
+        # },
+        # "remote": {
+        #     "cdpUrl": "http://10.0.0.42:9222",
+        #     "color": "#00AA00"
+        # }
+    }
+}
+
+with open(config_path, "w") as f:
+    json.dump(config, f, indent=2)
+print("done")
+"""
+run_command(session, f'python3 -c \'{python_script}\'')
+run_command(session, 'openclaw gateway restart')
+run_command(session, 'openclaw --version')
+run_command(session, 'openclaw browser --browser-profile openclaw start')
+run_command(session, 'openclaw browser status')
+
+# 提取任务提示词并创建对话
+with open("instruction.md", "r", encoding="utf-8") as file:
+    task_inst = file.read()
+run_conversation(session, f"openclaw agent --session-id test-001 -m \"{task_inst}\" --json --timeout 300")
+
+
+# 4.运行结束后验证结果并打分
+judge_python_script = """
+# !/usr/bin/env python3
+# Test script to check the database for task completion results
+
+import os
+import pandas as pd
+
+flag = "Fail"
+
+if os.path.isfile("/tmp/mosi_shop_orders.json"):
+    df = pd.read_json("/tmp/mosi_shop_orders.json")
+    for index, row in df.iterrows():
+        if row["order_id"] == "ORD000008" and row["items"][0]["id"] == "prod_0068" and row["status"] == "Pending Shipment":
+            flag = "Successul"
+elif os.path.isfile("/tmp/mosi_shop_cart.json"):
+    df = pd.read_json("/tmp/mosi_shop_cart.json")
+    if len(df) == 1:
+        for index, row in df.iterrows():
+            if row["id"] == "prod_0068": flag = "Half"
+
+print(flag)
+
+"""
+result = run_command(session, f'python3 -c \'{judge_python_script}\'', cwd="/tmp")
+score = 0.0
+if "Successul" in result: score += 1.0
+elif "Half" in result: score += 0.5
+print(f"Final Score: {score}/1.0")
+
+with open("../result.jsonl", "a") as file:
+    line = {
+        "task": "email_watch_shop",
+        "score": score,
+    }
+    file.write(json.dumps(line) + "\n")
+
+agent_bay.delete(session)

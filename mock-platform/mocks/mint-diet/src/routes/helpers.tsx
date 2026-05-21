@@ -1,8 +1,8 @@
 import type { AppEnv } from "mock-lib";
 import type { Context } from "hono";
 import { LOG_SLOTS, PLAN_SLOTS, PLAN_STATUSES } from "../constants";
-import { Layout } from "../components";
 import type { MealSlot, PlanMealSlot, PlanStatus } from "../queries";
+import { err } from "mock-lib";
 
 type ParsedBody = Awaited<ReturnType<Context<AppEnv>["req"]["parseBody"]>>;
 
@@ -10,25 +10,25 @@ export function isResponse(value: unknown): value is Response {
   return value instanceof Response;
 }
 
-export function renderMessage(c: Context<AppEnv>, title: string, message: string, status: 400 | 500) {
-  return c.html(<Layout title={title}><p>{message}</p></Layout>, status) as Response;
-}
-
 export async function parseBodyOrBadRequest(c: Context<AppEnv>): Promise<ParsedBody | Response> {
   try {
     return await c.req.parseBody();
-  } catch (err) {
-    console.error("Failed to parse request body", err);
-    return renderMessage(c, "Bad Request", "Malformed request body", 400);
+  } catch (e) {
+    console.error("Failed to parse request body", e);
+    return c.json(err("Malformed request body"), 400);
   }
 }
 
+/**
+ * Run a database mutation with error handling.
+ * Returns JSON error response on failure for API consistency.
+ */
 export function runDbMutation<T>(c: Context<AppEnv>, action: () => T): T | Response {
   try {
     return action();
-  } catch (err) {
-    console.error("Database mutation failed", err);
-    return renderMessage(c, "Server Error", "Could not save changes. Please try again.", 500);
+  } catch (e) {
+    console.error("Database mutation failed", e);
+    return c.json(err("Could not save changes. Please try again."), 500);
   }
 }
 

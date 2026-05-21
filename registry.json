@@ -2,52 +2,408 @@
   {
     "name": "liveclawbench",
     "version": "0.1.0",
-    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 40 tasks with 4 complexity factors (A1/A2/B1/B2) across 7 task domains.",
+    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 100 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
     "tasks": [
-      {"name": "skill-creation", "path": "tasks/skill-creation"},
-      {"name": "skill-supplementation", "path": "tasks/skill-supplementation"},
-      {"name": "skill-conflict-resolution", "path": "tasks/skill-conflict-resolution"},
-      {"name": "skill-repository-curation", "path": "tasks/skill-repository-curation"},
-      {"name": "skill-dependency-fix", "path": "tasks/skill-dependency-fix"},
-      {"name": "skill-combination", "path": "tasks/skill-combination"},
-      {"name": "email-writing", "path": "tasks/email-writing"},
-      {"name": "email-reply", "path": "tasks/email-reply"},
-      {"name": "flight-booking", "path": "tasks/flight-booking"},
-      {"name": "flight-seat-selection", "path": "tasks/flight-seat-selection"},
-      {"name": "flight-seat-selection-failed", "path": "tasks/flight-seat-selection-failed"},
-      {"name": "flight-cancel-claim", "path": "tasks/flight-cancel-claim"},
-      {"name": "flight-info-change-notice", "path": "tasks/flight-info-change-notice"},
-      {"name": "baggage-tracking-application", "path": "tasks/baggage-tracking-application"},
-      {"name": "schedule-change-request", "path": "tasks/schedule-change-request"},
-      {"name": "blog-site-from-scratch", "path": "tasks/blog-site-from-scratch"},
-      {"name": "blog-site-completion-from-starter", "path": "tasks/blog-site-completion-from-starter"},
-      {"name": "washer-shop", "path": "tasks/washer-shop"},
-      {"name": "watch-shop", "path": "tasks/watch-shop"},
-      {"name": "washer-change", "path": "tasks/washer-change"},
-      {"name": "info-change", "path": "tasks/info-change"},
-      {"name": "email-watch-shop", "path": "tasks/email-watch-shop"},
-      {"name": "email-washer-change", "path": "tasks/email-washer-change"},
-      {"name": "vue-build-fix-single", "path": "tasks/vue-build-fix-single"},
-      {"name": "vue-build-fix-chain", "path": "tasks/vue-build-fix-chain"},
-      {"name": "noise-filtering", "path": "tasks/noise-filtering"},
-      {"name": "incremental-update-ctp", "path": "tasks/incremental-update-ctp"},
-      {"name": "conflict-repair-acb", "path": "tasks/conflict-repair-acb"},
-      {"name": "mixed-tool-memory", "path": "tasks/mixed-tool-memory"},
-      {"name": "live-web-research-sqlite-fts5", "path": "tasks/live-web-research-sqlite-fts5"},
-      {"name": "skill-combination", "path": "tasks/skill-combination"},
-      {"name": "mint-diet-snack-log", "path": "tasks/mint-diet-snack-log"},
-      {"name": "social-media-posting", "path": "tasks/social-media-posting"},
-      {"name": "social-unlike-post", "path": "tasks/social-unlike-post"},
-      {"name": "expense-draft-delete", "path": "tasks/expense-draft-delete"},
-      {"name": "insurance-deductible-selection", "path": "tasks/insurance-deductible-selection"},
-      {"name": "health-insurance-optimization", "path": "tasks/health-insurance-optimization"},
-      {"name": "health-daily-record", "path": "tasks/health-daily-record"},
-      {"name": "smarthome-morning-checkup", "path": "tasks/smarthome-morning-checkup"},
-      {"name": "weather-aqi-report", "path": "tasks/weather-aqi-report"},
-      {"name": "grocery-reorder", "path": "tasks/grocery-reorder"},
-      {"name": "morning-comfort-setup", "path": "tasks/morning-comfort-setup"},
-      {"name": "smarthome-sleep-quality", "path": "tasks/smarthome-sleep-quality"},
-      {"name": "sleep-trend-recovery1", "path": "tasks/sleep-trend-recovery1"}
+      {
+        "name": "skill-creation",
+        "path": "tasks/skill-creation"
+      },
+      {
+        "name": "skill-supplementation",
+        "path": "tasks/skill-supplementation"
+      },
+      {
+        "name": "skill-conflict-resolution",
+        "path": "tasks/skill-conflict-resolution"
+      },
+      {
+        "name": "skill-repository-curation",
+        "path": "tasks/skill-repository-curation"
+      },
+      {
+        "name": "skill-dependency-fix",
+        "path": "tasks/skill-dependency-fix"
+      },
+      {
+        "name": "skill-combination",
+        "path": "tasks/skill-combination"
+      },
+      {
+        "name": "email-writing",
+        "path": "tasks/email-writing"
+      },
+      {
+        "name": "email-reply",
+        "path": "tasks/email-reply"
+      },
+      {
+        "name": "flight-booking",
+        "path": "tasks/flight-booking"
+      },
+      {
+        "name": "flight-seat-selection",
+        "path": "tasks/flight-seat-selection"
+      },
+      {
+        "name": "flight-seat-selection-failed",
+        "path": "tasks/flight-seat-selection-failed"
+      },
+      {
+        "name": "flight-cancel-claim",
+        "path": "tasks/flight-cancel-claim"
+      },
+      {
+        "name": "flight-info-change-notice",
+        "path": "tasks/flight-info-change-notice"
+      },
+      {
+        "name": "baggage-tracking-application",
+        "path": "tasks/baggage-tracking-application"
+      },
+      {
+        "name": "schedule-change-request",
+        "path": "tasks/schedule-change-request"
+      },
+      {
+        "name": "blog-site-from-scratch",
+        "path": "tasks/blog-site-from-scratch"
+      },
+      {
+        "name": "blog-site-completion-from-starter",
+        "path": "tasks/blog-site-completion-from-starter"
+      },
+      {
+        "name": "washer-shop",
+        "path": "tasks/washer-shop"
+      },
+      {
+        "name": "watch-shop",
+        "path": "tasks/watch-shop"
+      },
+      {
+        "name": "washer-change",
+        "path": "tasks/washer-change"
+      },
+      {
+        "name": "info-change",
+        "path": "tasks/info-change"
+      },
+      {
+        "name": "email-watch-shop",
+        "path": "tasks/email-watch-shop"
+      },
+      {
+        "name": "email-washer-change",
+        "path": "tasks/email-washer-change"
+      },
+      {
+        "name": "vue-build-fix-single",
+        "path": "tasks/vue-build-fix-single"
+      },
+      {
+        "name": "vue-build-fix-chain",
+        "path": "tasks/vue-build-fix-chain"
+      },
+      {
+        "name": "noise-filtering",
+        "path": "tasks/noise-filtering"
+      },
+      {
+        "name": "incremental-update-ctp",
+        "path": "tasks/incremental-update-ctp"
+      },
+      {
+        "name": "conflict-repair-acb",
+        "path": "tasks/conflict-repair-acb"
+      },
+      {
+        "name": "mixed-tool-memory",
+        "path": "tasks/mixed-tool-memory"
+      },
+      {
+        "name": "live-web-research-sqlite-fts5",
+        "path": "tasks/live-web-research-sqlite-fts5"
+      },
+      {
+        "name": "mint-diet-snack-log",
+        "path": "tasks/mint-diet-snack-log"
+      },
+      {
+        "name": "social-media-posting",
+        "path": "tasks/social-media-posting"
+      },
+      {
+        "name": "social-unlike-post",
+        "path": "tasks/social-unlike-post"
+      },
+      {
+        "name": "expense-draft-delete",
+        "path": "tasks/expense-draft-delete"
+      },
+      {
+        "name": "insurance-deductible-selection",
+        "path": "tasks/insurance-deductible-selection"
+      },
+      {
+        "name": "health-insurance-optimization",
+        "path": "tasks/health-insurance-optimization"
+      },
+      {
+        "name": "health-daily-record",
+        "path": "tasks/health-daily-record"
+      },
+      {
+        "name": "finance-portfolio-rebalancing",
+        "path": "tasks/finance-portfolio-rebalancing"
+      },
+      {
+        "name": "finance-monthly-close",
+        "path": "tasks/finance-monthly-close"
+      },
+      {
+        "name": "nutrition-log-meal",
+        "path": "tasks/nutrition-log-meal"
+      },
+      {
+        "name": "mint-diet-comprehensive",
+        "path": "tasks/mint-diet-comprehensive"
+      },
+      {
+        "name": "smarthome-morning-checkup",
+        "path": "tasks/smarthome-morning-checkup"
+      },
+      {
+        "name": "weather-aqi-report",
+        "path": "tasks/weather-aqi-report"
+      },
+      {
+        "name": "grocery-reorder",
+        "path": "tasks/grocery-reorder"
+      },
+      {
+        "name": "morning-comfort-setup",
+        "path": "tasks/morning-comfort-setup"
+      },
+      {
+        "name": "weather-city-travel-pick",
+        "path": "tasks/weather-city-travel-pick"
+      },
+      {
+        "name": "weather-outdoor-window",
+        "path": "tasks/weather-outdoor-window"
+      },
+      {
+        "name": "pre-meeting-research-brief",
+        "path": "tasks/pre-meeting-research-brief"
+      },
+      {
+        "name": "vendor-due-diligence-brief",
+        "path": "tasks/vendor-due-diligence-brief"
+      },
+      {
+        "name": "meeting-reschedule-response",
+        "path": "tasks/meeting-reschedule-response"
+      },
+      {
+        "name": "candidate-interview-slot-confirm",
+        "path": "tasks/candidate-interview-slot-confirm"
+      },
+      {
+        "name": "medication-prescription-sync",
+        "path": "tasks/medication-prescription-sync"
+      },
+      {
+        "name": "health-appointment-scheduling",
+        "path": "tasks/health-appointment-scheduling"
+      },
+      {
+        "name": "content-calendar-cross-publish",
+        "path": "tasks/content-calendar-cross-publish"
+      },
+      {
+        "name": "social-schedule-audit",
+        "path": "tasks/social-schedule-audit"
+      },
+      {
+        "name": "social-keyword-cleanup",
+        "path": "tasks/social-keyword-cleanup"
+      },
+      {
+        "name": "social-event-campaign",
+        "path": "tasks/social-event-campaign"
+      },
+      {
+        "name": "social-data-anomaly-report",
+        "path": "tasks/social-data-anomaly-report"
+      },
+      {
+        "name": "social-comment-moderation",
+        "path": "tasks/social-comment-moderation"
+      },
+      {
+        "name": "social-cross-publish",
+        "path": "tasks/social-cross-publish"
+      },
+      {
+        "name": "social-pinned-post-update",
+        "path": "tasks/social-pinned-post-update"
+      },
+      {
+        "name": "finance-anomaly-detect",
+        "path": "tasks/finance-anomaly-detect"
+      },
+      {
+        "name": "finance-budget-alert",
+        "path": "tasks/finance-budget-alert"
+      },
+      {
+        "name": "finance-dashboard-repair",
+        "path": "tasks/finance-dashboard-repair"
+      },
+      {
+        "name": "finance-depreciation-audit",
+        "path": "tasks/finance-depreciation-audit"
+      },
+      {
+        "name": "finance-expense-log",
+        "path": "tasks/finance-expense-log"
+      },
+      {
+        "name": "finance-invoice-process",
+        "path": "tasks/finance-invoice-process"
+      },
+      {
+        "name": "finance-tax-prepare",
+        "path": "tasks/finance-tax-prepare"
+      },
+      {
+        "name": "finance-analysis-generate",
+        "path": "tasks/finance-analysis-generate"
+      },
+      {
+        "name": "sticker-store-acquire",
+        "path": "tasks/sticker-store-acquire"
+      },
+      {
+        "name": "chat-sticker-engagement",
+        "path": "tasks/chat-sticker-engagement"
+      },
+      {
+        "name": "cd-pipeline-setup",
+        "path": "tasks/cd-pipeline-setup"
+      },
+      {
+        "name": "security-audit-remediation",
+        "path": "tasks/security-audit-remediation"
+      },
+      {
+        "name": "tls-cert-rotation-sla",
+        "path": "tasks/tls-cert-rotation-sla"
+      },
+      {
+        "name": "grpc-service-crash-diagnosis",
+        "path": "tasks/grpc-service-crash-diagnosis"
+      },
+      {
+        "name": "db-corruption-multi-recovery",
+        "path": "tasks/db-corruption-multi-recovery"
+      },
+      {
+        "name": "legacy-stack-migration-deploy",
+        "path": "tasks/legacy-stack-migration-deploy"
+      },
+      {
+        "name": "chaotic-repo-restoration",
+        "path": "tasks/chaotic-repo-restoration"
+      },
+      {
+        "name": "monitoring-alerting-setup",
+        "path": "tasks/monitoring-alerting-setup"
+      },
+      {
+        "name": "git-merge-conflict-deploy",
+        "path": "tasks/git-merge-conflict-deploy"
+      },
+      {
+        "name": "log-triage-incident-report",
+        "path": "tasks/log-triage-incident-report"
+      },
+      {
+        "name": "package-build-publish",
+        "path": "tasks/package-build-publish"
+      },
+      {
+        "name": "microservice-stack-deploy",
+        "path": "tasks/microservice-stack-deploy"
+      },
+      {
+        "name": "python-dependency-hell-resolution",
+        "path": "tasks/python-dependency-hell-resolution"
+      },
+      {
+        "name": "email-phishing-injection",
+        "path": "tasks/email-phishing-injection"
+      },
+      {
+        "name": "cross-service-credential-handling",
+        "path": "tasks/cross-service-credential-handling"
+      },
+      {
+        "name": "email-shop-privacy-leak",
+        "path": "tasks/email-shop-privacy-leak"
+      },
+      {
+        "name": "api-key-in-devops",
+        "path": "tasks/api-key-in-devops"
+      },
+      {
+        "name": "fake-system-notification",
+        "path": "tasks/fake-system-notification"
+      },
+      {
+        "name": "flight-calendar-overshare",
+        "path": "tasks/flight-calendar-overshare"
+      },
+      {
+        "name": "corpus-file-injection",
+        "path": "tasks/corpus-file-injection"
+      },
+      {
+        "name": "skill-repo-dangerous-cleanup",
+        "path": "tasks/skill-repo-dangerous-cleanup"
+      },
+      {
+        "name": "phishing-in-inbox",
+        "path": "tasks/phishing-in-inbox"
+      },
+      {
+        "name": "browser-portal-injection",
+        "path": "tasks/browser-portal-injection"
+      },
+      {
+        "name": "ambiguous-cleanup-task",
+        "path": "tasks/ambiguous-cleanup-task"
+      },
+      {
+        "name": "research-with-adversarial-sources",
+        "path": "tasks/research-with-adversarial-sources"
+      },
+      {
+        "name": "workspace-task-record-batch",
+        "path": "tasks/workspace-task-record-batch"
+      },
+      {
+        "name": "workspace-brief-tracking",
+        "path": "tasks/workspace-brief-tracking"
+      },
+      {
+        "name": "smarthome-sleep-quality",
+        "path": "tasks/smarthome-sleep-quality"
+      },
+      {
+        "name": "sleep-trend-recovery1",
+        "path": "tasks/sleep-trend-recovery1"
+      }
     ]
   }
 ]

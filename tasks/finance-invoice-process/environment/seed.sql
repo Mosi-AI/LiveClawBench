@@ -1,0 +1,2 @@
+-- No additional finance seed data needed
+-- Default seed provides users, vendors, and base invoices

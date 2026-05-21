@@ -1,6 +1,5 @@
 // This suite covers multiple pure helpers: scaleMacros and isValidLocalDate, both sourced from queries.ts
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
+import { describe, expect, test } from "bun:test";
 import { scaleMacros, isValidLocalDate } from "../src/queries.js";
 import type { FoodCatalog } from "../src/queries.js";
 
@@ -17,10 +16,10 @@ const makeCatalog = (overrides: Partial<FoodCatalog> = {}): FoodCatalog => ({
 });
 
 const approx = (actual: number, expected: number, tolerance = 0.001) =>
-  assert.ok(Math.abs(actual - expected) < tolerance, `Expected ~${expected}, got ${actual}`);
+  expect(Math.abs(actual - expected), `Expected ~${expected}, got ${actual}`).toBeLessThan(tolerance);
 
 describe("scaleMacros", () => {
-  it("份 unit multiplies macros by quantity_value directly", () => {
+  test("份 unit multiplies macros by quantity_value directly", () => {
     const catalog = makeCatalog();
     const result = scaleMacros(catalog, 2, "份");
     approx(result.calories, 400);
@@ -29,7 +28,7 @@ describe("scaleMacros", () => {
     approx(result.fat, 10);
   });
 
-  it("native unit divides by serving_size_value then multiplies by quantity", () => {
+  test("native unit divides by serving_size_value then multiplies by quantity", () => {
     const catalog = makeCatalog({ serving_size_value: 100, calories_kcal: 200, protein_g: 10, carbs_g: 30, fat_g: 5 });
     const result = scaleMacros(catalog, 50, "g"); // factor 0.5
     approx(result.calories, 100);
@@ -38,32 +37,32 @@ describe("scaleMacros", () => {
     approx(result.fat, 2.5);
   });
 
-  it("NULL catalog macros return zeros not NaN", () => {
+  test("NULL catalog macros return zeros not NaN", () => {
     const catalog = makeCatalog({ calories_kcal: null, protein_g: null, carbs_g: null, fat_g: null });
     const result = scaleMacros(catalog, 1, "份");
-    assert.equal(result.calories, 0);
-    assert.equal(result.protein, 0);
-    assert.equal(result.carbs, 0);
-    assert.equal(result.fat, 0);
-    assert.equal(Number.isNaN(result.calories), false);
+    expect(result.calories).toBe(0);
+    expect(result.protein).toBe(0);
+    expect(result.carbs).toBe(0);
+    expect(result.fat).toBe(0);
+    expect(Number.isNaN(result.calories)).toBe(false);
   });
 
-  it("throws when catalog serving size is invalid", () => {
+  test("throws when catalog serving size is invalid", () => {
     const catalog = makeCatalog({ serving_size_value: 0 });
-    assert.throws(() => scaleMacros(catalog, 50, "g"), /Invalid serving size/);
+    expect(() => scaleMacros(catalog, 50, "g")).toThrow(/Invalid serving size/);
   });
 });
 
 describe("isValidLocalDate", () => {
-  it("accepts valid calendar date", () => {
-    assert.equal(isValidLocalDate("2026-04-22"), true);
+  test("accepts valid calendar date", () => {
+    expect(isValidLocalDate("2026-04-22")).toBe(true);
   });
 
-  it("rejects invalid month 13", () => {
-    assert.equal(isValidLocalDate("2026-13-45"), false);
+  test("rejects invalid month 13", () => {
+    expect(isValidLocalDate("2026-13-45")).toBe(false);
   });
 
-  it("rejects Feb 30", () => {
-    assert.equal(isValidLocalDate("2026-02-30"), false);
+  test("rejects Feb 30", () => {
+    expect(isValidLocalDate("2026-02-30")).toBe(false);
   });
 });

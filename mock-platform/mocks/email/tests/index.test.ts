@@ -159,7 +159,7 @@ describe("email mock", () => {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
       body: JSON.stringify({
-        recipient: "peter.griffin@email.app",
+        recipient: "peter.griffin@work.mosi.inc",
         subject: "Self mail",
         body: "Hi me",
         send_now: true,
@@ -190,7 +190,7 @@ describe("email mock", () => {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
       body: JSON.stringify({
-        recipient: "peter.griffin@email.app",
+        recipient: "peter.griffin@work.mosi.inc",
         subject: "Draft to send",
         body: "Content",
         send_now: false,

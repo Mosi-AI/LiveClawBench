@@ -49,8 +49,8 @@ describe("insurance seed", () => {
   test("seeds the documented row counts across all 12 tables", () => {
     const db = freshSeededDb();
     expect(count(db, "users")).toBe(1);
-    expect(count(db, "provider")).toBe(14);
-    expect(count(db, "provider_service")).toBe(57);
+    expect(count(db, "provider")).toBe(18);
+    expect(count(db, "provider_service")).toBe(71);
     expect(count(db, "insurance_plan")).toBe(3);
     expect(count(db, "plan_benefit")).toBe(18);
     expect(count(db, "current_policy")).toBe(1);
@@ -75,7 +75,7 @@ describe("insurance seed", () => {
          GROUP BY provider_service_id`,
       )
       .all();
-    expect(rows.length).toBe(57);
+    expect(rows.length).toBe(71);
     for (const row of rows) {
       expect(row.n).toBeGreaterThanOrEqual(3);
       expect(row.n).toBeLessThanOrEqual(5);
@@ -273,6 +273,61 @@ describe("insurance seed", () => {
       .get(dietConsult!.id);
     expect(dietSlots!.c).toBeGreaterThanOrEqual(3);
 
+    db.close();
+  });
+
+  // ---- Regression: parameterized seed must preserve the original 14 in-network
+  // providers consumed by insurance-deductible-selection and
+  // health-insurance-optimization. If any of these are renamed or removed, the
+  // existing tasks break silently — keep this list synchronized with seed/data.ts.
+  test("regression: original 14 in-network providers exist with stable name/district/distance", () => {
+    const db = freshSeededDb();
+    const expected = [
+      { name: "Metro Lab Services", district: "Central", distance_km: 1.2 },
+      { name: "Nutrition & Wellness Center", district: "Central", distance_km: 1.8 },
+      { name: "Central Family Clinic", district: "Central", distance_km: 0.8 },
+      { name: "Riverside Medical Center", district: "Riverside", distance_km: 2.4 },
+      { name: "Northgate Health", district: "North", distance_km: 3.1 },
+      { name: "Eastside Dental & Vision", district: "East", distance_km: 4.0 },
+      { name: "Southside Diagnostics", district: "South", distance_km: 5.2 },
+      { name: "Westview General Hospital", district: "West", distance_km: 6.5 },
+      { name: "Hillcrest Specialty Clinic", district: "Hillcrest", distance_km: 7.3 },
+      { name: "Lakeside Imaging Lab", district: "Lakeside", distance_km: 8.0 },
+      { name: "Bayview Wellness Center", district: "Bayview", distance_km: 9.4 },
+      { name: "Parkside Urgent Care", district: "Parkside", distance_km: 10.2 },
+      { name: "Greenfield Family Practice", district: "Greenfield", distance_km: 11.5 },
+      { name: "Highland Specialist Group", district: "Highland", distance_km: 12.8 },
+    ];
+    for (const want of expected) {
+      const row = db
+        .query<
+          { name: string; district: string; distance_km: number; network_status: string },
+          [string]
+        >(
+          "SELECT name, district, distance_km, network_status FROM provider WHERE name = ?",
+        )
+        .get(want.name);
+      expect(row).not.toBeNull();
+      expect(row!.district).toBe(want.district);
+      expect(row!.distance_km).toBe(want.distance_km);
+      expect(row!.network_status).toBe("in_network");
+    }
+    db.close();
+  });
+
+  // ---- Regression: insurance-deductible-selection asserts plan code "B" name
+  // "Balanced Silver". Codify that assertion at the seed level so any future
+  // rename is caught here rather than at task-run time.
+  test("regression: plan B is 'Balanced Silver' for insurance-deductible-selection", () => {
+    const db = freshSeededDb();
+    const planB = db
+      .query<{ code: string; name: string; effective_year: number }, []>(
+        "SELECT code, name, effective_year FROM insurance_plan WHERE code = 'B'",
+      )
+      .get();
+    expect(planB).not.toBeNull();
+    expect(planB!.name).toBe("Balanced Silver");
+    expect(planB!.effective_year).toBe(PLAN_EFFECTIVE_YEAR);
     db.close();
   });
 });

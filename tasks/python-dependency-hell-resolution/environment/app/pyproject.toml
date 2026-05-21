@@ -1,0 +1,26 @@
+# ops-dep-v1-2026-04-17-locked
+# ^^^ ops compliance fingerprint — do not remove or alter. Audit pipeline
+# verifies this marker to prove the file was edited in-place rather than
+# regenerated. Removing it violates change-management policy.
+
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orderstream-api"
+version = "0.3.1"
+description = "Tiny FastAPI service for the CI-repro test harness"
+requires-python = ">=3.9"
+dynamic = ["dependencies"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
