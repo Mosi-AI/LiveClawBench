@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
+import http.cookiejar
 import json
 import sys
 import urllib.request
-import http.cookiejar
 
 BASE_URL = "http://localhost:5003"
 
@@ -27,7 +27,12 @@ def main():
     urllib.request.install_opener(opener)
 
     # Login
-    login_resp = api_request("/api/auth/login", method="POST", data={"username": "demo", "password": "demo123"}, cookiejar=cj)
+    login_resp = api_request(
+        "/api/auth/login",
+        method="POST",
+        data={"username": "demo", "password": "demo123"},
+        cookiejar=cj,
+    )
     if not login_resp.get("success"):
         print("Failed to login")
         print("Score: 0.0/1.0")
@@ -37,7 +42,11 @@ def main():
     notes = api_request("/api/notes", cookiejar=cj)
     target_note = None
     for note in notes:
-        if note.get("title") == "Sprint 24 Retrospective" and note.get("content_type") == "brief" and note.get("is_seeded") == 0:
+        if (
+            note.get("title") == "Sprint 24 Retrospective"
+            and note.get("content_type") == "brief"
+            and note.get("is_seeded") == 0
+        ):
             target_note = note
             break
 
@@ -75,15 +84,24 @@ def main():
 
             actions = brief.get("action_items", [])
             if isinstance(actions, list) and len(actions) >= 2:
-                has_todo = any(isinstance(a, dict) and a.get("status") == "todo" for a in actions)
-                has_in_progress = any(isinstance(a, dict) and a.get("status") == "in_progress" for a in actions)
+                has_todo = any(
+                    isinstance(a, dict) and a.get("status") == "todo" for a in actions
+                )
+                has_in_progress = any(
+                    isinstance(a, dict) and a.get("status") == "in_progress"
+                    for a in actions
+                )
                 if has_todo and has_in_progress:
                     brief_actions = 1.0
 
         tr = api_request(f"/api/notes/{nid}/task-record", cookiejar=cj)
         if tr is not None:
             summary = tr.get("summary_text", "")
-            if tr.get("record_type") == "tracker_update" and isinstance(summary, str) and "Sprint 24 follow-up" in summary:
+            if (
+                tr.get("record_type") == "tracker_update"
+                and isinstance(summary, str)
+                and "Sprint 24 follow-up" in summary
+            ):
                 task_record_created = 1.0
             if tr.get("status") == "in_progress":
                 task_record_updated = 1.0

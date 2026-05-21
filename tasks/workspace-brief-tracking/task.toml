@@ -3,7 +3,7 @@ version = "1.0"
 [metadata]
 difficulty = "medium"
 category = "open-world"
-tags = ["workspace", "brief", "tracking"]
+tags = ["documents_knowledge"]
 domain = "Documents & Knowledge"
 domains_multi = ["Documents & Knowledge"]
 
@@ -12,7 +12,7 @@ factor_a2 = 0
 factor_b1 = 0
 factor_b2 = 0
 
-case_id = 32
+case_id = 73
 
 [verifier]
 timeout_sec = 900.0

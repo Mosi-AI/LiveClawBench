@@ -100,6 +100,8 @@ single, clean environment without structural complexity.
 |      69 | finance-budget-alert              |     M      | ✓  | ✓  |    |    | Finance & Data Analytics   |
 |      70 | sticker-store-acquire             |     M      |    |    |    |    | E-commerce & Daily Svcs    |
 |      71 | chat-sticker-engagement           |     H      |    |    | ✓  |    | E-commerce & Daily Svcs    |
+|      72 | workspace-task-record-batch       |     M      |    |    |    |    | Calendar & Task Mgmt       |
+|      73 | workspace-brief-tracking          |     M      |    |    |    |    | Documents & Knowledge      |
 
 ---
 

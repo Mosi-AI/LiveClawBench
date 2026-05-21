@@ -70,3 +70,5 @@ case_id,ability_category,Case name,description,difficulty,Synthesize guidance,do
 69,cross environment composition,finance-budget-alert,审查部门预算数据对超预算部门发送预警邮件,M,结合 finance mock 和 email mock 的多环境任务注入被污染的种子数据；评价 agent 检测预算违规并通过邮件发送预警的跨服务执行能力,Finance & Data Analytics,Finance & Data Analytics ; Communication & Email,1,1,0,0,implemented
 70,proactive decision making,sticker-store-acquire,在贴纸商店中购买指定的两个贴纸包并在贴纸管理器中确认收藏,M,评价 agent 在贴纸商店 UI 中导航、购买指定物品并验证收藏更新的能力,E-commerce & Daily Svcs,E-commerce & Daily Svcs,0,0,0,0,implemented
 71,proactive decision making,chat-sticker-engagement,阅读聊天消息识别需要的贴纸从商店购买对应贴纸包在频道中发送贴纸并整理贴纸分类,H,评价 agent 从聊天上下文中推断贴纸需求并执行多步骤贴纸管理的能力,E-commerce & Daily Svcs,E-commerce & Daily Svcs ; Communication & Email,0,0,1,0,implemented
+72,proactive decision making,workspace-task-record-batch,在 workspace 笔记服务中为 7 条种子笔记创建或更新任务记录并将所有状态设为 done,M,评价 agent 在 workspace 环境中批量处理多条笔记任务记录的能力,Calendar & Task Mgmt,Calendar & Task Mgmt,0,0,0,0,implemented
+73,proactive decision making,workspace-brief-tracking,阅读会议纪要并在 workspace 笔记服务中创建结构化简报笔记包含关键更新证据和行动项,M,评价 agent 从非结构化文本中提取结构化信息并在 workspace 环境中填充简报的能力,Documents & Knowledge,Documents & Knowledge,0,0,0,0,implemented

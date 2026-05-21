@@ -1,19 +1,47 @@
 #!/usr/bin/env python3
+import http.cookiejar
 import json
 import sys
 import urllib.request
-import http.cookiejar
 
 BASE_URL = "http://localhost:5003"
 
 EXPECTED = {
-    1: {"title": "Project Kickoff Meeting Notes", "record_type": "summary", "source_channel": "meeting"},
-    2: {"title": "Weekly Report Template", "record_type": "summary", "source_channel": "manual"},
-    3: {"title": "Q2 OKR Tracker", "record_type": "tracker_update", "source_channel": "manual"},
-    4: {"title": "Q3 Product Strategy Brief", "record_type": "summary", "source_channel": "meeting"},
-    5: {"title": "Incident Report #42", "record_type": "tracker_update", "source_channel": "incident"},
-    6: {"title": "Customer Complaint — Refund Delay", "record_type": "communication", "source_channel": "email"},
-    7: {"title": "Deployment Incident — DB Latency Spike", "record_type": "tracker_update", "source_channel": "incident"},
+    1: {
+        "title": "Project Kickoff Meeting Notes",
+        "record_type": "summary",
+        "source_channel": "meeting",
+    },
+    2: {
+        "title": "Weekly Report Template",
+        "record_type": "summary",
+        "source_channel": "manual",
+    },
+    3: {
+        "title": "Q2 OKR Tracker",
+        "record_type": "tracker_update",
+        "source_channel": "manual",
+    },
+    4: {
+        "title": "Q3 Product Strategy Brief",
+        "record_type": "summary",
+        "source_channel": "meeting",
+    },
+    5: {
+        "title": "Incident Report #42",
+        "record_type": "tracker_update",
+        "source_channel": "incident",
+    },
+    6: {
+        "title": "Customer Complaint — Refund Delay",
+        "record_type": "communication",
+        "source_channel": "email",
+    },
+    7: {
+        "title": "Deployment Incident — DB Latency Spike",
+        "record_type": "tracker_update",
+        "source_channel": "incident",
+    },
 }
 
 
@@ -37,7 +65,12 @@ def main():
     urllib.request.install_opener(opener)
 
     # Login
-    login_resp = api_request("/api/auth/login", method="POST", data={"username": "demo", "password": "demo123"}, cookiejar=cj)
+    login_resp = api_request(
+        "/api/auth/login",
+        method="POST",
+        data={"username": "demo", "password": "demo123"},
+        cookiejar=cj,
+    )
     if not login_resp.get("success"):
         print("Failed to login")
         print("Score: 0.0/1.0")
