@@ -72,8 +72,8 @@ def check_daily_log() -> dict:
             today_section_lines.append(line)
     action_item_count = sum(
         1
-        for l in today_section_lines
-        if l.strip().startswith("- ") and len(l.strip()) > 3
+        for ln in today_section_lines
+        if ln.strip().startswith("- ") and len(ln.strip()) > 3
     )
     return {
         "file_exists": exists,
