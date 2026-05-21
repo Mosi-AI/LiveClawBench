@@ -14,6 +14,7 @@ TEST_SH_PATH = TASK_DIR / "tests" / "test.sh"
 HEALTH_SEED_PATH = TASK_DIR / "environment" / "health-seed.sql"
 SMARTHOME_SEED_PATH = TASK_DIR / "environment" / "seed.sql"
 STARTUP_PATH = TASK_DIR / "environment" / "startup.sh"
+SOLUTION_PATH = TASK_DIR / "solution" / "solve.sh"
 BINARY_MAP_PATH = REPO_ROOT / "mock-platform" / "config" / "task-binary-map.json"
 REGISTRY_PATH = REPO_ROOT / "registry.json"
 CASES_REGISTRY_PATH = REPO_ROOT / "docs" / "metadata" / "cases_registry.csv"
@@ -284,6 +285,20 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
         self.assertFalse(flags["hr_abnormal"])
         self.assertFalse(flags["coffee_ready_followup"])
         self.assertIn("sleep_metrics", details)
+
+    def test_reference_solution_response_satisfies_required_response_contract(self):
+        solve_text = SOLUTION_PATH.read_text()
+        response = solve_text.split(
+            "cat > /workspace/output/response.txt <<'EOF'\n", 1
+        )[1].split("\nEOF", 1)[0]
+
+        score, flags, details = verify.score_response(response)
+        self.assertEqual(0.4, score)
+        self.assertTrue(flags["sleep_metrics"])
+        self.assertTrue(flags["recovery_rationale"])
+        self.assertTrue(flags["hr_abnormal"])
+        self.assertTrue(flags["coffee_ready_followup"])
+        self.assertEqual({}, details)
 
     def test_direct_api_detector_blocks_smarthome_and_health_api_tampering(self):
         with tempfile.NamedTemporaryFile("w", delete=False) as f:

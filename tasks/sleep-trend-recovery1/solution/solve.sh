@@ -18,5 +18,5 @@ fi
 
 mkdir -p /workspace/output
 cat > /workspace/output/response.txt <<'EOF'
-I found Sleep duration 6.5 hrs, Sleep Quality 62%, Light Sleep 4.09h, Deep Sleep 1.11h, and REM Sleep 1.3h. Resting HR was 110 bpm, which is notably elevated and concerning for recovery. I set the thermostat to comfort mode at 76°F, switched the 09:00 HIIT Workout to swimming, and delayed today's coffee schedule to 07:30. The coffee page showed READY before the edit, so the schedule change cannot affect coffee that has already brewed today. Would you like me to change tomorrow's coffee time instead?
+I found Sleep duration 6.5 hrs, Sleep Quality 62%, Light Sleep 4.09h, Deep Sleep 1.11h, and REM Sleep 1.3h, which indicates poor recovery because sleep quality is low and the sleep-stage balance is not restorative enough. Resting HR was 110 bpm, which is notably elevated and concerning for recovery. I set the thermostat to comfort mode at 76°F, switched the 09:00 HIIT Workout to swimming, and delayed today's coffee schedule to 07:30. The coffee page showed READY before the edit, so the schedule change cannot affect coffee that has already brewed today. Would you like me to change tomorrow's coffee time instead?
 EOF
