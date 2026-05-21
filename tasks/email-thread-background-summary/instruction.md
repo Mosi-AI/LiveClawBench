@@ -1,0 +1,1 @@
+I received an email about a new project. Please check my email (http://localhost:5174/, open it in browser), identify the main project topic, then read the related background files in corpus/ (under ~/.openclaw/corpus/) and prepare a short background summary. Save the result to ~/.openclaw/output/project_background.txt.

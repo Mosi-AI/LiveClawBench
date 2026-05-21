@@ -1,7 +1,7 @@
 # LiveClawBench 复杂度框架
 
 本文档是 LiveClawBench 任务复杂度标注的唯一参考来源。
-涵盖因子定义、完整的 73 case 标注表（73 个已实现）、
+涵盖因子定义、完整的 75 case 标注表（75 个已实现）、
 摘要统计、领域覆盖和控制对。
 
 ## 复杂度因子定义
@@ -17,7 +17,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 ---
 
-## 1. 73 Case 因子标注表
+## 1. 75 Case 因子标注表
 
 `✓` 表示该 case 包含对应因子。
 
@@ -96,6 +96,8 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      71 | chat-sticker-engagement           |  H   |    |    | ✓  |    | E-commerce & Daily Svcs    |
 |      76 | policy-conflict-checklist-update  |  M   |    | ✓  |    | ✓  | Documents & Knowledge      |
 |      77 | omni-morning-decision-brief       |  H   | ✓  |    | ✓  | ✓  | Deep Research & Report     |
+|      78 | email-thread-background-summary   |  E   | ✓  |    | ✓  |    | Communication & Email      |
+|      79 | reading-priority-ranker           |  M   |    |    | ✓  |    | Documents & Knowledge      |
 
 ---
 
@@ -103,20 +105,20 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |    29 |  39.7% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2   | 初始状态污染             |    19 |  26.0% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, social-schedule-audit |
-| B1   | 隐式目标解析             |    26 |  35.6% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2   | 知识系统维护             |    18 |  24.7% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief |
+| A1   | 跨服务依赖               |    30 |  40.0% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2   | 初始状态污染             |    19 |  25.3% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, social-schedule-audit |
+| B1   | 隐式目标解析             |    28 |  37.3% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| B2   | 知识系统维护             |    18 |  24.0% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief |
 
-> 占比以 73 个已实现 case 总数为分母。
+> 占比以 75 个已实现 case 总数为分母。
 
 因子组合分布：
 
-- 无因子（基准）：20 个 case（27.4%）— email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, weather-city-travel-pick, weather-outdoor-window, sticker-store-acquire
-- 单因子：24 个 case（32.9%）
-- 双因子：19 个 case（26.0%）— flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), grocery-reorder (A1+B1), morning-comfort-setup (A2+B1), pre-meeting-research-brief (B1+B2), vendor-due-diligence-brief (A1+B1), social-keyword-cleanup (A1+B1), social-event-campaign (A1+B1), social-comment-moderation (A1+B1), social-cross-publish (A1+B1), policy-conflict-checklist-update (A2+B2)
-- 三因子：10 个 case（13.7%）— conflict-repair-acb (A1+A2+B2), social-data-anomaly-report (A1+A2+B1), social-pinned-post-update (A1+A2+B1), medication-prescription-sync (A1+A2+B1), health-appointment-scheduling (A1+A2+B1), content-calendar-cross-publish (A1+A2+B1), omni-morning-decision-brief (A1+B1+B2)
-- **多因子（≥2 个因子）：29 个 case（39.7%）**
+- 无因子（基准）：20 个 case（26.7%）— email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, weather-city-travel-pick, weather-outdoor-window, sticker-store-acquire
+- 单因子：25 个 case（33.3%）
+- 双因子：20 个 case（26.7%）— flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), grocery-reorder (A1+B1), morning-comfort-setup (A2+B1), pre-meeting-research-brief (B1+B2), vendor-due-diligence-brief (A1+B1), social-keyword-cleanup (A1+B1), social-event-campaign (A1+B1), social-comment-moderation (A1+B1), social-cross-publish (A1+B1), policy-conflict-checklist-update (A2+B2), email-thread-background-summary (A1+B1)
+- 三因子：10 个 case（13.3%）— conflict-repair-acb (A1+A2+B2), social-data-anomaly-report (A1+A2+B1), social-pinned-post-update (A1+A2+B1), medication-prescription-sync (A1+A2+B1), health-appointment-scheduling (A1+A2+B1), content-calendar-cross-publish (A1+A2+B1), omni-morning-decision-brief (A1+B1+B2)
+- **多因子（≥2 个因子）：30 个 case（40.0%）**
 
 ---
 
@@ -126,8 +128,8 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 主要领域                   | A1 | A2 | B1 | B2 | 因子实例总数 |
 |----------------------------|----|----|----|----|:------------:|
-| Documents & Knowledge      |  2 |  3 |  0 | 10 |           15 |
-| Communication & Email      |  0 |  0 |  0 |  0 |            0 |
+| Documents & Knowledge      |  2 |  3 |  1 | 10 |           16 |
+| Communication & Email      |  1 |  0 |  1 |  0 |            2 |
 | E-commerce & Daily Svcs    |  7 |  0 |  6 |  0 |           13 |
 | Calendar & Task Mgmt       |  5 |  1 |  2 |  0 |            8 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |            1 |
@@ -140,8 +142,8 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 关键观察：
 - **B2 高度集中在 Documents & Knowledge**（9/12），反映了知识管理任务的本质
 - **A1 分布最广**，横跨 6 个领域——跨服务协调是普遍的复杂度来源
-- **B1 出现在 E-commerce、Calendar、Deep Research、Health & Fitness 和 Social Media** ——这些领域最自然地产生隐式目标
-- **Communication & Email 没有任何因子** ——这些 case 作为纯基准
+- **B1 出现在 E-commerce、Calendar、Deep Research、Health & Fitness、Social Media 和 Documents & Knowledge** ——这些领域最自然地产生隐式目标
+- **Communication & Email 现已引入 A1+B1**（email-thread-background-summary），不再是纯基准领域
 - **Health & Fitness 通过 3 个困难任务获得多因子覆盖** ——加上 morning-comfort-setup 引入 A2+B1
 - **Social Media（9 个任务）以 15 个因子实例领跑** ——7 个新增任务覆盖 A1=6、A2=3、B1=6
 - **Finance & Data Analytics 获得 A2+B1 覆盖** — finance-dashboard-repair (A2+B2)、finance-expense-log (B1)、finance-anomaly-detect (A2+B1)、finance-budget-alert (A1+A2)、finance-tax-prepare (A1+B1+B2)、finance-analysis-generate (A1+B1+B2)、finance-depreciation-audit (A2+B1+B2) 共增加 19 个因子实例
@@ -175,18 +177,18 @@ LiveClawBench 包含 2 个经验证具有有效难度梯度的控制对。
 
 | 难度 | 数量 | 占比   | Case 列表 |
 |:----:|-----:|-------:|-----------|
-| 简单 |    31 |  42.5%  | skill-conflict-resolution, skill-dependency-fix, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, skill-combination, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, meeting-reschedule-response, candidate-interview-slot-confirm, finance-expense-log, finance-invoice-process |
-| 中等 |    22 |  30.1%  | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-test, grocery-reorder, morning-comfort-setup, weather-city-travel-pick, pre-meeting-research-brief, vendor-due-diligence-brief, social-schedule-audit, social-keyword-cleanup, social-event-campaign, finance-anomaly-detect, finance-budget-alert, sticker-store-acquire, policy-conflict-checklist-update |
-| 困难 |    20 |  27.4%  | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, weather-outdoor-window, social-data-anomaly-report, social-comment-moderation, social-cross-publish, social-pinned-post-update, medication-prescription-sync, health-appointment-scheduling, content-calendar-cross-publish, finance-tax-prepare, finance-analysis-generate, finance-depreciation-audit, finance-dashboard-repair, chat-sticker-engagement, omni-morning-decision-brief |
+| 简单 |    32 |  42.7%  | skill-conflict-resolution, skill-dependency-fix, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, skill-combination, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, meeting-reschedule-response, candidate-interview-slot-confirm, finance-expense-log, finance-invoice-process, email-thread-background-summary |
+| 中等 |    23 |  30.7%  | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-test, grocery-reorder, morning-comfort-setup, weather-city-travel-pick, pre-meeting-research-brief, vendor-due-diligence-brief, social-schedule-audit, social-keyword-cleanup, social-event-campaign, finance-anomaly-detect, finance-budget-alert, sticker-store-acquire, policy-conflict-checklist-update, reading-priority-ranker |
+| 困难 |    20 |  26.7%  | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, weather-outdoor-window, social-data-anomaly-report, social-comment-moderation, social-cross-publish, social-pinned-post-update, medication-prescription-sync, health-appointment-scheduling, content-calendar-cross-publish, finance-tax-prepare, finance-analysis-generate, finance-depreciation-audit, finance-dashboard-repair, chat-sticker-engagement, omni-morning-decision-brief |
 
 因子数量与难度关系：
 
 | 难度 | 平均因子数 | 基准（0 因子） | 单因子 | 多因子 |
 |:----:|:----------:|:--------------:|:------:|:------:|
-| 简单 |       0.61 |             16 |       11 |       4 |
-| 中等 |       1.36 |              3 |       8 |      11 |
+| 简单 |       0.65 |             16 |       11 |       5 |
+| 中等 |       1.34 |              3 |       9 |      11 |
 | 困难 |       1.70 |              1 |       5 |      14 |
 
-基于多模型平均通过率的经验重分类显示，简单 case 占主导（47.5%）。简单 case 同时包含基准任务（55.2%）和带因子任务（44.8%），
+基于多模型平均通过率的经验重分类显示，简单 case 占主导（42.7%）。简单 case 同时包含基准任务（50.0%）和带因子任务（50.0%），
 表明许多结构性复杂度因子对当前 agent 并不构成显著难度。困难 case 集中在 B1 与 A1 或 A2 组合的任务（如 social-data-anomaly-report、social-pinned-post-update、medication-prescription-sync）、
 污染初始状态的 DevOps 环境，以及高精度领域执行（finance-portfolio-rebalancing、weather-outdoor-window）。

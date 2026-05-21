@@ -80,7 +80,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 71 benchmark task names (canonical source of truth)
+// All 73 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -110,6 +110,7 @@ const ALL_TASK_NAMES = new Set([
   "content-calendar-cross-publish",
   "sticker-store-acquire", "chat-sticker-engagement",
   "policy-conflict-checklist-update", "omni-morning-decision-brief",
+  "email-thread-background-summary", "reading-priority-ranker",
 ]);
 
 interface AssetMapping {

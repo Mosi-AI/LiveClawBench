@@ -1,0 +1,7 @@
+{
+  "output_file_exists": 0.20,
+  "project_identified": 0.15,
+  "corpus_coverage_score": 0.15,
+  "summary_coverage": 0.25,
+  "summary_accuracy": 0.25
+}

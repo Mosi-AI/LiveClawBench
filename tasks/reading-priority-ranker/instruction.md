@@ -1,0 +1,1 @@
+I added several reading materials for this week. Please review the files in ~/.openclaw/corpus/ and create a priority reading list in ~/.openclaw/output/reading_order.md, ranking them from most important to least important with one short reason each.

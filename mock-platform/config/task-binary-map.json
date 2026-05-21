@@ -835,6 +835,22 @@
           "dest": "/opt/mock/frontend/email"
         }
       ]
+    },
+    "email-thread-background-summary": {
+      "binaries": [
+        "email"
+      ],
+      "startup_extra": "tasks/email-thread-background-summary/environment/startup.sh",
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "reading-priority-ranker": {
+      "binaries": []
     }
   }
 }

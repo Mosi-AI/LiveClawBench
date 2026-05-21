@@ -137,10 +137,11 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
 
-> **LLM-judge tasks** (9 tasks: `conflict-repair-acb`, `incremental-update-ctp`,
+> **LLM-judge tasks** (11 tasks: `conflict-repair-acb`, `incremental-update-ctp`,
 > `live-web-research-sqlite-fts5`, `mixed-tool-memory`, `noise-filtering`,
 > `pre-meeting-research-brief`, `vendor-due-diligence-brief`,
-> `policy-conflict-checklist-update`, `omni-morning-decision-brief`) use `--ee` (not `--ae`)
+> `policy-conflict-checklist-update`, `omni-morning-decision-brief`,
+> `email-thread-background-summary`, `reading-priority-ranker`) use `--ee` (not `--ae`)
 > for judge credentials because `llm_judge.py` runs in the verifier phase, outside the OpenClaw
 > agent process. **Missing `--ee` will cause the verifier to fail with
 > `RuntimeError: JUDGE_BASE_URL is not set`.**
@@ -275,6 +276,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `chat-sticker-engagement` | E-commerce & Daily Svcs | hard | verify.py |
 | `policy-conflict-checklist-update` | Documents & Knowledge | medium | **llm_judge** |
 | `omni-morning-decision-brief` | Deep Research & Report | hard | **llm_judge** |
+| `email-thread-background-summary` | Communication & Email | easy | **llm_judge** |
+| `reading-priority-ranker` | Documents & Knowledge | medium | **llm_judge** |
 ## Docker Image Architecture
 
 LiveClawBench uses a three-layer Docker image architecture:
@@ -427,8 +430,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-71 implemented tasks: A1=29, A2=19, B1=25, B2=18.
-Difficulty: Easy=31, Medium=21, Hard=19.
+75 implemented tasks: A1=30, A2=19, B1=28, B2=18.
+Difficulty: Easy=32, Medium=23, Hard=19.
 
 ## Known Issues
 

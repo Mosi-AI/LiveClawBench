@@ -1,0 +1,6 @@
+{
+  "output_file_exists": 0.10,
+  "top_items_correct": 0.35,
+  "ranking_rationale_quality": 0.35,
+  "ranking_consistency": 0.20
+}
