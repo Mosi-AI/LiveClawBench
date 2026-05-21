@@ -116,6 +116,19 @@ def main():
     )
 
     print(f"Score: {reward:.1f}/1.0")
+
+    reward_json = {
+        "reward": reward,
+        "note_created": note_created,
+        "brief_key_updates": brief_key_updates,
+        "brief_evidence": brief_evidence,
+        "brief_actions": brief_actions,
+        "task_record_created": task_record_created,
+        "task_record_updated": task_record_updated,
+    }
+    with open("/logs/verifier/reward.json", "w", encoding="utf-8") as f:
+        json.dump(reward_json, f, indent=2)
+
     if reward < 0.5:
         sys.exit(1)
     sys.exit(0)

@@ -1,4 +1,5 @@
 import { Database } from "bun:sqlite";
+import bcryptjs from "bcryptjs";
 import { generatePreviewText } from "./store.js";
 
 export function createSchema(db: Database): void {
@@ -77,10 +78,12 @@ export function createSchema(db: Database): void {
 }
 
 export function seed(db: Database): void {
-  // Insert demo user with hard-coded id=1
+  // Insert demo user with hard-coded id=1 (password stored as bcrypt hash)
+  const hashedPassword = bcryptjs.hashSync("demo123", 10);
   db.run(
     `INSERT OR IGNORE INTO user (id, username, password, display_name, role, is_active)
-     VALUES (1, 'demo', 'demo123', 'Demo User', 'user', 1)`
+     VALUES (1, 'demo', ?, 'Demo User', 'user', 1)`,
+    [hashedPassword]
   );
 
   // Insert 3 seeded notes with hard-coded ids

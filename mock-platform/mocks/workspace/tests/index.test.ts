@@ -1225,4 +1225,80 @@ describe("createWorkspaceApp", () => {
     expect(body.action_items[0].text).toBe("  ");
     expect(body.citations[0].title).toBe(" \t");
   });
+
+  // ---------------------------------------------------------------------------
+  // Cross-user ownership boundary
+  // ---------------------------------------------------------------------------
+
+  test("user B cannot access note owned by user A", async () => {
+    // User A creates a note
+    const createRes = await app.request("/api/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ title: "Private", content: "Secret", content_type: "plain_text" }),
+    });
+    expect(createRes.status).toBe(200);
+    const note = await createRes.json();
+
+    // User B (userId=2) attempts to access it
+    const userBHeaders = { Authorization: "Bearer " + (await sign({ userId: 2 })) };
+
+    const getRes = await app.request(`/api/notes/${note.id}`, { headers: userBHeaders });
+    expect(getRes.status).toBe(404);
+
+    const putRes = await app.request(`/api/notes/${note.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...userBHeaders },
+      body: JSON.stringify({ title: "Hacked", content: "X", content_type: "plain_text" }),
+    });
+    expect(putRes.status).toBe(404);
+
+    const delRes = await app.request(`/api/notes/${note.id}`, {
+      method: "DELETE",
+      headers: userBHeaders,
+    });
+    expect(delRes.status).toBe(404);
+  });
+
+  test("user B cannot access brief or task-record on note owned by user A", async () => {
+    // Create a brief note as user A
+    const createRes = await app.request("/api/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ title: "Brief Private", content: "B", content_type: "brief" }),
+    });
+    expect(createRes.status).toBe(200);
+    const note = await createRes.json();
+
+    const userBHeaders = { Authorization: "Bearer " + (await sign({ userId: 2 })) };
+
+    const briefGetRes = await app.request(`/api/notes/${note.id}/brief`, { headers: userBHeaders });
+    expect(briefGetRes.status).toBe(404);
+
+    const briefPutRes = await app.request(`/api/notes/${note.id}/brief`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...userBHeaders },
+      body: JSON.stringify({ key_updates: "X", evidence_bullets: [], action_items: [], citations: [], status: "draft" }),
+    });
+    expect(briefPutRes.status).toBe(404);
+
+    const trGetRes = await app.request(`/api/notes/${note.id}/task-record`, { headers: userBHeaders });
+    expect(trGetRes.status).toBe(404);
+
+    const trPutRes = await app.request(`/api/notes/${note.id}/task-record`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...userBHeaders },
+      body: JSON.stringify({ record_type: "summary", source_channel: "manual", summary_text: "X", status: "open" }),
+    });
+    expect(trPutRes.status).toBe(404);
+  });
+
+  test("user B's note list does not include user A's notes", async () => {
+    const userBHeaders = { Authorization: "Bearer " + (await sign({ userId: 2 })) };
+    const res = await app.request("/api/notes", { headers: userBHeaders });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    // User B has no notes; all seeded notes belong to user 1
+    expect(body.length).toBe(0);
+  });
 });

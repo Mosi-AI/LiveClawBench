@@ -3,6 +3,7 @@ import { createRoute, tokenCookieOptions, sign } from "mock-lib";
 import { z } from "zod";
 import { setCookie, deleteCookie } from "hono/cookie";
 import type { Database } from "bun:sqlite";
+import bcryptjs from "bcryptjs";
 import { getUserByUsername } from "../data/store.js";
 
 export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
@@ -49,7 +50,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const { username, password } = c.req.valid("json");
     const user = getUserByUsername(db, username);
 
-    if (!user || user.password !== password) {
+    if (!user || !bcryptjs.compareSync(password, user.password)) {
       return c.json({ error: "Invalid username or password" }, 401);
     }
 
