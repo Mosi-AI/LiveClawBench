@@ -1,7 +1,7 @@
 # LiveClawBench 复杂度框架
 
 本文档是 LiveClawBench 任务复杂度标注的唯一参考来源。
-涵盖因子定义、完整的 96 case 标注表（96 个已实现）、
+涵盖因子定义、完整的 98 case 标注表（98 个已实现）、
 摘要统计、领域覆盖和控制对。
 
 ## 复杂度因子定义
@@ -17,7 +17,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 ---
 
-## 1. 96 Case 因子标注表
+## 1. 98 Case 因子标注表
 
 `✓` 表示该 case 包含对应因子。
 
@@ -119,7 +119,8 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |     94 | browser-portal-injection          |  E   | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |     95 | ambiguous-cleanup-task            |  H   |    | ✓  |    |    | DevOps & Env Repair        |
 |     96 | research-with-adversarial-sources |  H   | ✓  |    |    | ✓  | Deep Research & Report     |
-
+|    105 | pricing-matrix-reconcile          |  M   | ✓  |    | ✓  |    | Finance & Data Analytics   |
+|    106 | faq-proof-bundle-from-js-docs     |  M   |    | ✓  | ✓  |    | Documents & Knowledge      |
 
 ---
 
@@ -127,21 +128,21 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |    45 |  46.9% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2   | 初始状态污染             |    34 |  35.4% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1   | 隐式目标解析             |    37 |  38.5% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2   | 知识系统维护             |    22 |  22.9% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1   | 跨服务依赖               |    46 |  46.9% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, pricing-matrix-reconcile |
+| A2   | 初始状态污染             |    35 |  35.7% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, faq-proof-bundle-from-js-docs |
+| B1   | 隐式目标解析             |    39 |  39.8% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, pricing-matrix-reconcile, faq-proof-bundle-from-js-docs |
+| B2   | 知识系统维护             |    22 |  22.4% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> 占比以 96 个已实现 case 总数为分母。
+> 占比以 98 个已实现 case 总数为分母。
 
 因子组合分布：
 
-- 无因子（基准）：22 个 case（22.9%）
-- 单因子：30 个 case（31.3%）
-- 双因子：26 个 case（27.1%）
-- 三因子：16 个 case（16.7%）
-- 四因子：2 个 case（2.1%）
-- **多因子（≥2 个因子）：44 个 case（45.8%）**
+- 无因子（基准）：22 个 case（22.4%）
+- 单因子：30 个 case（30.6%）
+- 双因子：28 个 case（28.6%）
+- 三因子：16 个 case（16.3%）
+- 四因子：2 个 case（2.0%）
+- **多因子（≥2 个因子）：46 个 case（46.9%）**
 
 ---
 
@@ -151,7 +152,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 主要领域                   | A1 | A2 | B1 | B2 | 因子实例总数 |
 |----------------------------|----|----|----|----|:------------:|
-| Documents & Knowledge      |  2 |  2 |  0 |  9 |           13 |
+| Documents & Knowledge      |  2 |  3 |  1 |  9 |           15 |
 | Communication & Email      |  0 |  0 |  0 |  0 |            0 |
 | E-commerce & Daily Svcs    |  7 |  0 |  5 |  0 |           12 |
 | Calendar & Task Mgmt       |  5 |  1 |  2 |  0 |            8 |
@@ -160,7 +161,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 | Deep Research & Report     |  2 |  1 |  2 |  3 |            8 |
 | Health & Fitness           |  2 |  3 |  3 |  0 |            8 |
 | Social Media               |  6 |  3 |  6 |  0 |           15 |
-| Finance & Data Analytics   |   4 |   5 |   6 |   4 |                      19 |
+| Finance & Data Analytics   |  5 |  5 |  7 |  4 |           21 |
 
 关键观察：
 - **B2 高度集中在 Documents & Knowledge**（9/12），反映了知识管理任务的本质
@@ -200,9 +201,9 @@ LiveClawBench 包含 2 个经验证具有有效难度梯度的控制对。
 
 | 难度 | 数量 | 占比   | Case 列表 |
 |:----:|-----:|-------:|-----------|
-| 简单 |    31 |  44.9%  | skill-conflict-resolution, skill-dependency-fix, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, skill-combination, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, meeting-reschedule-response, candidate-interview-slot-confirm, finance-expense-log, finance-invoice-process |
-| 中等 |    20 |  29.0%  | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-test, grocery-reorder, morning-comfort-setup, weather-city-travel-pick, pre-meeting-research-brief, vendor-due-diligence-brief, social-schedule-audit, social-keyword-cleanup, social-event-campaign, finance-anomaly-detect, finance-budget-alert |
-| 困难 |    18 |  26.1%  | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, weather-outdoor-window, social-data-anomaly-report, social-comment-moderation, social-cross-publish, social-pinned-post-update, medication-prescription-sync, health-appointment-scheduling, content-calendar-cross-publish, finance-tax-prepare, finance-analysis-generate, finance-depreciation-audit, finance-dashboard-repair |
+| 简单 |    35 |  35.7%  | skill-conflict-resolution, skill-dependency-fix, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, skill-combination, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, meeting-reschedule-response, candidate-interview-slot-confirm, finance-expense-log, finance-invoice-process, security-audit-remediation, log-triage-incident-report, email-phishing-injection, browser-portal-injection |
+| 中等 |    37 |  37.8%  | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-test, grocery-reorder, morning-comfort-setup, weather-city-travel-pick, pre-meeting-research-brief, vendor-due-diligence-brief, social-schedule-audit, social-keyword-cleanup, social-event-campaign, finance-anomaly-detect, finance-budget-alert, cd-pipeline-setup, tls-cert-rotation-sla, grpc-service-crash-diagnosis, db-corruption-multi-recovery, legacy-stack-migration-deploy, chaotic-repo-restoration, git-merge-conflict-deploy, package-build-publish, microservice-stack-deploy, cross-service-credential-handling, fake-system-notification, corpus-file-injection, skill-repo-dangerous-cleanup, phishing-in-inbox, sticker-store-acquire, pricing-matrix-reconcile, faq-proof-bundle-from-js-docs |
+| 困难 |    26 |  26.5%  | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, weather-outdoor-window, social-data-anomaly-report, social-comment-moderation, social-cross-publish, social-pinned-post-update, medication-prescription-sync, health-appointment-scheduling, content-calendar-cross-publish, finance-tax-prepare, finance-analysis-generate, finance-depreciation-audit, finance-dashboard-repair, monitoring-alerting-setup, python-dependency-hell-resolution, email-shop-privacy-leak, api-key-in-devops, flight-calendar-overshare, ambiguous-cleanup-task, research-with-adversarial-sources, chat-sticker-engagement |
 
 因子数量与难度关系：
 

@@ -995,6 +995,12 @@
           "dest": "/opt/mock/frontend/airline"
         }
       ]
+    },
+    "pricing-matrix-reconcile": {
+      "binaries": []
+    },
+    "faq-proof-bundle-from-js-docs": {
+      "binaries": []
     }
   }
 }
