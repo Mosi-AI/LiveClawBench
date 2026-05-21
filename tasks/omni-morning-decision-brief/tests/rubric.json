@@ -1,0 +1,7 @@
+{
+  "chat_message_sent": 0.20,
+  "daily_log_updated": 0.20,
+  "schedule_risk_detected": 0.25,
+  "brief_completeness": 0.20,
+  "synthesis_quality": 0.15
+}

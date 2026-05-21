@@ -1,0 +1,30 @@
+version = "1.0"
+
+[metadata]
+difficulty = "hard"
+category = "open-world"
+tags = ["deep_research_report", "calendar_task_mgmt", "communication_email", "health_fitness"]
+
+domain = "Deep Research & Report"
+domains_multi = ["Deep Research & Report", "Calendar & Task Mgmt", "Communication & Email", "Health & Fitness"]
+
+# Triple-Axis Complexity Factors (0 = absent, 1 = present)
+factor_a1 = 1   # Cross-Service Dependency (calendar + email + health + weather + chat)
+factor_a2 = 0   # Contaminated Initial State
+factor_b1 = 1   # Implicit Goal Resolution (identify hidden schedule conflict and priority emails)
+factor_b2 = 1   # Knowledge System Maintenance (update daily action log)
+
+case_id = 77
+
+[verifier]
+timeout_sec = 240.0
+
+[agent]
+timeout_sec = 900.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 10240
+allow_internet = true

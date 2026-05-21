@@ -806,6 +806,35 @@
         { "src": "mock-platform/mocks/chat/static/store/food-2.svg", "dest": "/opt/mock/static/store/food-2.svg" },
         { "src": "mock-platform/mocks/chat/static/store/food-3.svg", "dest": "/opt/mock/static/store/food-3.svg" }
       ]
+    },
+    "policy-conflict-checklist-update": {
+      "binaries": []
+    },
+    "omni-morning-decision-brief": {
+      "binaries": [
+        "calendar",
+        "email",
+        "health",
+        "weather",
+        "chat"
+      ],
+      "startup_extra": "tasks/omni-morning-decision-brief/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        },
+        { "src": "mock-platform/mocks/chat/static/store/cat-1.svg", "dest": "/opt/mock/static/store/cat-1.svg" },
+        { "src": "mock-platform/mocks/chat/static/store/cat-2.svg", "dest": "/opt/mock/static/store/cat-2.svg" },
+        { "src": "mock-platform/mocks/chat/static/store/cat-3.svg", "dest": "/opt/mock/static/store/cat-3.svg" }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-writing/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
     }
   }
 }
