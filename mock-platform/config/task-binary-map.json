@@ -995,6 +995,14 @@
           "dest": "/opt/mock/frontend/airline"
         }
       ]
+    },
+    "grant-application-evidence-brief": { "binaries": [] },
+    "analyst-call-qna-pack": {
+      "binaries": ["calendar"],
+      "startup_extra": "tasks/analyst-call-qna-pack/environment/startup.sh",
+      "assets": [
+        { "src": "mock-platform/static/calendar/css/style.css", "dest": "/opt/mock/static/calendar/css/style.css" }
+      ]
     }
   }
 }

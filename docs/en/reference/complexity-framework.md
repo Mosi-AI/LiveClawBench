@@ -125,6 +125,8 @@ single, clean environment without structural complexity.
 |     94 | browser-portal-injection          |     E      | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |     95 | ambiguous-cleanup-task            |     H      |    | ✓  |    |    | DevOps & Env Repair        |
 |     96 | research-with-adversarial-sources |     H      | ✓  |    |    | ✓  | Deep Research & Report     |
+|     97 | grant-application-evidence-brief  |     M      |    | ✓  |    | ✓  | Deep Research & Report     |
+|     98 | analyst-call-qna-pack             |     H      | ✓  | ✓  |    | ✓  | Deep Research & Report     |
 
 ---
 
@@ -132,21 +134,21 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    45 |      46.9% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2     | Contaminated Initial State     |    34 |      35.4% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1     | Implicit Goal Resolution       |    37 |      38.5% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2     | Knowledge System Maintenance   |    22 |      22.9% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1     | Cross-Service Dependency       |    46 |      46.9% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2     | Contaminated Initial State     |    36 |      36.7% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1     | Implicit Goal Resolution       |    37 |      37.8% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| B2     | Knowledge System Maintenance   |    24 |      24.5% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> Percentages are relative to 96 implemented cases.
+> Percentages are relative to 98 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 22 cases (22.9%)
-- Single factor: 30 cases (31.3%)
-- Dual factor: 26 cases (27.1%)
-- Triple factor: 16 cases (16.7%)
-- Quad factor: 2 cases (2.1%)
-- **Multi-factor (≥2 factors): 44 cases (45.8%)**
+- No factors (baseline): 22 cases (22.4%)
+- Single factor: 30 cases (30.6%)
+- Dual factor: 27 cases (27.6%)
+- Triple factor: 17 cases (17.3%)
+- Quad factor: 2 cases (2.0%)
+- **Multi-factor (≥2 factors): 46 cases (46.9%)**
 
 ---
 
@@ -162,7 +164,7 @@ Factor occurrence frequency per primary domain:
 | Calendar & Task Mgmt       |  5 |  1 |  2 |  0 |                      8 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |                      1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |                      2 |
-| Deep Research & Report     |  2 |  1 |  2 |  3 |                      8 |
+| Deep Research & Report     |  3 |  3 |  2 |  5 |                     13 |
 | Health & Fitness           |  2 |  3 |  3 |  0 |                      8 |
 | Social Media               |  6 |  3 |  6 |  0 |                     15 |
 | Finance & Data Analytics   |   4 |   5 |   6 |   4 |                      19 |

@@ -1,0 +1,17 @@
+{
+  "deterministic": {
+    "file_exists":                0.05,
+    "call_details_ok":            0.10,
+    "qa_count_ok":                0.03,
+    "risk_topics_ok":             0.06,
+    "do_not_say_ok":              0.06,
+    "a2_revenue_updated":         0.08,
+    "a2_guidance_updated":        0.07,
+    "a2_competitor_acknowledged": 0.05
+  },
+  "llm": {
+    "calendar_a1_used": 0.15,
+    "claim_repair":     0.20,
+    "content_quality":  0.15
+  }
+}
