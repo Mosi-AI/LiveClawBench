@@ -190,6 +190,82 @@ function writeBuildManifest(manifest: Record<string, string>, destPath: string):
   writeFileSync(destPath, JSON.stringify(manifest, null, 2), "utf-8");
 }
 
+async function buildMockFrontend(name: string): Promise<BuildResult> {
+  const frontendDir = join(MOCKS_DIR, name, "frontend");
+  if (!existsSync(frontendDir)) {
+    // No frontend to build — not a failure, just a no-op
+    return { name: `${name}-frontend`, success: true };
+  }
+
+  const packageJsonPath = join(frontendDir, "package.json");
+  if (!existsSync(packageJsonPath)) {
+    return { name: `${name}-frontend`, success: false, error: "package.json not found in frontend dir" };
+  }
+
+  // Check node/npm availability
+  const nodeCheck = Bun.spawnSync(["node", "--version"], { stdout: "pipe" });
+  if (nodeCheck.exitCode !== 0) {
+    return { name: `${name}-frontend`, success: false, error: "node is required for frontend builds but not found" };
+  }
+  const nodeVersion = new TextDecoder().decode(nodeCheck.stdout).trim();
+  const majorVersion = parseInt(nodeVersion.replace(/^v/, "").split(".")[0], 10);
+  if (majorVersion < 18) {
+    return { name: `${name}-frontend`, success: false, error: `Node.js >= 18 required (found ${nodeVersion})` };
+  }
+
+  const npmCheck = Bun.spawnSync(["npm", "--version"], { stdout: "pipe" });
+  if (npmCheck.exitCode !== 0) {
+    return { name: `${name}-frontend`, success: false, error: "npm is required for frontend builds but not found" };
+  }
+
+  try {
+    // npm install
+    const installProc = Bun.spawn(["npm", "install", "--prefix", frontendDir], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const installExit = await installProc.exited;
+    if (installExit !== 0) {
+      const stderr = await new Response(installProc.stderr).text();
+      return { name: `${name}-frontend`, success: false, error: `npm install failed: ${stderr.trim()}` };
+    }
+
+    // npm run build
+    const buildProc = Bun.spawn(["npm", "run", "build", "--prefix", frontendDir], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const buildExit = await buildProc.exited;
+    if (buildExit !== 0) {
+      const stderr = await new Response(buildProc.stderr).text();
+      return { name: `${name}-frontend`, success: false, error: `npm run build failed: ${stderr.trim()}` };
+    }
+
+    const buildOutputDir = join(frontendDir, "dist");
+    if (!existsSync(buildOutputDir)) {
+      return { name: `${name}-frontend`, success: false, error: `Build output not found: ${buildOutputDir}` };
+    }
+
+    // Stage built frontend into DIST_DIR so build-task-images.ts can COPY it
+    const stagedDir = join(DIST_DIR, `frontend-${name}`);
+    // Clean any previous staged frontend
+    if (existsSync(stagedDir)) {
+      const rmProc = Bun.spawnSync(["rm", "-rf", stagedDir]);
+      if (rmProc.exitCode !== 0) {
+        return { name: `${name}-frontend`, success: false, error: `Failed to clean staged dir: ${rmProc.stderr}` };
+      }
+    }
+    const cpProc = Bun.spawnSync(["cp", "-r", `${buildOutputDir}/.`, stagedDir]);
+    if (cpProc.exitCode !== 0) {
+      return { name: `${name}-frontend`, success: false, error: `Failed to stage frontend: ${cpProc.stderr}` };
+    }
+
+    return { name: `${name}-frontend`, success: true };
+  } catch (err) {
+    return { name: `${name}-frontend`, success: false, error: String(err) };
+  }
+}
+
 async function main() {
   console.log("=== LiveClawBench Mock Build Pipeline ===\n");
 
@@ -382,6 +458,38 @@ async function main() {
     console.log("PASS: All binaries contain own sentinel, no cross-contamination.");
   }
 
+  // Exit with error if all mocks failed
+  if (passed.length === 0) {
+    console.error("\nAll mocks failed to compile.");
+    process.exit(1);
+  }
+
+  // Exit with error if isolation verification failed
+  if (!isolationPass) {
+    console.error("\nERROR: Isolation verification failed. Build pipeline cannot continue.");
+    console.error("  Fix: Ensure each mock contains its own sentinel route and no foreign sentinels.");
+    process.exit(1);
+  }
+
+  // Build mock frontends (e.g. email SPA) for mocks that bundle their own UI
+  console.log("\n=== Frontend Build ===");
+  const frontendResults: BuildResult[] = [];
+  for (const name of mocks) {
+    // Only build frontends for mocks that compiled successfully
+    const mockResult = results.find((r) => r.name === name);
+    if (!mockResult?.success) continue;
+
+    process.stdout.write(`Building frontend for ${name}... `);
+    const feResult = await buildMockFrontend(name);
+    frontendResults.push(feResult);
+    if (feResult.success) {
+      console.log("OK");
+    } else {
+      console.log(`FAILED`);
+      console.error(`  Error: ${feResult.error}`);
+    }
+  }
+
   // Summary report
   console.log(`\n=== Build Summary ===`);
   console.log(`Passed: ${passed.length}/${results.length}`);
@@ -394,17 +502,16 @@ async function main() {
     }
   }
 
-  // Exit with error if all mocks failed
-  if (passed.length === 0) {
-    console.error("\nAll mocks failed to compile.");
-    process.exit(1);
-  }
-
-  // Exit with error if isolation verification failed
-  if (!isolationPass) {
-    console.error("\nERROR: Isolation verification failed. Build pipeline cannot continue.");
-    console.error("  Fix: Ensure each mock contains its own sentinel route and no foreign sentinels.");
-    process.exit(1);
+  const fePassed = frontendResults.filter((r) => r.success);
+  const feFailed = frontendResults.filter((r) => !r.success);
+  if (frontendResults.length > 0) {
+    console.log(`\nFrontends: ${fePassed.length}/${frontendResults.length}`);
+    if (feFailed.length > 0) {
+      console.log("Failed frontends:");
+      for (const f of feFailed) {
+        console.log(`  - ${f.name}: ${f.error}`);
+      }
+    }
   }
 
   // Build compatibility gate: exit 0 even if some mocks failed

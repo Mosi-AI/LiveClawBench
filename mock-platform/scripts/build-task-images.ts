@@ -1016,6 +1016,22 @@ async function buildTaskImage(
     }
   }
 
+  // Auto-mount email frontend for any task that includes the email binary.
+  // The frontend is pre-built by build-all.ts and staged in dist/frontend-email/.
+  if (binaries.includes("email")) {
+    const emailFrontendDir = join(DIST_DIR, "frontend-email");
+    if (!existsSync(emailFrontendDir)) {
+      return {
+        task,
+        success: false,
+        imageTag,
+        binariesIncluded: binaries,
+        error: "Pre-built email frontend not found in dist/frontend-email/. Run `bun run build` in mock-platform/ first.",
+      };
+    }
+    frontendBuildDirs.push({ buildDir: emailFrontendDir, dest: "/opt/mock/frontend/email" });
+  }
+
   const dockerfileLines = [
     `FROM ${BASE_IMAGE}`,
     "",
