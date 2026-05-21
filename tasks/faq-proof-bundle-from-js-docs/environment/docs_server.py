@@ -16,7 +16,7 @@ The agent must use current docs, not the archived page.
 """
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
 CSS = """
 * { box-sizing: border-box; }
