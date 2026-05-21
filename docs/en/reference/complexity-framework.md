@@ -125,6 +125,8 @@ single, clean environment without structural complexity.
 |     94 | browser-portal-injection          |     E      | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |     95 | ambiguous-cleanup-task            |     H      |    | ✓  |    |    | DevOps & Env Repair        |
 |     96 | research-with-adversarial-sources |     H      | ✓  |    |    | ✓  | Deep Research & Report     |
+|     97 | workspace-task-record-batch       |     M      |    |    |    |    | Calendar & Task Mgmt       |
+|     98 | workspace-brief-tracking          |     M      |    |    |    |    | Documents & Knowledge      |
 
 ---
 
