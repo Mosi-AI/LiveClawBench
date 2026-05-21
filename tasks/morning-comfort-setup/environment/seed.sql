@@ -1,6 +1,6 @@
 -- Seed data for morning-comfort-setup task
 -- Focus: A2 contaminated state - humidity sensor malfunction caused thermostat corruption
--- B1 implicit goals: diagnose causal link, infer coffee timing, cross-reference inventory
+-- B1 implicit goals: diagnose causal link, infer coffee timing, assess coffee inventory
 
 -- Room
 INSERT OR IGNORE INTO room (id, name) VALUES (1, 'Living Room');
@@ -17,26 +17,28 @@ VALUES (1, 86.0, 999.0, 'F', 25.0, 120.0, 88);
 INSERT OR IGNORE INTO thermostat_settings (id, mode, temperature, updated_at)
 VALUES (1, 'off', 95.0, '2026-05-09T06:00:00Z');
 
--- Coffee Schedule (B1 implicit goal - timing inference required)
--- start_time='08:00' is too late for 7am departure
--- Agent must read brew_duration (30 min) from UI and infer start_time <= 06:30
+-- Coffee Schedule (B1 implicit goal - per-date timing inference required)
+-- Today's coffee should remain unchanged at 08:00
+-- Tomorrow's coffee is also set to 08:00, which is too late for a 7am departure
+-- Agent must read brew_duration (30 min) from UI and infer tomorrow's start_time <= 06:30
 INSERT OR IGNORE INTO coffee_schedule (schedule_date, start_time, beans_grams, cancelled, updated_at)
-VALUES ('2026-05-09', '08:00', 20, 0, '2026-05-09T06:00:00Z');
+VALUES
+  ('2026-05-09', '08:00', 20, 0, '2026-05-09T06:00:00Z'),
+  ('2026-05-10', '08:00', 20, 0, '2026-05-09T06:00:00Z');
 
 -- Benchmark Clock (morning time)
 INSERT OR IGNORE INTO benchmark_clock (id, clock_time)
 VALUES (1, '2026-05-09T07:30:00Z');
 
--- Inventory (B1 implicit goal - cross-reference inference required)
+-- Inventory (B1 implicit goal - coffee inventory reasoning required)
 -- Fridge: Blue Mountain Coffee Beans - all expired before benchmark date
--- Pantry: Kenya AA - quantity=12g (insufficient for 20g brew), name does NOT include "coffee"
---         Agent must cross-reference Coffee Machine page to confirm it is a coffee bean in use
+-- Pantry: Kenya AA - quantity=12g (insufficient for 20g brew)
 INSERT OR IGNORE INTO inventory_item (item_name, quantity, unit, location, expiry_date, category) VALUES
 -- Fridge items (coffee beans - all expired)
 ('Blue Mountain Coffee Beans', 100.0, 'grams', 'fridge', '2026-05-01', 'coffee'),  -- expired 8 days ago
 ('Blue Mountain Coffee Beans', 150.0, 'grams', 'fridge', '2026-05-05', 'coffee'),  -- expired 4 days ago
 -- Pantry items
-('Kenya AA', 12.0, 'grams', 'pantry', '2026-12-01', 'coffee'),  -- insufficient quantity, name doesn't include "coffee"
+('Kenya AA', 12.0, 'grams', 'pantry', '2026-12-01', 'coffee'),  -- insufficient quantity
 -- Distractor items
 ('Milk', 0.5, 'gallons', 'fridge', '2026-05-15', 'dairy'),
 ('Bread', 1.0, 'loaf', 'pantry', '2026-05-20', 'bakery'),

@@ -2,17 +2,17 @@
 """
 Verify morning-comfort-setup task: 8-dimension scoring.
 
-Dimensions (each 0.125 pts):
-- D1: Thermostat state — DB: mode='comfort' AND temperature in 72-77 range (HARD REQUIRED)
-- D2: Coffee state — DB: start_time <= '06:30' (HARD REQUIRED)
-- D3: Grocery Blue Mountain — DB: entry with quantity=20g AND reference='expired' (HARD REQUIRED)
-- D4: Grocery Kenya AA — DB: entry with quantity=8g AND reference='insufficient/shortage' (HARD REQUIRED)
-- D5: Response environmental — humidity anomaly AND humidity→thermostat causal link AND thermostat correction
-- D6: Response coffee timing — 30-min brew AND 06:30 AND 7am/departure inference (all three required)
-- D7: Response inventory — Blue Mountain expired AND Kenya AA insufficient
-- D8: Response cross-reference — Kenya AA is coffee bean (cross-referenced)
+Dimensions:
+- D1: Thermostat state — DB: mode='comfort' AND temperature in 72-77 range (0.2 pts, HARD REQUIRED; one of two conditions correct = 0.1)
+- D2: Coffee state — DB: today's start_time stays at '08:00' AND tomorrow's start_time <= '06:30' (0.2 pts, HARD REQUIRED; tomorrow correct = 0.15, today unchanged = 0.05)
+- D3: Grocery Blue Mountain — DB: entry with quantity>=20g AND reference='expired' (0.1 pts, HARD REQUIRED)
+- D4: Grocery Kenya AA — DB: entry with quantity>=8g AND reference='insufficient/shortage' (0.1 pts, HARD REQUIRED)
+- D5: Response environmental — humidity anomaly AND humidity→thermostat causal link AND thermostat correction (0.1 pts)
+- D6: Response coffee timing — 30-min brew AND tomorrow/date AND 06:30 AND 7am/departure inference (0.1 pts; keep half-credit design)
+- D7: Response inventory — Blue Mountain expired AND Kenya AA insufficient (0.1 pts; keep half-credit design)
+- D8: Response shopping-list action — reports coffee beans were added to the shopping list (0.1 pts; both = full credit, one = half credit)
 
-Pass threshold: >= 0.75 (6 of 8 dimensions passed)
+Pass threshold: >= 0.75
 D1, D2, D3, D4 are hard required (DB state must match regardless of overall score).
 """
 
@@ -32,9 +32,10 @@ SQLITE_DB = "/tmp/mosi_smart_home.sqlite"
 EXPECTED_THERMOSTAT_MODE = "comfort"
 EXPECTED_THERMOSTAT_TEMP_MIN = 72
 EXPECTED_THERMOSTAT_TEMP_MAX = 77
-EXPECTED_COFFEE_START_TIME_MAX = "06:30"
-EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY = 20  # ±2g tolerance
-EXPECTED_GROCERY_KENYA_AA_QTY = 8  # ±1g tolerance
+EXPECTED_TODAY_COFFEE_START_TIME = "08:00"
+EXPECTED_TOMORROW_COFFEE_START_TIME_MAX = "06:30"
+EXPECTED_GROCERY_BLUE_MOUNTAIN_MIN_QTY = 20
+EXPECTED_GROCERY_KENYA_AA_MIN_QTY = 8
 
 
 def http_request(method, path, data=None):
@@ -126,7 +127,7 @@ def get_all_assistant_messages():
 
 
 def check_d1_thermostat_state():
-    """D1: Thermostat state — DB: mode='comfort' AND temperature in 72-77 range (HARD REQUIRED)"""
+    """D1: Thermostat state — 0.2 pts total; mode and temperature are worth 0.1 each"""
     print("\n=== D1: Thermostat State (HARD REQUIRED) ===")
 
     try:
@@ -143,58 +144,78 @@ def check_d1_thermostat_state():
         mode, temp = row
         print(f"Current thermostat: mode={mode}, temperature={temp}")
 
-        if (
-            mode == EXPECTED_THERMOSTAT_MODE
-            and EXPECTED_THERMOSTAT_TEMP_MIN <= temp <= EXPECTED_THERMOSTAT_TEMP_MAX
-        ):
-            print("D1: PASS (0.125)")
-            return 0.125
+        mode_ok = mode == EXPECTED_THERMOSTAT_MODE
+        temp_ok = EXPECTED_THERMOSTAT_TEMP_MIN <= temp <= EXPECTED_THERMOSTAT_TEMP_MAX
+        score = 0.0
+        if mode_ok:
+            score += 0.1
+        if temp_ok:
+            score += 0.1
+
+        if score == 0.2:
+            print("D1: PASS (0.2)")
+        elif score == 0.1:
+            print("D1: PARTIAL (0.1)")
         else:
             print(
                 f"D1: FAIL - Expected mode='{EXPECTED_THERMOSTAT_MODE}' AND temperature in {EXPECTED_THERMOSTAT_TEMP_MIN}-{EXPECTED_THERMOSTAT_TEMP_MAX} range"
             )
             print(f"       Got mode='{mode}' AND temperature={temp}")
-            return 0.0
+        return score
     except sqlite3.Error as e:
         print(f"FAIL: Database error: {e}")
         return 0.0
 
 
 def check_d2_coffee_state():
-    """D2: Coffee state — DB: start_time <= '06:30' (HARD REQUIRED)"""
+    """D2: Coffee state — 0.2 pts total; tomorrow correct = 0.15, today unchanged = 0.05"""
     print("\n=== D2: Coffee State (HARD REQUIRED) ===")
 
     try:
         conn = sqlite3.connect(SQLITE_DB)
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT start_time FROM coffee_schedule WHERE schedule_date = (SELECT substr(clock_time, 1, 10) FROM benchmark_clock WHERE id = 1)"
-        )
-        row = cursor.fetchone()
+        cursor.execute("SELECT start_time FROM coffee_schedule WHERE schedule_date = '2026-05-09'")
+        today_row = cursor.fetchone()
+        cursor.execute("SELECT start_time FROM coffee_schedule WHERE schedule_date = '2026-05-10'")
+        tomorrow_row = cursor.fetchone()
         conn.close()
 
-        if row is None:
-            print("FAIL: No coffee schedule record found")
+        if today_row is None:
+            print("FAIL: No coffee schedule record found for 2026-05-09")
+            return 0.0
+        if tomorrow_row is None:
+            print("FAIL: No coffee schedule record found for 2026-05-10")
             return 0.0
 
-        start_time = row[0]
-        print(f"Current coffee start_time: {start_time}")
+        today_start_time = today_row[0]
+        tomorrow_start_time = tomorrow_row[0]
+        print(f"Today's coffee start_time: {today_start_time}")
+        print(f"Tomorrow's coffee start_time: {tomorrow_start_time}")
 
-        if start_time <= EXPECTED_COFFEE_START_TIME_MAX:
-            print("D2: PASS (0.125)")
-            return 0.125
+        today_ok = today_start_time == EXPECTED_TODAY_COFFEE_START_TIME
+        tomorrow_ok = tomorrow_start_time <= EXPECTED_TOMORROW_COFFEE_START_TIME_MAX
+        score = 0.0
+        if tomorrow_ok:
+            score += 0.15
+        if today_ok:
+            score += 0.05
+
+        if score == 0.2:
+            print("D2: PASS (0.2)")
+        elif score > 0:
+            print(f"D2: PARTIAL ({score})")
         else:
             print(
-                f"D2: FAIL - Expected start_time <= '{EXPECTED_COFFEE_START_TIME_MAX}', got '{start_time}'"
+                f"D2: FAIL - Expected today's start_time == '{EXPECTED_TODAY_COFFEE_START_TIME}' and tomorrow's start_time <= '{EXPECTED_TOMORROW_COFFEE_START_TIME_MAX}', got today='{today_start_time}' and tomorrow='{tomorrow_start_time}'"
             )
-            return 0.0
+        return score
     except sqlite3.Error as e:
         print(f"FAIL: Database error: {e}")
         return 0.0
 
 
 def check_d3_grocery_blue_mountain():
-    """D3: Grocery Blue Mountain — DB: entry with quantity=20g AND reference='expired' (HARD REQUIRED)"""
+    """D3: Grocery Blue Mountain — DB: entry with quantity>=20g AND reference='expired' (HARD REQUIRED)"""
     print("\n=== D3: Grocery Blue Mountain (HARD REQUIRED) ===")
 
     try:
@@ -209,11 +230,7 @@ def check_d3_grocery_blue_mountain():
         for name, quantity, reference in rows:
             name_lower = name.lower()
             if "blue mountain" in name_lower and "coffee" in name_lower:
-                qty_ok = (
-                    EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY - 2
-                    <= quantity
-                    <= EXPECTED_GROCERY_BLUE_MOUNTAIN_QTY + 2
-                )
+                qty_ok = quantity >= EXPECTED_GROCERY_BLUE_MOUNTAIN_MIN_QTY
                 reason_ok = reference is not None and (
                     "expired" in reference.lower() or "expire" in reference.lower()
                 )
@@ -221,10 +238,10 @@ def check_d3_grocery_blue_mountain():
                     print(
                         f"D3: PASS - Found Blue Mountain entry with quantity={quantity}g and reason='{reference}'"
                     )
-                    return 0.125
+                    return 0.1
                 else:
                     print(
-                        f"D3: FAIL - Blue Mountain found but quantity={quantity}g (expected 20±2) or reason='{reference}' (expected 'expired')"
+                        f"D3: FAIL - Blue Mountain found but quantity={quantity}g (expected >= {EXPECTED_GROCERY_BLUE_MOUNTAIN_MIN_QTY}) or reason='{reference}' (expected 'expired')"
                     )
                     return 0.0
 
@@ -236,7 +253,7 @@ def check_d3_grocery_blue_mountain():
 
 
 def check_d4_grocery_kenya_aa():
-    """D4: Grocery Kenya AA — DB: entry with quantity=8g AND reference='insufficient/shortage' (HARD REQUIRED)"""
+    """D4: Grocery Kenya AA — DB: entry with quantity>=8g AND reference='insufficient/shortage' (HARD REQUIRED)"""
     print("\n=== D4: Grocery Kenya AA (HARD REQUIRED) ===")
 
     try:
@@ -249,11 +266,7 @@ def check_d4_grocery_kenya_aa():
         for name, quantity, reference in rows:
             name_lower = name.lower()
             if "kenya" in name_lower:
-                qty_ok = (
-                    EXPECTED_GROCERY_KENYA_AA_QTY - 1
-                    <= quantity
-                    <= EXPECTED_GROCERY_KENYA_AA_QTY + 1
-                )
+                qty_ok = quantity >= EXPECTED_GROCERY_KENYA_AA_MIN_QTY
                 reason_ok = reference is not None and (
                     "insufficient" in reference.lower()
                     or "shortage" in reference.lower()
@@ -262,10 +275,10 @@ def check_d4_grocery_kenya_aa():
                     print(
                         f"D4: PASS - Found Kenya AA entry with quantity={quantity}g and reason='{reference}'"
                     )
-                    return 0.125
+                    return 0.1
                 else:
                     print(
-                        f"D4: FAIL - Kenya AA found but quantity={quantity}g (expected 8±1) or reason='{reference}' (expected 'insufficient/shortage')"
+                        f"D4: FAIL - Kenya AA found but quantity={quantity}g (expected >= {EXPECTED_GROCERY_KENYA_AA_MIN_QTY}) or reason='{reference}' (expected 'insufficient/shortage')"
                     )
                     return 0.0
 
@@ -348,15 +361,15 @@ def check_d5_response_environmental(response):
         print("FAIL: Thermostat correction not mentioned")
 
     if found == 3:
-        print("D5: PASS (0.125)")
-        return 0.125
+        print("D5: PASS (0.1)")
+        return 0.1
     else:
         print(f"D5: FAIL (0.0) - found {found}/3 required elements")
         return 0.0
 
 
 def check_d6_response_coffee_timing(response):
-    """D6: Response coffee timing — 30-min brew AND 06:30 AND 7am/departure inference (all three required for full credit)"""
+    """D6: Response coffee timing — 30-min brew AND tomorrow/date AND 06:30 AND 7am/departure inference"""
     print("\n=== D6: Response Coffee Timing ===")
 
     if response is None:
@@ -366,7 +379,6 @@ def check_d6_response_coffee_timing(response):
     response_lower = response.lower()
     found = 0
 
-    # Check explicit 30-minute brew duration
     has_30min = "30" in response_lower and (
         "min" in response_lower or "minute" in response_lower
     )
@@ -376,7 +388,17 @@ def check_d6_response_coffee_timing(response):
     else:
         print("FAIL: Explicit 30-minute brew duration not mentioned")
 
-    # Check 06:30 start time
+    has_tomorrow_reference = (
+        "tomorrow" in response_lower
+        or "2026-05-10" in response_lower
+        or "2026/05/10" in response_lower
+    )
+    if has_tomorrow_reference:
+        print("PASS: Tomorrow/date reference mentioned")
+        found += 1
+    else:
+        print("FAIL: Tomorrow/date reference not mentioned")
+
     has_0630 = "06:30" in response_lower or "6:30" in response_lower
     if has_0630:
         print("PASS: Start time 06:30 mentioned")
@@ -384,12 +406,13 @@ def check_d6_response_coffee_timing(response):
     else:
         print("FAIL: Start time 06:30 not mentioned")
 
-    # Check 7am/departure inference (must tie brew time to departure)
     has_departure_inference = False
     sentences = re.split(r"[.!?\n]", response_lower)
     for sentence in sentences:
-        if ("30" in sentence or "brew" in sentence) and (
-            "7" in sentence
+        if ("30" in sentence or "brew" in sentence or "06:30" in sentence or "6:30" in sentence) and (
+            "tomorrow" in sentence
+            or "2026-05-10" in sentence
+            or "7" in sentence
             or "07:" in sentence
             or "leave" in sentence
             or "departure" in sentence
@@ -398,16 +421,19 @@ def check_d6_response_coffee_timing(response):
             has_departure_inference = True
             break
     if has_departure_inference:
-        print("PASS: 7am/departure inference tied to brew time")
+        print("PASS: Tomorrow's 7am/departure inference tied to brew time")
         found += 1
     else:
-        print("FAIL: 7am/departure inference not tied to brew time")
+        print("FAIL: Tomorrow's 7am/departure inference not tied to brew time")
 
-    if found == 3:
-        print("D6: PASS (0.125)")
-        return 0.125
+    if found == 4:
+        print("D6: PASS (0.1)")
+        return 0.1
+    elif found >= 2:
+        print("D6: PARTIAL (0.05)")
+        return 0.05
     else:
-        print(f"D6: FAIL (0.0) - found {found}/3 required elements")
+        print(f"D6: FAIL (0.0) - found {found}/4 required elements")
         return 0.0
 
 
@@ -442,44 +468,52 @@ def check_d7_response_inventory(response):
         print("FAIL: Kenya AA insufficient not mentioned")
 
     if found == 2:
-        print("D7: PASS (0.125)")
-        return 0.125
+        print("D7: PASS (0.1)")
+        return 0.1
     elif found == 1:
-        print("D7: PARTIAL (0.0625)")
-        return 0.0625
+        print("D7: PARTIAL (0.05)")
+        return 0.05
     else:
         print("D7: FAIL (0.0)")
         return 0.0
 
 
-def check_d8_response_cross_reference(response):
-    """D8: Response cross-reference — Kenya AA is coffee bean (cross-referenced)"""
-    print("\n=== D8: Response Cross-Reference ===")
+def check_d8_response_shopping_list_action(response):
+    """D8: Response shopping-list action — reports coffee beans were added to the shopping list"""
+    print("\n=== D8: Response Shopping List Action ===")
 
     if response is None:
         print("FAIL: Could not get agent response")
         return 0.0
 
     response_lower = response.lower()
+    item_action_patterns = {
+        "Blue Mountain": [
+            r"blue mountain[^.\n]{0,80}(added|put)[^.\n]{0,80}(shopping list|grocery list)",
+            r"(added|put)[^.\n]{0,80}blue mountain[^.\n]{0,80}(shopping list|grocery list)",
+            r"(shopping list|grocery list)[^.\n]{0,80}blue mountain[^.\n]{0,80}(added|put)",
+        ],
+        "Kenya AA": [
+            r"kenya[^.\n]{0,80}(added|put)[^.\n]{0,80}(shopping list|grocery list)",
+            r"(added|put)[^.\n]{0,80}kenya[^.\n]{0,80}(shopping list|grocery list)",
+            r"(shopping list|grocery list)[^.\n]{0,80}kenya[^.\n]{0,80}(added|put)",
+        ],
+    }
 
-    if "kenya" in response_lower and "coffee" in response_lower:
-        if (
-            "cross" in response_lower
-            or "reference" in response_lower
-            or "machine" in response_lower
-            or "bean" in response_lower
-        ):
-            print("PASS: Kenya AA cross-referenced as coffee bean")
-            print("D8: PASS (0.125)")
-            return 0.125
-        else:
-            print(
-                "PARTIAL: Kenya AA mentioned with coffee but no explicit cross-reference"
-            )
-            print("D8: PARTIAL (0.0625)")
-            return 0.0625
+    blue_mountain_reported = any(re.search(p, response_lower) for p in item_action_patterns["Blue Mountain"])
+    kenya_aa_reported = any(re.search(p, response_lower) for p in item_action_patterns["Kenya AA"])
 
-    print("FAIL: Kenya AA cross-reference not mentioned")
+    if blue_mountain_reported and kenya_aa_reported:
+        print("PASS: Report says both coffee bean items were added to the shopping list")
+        print("D8: PASS (0.1)")
+        return 0.1
+    elif blue_mountain_reported or kenya_aa_reported:
+        reported_item = "Blue Mountain" if blue_mountain_reported else "Kenya AA"
+        print(f"PARTIAL: Report says only {reported_item} was added to the shopping list")
+        print("D8: PARTIAL (0.05)")
+        return 0.05
+
+    print("FAIL: Report does not clearly say the coffee bean items were added to the shopping list")
     print("D8: FAIL (0.0)")
     return 0.0
 
@@ -499,7 +533,7 @@ def main():
     results["D5"] = check_d5_response_environmental(response)
     results["D6"] = check_d6_response_coffee_timing(response)
     results["D7"] = check_d7_response_inventory(response)
-    results["D8"] = check_d8_response_cross_reference(response)
+    results["D8"] = check_d8_response_shopping_list_action(response)
 
     print("\n" + "=" * 60)
     print("Summary")
@@ -509,20 +543,29 @@ def main():
     passed_count = 0
 
     for dim, score in results.items():
-        status = "PASS" if score >= 0.125 else "PARTIAL" if score >= 0.042 else "FAIL"
+        max_score = 0.2 if dim in ["D1", "D2"] else 0.1
+        partial_threshold = 0.1 if dim == "D1" else 0.05
+        status = "PASS" if score >= max_score else "PARTIAL" if score >= partial_threshold else "FAIL"
         hard_req = " (HARD REQUIRED)" if dim in ["D1", "D2", "D3", "D4"] else ""
-        print(f"  {dim}: {score:.3f}/0.125 [{status}]{hard_req}")
+        print(f"  {dim}: {score:.3f}/{max_score:.3f} [{status}]{hard_req}")
         total_score += score
-        if score >= 0.125:
+        if score >= max_score:
             passed_count += 1
 
     print(f"\nTotal Score: {total_score:.3f}/1.0")
     print(f"Dimensions passed: {passed_count}/8")
 
     # Check hard requirements (D1, D2, D3, D4)
-    hard_req_pass = all(results[d] >= 0.125 for d in ["D1", "D2", "D3", "D4"])
+    hard_req_pass = all(
+        [
+            results["D1"] >= 0.2,
+            results["D2"] >= 0.2,
+            results["D3"] >= 0.1,
+            results["D4"] >= 0.1,
+        ]
+    )
     print(
-        f"Hard requirements: D1={results['D1'] >= 0.125}, D2={results['D2'] >= 0.125}, D3={results['D3'] >= 0.125}, D4={results['D4'] >= 0.125}"
+        f"Hard requirements: D1={results['D1'] >= 0.2}, D2={results['D2'] >= 0.2}, D3={results['D3'] >= 0.1}, D4={results['D4'] >= 0.1}"
     )
 
     with open("/logs/verifier/reward.txt", "w") as f:
