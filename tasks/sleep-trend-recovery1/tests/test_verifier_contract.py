@@ -2,6 +2,7 @@ import importlib.util
 import json
 import sqlite3
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -16,7 +17,9 @@ STARTUP_PATH = TASK_DIR / "environment" / "startup.sh"
 BINARY_MAP_PATH = REPO_ROOT / "mock-platform" / "config" / "task-binary-map.json"
 REGISTRY_PATH = REPO_ROOT / "registry.json"
 CASES_REGISTRY_PATH = REPO_ROOT / "docs" / "metadata" / "cases_registry.csv"
+CASES_REGISTRY_ZH_PATH = REPO_ROOT / "docs" / "metadata" / "cases_registry_zh.csv"
 BUILD_IMAGES_PATH = REPO_ROOT / "mock-platform" / "scripts" / "build-task-images.ts"
+TASK_TOML_PATH = TASK_DIR / "task.toml"
 
 spec = importlib.util.spec_from_file_location(
     "sleep_trend_recovery_verify", VERIFY_PATH
@@ -355,6 +358,9 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             {"name": "sleep-trend-recovery1", "path": "tasks/sleep-trend-recovery1"},
             registry,
         )
+        metadata = tomllib.loads(TASK_TOML_PATH.read_text())["metadata"]
+        self.assertEqual(["Health & Wellness", "Smart Home"], metadata["domains_multi"])
+
         registry_text = CASES_REGISTRY_PATH.read_text()
         case_45_row = next(
             line for line in registry_text.splitlines() if line.startswith("45,")
@@ -362,6 +368,14 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
         self.assertIn("45,reflective diagnosis,sleep-trend-recovery1", case_45_row)
         self.assertIn("Health & Wellness ; Smart Home", case_45_row)
         self.assertNotIn("Health & Wellness ; E-commerce & Daily Svcs", case_45_row)
+
+        registry_zh_text = CASES_REGISTRY_ZH_PATH.read_text()
+        case_45_zh_row = next(
+            line for line in registry_zh_text.splitlines() if line.startswith("45,")
+        )
+        self.assertIn("45,reflective diagnosis,sleep-trend-recovery1", case_45_zh_row)
+        self.assertIn("Health & Wellness ; Smart Home", case_45_zh_row)
+        self.assertNotIn("Health & Wellness ; E-commerce & Daily Svcs", case_45_zh_row)
         self.assertIn('"sleep-trend-recovery1"', BUILD_IMAGES_PATH.read_text())
 
 

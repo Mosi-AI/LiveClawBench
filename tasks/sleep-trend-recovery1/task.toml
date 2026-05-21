@@ -6,7 +6,7 @@ category = "open-world"
 tags = ["health_wellness", "smart_home"]
 
 domain = "Health & Wellness"
-domains_multi = ["Health & Wellness", "E-commerce & Daily Svcs"]
+domains_multi = ["Health & Wellness", "Smart Home"]
 
 factor_a1 = 1
 factor_a2 = 1
