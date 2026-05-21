@@ -74,6 +74,15 @@ function migrateLegacyCoffeeSchedule(database: Database): void {
   database.exec("DROP TABLE coffee_schedule_legacy");
 }
 
+function migrateLegacyCalendarEvent(database: Database): void {
+  const calendarTable = database.query("PRAGMA table_info(calendar_event)").all() as { name: string }[];
+  if (calendarTable.length === 0 || calendarTable.some((column) => column.name === "status")) {
+    return;
+  }
+
+  database.exec("ALTER TABLE calendar_event ADD COLUMN status TEXT NOT NULL DEFAULT 'undone' CHECK (status IN ('done', 'undone'))");
+}
+
 // Check if required singleton tables have seed data (thermostat, coffee, benchmark_clock)
 function hasRequiredSeedData(): boolean {
   if (!db) return false;
@@ -250,6 +259,7 @@ export function initDatabase(): void {
   `);
 
   migrateLegacyCoffeeSchedule(db);
+  migrateLegacyCalendarEvent(db);
 
   // Load seed SQL if:
   // 1. Fresh DB (doesn't exist yet), OR
