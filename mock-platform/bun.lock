@@ -165,6 +165,9 @@
         "mock-lib": "workspace:*",
         "zod": "^3.24.0",
       },
+      "devDependencies": {
+        "@types/bcryptjs": "^2.4.6",
+      },
     },
     "packages/mock-lib": {
       "name": "mock-lib",
