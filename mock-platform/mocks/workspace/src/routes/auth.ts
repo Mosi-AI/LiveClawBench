@@ -1,5 +1,5 @@
 import type { OpenAPIApp } from "mock-lib";
-import { createRoute, tokenCookieOptions, sign } from "mock-lib";
+import { createRoute, tokenCookieOptions, sign, err } from "mock-lib";
 import { z } from "zod";
 import { setCookie, deleteCookie } from "hono/cookie";
 import type { Database } from "bun:sqlite";
@@ -51,7 +51,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const user = getUserByUsername(db, username);
 
     if (!user || !bcryptjs.compareSync(password, user.password)) {
-      return c.json({ error: "Invalid username or password" }, 401);
+      return c.json(err("Invalid username or password"), 401);
     }
 
     const jwt = await sign({ userId: user.id });

@@ -1,4 +1,4 @@
-You have access to a workspace note-taking service running at http://localhost:5003/.
+You have access to a workspace note-taking service running at http://localhost:5009/.
 
 Log in with username `demo` and password `demo123`.
 

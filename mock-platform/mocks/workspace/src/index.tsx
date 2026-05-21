@@ -30,7 +30,7 @@ import { TaskRecordPage } from "./components/task-record-page.js";
 export function createWorkspaceApp(): MockAppV2 {
   const mockApp = createMockApp({
     name: "workspace",
-    port: 5003,
+    port: 5009,
     openApi: {
       enabled: true,
       title: "Workspace",

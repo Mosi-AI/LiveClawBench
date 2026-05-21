@@ -4,12 +4,12 @@ set -e
 COOKIE_JAR=/tmp/workspace_cookies.txt
 
 # 1. Login
-curl -s -c "$COOKIE_JAR" -X POST http://localhost:5003/api/auth/login \
+curl -s -c "$COOKIE_JAR" -X POST http://localhost:5009/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"demo","password":"demo123"}' > /dev/null
 
 # 2. List seeded notes
-notes_json=$(curl -s -b "$COOKIE_JAR" "http://localhost:5003/api/notes?seeded=1")
+notes_json=$(curl -s -b "$COOKIE_JAR" "http://localhost:5009/api/notes?seeded=1")
 
 # 3. Create/update task record for each note
 for nid in 1 2 3 4 5 6 7; do
@@ -24,14 +24,14 @@ for nid in 1 2 3 4 5 6 7; do
     7) rt="tracker_update"; sc="incident"; sum="DB latency spike on 2024-08-01 due to missing index." ;;
   esac
 
-  curl -s -b "$COOKIE_JAR" -X PUT "http://localhost:5003/api/notes/${nid}/task-record" \
+  curl -s -b "$COOKIE_JAR" -X PUT "http://localhost:5009/api/notes/${nid}/task-record" \
     -H "Content-Type: application/json" \
     -d "{\"record_type\":\"${rt}\",\"source_channel\":\"${sc}\",\"summary_text\":\"${sum}\",\"status\":\"open\"}" > /dev/null
 done
 
 # 4. Set all statuses to done
 for nid in 1 2 3 4 5 6 7; do
-  curl -s -b "$COOKIE_JAR" -X PUT "http://localhost:5003/api/notes/${nid}/task-record" \
+  curl -s -b "$COOKIE_JAR" -X PUT "http://localhost:5009/api/notes/${nid}/task-record" \
     -H "Content-Type: application/json" \
     -d '{"status":"done"}' > /dev/null
 done

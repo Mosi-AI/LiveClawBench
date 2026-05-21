@@ -4,7 +4,7 @@ import json
 import sys
 import urllib.request
 
-BASE_URL = "http://localhost:5003"
+BASE_URL = "http://localhost:5009"
 
 
 def api_request(path, method="GET", data=None, cookiejar=None):

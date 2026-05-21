@@ -20,7 +20,7 @@ describe("createWorkspaceApp", () => {
 
   test("factory returns correct config", () => {
     expect(workspace.config.name).toBe("workspace");
-    expect(workspace.config.port).toBe(5003);
+    expect(workspace.config.port).toBe(5009);
     expect(typeof workspace.app.page).toBe("function");
     expect(typeof workspace.app.openApiRoute).toBe("function");
   });
@@ -149,7 +149,7 @@ describe("createWorkspaceApp", () => {
     });
     expect(res.status).toBe(401);
     const body = await res.json();
-    expect(body.error).toBe("Invalid username or password");
+    expect(body.message).toBe("Invalid username or password");
   });
 
   test("HTML page with valid cookie returns 200", async () => {
