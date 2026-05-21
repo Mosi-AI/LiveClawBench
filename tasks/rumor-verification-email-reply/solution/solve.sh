@@ -104,9 +104,10 @@ Peter"""
 reply_req = urllib.request.Request(
     f"{EMAIL_BASE}/api/emails",
     data=json.dumps({
-        "recipient_email": sender_email,
+        "recipient": sender_email,
         "subject": f"Re: {alex_email.get('subject', 'Luminos Data Acquisition Rumor')}",
         "body": reply_body,
+        "send_now": True,
     }).encode("utf-8"),
     headers={**AUTH, "Content-Type": "application/json"},
     method="POST",

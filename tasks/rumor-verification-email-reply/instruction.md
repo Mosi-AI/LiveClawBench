@@ -4,6 +4,6 @@ To access the email service, first authenticate: `POST http://localhost:5174/api
 
 There are relevant background documents in `corpus/` (available at `~/.openclaw/corpus/`) that you should review carefully before responding.
 
-Once you have done your due diligence, reply to Alex's email with your assessment. Send the reply via `POST http://localhost:5174/api/emails` with body `{"recipient_email": "...", "subject": "...", "body": "..."}`.
+Once you have done your due diligence, reply to Alex's email with your assessment. Send the reply via `POST http://localhost:5174/api/emails` with body `{"recipient": "...", "subject": "...", "body": "...", "send_now": true}`.
 
 Make sure your assessment is well-reasoned and appropriately calibrated — Alex is relying on you for an accurate read, not just a summary.
