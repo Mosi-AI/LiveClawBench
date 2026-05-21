@@ -815,20 +815,26 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
         self.assertEqual(["Health & Wellness", "Smart Home"], metadata["domains_multi"])
 
         registry_text = CASES_REGISTRY_PATH.read_text()
-        case_45_row = next(
-            line for line in registry_text.splitlines() if line.startswith("45,")
+        case_row = next(
+            line
+            for line in registry_text.splitlines()
+            if ",sleep-trend-recovery1," in line
         )
-        self.assertIn("45,reflective diagnosis,sleep-trend-recovery1", case_45_row)
-        self.assertIn("Health & Wellness ; Smart Home", case_45_row)
-        self.assertNotIn("Health & Wellness ; E-commerce & Daily Svcs", case_45_row)
+        self.assertIn("reflective diagnosis,sleep-trend-recovery1", case_row)
+        self.assertIn("Health & Wellness ; Smart Home", case_row)
+        self.assertNotIn("Health & Wellness ; E-commerce & Daily Svcs", case_row)
 
         registry_zh_text = CASES_REGISTRY_ZH_PATH.read_text()
-        case_45_zh_row = next(
-            line for line in registry_zh_text.splitlines() if line.startswith("45,")
+        case_zh_row = next(
+            line
+            for line in registry_zh_text.splitlines()
+            if ",sleep-trend-recovery1," in line
         )
-        self.assertIn("45,reflective diagnosis,sleep-trend-recovery1", case_45_zh_row)
-        self.assertIn("Health & Wellness ; Smart Home", case_45_zh_row)
-        self.assertNotIn("Health & Wellness ; E-commerce & Daily Svcs", case_45_zh_row)
+        self.assertIn("reflective diagnosis,sleep-trend-recovery1", case_zh_row)
+        self.assertIn("Health & Wellness ; Smart Home", case_zh_row)
+        self.assertNotIn(
+            "Health & Wellness ; E-commerce & Daily Svcs", case_zh_row
+        )
         self.assertIn('"sleep-trend-recovery1"', BUILD_IMAGES_PATH.read_text())
 
 
