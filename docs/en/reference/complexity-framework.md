@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 43-case annotation table (43 implemented),
+It covers factor definitions, the full 45-case annotation table (45 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 44-Case Factor Annotation Table
+## 1. 45-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -73,6 +73,7 @@ single, clean environment without structural complexity.
 |      42 | grocery-reorder                   |     M      | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
 |      43 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    | Health & Fitness           |
 |      44 | smarthome-sleep-quality          |     H      | ✓  | ✓  | ✓  |    | E-commerce & Daily Svcs    |
+|      45 | sleep-trend-recovery1            |     M      | ✓  | ✓  |    |    | Health & Wellness          |
 
 ---
 
@@ -80,20 +81,20 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    13 |      29.5% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, smarthome-sleep-quality |
-| A2     | Contaminated Initial State     |     8 |      18.2% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, smarthome-sleep-quality |
-| B1     | Implicit Goal Resolution       |     8 |      18.2% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, grocery-reorder, smarthome-morning-checkup, morning-comfort-setup, smarthome-sleep-quality |
-| B2     | Knowledge System Maintenance   |    11 |      25.0% | skill-creation, skill-dependency-fix, noise-filtering         |
+| A1     | Cross-Service Dependency       |    14 |      31.1% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, smarthome-sleep-quality, sleep-trend-recovery1 |
+| A2     | Contaminated Initial State     |     9 |      20.0% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, smarthome-sleep-quality, sleep-trend-recovery1 |
+| B1     | Implicit Goal Resolution       |     8 |      17.8% | flight-seat-selection-failed, flight-cancel-claim, flight-info-change-notice, baggage-tracking-application, grocery-reorder, smarthome-morning-checkup, morning-comfort-setup, smarthome-sleep-quality |
+| B2     | Knowledge System Maintenance   |    11 |      24.4% | skill-creation, skill-dependency-fix, noise-filtering         |
 
-> Percentages are relative to 44 implemented cases.
+> Percentages are relative to 45 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 17 cases (38.6%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, finance-portfolio-rebalancing, finance-monthly-close
-- Single factor: 16 cases (36.4%)
-- Dual factor: 9 cases (20.5%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), grocery-reorder (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), morning-comfort-setup (A2+B1)
-- Triple factor: 2 cases (4.5%) — conflict-repair-acb (A1+A2+B2), smarthome-sleep-quality (A1+A2+B1)
-- **Multi-factor (≥2 factors): 11 cases (25.0%)**
+- No factors (baseline): 17 cases (37.8%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, finance-portfolio-rebalancing, finance-monthly-close
+- Single factor: 16 cases (35.6%)
+- Dual factor: 10 cases (22.2%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), grocery-reorder (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), morning-comfort-setup (A2+B1), sleep-trend-recovery1 (A1+A2)
+- Triple factor: 2 cases (4.4%) — conflict-repair-acb (A1+A2+B2), smarthome-sleep-quality (A1+A2+B1)
+- **Multi-factor (≥2 factors): 12 cases (26.7%)**
 
 ---
 
@@ -113,7 +114,7 @@ Factor occurrence frequency per primary domain:
 | Health & Fitness           |  0 |  1 |  1 |  0 |                      2 |
 | Social Media               |  0 |  0 |  0 |  0 |                      0 |
 | Finance & Data Analytics   |  0 |  0 |  0 |  0 |                      0 |
-| Health & Wellness          |  1 |  0 |  1 |  0 |                      2 |
+| Health & Wellness          |  2 |  1 |  1 |  0 |                      4 |
 
 Key observations:
 - **B2 is highly concentrated in Documents & Knowledge** (10/11), reflecting the nature of knowledge management tasks
@@ -121,7 +122,7 @@ Key observations:
 - **B1 appears in E-commerce, Calendar, Health & Fitness and Health & Wellness** — these domains most naturally produce implicit goals
 - **Communication & Email has no factors** — these cases serve as pure baselines
 - **Health & Fitness now has factors** — morning-comfort-setup introduces A2+B1, moving from baseline to multi-factor task
-- **Health & Wellness now has factors** — smarthome-sleep-quality introduces A1+B1, moving from baseline to multi-factor task
+- **Health & Wellness now has multiple factors** — smarthome-sleep-quality and sleep-trend-recovery1 introduce cross-service and contaminated-state recovery scenarios
 - **Social Media and Finance & Data Analytics have no factors** — these domains serve as baselines
 
 ---
@@ -155,9 +156,9 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    25 |      58.1% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record |
-| Medium     |    12 |      27.3% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-morning-checkup, grocery-reorder, morning-comfort-setup |
-| Hard       |     7 |      15.9% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, smarthome-sleep-quality |
+| Easy       |    25 |      55.6% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record |
+| Medium     |    13 |      28.9% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-morning-checkup, grocery-reorder, morning-comfort-setup, sleep-trend-recovery1 |
+| Hard       |     7 |      15.6% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, smarthome-sleep-quality |
 
 Factor count vs difficulty:
 

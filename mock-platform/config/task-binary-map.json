@@ -272,6 +272,14 @@
         { "src": "mock-platform/static/shop/css/style.css", "dest": "/opt/mock/static/shop/css/style.css" },
         { "src": "tasks/smarthome-sleep-quality/environment/products.json", "dest": "/opt/mock/static/shop/products.json" }
       ]
+    },
+    "sleep-trend-recovery1": {
+      "binaries": ["smarthome", "health"],
+      "startup_extra": "tasks/sleep-trend-recovery1/environment/startup.sh",
+      "assets": [
+        { "src": "tasks/sleep-trend-recovery1/environment/seed.sql", "dest": "/opt/mock/data/smarthome.sql" },
+        { "src": "tasks/sleep-trend-recovery1/environment/health-seed.sql", "dest": "/opt/mock/data/health.sql" }
+      ]
     }
   }
 }

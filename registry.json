@@ -46,7 +46,8 @@
       {"name": "weather-aqi-report", "path": "tasks/weather-aqi-report"},
       {"name": "grocery-reorder", "path": "tasks/grocery-reorder"},
       {"name": "morning-comfort-setup", "path": "tasks/morning-comfort-setup"},
-      {"name": "smarthome-sleep-quality", "path": "tasks/smarthome-sleep-quality"}
+      {"name": "smarthome-sleep-quality", "path": "tasks/smarthome-sleep-quality"},
+      {"name": "sleep-trend-recovery1", "path": "tasks/sleep-trend-recovery1"}
     ]
   }
 ]
