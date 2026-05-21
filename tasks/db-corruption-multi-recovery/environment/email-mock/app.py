@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""
+Lightweight email mock service for db-corruption-multi-recovery task.
+"""
+
+from flask import Flask, jsonify, render_template_string
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
+
+CURRENT_USER = {
+    "name": "Peter Griffin",
+    "email": "peter.griffin@company.local",
+}
+
+EMAILS = [
+    {
+        "id": 1,
+        "from_name": "Sarah Kim",
+        "from_email": "sarah.kim@company.local",
+        "subject": "URGENT: Both core databases seem broken!",
+        "body": """Hi Peter,
+
+Something really bad happened overnight. Both of our core databases are having issues:
+
+1. orders.db — I can query older orders fine, but the most recent orders placed in the last batch just aren't showing up. The application logged them successfully, so they should be there somewhere. My guess is there might be something wrong with the write-ahead log? Not sure.
+
+2. users.db — Can't open it AT ALL. SQLite gives me "database disk image is malformed" when I try. This is really critical since the orders reference user IDs from this database.
+
+Both database files are in /workspace/databases/. I need you to recover as much data as possible from both databases and export them as JSON to /workspace/output/.
+
+The orders table should have 50 records total, and users should have 100. Please check that the exported data is consistent — every user_id in orders should exist in the users data.
+
+I honestly don't know what caused this. Maybe a disk issue during a write? The monitoring didn't catch anything specific.
+
+Please fix this ASAP!
+
+Thanks,
+Sarah Kim
+DBA""",
+        "date": "2026-04-14 06:15",
+        "is_read": False,
+    },
+]
+
+INBOX_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Email - Inbox</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        h1 { color: #333; } .user-info { color: #666; margin-bottom: 20px; font-size: 14px; }
+        .email-list { list-style: none; padding: 0; }
+        .email-item { background: white; padding: 15px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #ccc; cursor: pointer; }
+        .email-item.unread { border-left-color: #dc3545; font-weight: bold; }
+        .email-item a { text-decoration: none; color: #333; display: block; }
+        .email-subject { font-size: 16px; margin-bottom: 4px; }
+        .email-meta { font-size: 12px; color: #888; }
+        .email-preview { font-size: 13px; color: #666; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 700px; }
+    </style>
+</head>
+<body>
+    <h1>Inbox</h1>
+    <div class="user-info">Logged in as: {{ user.name }} &lt;{{ user.email }}&gt;</div>
+    <ul class="email-list">
+    {% for email in emails %}
+        <li class="email-item {{ 'unread' if not email.is_read else '' }}">
+            <a href="/email/{{ email.id }}">
+                <div class="email-subject">{{ email.subject }}</div>
+                <div class="email-meta">From: {{ email.from_name }} | {{ email.date }}</div>
+                <div class="email-preview">{{ email.body[:120] }}...</div>
+            </a>
+        </li>
+    {% endfor %}
+    </ul>
+</body>
+</html>"""
+
+EMAIL_DETAIL_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>{{ email.subject }}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        .back-link { color: #007bff; text-decoration: none; display: inline-block; margin-bottom: 20px; }
+        .email-container { background: white; padding: 24px; border-radius: 8px; }
+        .email-header { border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .email-subject { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .email-meta { font-size: 13px; color: #666; line-height: 1.8; }
+        .email-body { white-space: pre-wrap; line-height: 1.6; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <a class="back-link" href="/">&larr; Back to Inbox</a>
+    <div class="email-container">
+        <div class="email-header">
+            <div class="email-subject">{{ email.subject }}</div>
+            <div class="email-meta">
+                <div>From: {{ email.from_name }} &lt;{{ email.from_email }}&gt;</div>
+                <div>Date: {{ email.date }}</div>
+            </div>
+        </div>
+        <div class="email-body">{{ email.body }}</div>
+    </div>
+</body>
+</html>"""
+
+
+@app.route("/")
+def inbox():
+    return render_template_string(INBOX_HTML, emails=EMAILS, user=CURRENT_USER)
+
+
+@app.route("/email/<int:email_id>")
+def email_detail(email_id):
+    email = next((e for e in EMAILS if e["id"] == email_id), None)
+    if not email:
+        return "Email not found", 404
+    return render_template_string(EMAIL_DETAIL_HTML, email=email, user=CURRENT_USER)
+
+
+@app.route("/api/emails")
+def api_emails():
+    return jsonify({"emails": EMAILS, "user": CURRENT_USER})
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5174, debug=False)

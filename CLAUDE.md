@@ -12,7 +12,7 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 
 | Repository | Role | URL |
 |---|---|---|
-| **LiveClawBench** (this repo) | Task corpus — 61 harbor-format benchmark tasks | — |
+| **LiveClawBench** (this repo) | Task corpus — 69 harbor-format benchmark tasks | — |
 | **claw-harbor** | Evaluation framework (fork of harbor with OpenClaw support) | https://github.com/Mosi-AI/claw-harbor |
 | **OpenClaw** | Agent platform running inside task containers | https://github.com/openclaw/openclaw |
 
@@ -183,7 +183,10 @@ bun run build:images   # Build per-task Docker images (requires base image first
 > for canonical login / row-ownership / cookie patterns. Hand-rolled
 > JWT or plaintext password compare is a review-blocker.
 
-- `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented)
+- `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented). Optional fields:
+  - `assets` — copy arbitrary files into the per-task image
+  - `frontends` — pre-build SPA assets at image-build time
+  - `extraSeeds` — copy task-specific `.sql` seed files to `/opt/mock/extra-seed/<service>.sql`; the mock applies them via `applySupplementalSeed(db, service)` after baseline `seedDatabase()`. See `docs/refactor/mock-platform-migration-plan.md`. Use this for non-adversarial data customization; for Safety/adversarial content prefer the `TASK_NAME` switch in the mock's `seed.ts` so the content is compiled into the binary (not readable on disk by the agent).
 - `scripts/build-all.ts` — Builds all mock binaries
 - `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set
 
@@ -235,34 +238,41 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `weather-aqi-report` | Deep Research & Report | easy | verify.py |
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
+| `health-daily-record` | Health & Fitness | easy | verify.py |
+| `expense-draft-delete` | Finance & Data Analytics | easy | verify.py |
 | `social-media-posting` | Social Media | easy | verify.py |
 | `social-unlike-post` | Social Media | easy | verify.py |
-| `expense-draft-delete` | Finance & Data Analytics | easy | verify.py |
-| `health-daily-record` | Health & Fitness | easy | verify.py |
-| `finance-portfolio-rebalancing` | Finance & Data Analytics | hard | verify.py |
-| `finance-monthly-close` | Finance & Data Analytics | medium | verify.py |
-| `nutrition-log-meal` | Health & Fitness | easy | verify.py |
-| `mint-diet-comprehensive` | Health & Fitness | easy | verify.py |
-| `smarthome-test` | E-commerce & Daily Svcs | medium | verify.py |
-| `grocery-reorder` | E-commerce & Daily Svcs | medium | verify.py |
-| `morning-comfort-setup` | Health & Fitness | medium | verify.py |
-| `weather-city-travel-pick` | Health & Fitness | medium | verify.py |
-| `weather-outdoor-window` | Health & Fitness | hard | verify.py |
-| `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
-| `vendor-due-diligence-brief` | Deep Research & Report | medium | **llm_judge** |
-| `social-schedule-audit` | Social Media | medium | verify.py |
-| `social-keyword-cleanup` | Social Media | medium | verify.py |
 | `social-event-campaign` | Social Media | medium | verify.py |
-| `social-data-anomaly-report` | Social Media | hard | verify.py |
+| `social-keyword-cleanup` | Social Media | medium | verify.py |
+| `social-schedule-audit` | Social Media | medium | verify.py |
 | `social-comment-moderation` | Social Media | hard | verify.py |
 | `social-cross-publish` | Social Media | hard | verify.py |
+| `social-data-anomaly-report` | Social Media | hard | verify.py |
 | `social-pinned-post-update` | Social Media | hard | verify.py |
+| `mint-diet-comprehensive` | Health & Fitness | easy | verify.py |
+| `nutrition-log-meal` | Health & Fitness | easy | verify.py |
+| `weather-city-travel-pick` | Health & Fitness | medium | verify.py |
+| `weather-outdoor-window` | Health & Fitness | hard | verify.py |
+| `morning-comfort-setup` | Health & Fitness | medium | verify.py |
+| `finance-portfolio-rebalancing` | Finance & Data Analytics | hard | verify.py |
+| `finance-monthly-close` | Finance & Data Analytics | medium | verify.py |
+| `smarthome-test` | E-commerce & Daily Svcs | medium | verify.py |
+| `grocery-reorder` | E-commerce & Daily Svcs | medium | verify.py |
+| `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
+| `vendor-due-diligence-brief` | Deep Research & Report | medium | **llm_judge** |
 | `meeting-reschedule-response` | Calendar & Task Mgmt | easy | verify.py |
 | `candidate-interview-slot-confirm` | Calendar & Task Mgmt | easy | verify.py |
 | `medication-prescription-sync` | Health & Fitness | hard | verify.py |
 | `health-appointment-scheduling` | Health & Fitness | hard | verify.py |
 | `content-calendar-cross-publish` | Calendar & Task Mgmt | hard | verify.py |
-
+| `finance-anomaly-detect` | Finance & Data Analytics | medium | verify.py |
+| `finance-budget-alert` | Finance & Data Analytics | medium | verify.py |
+| `finance-dashboard-repair` | Finance & Data Analytics | hard | verify.py |
+| `finance-depreciation-audit` | Finance & Data Analytics | hard | verify.py |
+| `finance-expense-log` | Finance & Data Analytics | easy | verify.py |
+| `finance-invoice-process` | Finance & Data Analytics | easy | verify.py |
+| `finance-tax-prepare` | Finance & Data Analytics | hard | verify.py |
+| `finance-analysis-generate` | Finance & Data Analytics | hard | verify.py |
 ## Docker Image Architecture
 
 LiveClawBench uses a three-layer Docker image architecture:
@@ -408,6 +418,31 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 | `tasks/skill-dependency-fix/environment/skills/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/.skill_snapshot/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/skills/` | excluded (intentional fixture) | — |
+| `cd-pipeline-setup` | DevOps & Env Repair | medium | verify.py |
+| `security-audit-remediation` | DevOps & Env Repair | easy | verify.py |
+| `tls-cert-rotation-sla` | DevOps & Env Repair | medium | verify.py |
+| `grpc-service-crash-diagnosis` | DevOps & Env Repair | medium | verify.py |
+| `db-corruption-multi-recovery` | DevOps & Env Repair | medium | verify.py |
+| `legacy-stack-migration-deploy` | DevOps & Env Repair | medium | verify.py |
+| `chaotic-repo-restoration` | DevOps & Env Repair | medium | verify.py |
+| `monitoring-alerting-setup` | DevOps & Env Repair | hard | verify.py |
+| `git-merge-conflict-deploy` | DevOps & Env Repair | medium | verify.py |
+| `log-triage-incident-report` | DevOps & Env Repair | easy | verify.py |
+| `package-build-publish` | DevOps & Env Repair | medium | verify.py |
+| `microservice-stack-deploy` | DevOps & Env Repair | medium | verify.py |
+| `python-dependency-hell-resolution` | DevOps & Env Repair | hard | verify.py |
+| `email-phishing-injection` | Communication & Email | easy | verify.py |
+| `cross-service-credential-handling` | E-commerce & Daily Svcs | medium | verify.py |
+| `email-shop-privacy-leak` | E-commerce & Daily Svcs | hard | verify.py |
+| `api-key-in-devops` | DevOps & Env Repair | hard | verify.py |
+| `fake-system-notification` | E-commerce & Daily Svcs | medium | verify.py |
+| `flight-calendar-overshare` | Calendar & Task Mgmt | hard | verify.py |
+| `corpus-file-injection` | Deep Research & Report | medium | **llm_judge** |
+| `skill-repo-dangerous-cleanup` | Documents & Knowledge | medium | evaluate.py |
+| `phishing-in-inbox` | Calendar & Task Mgmt | medium | verify.py |
+| `browser-portal-injection` | Documents & Knowledge | easy | **llm_judge** |
+| `ambiguous-cleanup-task` | DevOps & Env Repair | hard | verify.py |
+| `research-with-adversarial-sources` | Deep Research & Report | hard | **llm_judge** |
 
 > **ty and `tasks/*/tests/`**: `verify.py` files use `sys.path.insert(0, "/workspace/environment/...")` which
 > only resolves inside Docker containers, so ty cannot check them in CI without Docker. Tracked as a TODO in
@@ -415,8 +450,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-61 implemented tasks: A1=24, A2=13, B1=18, B2=12.
-Difficulty: Easy=29, Medium=18, Hard=14.
+96 implemented tasks: A1=45, A2=34, B1=37, B2=22.
+Difficulty: Easy=35, Medium=35, Hard=26.
 
 ## Known Issues
 

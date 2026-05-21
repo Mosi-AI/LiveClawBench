@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 61-case annotation table (61 implemented),
+It covers factor definitions, the full 96-case annotation table (96 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 61-Case Factor Annotation Table
+## 1. 96-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -34,7 +34,6 @@ single, clean environment without structural complexity.
 |       3 | skill-conflict-resolution         |     E      |    |    |    | ✓  | Documents & Knowledge      |
 |       4 | skill-repository-curation         |     M      |    |    |    | ✓  | Documents & Knowledge      |
 |       5 | skill-dependency-fix              |     E      |    |    |    | ✓  | Documents & Knowledge      |
-|      30 | skill-combination                 |     E      |    |    |    | ✓  | Documents & Knowledge      |
 |       6 | email-writing                     |     E      |    |    |    |    | Communication & Email      |
 |       7 | email-reply                       |     E      |    |    |    |    | Communication & Email      |
 |       8 | flight-booking                    |     M      |    |    |    |    | E-commerce & Daily Svcs    |
@@ -59,39 +58,75 @@ single, clean environment without structural complexity.
 |      27 | conflict-repair-acb               |     E      | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
 |      28 | mixed-tool-memory                 |     E      | ✓  |    |    | ✓  | Documents & Knowledge      |
 |      29 | live-web-research-sqlite-fts5     |     M      | ✓  |    |    | ✓  | Deep Research & Report     |
-|      31 | mint-diet-snack-log               |     E      |    |    |    |    | Health & Fitness          |
+|      30 | skill-combination                 |     E      |    |    |    | ✓  | Documents & Knowledge      |
+|      31 | mint-diet-snack-log               |     E      |    |    |    |    | Health & Fitness           |
 |      32 | weather-aqi-report                |     E      |    |    |    |    | Deep Research & Report     |
 |      33 | social-media-posting              |     E      |    |    |    |    | Social Media               |
 |      34 | social-unlike-post                |     E      |    |    |    |    | Social Media               |
 |      35 | expense-draft-delete              |     E      |    |    |    |    | Finance & Data Analytics   |
 |      36 | insurance-deductible-selection    |     E      |    |    |    |    | E-commerce & Daily Svcs    |
 |      37 | health-insurance-optimization     |     M      | ✓  |    |    |    | E-commerce & Daily Svcs    |
-|      38 | health-daily-record               |     E      |    |    |    |    | Health & Fitness          |
-|      39 | finance-portfolio-rebalancing     |     H      |    |    |    |    | Finance & Data Analytics   |
-|      40 | finance-monthly-close             |     M      |    |    |    |    | Finance & Data Analytics   |
-|      61 | smarthome-test                    |     M      |    |    | ✓  |    | E-commerce & Daily Svcs    |
-|      62 | grocery-reorder                   |     M      | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
-|      63 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    | Health & Fitness           |
-|      41 | first-price-auction-asymmetric-bidders |     M      |    |    |    |    | Deep Research & Report     |
-|      42 | horizontal-gene-transfer-plants-animals |     M      |    |    |    |    | Deep Research & Report     |
-|      43 | aigc-k12-classroom-applications   |     M      |    |    |    |    | Deep Research & Report     |
-|      44 | kubernetes-predictive-autoscaling |     M      |    |    |    |    | Deep Research & Report     |
-|      45 | post-wwii-developed-nation-paths  |     M      |    |    |    |    | Deep Research & Report     |
-|      46 | adas-accident-liability-allocation |     M      |    |    |    |    | Deep Research & Report     |
-|      47 | queer-japanese-language-media-influence |     M   |    |    |    |    | Deep Research & Report     |
-|      48 | piezoelectric-vibration-isolation-accuracy |     M |    |    |    |    | Deep Research & Report     |
-|      49 | ion-trap-quantum-computing-scaling |     M      |    |    |    |    | Deep Research & Report     |
-|      50 | fintech-ml-asset-allocation-models |     M      |    |    |    |    | Deep Research & Report     |
-|      51 | crispr-off-target-mitigation      |     M      |    |    |    |    | Deep Research & Report     |
-|      52 | autonomous-weapons-ethics         |     M      |    |    |    |    | Deep Research & Report     |
-|      53 | cross-border-data-privacy-comparison |     M   |    |    |    |    | Deep Research & Report     |
-|      54 | defi-systemic-risk-contagion      |     M      |    |    |    |    | Deep Research & Report     |
-|      55 | formal-verification-vs-fuzzing    |     M      |    |    |    |    | Deep Research & Report     |
-|      56 | mrna-cancer-vaccines-landscape    |     M      |    |    |    |    | Deep Research & Report     |
-|      57 | digital-religion-ai-vr            |     M      |    |    |    |    | Deep Research & Report     |
-|      58 | fusion-energy-commercial-viability |     M      |    |    |    |    | Deep Research & Report     |
-|      59 | ai-copyright-international-jurisprudence |     M  |    |    |    |    | Deep Research & Report     |
-|      60 | long-covid-neurological-hypotheses |     M      |    |    |    |    | Deep Research & Report     |
+|      38 | health-daily-record               |     E      |    |    |    |    | Health & Fitness           |
+|      39 | finance-portfolio-rebalancing     |     H      |    |    | ✓  |    | Finance & Data Analytics   |
+|      40 | finance-monthly-close             |     M      |    | ✓  |    |    | Finance & Data Analytics   |
+|      41 | nutrition-log-meal                |     E      |    |    |    |    | Health & Fitness           |
+|      42 | mint-diet-comprehensive           |     E      |    |    |    |    | Health & Fitness           |
+|      43 | smarthome-test                    |     M      |    |    | ✓  |    | E-commerce & Daily Svcs    |
+|      44 | grocery-reorder                   |     M      | ✓  |    | ✓  |    | E-commerce & Daily Svcs    |
+|      45 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    | Health & Fitness           |
+|      46 | weather-city-travel-pick          |     M      |    |    |    |    | Health & Fitness           |
+|      47 | weather-outdoor-window            |     H      |    |    |    |    | Health & Fitness           |
+|      48 | pre-meeting-research-brief        |     M      |    |    | ✓  | ✓  | Deep Research & Report     |
+|      49 | vendor-due-diligence-brief        |     M      | ✓  |    | ✓  |    | Deep Research & Report     |
+|      50 | social-schedule-audit             |     M      |    | ✓  |    |    | Social Media               |
+|      51 | social-keyword-cleanup            |     M      | ✓  |    | ✓  |    | Social Media               |
+|      52 | social-event-campaign             |     M      | ✓  |    | ✓  |    | Social Media               |
+|      53 | social-data-anomaly-report        |     H      | ✓  | ✓  | ✓  |    | Social Media               |
+|      54 | social-comment-moderation         |     H      | ✓  |    | ✓  |    | Social Media               |
+|      55 | social-cross-publish              |     H      | ✓  |    | ✓  |    | Social Media               |
+|      56 | social-pinned-post-update         |     H      | ✓  | ✓  | ✓  |    | Social Media               |
+|      57 | meeting-reschedule-response       |     E      | ✓  |    |    |    | Calendar & Task Mgmt       |
+|      58 | candidate-interview-slot-confirm  |     E      | ✓  |    |    |    | Calendar & Task Mgmt       |
+|      59 | medication-prescription-sync      |     H      | ✓  | ✓  | ✓  |    | Health & Fitness           |
+|      60 | health-appointment-scheduling     |     H      | ✓  | ✓  | ✓  |    | Health & Fitness           |
+|      61 | content-calendar-cross-publish    |     H      | ✓  | ✓  | ✓  |    | Calendar & Task Mgmt       |
+|      62 | finance-tax-prepare               |     H      | ✓  |    | ✓  | ✓  | Finance & Data Analytics   |
+|      63 | finance-analysis-generate         |     H      | ✓  |    | ✓  | ✓  | Finance & Data Analytics   |
+|      64 | finance-depreciation-audit        |     H      |    | ✓  | ✓  | ✓  | Finance & Data Analytics   |
+|      65 | finance-dashboard-repair          |     H      |    | ✓  |    | ✓  | Finance & Data Analytics   |
+|      66 | finance-expense-log               |     E      |    |    | ✓  |    | Finance & Data Analytics   |
+|      67 | finance-invoice-process           |     E      | ✓  |    |    |    | Finance & Data Analytics   |
+|      68 | finance-anomaly-detect            |     M      |    | ✓  | ✓  |    | Finance & Data Analytics   |
+|      69 | finance-budget-alert              |     M      | ✓  | ✓  |    |    | Finance & Data Analytics   |
+|      70 | sticker-store-acquire             |     M      |    |    |    |    | E-commerce & Daily Svcs    |
+|      71 | chat-sticker-engagement           |     H      |    |    | ✓  |    | E-commerce & Daily Svcs    |
+|     72 | cd-pipeline-setup                 |     M      | ✓  | ✓  | ✓  | ✓  | DevOps & Env Repair        |
+|     73 | security-audit-remediation        |     E      | ✓  | ✓  | ✓  |    | DevOps & Env Repair        |
+|     74 | tls-cert-rotation-sla             |     M      | ✓  | ✓  | ✓  | ✓  | DevOps & Env Repair        |
+|     75 | grpc-service-crash-diagnosis      |     M      | ✓  | ✓  | ✓  |    | DevOps & Env Repair        |
+|     76 | db-corruption-multi-recovery      |     M      | ✓  | ✓  | ✓  |    | DevOps & Env Repair        |
+|     77 | legacy-stack-migration-deploy     |     M      | ✓  | ✓  | ✓  |    | DevOps & Env Repair        |
+|     78 | chaotic-repo-restoration          |     M      |    | ✓  | ✓  |    | DevOps & Env Repair        |
+|     79 | monitoring-alerting-setup         |     H      | ✓  |    | ✓  |    | DevOps & Env Repair        |
+|     80 | git-merge-conflict-deploy         |     M      | ✓  | ✓  |    |    | DevOps & Env Repair        |
+|     81 | log-triage-incident-report        |     E      | ✓  | ✓  | ✓  |    | DevOps & Env Repair        |
+|     82 | package-build-publish             |     M      | ✓  | ✓  |    |    | DevOps & Env Repair        |
+|     83 | microservice-stack-deploy         |     M      | ✓  | ✓  | ✓  |    | DevOps & Env Repair        |
+|     84 | python-dependency-hell-resolution |     H      |    | ✓  | ✓  |    | DevOps & Env Repair        |
+|     85 | email-phishing-injection          |     E      |    |    |    |    | Communication & Email      |
+|     86 | cross-service-credential-handling |     M      | ✓  |    |    |    | E-commerce & Daily Svcs    |
+|     87 | email-shop-privacy-leak           |     H      | ✓  |    |    |    | E-commerce & Daily Svcs    |
+|     88 | api-key-in-devops                 |     H      |    | ✓  |    |    | DevOps & Env Repair        |
+|     89 | fake-system-notification          |     M      |    |    |    |    | E-commerce & Daily Svcs    |
+|     90 | flight-calendar-overshare         |     H      | ✓  |    | ✓  |    | Calendar & Task Mgmt       |
+|     91 | corpus-file-injection             |     M      |    | ✓  |    | ✓  | Deep Research & Report     |
+|     92 | skill-repo-dangerous-cleanup      |     M      |    |    |    | ✓  | Documents & Knowledge      |
+|     93 | phishing-in-inbox                 |     M      | ✓  |    |    |    | Calendar & Task Mgmt       |
+|     94 | browser-portal-injection          |     E      | ✓  | ✓  |    | ✓  | Documents & Knowledge      |
+|     95 | ambiguous-cleanup-task            |     H      |    | ✓  |    |    | DevOps & Env Repair        |
+|     96 | research-with-adversarial-sources |     H      | ✓  |    |    | ✓  | Deep Research & Report     |
+|     97 | workspace-task-record-batch       |     M      |    |    |    |    | Calendar & Task Mgmt       |
+|     98 | workspace-brief-tracking          |     M      |    |    |    |    | Documents & Knowledge      |
 
 ---
 
@@ -99,20 +134,21 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    24 |      39.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2     | Contaminated Initial State     |    13 |      21.3% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, social-schedule-audit |
-| B1     | Implicit Goal Resolution       |    18 |      29.5% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2     | Knowledge System Maintenance   |    12 |      19.7% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief |
+| A1     | Cross-Service Dependency       |    45 |      46.9% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2     | Contaminated Initial State     |    34 |      35.4% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1     | Implicit Goal Resolution       |    37 |      38.5% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| B2     | Knowledge System Maintenance   |    22 |      22.9% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> Percentages are relative to 61 implemented cases.
+> Percentages are relative to 96 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 21 cases (34.4%) — email-writing, email-reply, flight-booking, blog-site-from-scratch, washer-shop, watch-shop, washer-change, info-change, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, finance-portfolio-rebalancing, finance-monthly-close, nutrition-log-meal, mint-diet-comprehensive, weather-city-travel-pick, weather-outdoor-window
-- Single factor: 19 cases (31.1%)
-- Dual factor: 15 cases (24.6%) — flight-seat-selection-failed (A1+B1), flight-cancel-claim (A1+B1), flight-info-change-notice (A1+B1), noise-filtering (A2+B2), incremental-update-ctp (A2+B2), mixed-tool-memory (A1+B2), live-web-research-sqlite-fts5 (A1+B2), grocery-reorder (A1+B1), morning-comfort-setup (A2+B1), pre-meeting-research-brief (B1+B2), vendor-due-diligence-brief (A1+B1), social-keyword-cleanup (A1+B1), social-event-campaign (A1+B1), social-comment-moderation (A1+B1), social-cross-publish (A1+B1)
-- Triple factor: 6 cases (9.8%) — conflict-repair-acb (A1+A2+B2), social-data-anomaly-report (A1+A2+B1), social-pinned-post-update (A1+A2+B1), medication-prescription-sync (A1+A2+B1), health-appointment-scheduling (A1+A2+B1), content-calendar-cross-publish (A1+A2+B1)
-- **Multi-factor (≥2 factors): 21 cases (34.4%)**
+- No factors (baseline): 22 cases (22.9%)
+- Single factor: 30 cases (31.3%)
+- Dual factor: 26 cases (27.1%)
+- Triple factor: 16 cases (16.7%)
+- Quad factor: 2 cases (2.1%)
+- **Multi-factor (≥2 factors): 44 cases (45.8%)**
 
 ---
 
@@ -124,14 +160,14 @@ Factor occurrence frequency per primary domain:
 |----------------------------|----|----|----|----|-----------------------:|
 | Documents & Knowledge      |  2 |  2 |  0 |  9 |                     13 |
 | Communication & Email      |  0 |  0 |  0 |  0 |                      0 |
-| E-commerce & Daily Svcs    |  7 |  0 |  5 |  0 |                     12 |
+| E-commerce & Daily Svcs    |  7 |  0 |  6 |  0 |                     13 |
 | Calendar & Task Mgmt       |  5 |  1 |  2 |  0 |                      8 |
 | Coding & Software Dev      |  0 |  1 |  0 |  0 |                      1 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |                      2 |
 | Deep Research & Report     |  2 |  1 |  2 |  3 |                      8 |
 | Health & Fitness           |  2 |  3 |  3 |  0 |                      8 |
 | Social Media               |  6 |  3 |  6 |  0 |                     15 |
-| Finance & Data Analytics   |  0 |  0 |  0 |  0 |                      0 |
+| Finance & Data Analytics   |   4 |   5 |   6 |   4 |                      19 |
 
 Key observations:
 - **B2 is highly concentrated in Documents & Knowledge** (9/12), reflecting the nature of knowledge management tasks
@@ -140,7 +176,7 @@ Key observations:
 - **Communication & Email has no factors** — these cases serve as pure baselines
 - **Health & Fitness gains multi-factor coverage** through 3 new hard tasks with A1+A2+B1, plus morning-comfort-setup introduces A2+B1
 - **Social Media (9 tasks) leads total factor instances (15)** — the 7 new tasks span A1=6, A2=3, B1=6
-- **Finance & Data Analytics remains a baseline** — finance-* tasks serve as domain control points
+- **Finance & Data Analytics gains A2+B1 coverage** — finance-dashboard-repair (A2+B2), finance-expense-log (B1), finance-anomaly-detect (A2+B1), finance-budget-alert (A1+A2), finance-tax-prepare (A1+B1+B2), finance-analysis-generate (A1+B1+B2), finance-depreciation-audit (A2+B1+B2) add 19 factor instances
 
 ---
 
@@ -173,17 +209,17 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    29 |      47.5% | skill-conflict-resolution, skill-dependency-fix, skill-combination, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, meeting-reschedule-response, candidate-interview-slot-confirm |
-| Medium     |    18 |      29.5% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-test, grocery-reorder, morning-comfort-setup, weather-city-travel-pick, pre-meeting-research-brief, vendor-due-diligence-brief, social-schedule-audit, social-keyword-cleanup, social-event-campaign |
-| Hard       |    14 |      23.0% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, weather-outdoor-window, social-data-anomaly-report, social-comment-moderation, social-cross-publish, social-pinned-post-update, medication-prescription-sync, health-appointment-scheduling, content-calendar-cross-publish |
+| Easy       |    31 |      43.7% | skill-conflict-resolution, skill-dependency-fix, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, skill-combination, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, meeting-reschedule-response, candidate-interview-slot-confirm, finance-expense-log, finance-invoice-process |
+| Medium     |    21 |      29.6% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-test, grocery-reorder, morning-comfort-setup, weather-city-travel-pick, pre-meeting-research-brief, vendor-due-diligence-brief, social-schedule-audit, social-keyword-cleanup, social-event-campaign, finance-anomaly-detect, finance-budget-alert, sticker-store-acquire |
+| Hard       |    19 |      26.8% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, weather-outdoor-window, social-data-anomaly-report, social-comment-moderation, social-cross-publish, social-pinned-post-update, medication-prescription-sync, health-appointment-scheduling, content-calendar-cross-publish, finance-tax-prepare, finance-analysis-generate, finance-depreciation-audit, finance-dashboard-repair, chat-sticker-engagement |
 
 Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
-| Easy       |             0.62 |          16          |       9       |       4      |
-| Medium     |             1.28 |           3          |       7       |       8      |
-| Hard       |             1.86 |           2          |       3       |       9      |
+| Easy       |             0.61 |          16 |       11 |       4 |
+| Medium     |             1.33 |           3 |       8 |       10 |
+| Hard       |             1.63 |           1 |       5 |       13 |
 
 The empirical reclassification (based on average solve rates across models) shows that Easy
 cases dominate (64.9%). Easy cases include both baselines (54.2%) and factor-bearing tasks

@@ -81,7 +81,7 @@ allow_internet = true   # 如果 agent 需要访问 LLM API 则必须设置
 当前主要领域包括：`Browser & Web Scraping`、`Calendar & Task Mgmt`、
 `Coding & Software Dev`、`Communication & Email`、`Deep Research & Report`、
 `DevOps & Env Repair`、`Documents & Knowledge`、`E-commerce & Daily Svcs`、
-`Finance & Data Analytics`、`Health & Fitness`、`Social Media` 和
+`Finance & Data Analytics`、`Health & Wellness`、`Social Media` 和
 `Voice & Multimodal`。
 
 **复杂度因子字段**（因子适用时设为 `1`，不适用时设为 `0`）：
@@ -109,7 +109,7 @@ LiveClawBench 任务分为以下主要领域：
 | Health & Fitness | 饮食和健康追踪 | mint-diet-snack-log |
 | Social Media | 社交平台互动 | social-media-posting, social-unlike-post |
 | Finance & Data Analytics | 费用和金融数据管理 | expense-draft-delete |
-| Health & Fitness | 健康记录和健康追踪 | health-daily-record |
+| Health & Wellness | 健康记录和健康追踪 | health-daily-record |
 
 ---
 

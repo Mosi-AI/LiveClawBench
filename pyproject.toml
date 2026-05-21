@@ -10,6 +10,7 @@ exclude = [
     "tasks/skill-dependency-fix/environment/skills",
     "tasks/skill-repository-curation/environment/.skill_snapshot",
     "tasks/skill-repository-curation/environment/skills",
+    "tasks/legacy-stack-migration-deploy/environment/climate_tools",
 ]
 
 [tool.ruff.lint]

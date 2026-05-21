@@ -5,6 +5,7 @@
   "version": "1.1",
   "binaries": [
     "airline",
+    "chat",
     "email",
     "shop",
     "todolist",
@@ -17,7 +18,8 @@
     "expense",
     "health",
     "finance",
-    "smarthome"
+    "smarthome",
+    "workspace"
   ],
   "tasks": {
     "weather-aqi-report": {
@@ -404,16 +406,32 @@
         }
       ]
     },
+    "health-daily-record": {
+      "binaries": [
+        "health"
+      ]
+    },
     "social-schedule-audit": {
-      "binaries": ["social"],
+      "binaries": [
+        "social"
+      ],
       "assets": [
-        { "src": "tasks/social-schedule-audit/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+        {
+          "src": "tasks/social-schedule-audit/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
       ]
     },
     "social-keyword-cleanup": {
-      "binaries": ["social", "email"],
+      "binaries": [
+        "social",
+        "email"
+      ],
       "assets": [
-        { "src": "tasks/social-keyword-cleanup/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+        {
+          "src": "tasks/social-keyword-cleanup/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
       ],
       "frontends": [
         {
@@ -424,9 +442,15 @@
       ]
     },
     "social-event-campaign": {
-      "binaries": ["social", "email"],
+      "binaries": [
+        "social",
+        "email"
+      ],
       "assets": [
-        { "src": "tasks/social-event-campaign/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+        {
+          "src": "tasks/social-event-campaign/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
       ],
       "frontends": [
         {
@@ -437,9 +461,15 @@
       ]
     },
     "social-data-anomaly-report": {
-      "binaries": ["social", "email"],
+      "binaries": [
+        "social",
+        "email"
+      ],
       "assets": [
-        { "src": "tasks/social-data-anomaly-report/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+        {
+          "src": "tasks/social-data-anomaly-report/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
       ],
       "frontends": [
         {
@@ -450,9 +480,15 @@
       ]
     },
     "social-comment-moderation": {
-      "binaries": ["social", "email"],
+      "binaries": [
+        "social",
+        "email"
+      ],
       "assets": [
-        { "src": "tasks/social-comment-moderation/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+        {
+          "src": "tasks/social-comment-moderation/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
       ],
       "frontends": [
         {
@@ -463,9 +499,16 @@
       ]
     },
     "social-cross-publish": {
-      "binaries": ["social", "email", "calendar"],
+      "binaries": [
+        "social",
+        "email",
+        "calendar"
+      ],
       "assets": [
-        { "src": "tasks/social-cross-publish/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+        {
+          "src": "tasks/social-cross-publish/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
       ],
       "frontends": [
         {
@@ -476,9 +519,16 @@
       ]
     },
     "social-pinned-post-update": {
-      "binaries": ["social", "email", "calendar"],
+      "binaries": [
+        "social",
+        "email",
+        "calendar"
+      ],
       "assets": [
-        { "src": "tasks/social-pinned-post-update/environment/seed.json", "dest": "/opt/mock/data/seed.json" }
+        {
+          "src": "tasks/social-pinned-post-update/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
       ],
       "frontends": [
         {
@@ -496,11 +546,6 @@
     "finance-monthly-close": {
       "binaries": [
         "finance"
-      ]
-    },
-    "health-daily-record": {
-      "binaries": [
-        "health"
       ]
     },
     "smarthome-test": {
@@ -580,6 +625,50 @@
         }
       ]
     },
+    "finance-anomaly-detect": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-budget-alert": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
+    "finance-dashboard-repair": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-depreciation-audit": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-expense-log": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-invoice-process": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
+    "finance-tax-prepare": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
+    "finance-analysis-generate": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
     "meeting-reschedule-response": {
       "binaries": [
         "email",
@@ -594,7 +683,7 @@
       ],
       "frontends": [
         {
-          "src": "tasks/meeting-reschedule-response/environment/email-app/frontend",
+          "src": "tasks/email-reply/environment/email-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/email"
         }
@@ -613,7 +702,7 @@
       ],
       "frontends": [
         {
-          "src": "tasks/candidate-interview-slot-confirm/environment/email-app/frontend",
+          "src": "tasks/email-reply/environment/email-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/email"
         }
@@ -634,7 +723,7 @@
       ],
       "frontends": [
         {
-          "src": "tasks/medication-prescription-sync/environment/email-app/frontend",
+          "src": "tasks/email-reply/environment/email-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/email"
         }
@@ -659,7 +748,7 @@
       ],
       "frontends": [
         {
-          "src": "tasks/health-appointment-scheduling/environment/email-app/frontend",
+          "src": "tasks/email-reply/environment/email-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/email"
         }
@@ -680,21 +769,233 @@
       ],
       "frontends": [
         {
-          "src": "tasks/content-calendar-cross-publish/environment/email-app/frontend",
+          "src": "tasks/email-reply/environment/email-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/email"
         }
       ]
     },
-    "crispr-off-target-mitigation": { "binaries": [] },
-    "autonomous-weapons-ethics": { "binaries": [] },
-    "cross-border-data-privacy-comparison": { "binaries": [] },
-    "defi-systemic-risk-contagion": { "binaries": [] },
-    "formal-verification-vs-fuzzing": { "binaries": [] },
-    "mrna-cancer-vaccines-landscape": { "binaries": [] },
-    "digital-religion-ai-vr": { "binaries": [] },
-    "fusion-energy-commercial-viability": { "binaries": [] },
-    "ai-copyright-international-jurisprudence": { "binaries": [] },
-    "long-covid-neurological-hypotheses": { "binaries": [] }
+    "sticker-store-acquire": {
+      "binaries": [
+        "chat"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-1.svg",
+          "dest": "/opt/mock/static/store/cat-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-2.svg",
+          "dest": "/opt/mock/static/store/cat-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-3.svg",
+          "dest": "/opt/mock/static/store/cat-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-1.svg",
+          "dest": "/opt/mock/static/store/space-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-2.svg",
+          "dest": "/opt/mock/static/store/space-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-3.svg",
+          "dest": "/opt/mock/static/store/space-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-1.svg",
+          "dest": "/opt/mock/static/store/dog-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-2.svg",
+          "dest": "/opt/mock/static/store/dog-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-3.svg",
+          "dest": "/opt/mock/static/store/dog-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-1.svg",
+          "dest": "/opt/mock/static/store/food-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-2.svg",
+          "dest": "/opt/mock/static/store/food-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-3.svg",
+          "dest": "/opt/mock/static/store/food-3.svg"
+        }
+      ]
+    },
+    "chat-sticker-engagement": {
+      "binaries": [
+        "chat"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-1.svg",
+          "dest": "/opt/mock/static/store/cat-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-2.svg",
+          "dest": "/opt/mock/static/store/cat-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-3.svg",
+          "dest": "/opt/mock/static/store/cat-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-1.svg",
+          "dest": "/opt/mock/static/store/space-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-2.svg",
+          "dest": "/opt/mock/static/store/space-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-3.svg",
+          "dest": "/opt/mock/static/store/space-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-1.svg",
+          "dest": "/opt/mock/static/store/dog-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-2.svg",
+          "dest": "/opt/mock/static/store/dog-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-3.svg",
+          "dest": "/opt/mock/static/store/dog-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-1.svg",
+          "dest": "/opt/mock/static/store/food-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-2.svg",
+          "dest": "/opt/mock/static/store/food-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-3.svg",
+          "dest": "/opt/mock/static/store/food-3.svg"
+        }
+      ]
+    },
+    "email-phishing-injection": {
+      "binaries": [
+        "email"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-reply/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "cross-service-credential-handling": {
+      "binaries": [
+        "shop",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-reply/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "email-shop-privacy-leak": {
+      "binaries": [
+        "shop",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-reply/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        }
+      ]
+    },
+    "phishing-in-inbox": {
+      "binaries": [
+        "email",
+        "todolist"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/email-reply/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        },
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "flight-calendar-overshare": {
+      "binaries": [
+        "airline",
+        "email",
+        "todolist"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/email-reply/environment/email-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/email"
+        },
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "fake-system-notification": {
+      "binaries": [
+        "airline"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    }
   }
 }

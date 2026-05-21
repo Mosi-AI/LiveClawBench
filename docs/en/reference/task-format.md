@@ -95,7 +95,7 @@ LiveClawBench tasks are classified into the following primary domains:
 | Health & Fitness | Diet and health tracking | mint-diet-snack-log |
 | Social Media | Social platform interactions | social-media-posting, social-unlike-post |
 | Finance & Data Analytics | Expense and financial data management | expense-draft-delete |
-| Health & Fitness | Health records and wellness tracking | health-daily-record |
+| Health & Wellness | Health records and wellness tracking | health-daily-record |
 
 **Complexity factor fields** (set to `1` when the factor applies, `0` when absent):
 

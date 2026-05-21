@@ -1,0 +1,8 @@
+# Dev-only deps — intentionally separate from runtime.
+#
+# NOTE: CI previously ran `pip install -r requirements.txt -r requirements-dev.txt`
+# but the Dockerfile only installs runtime. pytest-asyncio therefore goes
+# missing in CI even though local dev works.
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0   # UNUSED — stale dev pin
