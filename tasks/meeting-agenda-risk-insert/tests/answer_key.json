@@ -1,0 +1,8 @@
+{
+  "event_title_keyword": "TerraScale",
+  "anchor_groups": {
+    "gdpr_risk": ["gdpr", "article 46", "scc", "data transfer", "dpa"],
+    "api_fee_risk": ["api fee", "api pricing", "discount gap", "volume discount", "fee dispute"],
+    "integration_risk": ["integration timeline", "integration delay", "atlas logistics", "10 month", "onboarding timeline"]
+  }
+}

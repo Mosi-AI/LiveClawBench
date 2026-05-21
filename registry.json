@@ -2,7 +2,7 @@
   {
     "name": "liveclawbench",
     "version": "0.1.0",
-    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 69 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
+    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 73 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
     "tasks": [
       {
         "name": "skill-creation",
@@ -279,6 +279,14 @@
       {
         "name": "finance-analysis-generate",
         "path": "tasks/finance-analysis-generate"
+      },
+      {
+        "name": "rumor-verification-email-reply",
+        "path": "tasks/rumor-verification-email-reply"
+      },
+      {
+        "name": "meeting-agenda-risk-insert",
+        "path": "tasks/meeting-agenda-risk-insert"
       }
     ]
   }

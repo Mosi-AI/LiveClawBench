@@ -97,7 +97,7 @@ harbor run -p tasks/watch-shop -a openclaw \
 ### Full Dataset
 
 ```bash
-# Generic form (includes LLM judge credentials for the 7 judge tasks)
+# Generic form (includes LLM judge credentials for the 9 judge tasks)
 harbor run --dataset liveclawbench@0.1.0 -a openclaw \
   -m custom/<YOUR_MODEL_ID> \
   --n-concurrent 4 \
@@ -137,9 +137,10 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
 
-> **LLM-judge tasks** (7 tasks: `conflict-repair-acb`, `incremental-update-ctp`,
+> **LLM-judge tasks** (9 tasks: `conflict-repair-acb`, `incremental-update-ctp`,
 > `live-web-research-sqlite-fts5`, `mixed-tool-memory`, `noise-filtering`,
-> `pre-meeting-research-brief`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
+> `pre-meeting-research-brief`, `vendor-due-diligence-brief`,
+> `rumor-verification-email-reply`, `meeting-agenda-risk-insert`) use `--ee` (not `--ae`)
 > for judge credentials because `llm_judge.py` runs in the verifier phase, outside the OpenClaw
 > agent process. **Missing `--ee` will cause the verifier to fail with
 > `RuntimeError: JUDGE_BASE_URL is not set`.**
@@ -270,6 +271,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `finance-invoice-process` | Finance & Data Analytics | easy | verify.py |
 | `finance-tax-prepare` | Finance & Data Analytics | hard | verify.py |
 | `finance-analysis-generate` | Finance & Data Analytics | hard | verify.py |
+| `rumor-verification-email-reply` | Deep Research & Report | hard | **llm_judge** |
+| `meeting-agenda-risk-insert` | Deep Research & Report | medium | **llm_judge** |
 ## Docker Image Architecture
 
 LiveClawBench uses a three-layer Docker image architecture:
