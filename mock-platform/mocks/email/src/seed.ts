@@ -1079,7 +1079,7 @@ export function seedDatabase(db: Database): void {
     const { lastInsertRowid: peterId } = db.query(
       `INSERT INTO users (username, email, password_hash, created_at)
        VALUES (?, ?, ?, datetime('now'))`
-    ).run("peter", "peter.griffin@email.app", peterHash);
+    ).run("peter", "peter.griffin@work.mosi.inc", peterHash);
     peterRow = { id: Number(peterId) };
   }
   const peterId = peterRow.id;
@@ -1120,7 +1120,7 @@ export function seedDatabase(db: Database): void {
     ).run(
       senderId!,
       peterId,
-      "peter.griffin@email.app",
+      "peter.griffin@work.mosi.inc",
       inboxEmail.subject,
       inboxEmail.body,
       inboxEmail.is_read,

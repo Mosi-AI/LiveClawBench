@@ -164,7 +164,7 @@ describe("Flask golden response contract", () => {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
-        recipient: "peter.griffin@email.app",
+        recipient: "peter.griffin@work.mosi.inc",
         subject: "Draft Subject",
         body: "Draft body content",
         send_now: false,
@@ -180,7 +180,7 @@ describe("Flask golden response contract", () => {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
-        recipient: "peter.griffin@email.app",
+        recipient: "peter.griffin@work.mosi.inc",
         subject: "Draft Subject",
         body: "Draft body content",
         send_now: false,
