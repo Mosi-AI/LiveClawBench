@@ -18,7 +18,11 @@ def api_request(path, method="GET", data=None, cookiejar=None):
     resp = urllib.request.urlopen(req, timeout=10)
     if cookiejar is not None:
         cookiejar.extract_cookies(resp, req)
-    return json.loads(resp.read().decode("utf-8"))
+    payload = json.loads(resp.read().decode("utf-8"))
+    # Unwrap mock-lib ok() envelope if present
+    if isinstance(payload, dict) and payload.get("success") is True and "data" in payload:
+        return payload["data"]
+    return payload
 
 
 def main():
@@ -33,7 +37,7 @@ def main():
         data={"username": "demo", "password": "demo123"},
         cookiejar=cj,
     )
-    if not login_resp.get("success"):
+    if not (login_resp.get("success") or login_resp.get("redirect") == "/workspace"):
         print("Failed to login")
         print("Score: 0.0/1.0")
         sys.exit(1)

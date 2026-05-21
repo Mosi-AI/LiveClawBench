@@ -5,6 +5,13 @@ import { sign } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 
 describe("createWorkspaceApp", () => {
+  function unwrap(body: any): any {
+    if (body && typeof body === "object" && body.success === true && "data" in body) {
+      return body.data;
+    }
+    return body;
+  }
+
   let workspace: ReturnType<typeof createWorkspaceApp>;
   let app: OpenAPIApp;
 
@@ -31,11 +38,11 @@ describe("createWorkspaceApp", () => {
     const res1 = await app.request("/api/notes", {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
-    const body1 = await res1.json();
+    const body1 = unwrap(await res1.json());
     const res2 = await app2.app.request("/api/notes", {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
-    const body2 = await res2.json();
+    const body2 = unwrap(await res2.json());
     expect(body1.length).toBe(7);
     expect(body2.length).toBe(7);
   });
@@ -53,7 +60,7 @@ describe("createWorkspaceApp", () => {
     const notesRes = await app.request("/api/notes?seeded=1", {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
-    const notes = await notesRes.json();
+    const notes = unwrap(await notesRes.json());
     expect(notes.length).toBe(7);
 
     // Verify note_revision table has 5 initial revisions
@@ -61,7 +68,7 @@ describe("createWorkspaceApp", () => {
       const revRes = await app.request(`/api/notes/${id}/revisions`, {
         headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
       });
-      const revs = await revRes.json();
+      const revs = unwrap(await revRes.json());
       expect(revs.length).toBe(1);
     }
 
@@ -74,7 +81,7 @@ describe("createWorkspaceApp", () => {
     const res = await app.request("/api/notes?seeded=1", {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.length).toBe(7);
   });
 
@@ -83,7 +90,7 @@ describe("createWorkspaceApp", () => {
     const res = await fresh.app.request("/api/notes", {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.length).toBe(0);
   });
 
@@ -104,7 +111,7 @@ describe("createWorkspaceApp", () => {
     const res = await app.request("/api/notes?seeded=1", {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.map((n: any) => n.id)).toEqual([1, 2, 3, 4, 5, 6, 7]);
   });
 
@@ -113,7 +120,7 @@ describe("createWorkspaceApp", () => {
       const res = await app.request(`/api/notes/${id}/revisions`, {
         headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
       });
-      const body = await res.json();
+      const body = unwrap(await res.json());
       expect(body.length).toBe(1);
       expect(body[0].revision_no).toBe(1);
       expect(body[0].edited_by_user_id).toBe(1);
@@ -131,8 +138,7 @@ describe("createWorkspaceApp", () => {
       body: JSON.stringify({ username: "demo", password: "demo123" }),
     });
     expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.success).toBe(true);
+    const body = unwrap(await res.json());
     expect(body.redirect).toBe("/workspace");
     const setCookieHeader = res.headers.get("set-cookie");
     expect(setCookieHeader).toContain("token=");
@@ -148,7 +154,7 @@ describe("createWorkspaceApp", () => {
       body: JSON.stringify({ username: "demo", password: "wrong" }),
     });
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.message).toBe("Invalid username or password");
   });
 
@@ -192,7 +198,7 @@ describe("createWorkspaceApp", () => {
   test("API without token returns 401", async () => {
     const res = await app.request("/api/notes");
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.message).toBe("Authentication required");
   });
 
@@ -201,7 +207,7 @@ describe("createWorkspaceApp", () => {
       headers: { Authorization: "Bearer invalid" },
     });
     expect(res.status).toBe(401);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.message).toBe("Invalid or expired token");
   });
 
@@ -221,7 +227,7 @@ describe("createWorkspaceApp", () => {
       body: "username=demo&password=demo123",
     });
     expect(res.status).toBe(415);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.message).toBe("Content-Type must be application/json");
   });
 
@@ -240,7 +246,7 @@ describe("createWorkspaceApp", () => {
       body: JSON.stringify({ title: "Test Note", content: "Hello world", content_type: "plain_text" }),
     });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.title).toBe("Test Note");
     expect(body.content).toBe("Hello world");
     expect(body.save_count).toBe(0);
@@ -250,7 +256,7 @@ describe("createWorkspaceApp", () => {
   test("GET /api/notes returns all notes", async () => {
     const res = await app.request("/api/notes", { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.length).toBe(7);
   });
 
@@ -261,7 +267,7 @@ describe("createWorkspaceApp", () => {
       body: JSON.stringify({ title: "New", content: "X", content_type: "plain_text" }),
     });
     const res = await app.request("/api/notes?seeded=1", { headers: await authHeaders() });
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.length).toBe(7);
     expect(body.every((n: any) => n.is_seeded === 1)).toBe(true);
   });
@@ -269,7 +275,7 @@ describe("createWorkspaceApp", () => {
   test("GET /api/notes/:id returns note detail", async () => {
     const res = await app.request("/api/notes/1", { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.id).toBe(1);
     expect(body.title).toBe("Project Kickoff Meeting Notes");
   });
@@ -277,7 +283,7 @@ describe("createWorkspaceApp", () => {
   test("GET /api/notes/:id includes latest_revision metadata after seed", async () => {
     const res = await app.request("/api/notes/1", { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.latest_revision).not.toBeNull();
     expect(body.latest_revision.note_id).toBe(1);
     expect(body.latest_revision.revision_no).toBe(1);
@@ -294,7 +300,7 @@ describe("createWorkspaceApp", () => {
     });
     const res = await app.request("/api/notes/1", { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.latest_revision).not.toBeNull();
     expect(body.latest_revision.note_id).toBe(1);
     expect(body.latest_revision.revision_no).toBe(2);
@@ -308,10 +314,10 @@ describe("createWorkspaceApp", () => {
       headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ title: "Fresh", content: "Content", content_type: "plain_text" }),
     });
-    const note = await createRes.json();
+    const note = unwrap(await createRes.json());
     const res = await app.request(`/api/notes/${note.id}`, { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.latest_revision).toBeNull();
   });
 
@@ -322,11 +328,10 @@ describe("createWorkspaceApp", () => {
       body: JSON.stringify({ title: "Updated", content: "New content", content_type: "plain_text" }),
     });
     expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.success).toBe(true);
+    const body = unwrap(await res.json());
 
     const getRes = await app.request("/api/notes/1", { headers: await authHeaders() });
-    const note = await getRes.json();
+    const note = unwrap(await getRes.json());
     expect(note.title).toBe("Updated");
     expect(note.save_count).toBe(1);
   });
@@ -410,7 +415,7 @@ describe("createWorkspaceApp", () => {
       body: JSON.stringify({ title: "Brief Editor Test", content: "B body", content_type: "brief" }),
     });
     expect(createRes.status).toBe(200);
-    const note = await createRes.json();
+    const note = unwrap(await createRes.json());
 
     const res = await app.request(`/note/${note.id}`, {
       headers: { Authorization: "Bearer " + token },
@@ -464,11 +469,11 @@ describe("createWorkspaceApp", () => {
       headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ title: "Rev Test", content: "Initial", content_type: "plain_text" }),
     });
-    const note = await createRes.json();
+    const note = unwrap(await createRes.json());
     expect(note.save_count).toBe(0);
 
     const revRes = await app.request(`/api/notes/${note.id}/revisions`, { headers: await authHeaders() });
-    const revs = await revRes.json();
+    const revs = unwrap(await revRes.json());
     expect(revs.length).toBe(0);
   });
 
@@ -478,7 +483,7 @@ describe("createWorkspaceApp", () => {
       headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ title: "Rev Test", content: "Initial", content_type: "plain_text" }),
     });
-    const note = await createRes.json();
+    const note = unwrap(await createRes.json());
 
     await app.request(`/api/notes/${note.id}`, {
       method: "PUT",
@@ -487,11 +492,11 @@ describe("createWorkspaceApp", () => {
     });
 
     const getRes = await app.request(`/api/notes/${note.id}`, { headers: await authHeaders() });
-    const updated = await getRes.json();
+    const updated = unwrap(await getRes.json());
     expect(updated.save_count).toBe(1);
 
     const revRes = await app.request(`/api/notes/${note.id}/revisions`, { headers: await authHeaders() });
-    const revs = await revRes.json();
+    const revs = unwrap(await revRes.json());
     expect(revs.length).toBe(1);
     expect(revs[0].revision_no).toBe(1);
     expect(revs[0].content_snapshot).toBe("Updated");
@@ -503,7 +508,7 @@ describe("createWorkspaceApp", () => {
       headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ title: "Rev Test", content: "Initial", content_type: "plain_text" }),
     });
-    const note = await createRes.json();
+    const note = unwrap(await createRes.json());
 
     await app.request(`/api/notes/${note.id}`, {
       method: "PUT",
@@ -517,7 +522,7 @@ describe("createWorkspaceApp", () => {
     });
 
     const revRes = await app.request(`/api/notes/${note.id}/revisions`, { headers: await authHeaders() });
-    const revs = await revRes.json();
+    const revs = unwrap(await revRes.json());
     expect(revs.length).toBe(2);
     expect(revs[0].revision_no).toBe(1);
     expect(revs[1].revision_no).toBe(2);
@@ -655,7 +660,7 @@ describe("createWorkspaceApp", () => {
 
   test("preview text is generated from first 4 non-empty lines", async () => {
     const res = await app.request("/api/notes/1", { headers: await authHeaders() });
-    const note = await res.json();
+    const note = unwrap(await res.json());
     expect(note.preview_text.length).toBeGreaterThan(0);
     expect(note.preview_text.length).toBeLessThanOrEqual(300);
   });
@@ -666,7 +671,7 @@ describe("createWorkspaceApp", () => {
       headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ title: "Brief Note", content: "Line 1\nLine 2\nLine 3\nLine 4\nLine 5", content_type: "brief" }),
     });
-    const note = await res.json();
+    const note = unwrap(await res.json());
     expect(note.content_type).toBe("brief");
     // No brief_entry row exists, so it falls back to plain-text preview generation
     expect(note.preview_text).toContain("Line 1");
@@ -681,7 +686,7 @@ describe("createWorkspaceApp", () => {
   test("GET /__mock_sentinel__/workspace returns { ok: true }", async () => {
     const res = await app.request("/__mock_sentinel__/workspace");
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body).toEqual({ ok: true });
   });
 
@@ -702,8 +707,8 @@ describe("createWorkspaceApp", () => {
       headers: { Authorization: "Bearer " + (await sign({ userId: 1 })) },
     });
 
-    const notes1 = await res1.json();
-    const notes2 = await res2.json();
+    const notes1 = unwrap(await res1.json());
+    const notes2 = unwrap(await res2.json());
 
     expect(notes1.length).toBe(7);
     expect(notes1.length).toBe(notes2.length);
@@ -722,7 +727,7 @@ describe("createWorkspaceApp", () => {
   test("GET /api/notes/4/brief returns seeded brief with parsed arrays", async () => {
     const res = await app.request("/api/notes/4/brief", { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.id).toBe(1);
     expect(body.note_id).toBe(4);
     expect(body.key_updates).toBe("1. Launch mobile app v2. 2. Expand to EU market.");
@@ -762,7 +767,7 @@ describe("createWorkspaceApp", () => {
       }),
     });
     expect(res1.status).toBe(200);
-    const body1 = await res1.json();
+    const body1 = unwrap(await res1.json());
     expect(body1.id).toBe(1);
     expect(body1.key_updates).toBe("Updated key");
 
@@ -777,7 +782,7 @@ describe("createWorkspaceApp", () => {
         status: "final",
       }),
     });
-    const body2 = await res2.json();
+    const body2 = unwrap(await res2.json());
     expect(body2.id).toBe(1);
     expect(body2.key_updates).toBe("Updated again");
     expect(new Date(body2.updated_at).getTime()).toBeGreaterThanOrEqual(new Date(body1.updated_at).getTime());
@@ -826,7 +831,7 @@ describe("createWorkspaceApp", () => {
       headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ title: "Brief Recompute", content: "Some plain content", content_type: "brief" }),
     });
-    const note = await createRes.json();
+    const note = unwrap(await createRes.json());
     expect(note.preview_text).toContain("Some plain");
 
     await app.request(`/api/notes/${note.id}/brief`, {
@@ -841,13 +846,13 @@ describe("createWorkspaceApp", () => {
     });
 
     const getRes = await app.request(`/api/notes/${note.id}`, { headers: await authHeaders() });
-    const updated = await getRes.json();
+    const updated = unwrap(await getRes.json());
     expect(updated.preview_text).toBe("Switched to brief preview");
   });
 
   test("PUT /brief does not create note_revision", async () => {
     const revResBefore = await app.request("/api/notes/4/revisions", { headers: await authHeaders() });
-    const revsBefore = await revResBefore.json();
+    const revsBefore = unwrap(await revResBefore.json());
     const countBefore = revsBefore.length;
 
     await app.request("/api/notes/4/brief", {
@@ -862,7 +867,7 @@ describe("createWorkspaceApp", () => {
     });
 
     const revResAfter = await app.request("/api/notes/4/revisions", { headers: await authHeaders() });
-    const revsAfter = await revResAfter.json();
+    const revsAfter = unwrap(await revResAfter.json());
     expect(revsAfter.length).toBe(countBefore);
   });
 
@@ -873,14 +878,14 @@ describe("createWorkspaceApp", () => {
   test("GET /api/notes/5/task-record returns null after seed removal", async () => {
     const res = await app.request("/api/notes/5/task-record", { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body).toBeNull();
   });
 
   test("GET /api/notes/2/task-record returns null for valid note without record", async () => {
     const res = await app.request("/api/notes/2/task-record", { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body).toBeNull();
   });
 
@@ -901,7 +906,7 @@ describe("createWorkspaceApp", () => {
       }),
     });
     expect(res1.status).toBe(200);
-    const body1 = await res1.json();
+    const body1 = unwrap(await res1.json());
     expect(body1.id).toBe(1);
     expect(body1.summary_text).toBe("Updated summary");
 
@@ -915,7 +920,7 @@ describe("createWorkspaceApp", () => {
         status: "in_progress",
       }),
     });
-    const body2 = await res2.json();
+    const body2 = unwrap(await res2.json());
     expect(body2.id).toBe(1);
     expect(body2.summary_text).toBe("Updated again");
     expect(new Date(body2.updated_at).getTime()).toBeGreaterThanOrEqual(new Date(body1.updated_at).getTime());
@@ -1041,7 +1046,7 @@ describe("createWorkspaceApp", () => {
       headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
       body: JSON.stringify({ title: "Orphan Brief", content: "X", content_type: "brief" }),
     });
-    const note = await createRes.json();
+    const note = unwrap(await createRes.json());
 
     const res = await app.request(`/note/${note.id}/preview`, {
       headers: { Authorization: "Bearer " + token },
@@ -1073,7 +1078,7 @@ describe("createWorkspaceApp", () => {
 
   test("PUT /brief on plain_text note leaves preview_text untouched", async () => {
     const getRes = await app.request("/api/notes/1", { headers: await authHeaders() });
-    const before = await getRes.json();
+    const before = unwrap(await getRes.json());
     const originalPreview = before.preview_text;
 
     await app.request("/api/notes/1/brief", {
@@ -1088,7 +1093,7 @@ describe("createWorkspaceApp", () => {
     });
 
     const afterRes = await app.request("/api/notes/1", { headers: await authHeaders() });
-    const after = await afterRes.json();
+    const after = unwrap(await afterRes.json());
     expect(after.preview_text).toBe(originalPreview);
   });
 
@@ -1099,7 +1104,7 @@ describe("createWorkspaceApp", () => {
   test("seeded note 4 has content_type brief and is_seeded=1", async () => {
     const res = await app.request("/api/notes/4", { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.content_type).toBe("brief");
     expect(body.is_seeded).toBe(1);
   });
@@ -1107,14 +1112,14 @@ describe("createWorkspaceApp", () => {
   test("seeded note 4 preview_text uses rule-1 from brief_entry", async () => {
     const res = await app.request("/api/notes/4", { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.preview_text).toBe("1. Launch mobile app v2. 2. Expand to EU market.");
   });
 
   test("seeded note 4 revision snapshot matches flattened brief content", async () => {
     const res = await app.request("/api/notes/4/revisions", { headers: await authHeaders() });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.length).toBe(1);
     expect(body[0].revision_no).toBe(1);
     expect(body[0].content_snapshot).toContain("Key Updates:");
@@ -1123,7 +1128,7 @@ describe("createWorkspaceApp", () => {
 
   test("PUT /api/notes/4 with content creates revision while PUT /brief does not", async () => {
     const revResBefore = await app.request("/api/notes/4/revisions", { headers: await authHeaders() });
-    const revsBefore = await revResBefore.json();
+    const revsBefore = unwrap(await revResBefore.json());
     const countBefore = revsBefore.length;
 
     await app.request("/api/notes/4", {
@@ -1133,7 +1138,7 @@ describe("createWorkspaceApp", () => {
     });
 
     const revResAfter = await app.request("/api/notes/4/revisions", { headers: await authHeaders() });
-    const revsAfter = await revResAfter.json();
+    const revsAfter = unwrap(await revResAfter.json());
     expect(revsAfter.length).toBe(countBefore + 1);
     expect(revsAfter[revsAfter.length - 1].content_snapshot).toBe("something");
   });
@@ -1199,7 +1204,7 @@ describe("createWorkspaceApp", () => {
       }),
     });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.key_updates).toBe("All blank rows were pruned client-side");
     expect(body.evidence_bullets).toEqual([]);
     expect(body.action_items).toEqual([]);
@@ -1220,7 +1225,7 @@ describe("createWorkspaceApp", () => {
       }),
     });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     expect(body.evidence_bullets[0].text).toBe("   ");
     expect(body.action_items[0].text).toBe("  ");
     expect(body.citations[0].title).toBe(" \t");
@@ -1238,7 +1243,7 @@ describe("createWorkspaceApp", () => {
       body: JSON.stringify({ title: "Private", content: "Secret", content_type: "plain_text" }),
     });
     expect(createRes.status).toBe(200);
-    const note = await createRes.json();
+    const note = unwrap(await createRes.json());
 
     // User B (userId=2) attempts to access it
     const userBHeaders = { Authorization: "Bearer " + (await sign({ userId: 2 })) };
@@ -1268,7 +1273,7 @@ describe("createWorkspaceApp", () => {
       body: JSON.stringify({ title: "Brief Private", content: "B", content_type: "brief" }),
     });
     expect(createRes.status).toBe(200);
-    const note = await createRes.json();
+    const note = unwrap(await createRes.json());
 
     const userBHeaders = { Authorization: "Bearer " + (await sign({ userId: 2 })) };
 
@@ -1297,7 +1302,7 @@ describe("createWorkspaceApp", () => {
     const userBHeaders = { Authorization: "Bearer " + (await sign({ userId: 2 })) };
     const res = await app.request("/api/notes", { headers: userBHeaders });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = unwrap(await res.json());
     // User B has no notes; all seeded notes belong to user 1
     expect(body.length).toBe(0);
   });

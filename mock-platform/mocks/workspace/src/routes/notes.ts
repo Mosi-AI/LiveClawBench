@@ -1,5 +1,5 @@
 import type { OpenAPIApp } from "mock-lib";
-import { createRoute, err } from "mock-lib";
+import { createRoute, err, ok } from "mock-lib";
 import { z } from "zod";
 import type { Database } from "bun:sqlite";
 import { createNote, getNoteById, getNoteByIdOwned, updateNote, deleteNote, listNotes, getLatestRevision } from "../data/store.js";
@@ -40,7 +40,7 @@ export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
     const seededParam = c.req.query("seeded");
     const seededOnly = seededParam === "1";
     const notes = listNotes(db, userId, seededOnly);
-    return c.json(notes, 200);
+    return c.json(ok(notes), 200);
   });
 
   const createRouteDef = createRoute({
@@ -80,7 +80,7 @@ export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
     const userId = c.get("userId") as number;
     const body = c.req.valid("json");
     const note = createNote(db, userId, body.title, body.content, body.content_type);
-    return c.json(note, 200);
+    return c.json(ok(note), 200);
   });
 
   const getRoute = createRoute({
@@ -116,7 +116,7 @@ export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
     const note = getNoteByIdOwned(db, id, userId);
     if (!note) return c.json(err("Note not found"), 404);
     const latestRevision = getLatestRevision(db, id);
-    return c.json({ ...note, latest_revision: latestRevision }, 200);
+    return c.json(ok({ ...note, latest_revision: latestRevision }), 200);
   });
 
   const updateRouteDef = createRoute({
@@ -161,7 +161,7 @@ export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
     const body = c.req.valid("json");
     const updated = updateNote(db, id, body.title, body.content, body.content_type, userId);
     if (!updated) return c.json(err("Note not found"), 404);
-    return c.json({ success: true }, 200);
+    return c.json(ok({}), 200);
   });
 
   const deleteRoute = createRoute({
@@ -198,6 +198,6 @@ export function registerNoteRoutes(app: OpenAPIApp, db: Database): void {
     if (!note) return c.json(err("Note not found"), 404);
     const deleted = deleteNote(db, id);
     if (!deleted) return c.json(err("Note not found"), 404);
-    return c.json({ success: true }, 200);
+    return c.json(ok({}), 200);
   });
 }

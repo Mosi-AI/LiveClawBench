@@ -1,5 +1,5 @@
 import type { OpenAPIApp } from "mock-lib";
-import { createRoute, err } from "mock-lib";
+import { createRoute, err, ok } from "mock-lib";
 import { z } from "zod";
 import type { Database } from "bun:sqlite";
 import { getNoteByIdOwned, getTaskRecord, upsertTaskRecord } from "../data/store.js";
@@ -39,7 +39,7 @@ export function registerTaskRecordRoutes(app: OpenAPIApp, db: Database): void {
     const note = getNoteByIdOwned(db, id, userId);
     if (!note) return c.json(err("Note not found"), 404);
     const record = getTaskRecord(db, id);
-    return c.json(record, 200);
+    return c.json(ok(record), 200);
   });
 
   const putRoute = createRoute({
@@ -92,6 +92,6 @@ export function registerTaskRecordRoutes(app: OpenAPIApp, db: Database): void {
       body.summary_text ?? existing?.summary_text ?? "",
       body.status ?? existing?.status ?? "open",
     );
-    return c.json(record, 200);
+    return c.json(ok(record), 200);
   });
 }

@@ -1,5 +1,5 @@
 import type { OpenAPIApp } from "mock-lib";
-import { createRoute, tokenCookieOptions, sign, err } from "mock-lib";
+import { createRoute, tokenCookieOptions, sign, err, ok } from "mock-lib";
 import { z } from "zod";
 import { setCookie, deleteCookie } from "hono/cookie";
 import type { Database } from "bun:sqlite";
@@ -57,7 +57,7 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
     const jwt = await sign({ userId: user.id });
     setCookie(c, "token", jwt, { ...tokenCookieOptions(), secure: false });
 
-    return c.json({ success: true, redirect: "/workspace" }, 200);
+    return c.json(ok({ redirect: "/workspace" }), 200);
   });
 
   // Logout is a public route — registered directly on hono to avoid

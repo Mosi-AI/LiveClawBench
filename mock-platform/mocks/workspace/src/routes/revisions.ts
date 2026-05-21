@@ -1,5 +1,5 @@
 import type { OpenAPIApp } from "mock-lib";
-import { createRoute, err } from "mock-lib";
+import { createRoute, err, ok } from "mock-lib";
 import { z } from "zod";
 import type { Database } from "bun:sqlite";
 import { getNoteByIdOwned, listRevisions } from "../data/store.js";
@@ -39,6 +39,6 @@ export function registerRevisionRoutes(app: OpenAPIApp, db: Database): void {
     const note = getNoteByIdOwned(db, id, userId);
     if (!note) return c.json(err("Note not found"), 404);
     const revisions = listRevisions(db, id);
-    return c.json(revisions, 200);
+    return c.json(ok(revisions), 200);
   });
 }

@@ -1,5 +1,5 @@
 import type { OpenAPIApp } from "mock-lib";
-import { createRoute, err } from "mock-lib";
+import { createRoute, err, ok } from "mock-lib";
 import { z } from "zod";
 import type { Database } from "bun:sqlite";
 import { getNoteByIdOwned, getBriefEntry, upsertBriefEntry, recomputeNotePreviewFromBrief } from "../data/store.js";
@@ -40,7 +40,7 @@ export function registerBriefRoutes(app: OpenAPIApp, db: Database): void {
     if (!note) return c.json(err("Note not found"), 404);
     const brief = getBriefEntry(db, id);
     if (!brief) return c.json(err("Brief not found"), 404);
-    return c.json(brief, 200);
+    return c.json(ok(brief), 200);
   });
 
   const putRoute = createRoute({
@@ -93,6 +93,6 @@ export function registerBriefRoutes(app: OpenAPIApp, db: Database): void {
       body.status,
     );
     recomputeNotePreviewFromBrief(db, id);
-    return c.json(brief, 200);
+    return c.json(ok(brief), 200);
   });
 }

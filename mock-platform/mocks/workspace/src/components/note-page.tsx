@@ -240,7 +240,8 @@ export function NotePage({ note, briefEntry }: NotePageProps) {
                   body: JSON.stringify({ title: title, content: '', content_type: 'brief' })
                 });
                 if (!res.ok) throw new Error('POST note failed');
-                var data = await res.json();
+                var payload = await res.json();
+                var data = payload.data || payload;
                 noteId = data.id;
               } else {
                 noteId = idMatch[1];
@@ -280,7 +281,8 @@ export function NotePage({ note, briefEntry }: NotePageProps) {
                   body: JSON.stringify({ title: title, content: content, content_type: content_type })
                 });
                 if (res.ok) {
-                  var data = await res.json();
+                  var payload = await res.json();
+                  var data = payload.data || payload;
                   window.location = '/note/' + data.id;
                 }
               } else {

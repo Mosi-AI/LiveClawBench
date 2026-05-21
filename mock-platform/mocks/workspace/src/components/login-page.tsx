@@ -49,7 +49,8 @@ export function LoginPage() {
                 body: JSON.stringify({ username, password })
               });
               if (res.ok) {
-                const data = await res.json();
+                const payload = await res.json();
+                const data = payload.data || payload;
                 window.location = data.redirect;
               } else {
                 document.getElementById('error').style.display = 'block';

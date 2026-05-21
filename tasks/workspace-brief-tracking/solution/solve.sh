@@ -12,7 +12,7 @@ curl -s -c "$COOKIE_JAR" -X POST http://localhost:5009/api/auth/login \
 note_resp=$(curl -s -b "$COOKIE_JAR" -X POST http://localhost:5009/api/notes \
   -H "Content-Type: application/json" \
   -d '{"title":"Sprint 24 Retrospective","content":"Sprint 24 retrospective summary","content_type":"brief"}')
-note_id=$(echo "$note_resp" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+note_id=$(echo "$note_resp" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',d)['id'])")
 
 # 3. Populate brief
 curl -s -b "$COOKIE_JAR" -X PUT "http://localhost:5009/api/notes/${note_id}/brief" \
