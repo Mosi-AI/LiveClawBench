@@ -514,8 +514,14 @@ async function main() {
     }
   }
 
-  // Build compatibility gate: exit 0 even if some mocks failed
-  // (individual failures are reported but don't block the pipeline)
+  // Frontend build failures are fatal — downstream image builds depend on
+  // the frontend assets existing in dist/. A failed frontend build would
+  // produce a confusing error only at image-build time.
+  if (feFailed.length > 0) {
+    console.error("\nFrontend build failures are fatal. Fix them before running build:images.");
+    process.exit(1);
+  }
+
   console.log("\nBuild pipeline complete.");
 }
 

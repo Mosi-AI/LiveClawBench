@@ -27,6 +27,27 @@ const ENTRYPOINT_SRC = join(import.meta.dir, "..", "..", "shared", "entrypoint.s
 const BASE_IMAGE = "liveclawbench-base:latest";
 
 /**
+ * Return the most recent mtime (ms) among all files in a directory tree,
+ * or 0 if the directory doesn't exist or is empty.
+ */
+function newestMtime(dir: string): number {
+  if (!existsSync(dir)) return 0;
+  let latest = 0;
+  try {
+    const entries = readdirSync(dir, { withFileTypes: true, recursive: true });
+    for (const entry of entries) {
+      if (entry.isFile()) {
+        try {
+          const mtime = statSync(join(entry.parentPath, entry.name)).mtimeMs;
+          if (mtime > latest) latest = mtime;
+        } catch { /* skip unreadable files */ }
+      }
+    }
+  } catch { /* skip unreadable dirs */ }
+  return latest;
+}
+
+/**
  * Canonical port assignment per binary.
  * These match the existing Python/Flask mock service ports so that
  * task instruction.md prompts and verification scripts continue to work
@@ -1028,6 +1049,18 @@ async function buildTaskImage(
         binariesIncluded: binaries,
         error: "Pre-built email frontend not found in dist/frontend-email/. Run `bun run build` in mock-platform/ first.",
       };
+    }
+    // Staleness guard: warn if source is newer than the built output.
+    const emailFrontendSrc = join(import.meta.dir, "..", "mocks", "email", "frontend");
+    if (existsSync(emailFrontendSrc)) {
+      const srcMtime = newestMtime(emailFrontendSrc);
+      const distMtime = newestMtime(emailFrontendDir);
+      if (srcMtime > 0 && distMtime > 0 && srcMtime > distMtime) {
+        console.warn(
+          `  WARNING: ${task} — email frontend source is newer than dist/frontend-email/. ` +
+          `Run \`bun run build\` in mock-platform/ to rebuild.`,
+        );
+      }
     }
     frontendBuildDirs.push({ buildDir: emailFrontendDir, dest: "/opt/mock/frontend/email" });
   }
