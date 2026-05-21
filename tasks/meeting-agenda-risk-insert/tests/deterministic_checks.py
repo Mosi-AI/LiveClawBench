@@ -44,7 +44,11 @@ def structural_scores(event: dict | None) -> dict[str, float]:
     if not event:
         return {"description_updated": 0.0}
     desc = (event.get("description") or "").strip()
-    updated = bool(desc) and desc != ORIGINAL_DESCRIPTION and len(desc) > len(ORIGINAL_DESCRIPTION)
+    updated = (
+        bool(desc)
+        and desc != ORIGINAL_DESCRIPTION
+        and len(desc) > len(ORIGINAL_DESCRIPTION)
+    )
     return {"description_updated": 1.0 if updated else 0.0}
 
 
@@ -57,7 +61,6 @@ def anchor_scores(event: dict | None, key: dict) -> dict[str, float]:
     if not groups:
         return {"anchor_coverage": 0.0}
     hit_count = sum(
-        1 for terms in groups.values()
-        if any(t.lower() in desc_lower for t in terms)
+        1 for terms in groups.values() if any(t.lower() in desc_lower for t in terms)
     )
     return {"anchor_coverage": round(hit_count / len(groups), 4)}

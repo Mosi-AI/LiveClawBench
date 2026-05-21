@@ -245,10 +245,14 @@ def build_prompt(event: dict | None, structural: dict) -> str:
                 text = read_text(f).strip()
                 corpus_sections.append(f"### {f.name}\n{text or '(empty)'}")
 
-    event_text = "(Calendar event not found or description not updated)" if not event else (
-        f"Title: {event.get('title', '')}\n"
-        f"Start: {event.get('start_time', '')}\n"
-        f"Updated Description:\n{event.get('description', '')}"
+    event_text = (
+        "(Calendar event not found or description not updated)"
+        if not event
+        else (
+            f"Title: {event.get('title', '')}\n"
+            f"Start: {event.get('start_time', '')}\n"
+            f"Updated Description:\n{event.get('description', '')}"
+        )
     )
 
     prompt_parts = [

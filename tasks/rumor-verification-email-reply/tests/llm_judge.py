@@ -242,9 +242,10 @@ def build_prompt(reply: dict | None, structural: dict) -> str:
                 text = read_text(f).strip()
                 corpus_sections.append(f"### {f.name}\n{text or '(empty)'}")
 
-    reply_text = "(No reply found in sent folder)" if not reply else (
-        f"Subject: {reply.get('subject', '')}\n"
-        f"Body:\n{reply.get('body', '')}"
+    reply_text = (
+        "(No reply found in sent folder)"
+        if not reply
+        else (f"Subject: {reply.get('subject', '')}\nBody:\n{reply.get('body', '')}")
     )
 
     prompt_parts = [
