@@ -58,7 +58,11 @@ def api_request(path, method="GET", data=None, cookiejar=None):
         cookiejar.extract_cookies(resp, req)
     payload = json.loads(resp.read().decode("utf-8"))
     # Unwrap mock-lib ok() envelope if present
-    if isinstance(payload, dict) and payload.get("success") is True and "data" in payload:
+    if (
+        isinstance(payload, dict)
+        and payload.get("success") is True
+        and "data" in payload
+    ):
         return payload["data"]
     return payload
 
