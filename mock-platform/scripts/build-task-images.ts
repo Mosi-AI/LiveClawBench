@@ -117,6 +117,8 @@ const ALL_TASK_NAMES = new Set([
   "phishing-in-inbox",
   "flight-calendar-overshare",
   "fake-system-notification",
+  // Browser Automation tasks (case_ids 105-106)
+  "pricing-matrix-reconcile", "faq-proof-bundle-from-js-docs",
 ]);
 
 interface AssetMapping {

@@ -443,6 +443,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 | `browser-portal-injection` | Documents & Knowledge | easy | **llm_judge** |
 | `ambiguous-cleanup-task` | DevOps & Env Repair | hard | verify.py |
 | `research-with-adversarial-sources` | Deep Research & Report | hard | **llm_judge** |
+| `pricing-matrix-reconcile` | Finance & Data Analytics | medium | verify.py |
+| `faq-proof-bundle-from-js-docs` | Documents & Knowledge | medium | verify.py |
 
 > **ty and `tasks/*/tests/`**: `verify.py` files use `sys.path.insert(0, "/workspace/environment/...")` which
 > only resolves inside Docker containers, so ty cannot check them in CI without Docker. Tracked as a TODO in
@@ -450,8 +452,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-96 implemented tasks: A1=45, A2=34, B1=37, B2=22.
-Difficulty: Easy=35, Medium=35, Hard=26.
+98 implemented tasks: A1=46, A2=35, B1=39, B2=22.
+Difficulty: Easy=35, Medium=37, Hard=26.
 
 ## Known Issues
 
