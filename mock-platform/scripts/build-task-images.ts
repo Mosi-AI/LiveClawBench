@@ -110,6 +110,7 @@ const ALL_TASK_NAMES = new Set([
   "medication-prescription-sync", "health-appointment-scheduling",
   "content-calendar-cross-publish",
   "sticker-store-acquire", "chat-sticker-engagement",
+  "workspace-task-record-batch", "workspace-brief-tracking",
 ]);
 
 interface AssetMapping {

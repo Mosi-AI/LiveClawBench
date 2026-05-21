@@ -53,7 +53,7 @@ def api_request(path, method="GET", data=None, cookiejar=None):
         req.data = json.dumps(data).encode("utf-8")
     if cookiejar is not None:
         cookiejar.add_cookie_header(req)
-    resp = urllib.request.urlopen(req)
+    resp = urllib.request.urlopen(req, timeout=10)
     if cookiejar is not None:
         cookiejar.extract_cookies(resp, req)
     return json.loads(resp.read().decode("utf-8"))

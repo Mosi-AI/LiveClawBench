@@ -18,7 +18,7 @@ note_id=$(echo "$note_resp" | python3 -c "import sys,json; print(json.load(sys.s
 curl -s -b "$COOKIE_JAR" -X PUT "http://localhost:5003/api/notes/${note_id}/brief" \
   -H "Content-Type: application/json" \
   -d '{
-    "key_updates": "Backend API v2 migration completed ahead of schedule. Frontend LCP improved from 2.8s to 1.4s.",
+    "key_updates": "Backend API v2 migration completed ahead of schedule. LCP dropped from 2.8s to 1.4s. Lazy-loading refactor also delivered.",
     "evidence_bullets": [{"text": "Load-test report shows 99th-percentile latency under 120ms.", "source": "document"}],
     "action_items": [
       {"text": "Update component library documentation", "status": "todo"},

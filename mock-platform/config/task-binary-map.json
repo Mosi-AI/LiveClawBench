@@ -17,7 +17,8 @@
     "expense",
     "health",
     "finance",
-    "smarthome"
+    "smarthome",
+    "workspace"
   ],
   "tasks": {
     "weather-aqi-report": {
@@ -806,6 +807,12 @@
         { "src": "mock-platform/mocks/chat/static/store/food-2.svg", "dest": "/opt/mock/static/store/food-2.svg" },
         { "src": "mock-platform/mocks/chat/static/store/food-3.svg", "dest": "/opt/mock/static/store/food-3.svg" }
       ]
+    },
+    "workspace-task-record-batch": {
+      "binaries": ["workspace"]
+    },
+    "workspace-brief-tracking": {
+      "binaries": ["workspace"]
     }
   }
 }
