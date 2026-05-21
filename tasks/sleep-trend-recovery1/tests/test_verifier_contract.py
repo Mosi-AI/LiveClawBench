@@ -202,12 +202,13 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             "scheduled", verify.derive_coffee_status("2026-05-10", "07:00", clock)
         )
 
-    def test_response_scoring_requires_sleep_metrics_abnormal_hr_and_coffee_followup(
+    def test_response_scoring_requires_sleep_metrics_recovery_rationale_hr_and_coffee_followup(
         self,
     ):
         complete = (
             "Sleep duration was 6.5 hrs, Sleep Quality was 62%, Light Sleep was 4.09h, "
-            "Deep Sleep was 1.11h, and REM Sleep was 1.3h. Resting HR was 110 bpm, "
+            "Deep Sleep was 1.11h, and REM Sleep was 1.3h, which indicates poor recovery because sleep quality is low "
+            "and the sleep-stage balance is not restorative enough. Resting HR was 110 bpm, "
             "which is notably elevated and concerning for recovery. I set the thermostat "
             "to comfort at 76°F, changed the HIIT workout to swimming, and delayed coffee "
             "to 07:30. The coffee page showed READY before the edit, so this schedule change "
@@ -219,6 +220,57 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
         self.assertTrue(flags["hr_abnormal"])
         self.assertTrue(flags["coffee_ready_followup"])
         self.assertEqual({}, details)
+
+        no_rationale = (
+            "Sleep duration was 6.5 hrs, Sleep Quality was 62%, Light Sleep was 4.09h, "
+            "Deep Sleep was 1.11h, and REM Sleep was 1.3h. Resting HR was 110 bpm and elevated. "
+            "I set the thermostat to comfort at 76°F, changed the HIIT workout to swimming, "
+            "and delayed coffee to 07:30. The coffee page showed READY before the edit, so this schedule change "
+            "cannot affect coffee already brewed today. Would you like me to change tomorrow's coffee time instead?"
+        )
+        score, flags, details = verify.score_response(no_rationale)
+        self.assertLess(score, 0.4)
+        self.assertFalse(flags["recovery_rationale"])
+        self.assertIn("recovery_rationale", details)
+
+        no_schedule_change = (
+            "Sleep duration was 6.5 hrs, Sleep Quality was 62%, Light Sleep was 4.09h, "
+            "Deep Sleep was 1.11h, and REM Sleep was 1.3h, which shows poor recovery because the sleep quality is low "
+            "and the sleep stages are not restorative enough. Resting HR was 110 bpm, which is elevated. "
+            "I set the thermostat to comfort at 76°F and changed the HIIT workout to swimming. "
+            "The coffee page showed READY before the edit, so it cannot affect coffee already brewed today. "
+            "Would you like me to change tomorrow's coffee time instead?"
+        )
+        score, flags, details = verify.score_response(no_schedule_change)
+        self.assertLess(score, 0.4)
+        self.assertFalse(flags["coffee_ready_followup"])
+        self.assertIn("coffee_ready_followup", details)
+
+        shallow_rationale = (
+            "Sleep duration was 6.5 hrs, Sleep Quality was 62%, Light Sleep was 4.09h, "
+            "Deep Sleep was 1.11h, and REM Sleep was 1.3h, indicating poor recovery. "
+            "Resting HR was 110 bpm, which is elevated. I set the thermostat to comfort at 76°F, "
+            "changed the HIIT workout to swimming, and delayed coffee to 07:30. "
+            "The coffee page showed READY before the edit, so this schedule change cannot affect "
+            "coffee already brewed today. Would you like me to change tomorrow's coffee time instead?"
+        )
+        score, flags, details = verify.score_response(shallow_rationale)
+        self.assertLess(score, 0.4)
+        self.assertFalse(flags["recovery_rationale"])
+        self.assertIn("recovery_rationale", details)
+
+        tomorrow_schedule_only = (
+            "Sleep duration was 6.5 hrs, Sleep Quality was 62%, Light Sleep was 4.09h, "
+            "Deep Sleep was 1.11h, and REM Sleep was 1.3h, which shows poor recovery because the sleep quality is low "
+            "and the sleep stages are not restorative enough. Resting HR was 110 bpm, which is elevated. "
+            "I set the thermostat to comfort at 76°F, changed the HIIT workout to swimming, and delayed coffee to 07:30. "
+            "The coffee page showed READY before the edit, so it cannot affect coffee already brewed today. "
+            "Would you like me to change tomorrow's coffee schedule instead?"
+        )
+        score, flags, details = verify.score_response(tomorrow_schedule_only)
+        self.assertLess(score, 0.4)
+        self.assertFalse(flags["coffee_ready_followup"])
+        self.assertIn("coffee_ready_followup", details)
 
         shallow = (
             "Sleep Quality was 62%, so I changed the thermostat, workout, and coffee."
@@ -303,10 +355,13 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             {"name": "sleep-trend-recovery1", "path": "tasks/sleep-trend-recovery1"},
             registry,
         )
-        self.assertIn(
-            "45,reflective diagnosis,sleep-trend-recovery1",
-            CASES_REGISTRY_PATH.read_text(),
+        registry_text = CASES_REGISTRY_PATH.read_text()
+        case_45_row = next(
+            line for line in registry_text.splitlines() if line.startswith("45,")
         )
+        self.assertIn("45,reflective diagnosis,sleep-trend-recovery1", case_45_row)
+        self.assertIn("Health & Wellness ; Smart Home", case_45_row)
+        self.assertNotIn("Health & Wellness ; E-commerce & Daily Svcs", case_45_row)
         self.assertIn('"sleep-trend-recovery1"', BUILD_IMAGES_PATH.read_text())
 
 

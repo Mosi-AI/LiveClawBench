@@ -295,6 +295,18 @@ def score_response(response):
             name for name, passed in metric_checks.items() if not passed
         ]
 
+    recovery_rationale = re.search(
+        r"(?:because|since|due to)\s+(?:[^.?!]*(?:sleep\s*quality\s*(?:is|was)?\s*(?:low|below)|below\s*70|not\s+restorative|insufficient|fragmented|stage\s+balance|deep\s*sleep|rem\s*sleep|resting\s*(?:hr|heart rate)\s*(?:is|was)?\s*(?:high|elevated|above)))",
+        text,
+    )
+    flags["recovery_rationale"] = bool(recovery_rationale)
+    if flags["recovery_rationale"]:
+        score += 0.05
+    else:
+        details["recovery_rationale"] = (
+            "Missing explanation of why the current-day values indicate poor recovery"
+        )
+
     hr_value = re.search(r"110\s*(?:bpm|beats|heart)", text)
     hr_abnormal = (
         re.search(r"resting\s*(?:hr|heart rate)", text)
@@ -305,9 +317,9 @@ def score_response(response):
         )
     )
     if hr_abnormal:
-        score += 0.10
-    elif hr_value:
         score += 0.05
+    elif hr_value:
+        score += 0.025
     flags["hr_abnormal"] = bool(hr_abnormal)
     if not flags["hr_abnormal"]:
         details["hr_abnormal"] = "Resting HR 110 bpm not flagged as elevated/abnormal"
@@ -329,6 +341,12 @@ def score_response(response):
             name for name, passed in action_checks.items() if not passed
         ]
 
+    schedule_changed = re.search(
+        r"(?:this|today(?:'s)?)\s+(?:coffee\s+)?schedule\s*(?:was\s*)?(?:changed|updated|delayed|moved|set)|"
+        r"(?:changed|updated|delayed|moved|set)\s+(?:today(?:'s)?\s+)?(?:coffee\s+)?schedule|"
+        r"schedule\s+change\s+cannot\s+affect",
+        text,
+    )
     ready_language = re.search(r"ready|already\s*(?:brewed|made|done|complete)", text)
     impact_language = re.search(
         r"cannot|can't|won't|will not|does not|doesn't", text
@@ -340,13 +358,17 @@ def score_response(response):
         and re.search(r"coffee|schedule|time", text)
     )
     flags["coffee_ready_followup"] = bool(
-        ready_language and impact_language and today_brewed and tomorrow_question
+        schedule_changed
+        and ready_language
+        and impact_language
+        and today_brewed
+        and tomorrow_question
     )
     if flags["coffee_ready_followup"]:
         score += 0.10
     else:
         details["coffee_ready_followup"] = (
-            "Missing READY/already-brewed impact or tomorrow follow-up question"
+            "Missing schedule-change acknowledgement, READY/already-brewed impact, or tomorrow follow-up question"
         )
 
     return round(score, 2), flags, details
@@ -369,6 +391,7 @@ def write_reward_files(score, results, details, blocked_reason=None):
             results.get("required_response_passed", False)
         ),
         "_meta_sleep_metrics": float(results.get("sleep_metrics", False)),
+        "_meta_recovery_rationale": float(results.get("recovery_rationale", False)),
         "_meta_hr_abnormal": float(results.get("hr_abnormal", False)),
         "_meta_actions_confirmed": float(results.get("actions_confirmed", False)),
         "_meta_coffee_ready_followup": float(
@@ -428,6 +451,7 @@ def main():
         response_score = 0.0
         response_flags = {
             "sleep_metrics": False,
+            "recovery_rationale": False,
             "hr_abnormal": False,
             "actions_confirmed": False,
             "coffee_ready_followup": False,
@@ -453,6 +477,7 @@ def main():
     required_state_passed = thermostat_pass and workout_pass and coffee_pass
     required_response_passed = bool(
         response_flags["sleep_metrics"]
+        and response_flags["recovery_rationale"]
         and response_flags["hr_abnormal"]
         and response_flags["coffee_ready_followup"]
     )

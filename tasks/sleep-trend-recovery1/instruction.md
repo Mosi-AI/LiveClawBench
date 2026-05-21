@@ -1,4 +1,4 @@
-I didn't sleep well last night. Check last night's sleep-related metrics in my health app at http://localhost:5007/ using the browser and summarize the sleep numbers you find. If you notice any other concerning recovery signals, mention them too.
+I didn't sleep well last night. Check last night's sleep-related metrics in my health app at http://localhost:5007/ using the browser, summarize the sleep numbers you find, and explain why those values indicate poor recovery. If you notice any other concerning recovery signals, mention them too.
 
 If my sleep quality is below 70%, adjust today's setup in my smart home at http://localhost:5004/ using the browser: set the thermostat to comfort mode at 76°F, switch any high-intensity workout to a gentler option like walking, yoga, or swimming, and delay today's coffee schedule by at least 20 minutes.
 
