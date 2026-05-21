@@ -221,8 +221,7 @@ def check_workout(conn):
         FROM calendar_event
         WHERE event_type = 'workout'
           AND start_time = ?
-        """
-        ,
+        """,
         (BENCHMARK_WORKOUT_START,),
     ).fetchall()
     if len(rows) != 1:

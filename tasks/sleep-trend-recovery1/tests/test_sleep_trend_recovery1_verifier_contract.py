@@ -468,7 +468,12 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             """
         ).fetchone()
         self.assertEqual(
-            (2000.0, '{"protein": 150, "carbs": 250, "fat": 65}', '["shellfish"]', 150.0),
+            (
+                2000.0,
+                '{"protein": 150, "carbs": 250, "fat": 65}',
+                '["shellfish"]',
+                150.0,
+            ),
             constraints,
         )
 
@@ -760,12 +765,14 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             log_path = Path(f.name)
 
         try:
-            with mock.patch.object(
-                verify, "find_harbor_log_path", return_value=log_path
-            ), mock.patch.object(
-                verify.Path, "exists", return_value=True
-            ), mock.patch.object(
-                verify.Path, "read_text", return_value="response.txt fallback"
+            with (
+                mock.patch.object(
+                    verify, "find_harbor_log_path", return_value=log_path
+                ),
+                mock.patch.object(verify.Path, "exists", return_value=True),
+                mock.patch.object(
+                    verify.Path, "read_text", return_value="response.txt fallback"
+                ),
             ):
                 response = verify.get_agent_response()
             self.assertEqual("aggregated harbor response", response)
@@ -832,9 +839,7 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
         )
         self.assertIn("reflective diagnosis,sleep-trend-recovery1", case_zh_row)
         self.assertIn("Health & Fitness ; Smart Home", case_zh_row)
-        self.assertNotIn(
-            "Health & Fitness ; E-commerce & Daily Svcs", case_zh_row
-        )
+        self.assertNotIn("Health & Fitness ; E-commerce & Daily Svcs", case_zh_row)
         self.assertIn('"sleep-trend-recovery1"', BUILD_IMAGES_PATH.read_text())
 
 

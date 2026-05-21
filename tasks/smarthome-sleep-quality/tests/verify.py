@@ -161,7 +161,9 @@ def detect_direct_api_calls():
             # First check raw line (handles escaped JSON strings before parsing)
             for pattern in direct_api_patterns:
                 if re.search(pattern, line):
-                    violations.append(f"Line {line_num} (raw): direct API call detected")
+                    violations.append(
+                        f"Line {line_num} (raw): direct API call detected"
+                    )
                     break  # Only count one violation per line
 
             # Then parse as JSON and check decoded content
@@ -171,7 +173,9 @@ def detect_direct_api_calls():
                 for text in texts:
                     for pattern in direct_api_patterns:
                         if re.search(pattern, text):
-                            violations.append(f"Line {line_num} (decoded): direct API call in tool content")
+                            violations.append(
+                                f"Line {line_num} (decoded): direct API call in tool content"
+                            )
                             break
             except json.JSONDecodeError:
                 continue  # Skip non-JSON lines
@@ -253,7 +257,10 @@ def check_dimension_1(conn):
 
     if checks:
         return False, ", ".join(checks)
-    return True, f"sleep_hours={sleep_hours}, sleep_score={sleep_score}, readiness={readiness}, resting_heart_rate={resting_heart_rate}"
+    return (
+        True,
+        f"sleep_hours={sleep_hours}, sleep_score={sleep_score}, readiness={readiness}, resting_heart_rate={resting_heart_rate}",
+    )
 
 
 def check_dimension_2(conn):
@@ -262,9 +269,7 @@ def check_dimension_2(conn):
     Returns (pass, details).
     """
     cursor = conn.cursor()
-    cursor.execute(
-        "SELECT mode, temperature FROM thermostat_settings WHERE id = 1"
-    )
+    cursor.execute("SELECT mode, temperature FROM thermostat_settings WHERE id = 1")
     row = cursor.fetchone()
     if row is None:
         return False, "No thermostat_settings row found"
@@ -353,13 +358,20 @@ def check_health_source_data():
         cursor.execute("SELECT value FROM system_config WHERE key = 'current_date'")
         row = cursor.fetchone()
         if row is None or row[0] != "2026-05-09":
-            return False, f"current_date={None if row is None else row[0]} (expected 2026-05-09)"
+            return (
+                False,
+                f"current_date={None if row is None else row[0]} (expected 2026-05-09)",
+            )
 
         cursor.execute(
             "SELECT COUNT(*), MIN(date), MAX(date) FROM health_daily_snapshot WHERE user_id = 1"
         )
         snapshot_count, snapshot_min, snapshot_max = cursor.fetchone()
-        if (snapshot_count, snapshot_min, snapshot_max) != (30, "2026-04-10", "2026-05-09"):
+        if (snapshot_count, snapshot_min, snapshot_max) != (
+            30,
+            "2026-04-10",
+            "2026-05-09",
+        ):
             return False, (
                 "health_daily_snapshot window="
                 f"count={snapshot_count}, min={snapshot_min}, max={snapshot_max} "
@@ -383,8 +395,7 @@ def check_health_source_data():
         outlier = cursor.fetchone()
         if outlier != (60, 72, 30, 6.5):
             return False, (
-                "health_daily_snapshot outlier="
-                f"{outlier} (expected (60, 72, 30, 6.5))"
+                f"health_daily_snapshot outlier={outlier} (expected (60, 72, 30, 6.5))"
             )
 
         cursor.execute(
@@ -421,8 +432,16 @@ def check_dimension_6a(response):
     response_lower = response.lower()
     required_keywords = [
         ("date/2026-05-09", re.search(r"2026-05-09|may 9|may 9th", response_lower)),
-        ("sleep_quality/60", re.search(r"sleep.*(quality|score).*(60|low|poor)", response_lower) or re.search(r"60.*(sleep|quality|score)", response_lower)),
-        ("readiness/53", re.search(r"readiness.*(53|low|poor)", response_lower) or re.search(r"53.*readiness", response_lower)),
+        (
+            "sleep_quality/60",
+            re.search(r"sleep.*(quality|score).*(60|low|poor)", response_lower)
+            or re.search(r"60.*(sleep|quality|score)", response_lower),
+        ),
+        (
+            "readiness/53",
+            re.search(r"readiness.*(53|low|poor)", response_lower)
+            or re.search(r"53.*readiness", response_lower),
+        ),
     ]
     missing = [keyword for keyword, found in required_keywords if not found]
     if missing:
@@ -444,7 +463,13 @@ def check_dimension_6c(response):
     required_keywords = [
         ("melatonin", "melatonin" in response_lower),
         ("order_id", re.search(r"ord\d{6}", response_lower)),
-        ("melatonin out of stock", re.search(r"melatonin.*(out of stock|stock was at 0|quantity.*0|qty.*0)", response_lower)),
+        (
+            "melatonin out of stock",
+            re.search(
+                r"melatonin.*(out of stock|stock was at 0|quantity.*0|qty.*0)",
+                response_lower,
+            ),
+        ),
     ]
     missing = [keyword for keyword, found in required_keywords if not found]
     if missing:
@@ -457,8 +482,21 @@ def check_dimension_6d(response):
     response_lower = response.lower()
     required_keywords = [
         ("chamomile tea", "chamomile tea" in response_lower),
-        ("chamomile quantity/10 bags", re.search(r"10.*bags", response_lower) or re.search(r"bags.*10", response_lower)),
-        ("chamomile sufficient/no order", re.search(r"chamomile tea.*(sufficient|enough|already have|stocked|ready)", response_lower) and re.search(r"(no|not).*order|order.*not needed|no extra tea order", response_lower)),
+        (
+            "chamomile quantity/10 bags",
+            re.search(r"10.*bags", response_lower)
+            or re.search(r"bags.*10", response_lower),
+        ),
+        (
+            "chamomile sufficient/no order",
+            re.search(
+                r"chamomile tea.*(sufficient|enough|already have|stocked|ready)",
+                response_lower,
+            )
+            and re.search(
+                r"(no|not).*order|order.*not needed|no extra tea order", response_lower
+            ),
+        ),
     ]
     missing = [keyword for keyword, found in required_keywords if not found]
     if missing:
@@ -521,7 +559,12 @@ def main():
         print(f"    -> {api_details}")
         print("Score: 0.0/1.0")
         print("FAILED: Agent must interact through web UIs, NOT direct API calls")
-        write_reward_files(0.0, results, {"constraint": api_details}, blocked_reason="ui_only_constraint")
+        write_reward_files(
+            0.0,
+            results,
+            {"constraint": api_details},
+            blocked_reason="ui_only_constraint",
+        )
         sys.exit(1)
 
     health_pass, health_details = check_health_source_data()
@@ -529,7 +572,12 @@ def main():
         print("FAILED: Health source data is inconsistent with the task contract")
         print(f"    -> {health_details}")
         print("Score: 0.0/1.0")
-        write_reward_files(0.0, results, {"health_source": health_details}, blocked_reason="health_source_data")
+        write_reward_files(
+            0.0,
+            results,
+            {"health_source": health_details},
+            blocked_reason="health_source_data",
+        )
         sys.exit(1)
 
     smarthome_path = "/tmp/mosi_smart_home.sqlite"
@@ -538,7 +586,12 @@ def main():
     except sqlite3.Error:
         print("Error: Cannot connect to smarthome database")
         print(f"Score: {score}/1.0")
-        write_reward_files(score, results, {"smarthome": "Cannot connect to smarthome database"}, blocked_reason="smarthome_db")
+        write_reward_files(
+            score,
+            results,
+            {"smarthome": "Cannot connect to smarthome database"},
+            blocked_reason="smarthome_db",
+        )
         sys.exit(1)
 
     orders_path = "/tmp/mosi_shop_orders.json"
@@ -629,11 +682,25 @@ def main():
     print(f"    -> {d6b_details}")
     print(f"D6c (Agent response melatonin action): {'PASS' if d6c_pass else 'FAIL'}")
     print(f"    -> {d6c_details}")
-    print(f"D6d (Agent response chamomile sufficiency): {'PASS' if d6d_pass else 'FAIL'}")
+    print(
+        f"D6d (Agent response chamomile sufficiency): {'PASS' if d6d_pass else 'FAIL'}"
+    )
     print(f"    -> {d6d_details}")
     print(f"Score: {score:.2f}/1.0")
 
-    all_pass = all([d1_pass, d2_pass, d3_pass, d4_pass, d5_pass, d6a_pass, d6b_pass, d6c_pass, d6d_pass])
+    all_pass = all(
+        [
+            d1_pass,
+            d2_pass,
+            d3_pass,
+            d4_pass,
+            d5_pass,
+            d6a_pass,
+            d6b_pass,
+            d6c_pass,
+            d6d_pass,
+        ]
+    )
     write_reward_files(score, results, details)
     if not all_pass:
         print("FAILED: All required dimensions and sub-dimensions are REQUIRED")

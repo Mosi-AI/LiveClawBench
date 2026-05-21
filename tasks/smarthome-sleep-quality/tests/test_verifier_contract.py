@@ -193,11 +193,22 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
             self.assertNotIn(None, row, msg=f"incomplete snapshot row: {row}")
 
         metric_types = [
-            "steps", "active_energy_kcal", "sleep_hours", "sleep_quality",
-            "light_sleep_hours", "deep_sleep_hours", "rem_sleep_hours",
-            "low_intensity_min", "medium_intensity_min", "high_intensity_min", "total_activity_min",
-            "resting_heart_rate_bpm", "avg_heart_rate_bpm", "weight_kg",
-            "body_fat_percent", "blood_oxygen_percent",
+            "steps",
+            "active_energy_kcal",
+            "sleep_hours",
+            "sleep_quality",
+            "light_sleep_hours",
+            "deep_sleep_hours",
+            "rem_sleep_hours",
+            "low_intensity_min",
+            "medium_intensity_min",
+            "high_intensity_min",
+            "total_activity_min",
+            "resting_heart_rate_bpm",
+            "avg_heart_rate_bpm",
+            "weight_kg",
+            "body_fat_percent",
+            "blood_oxygen_percent",
         ]
         for metric_type in metric_types:
             count = conn.execute(
@@ -214,10 +225,20 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
     def test_d6_does_not_fallback_to_response_file_when_harbor_exists(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             harbor = Path(tmpdir) / "harbor.jsonl"
-            harbor.write_text(json.dumps({
-                "type": "message",
-                "message": {"role": "assistant", "content": [{"type": "text", "text": "intermediate reply only"}]},
-            }) + "\n")
+            harbor.write_text(
+                json.dumps(
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "assistant",
+                            "content": [
+                                {"type": "text", "text": "intermediate reply only"}
+                            ],
+                        },
+                    }
+                )
+                + "\n"
+            )
 
             fake_response = Path(tmpdir) / "response.txt"
             fake_response.write_text(
@@ -244,9 +265,13 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
                     return real_read_text(fake_response, *args, **kwargs)
                 return real_read_text(self, *args, **kwargs)
 
-            with mock.patch.object(verify, "get_last_assistant_message", return_value=None), \
-                 mock.patch.object(verify.Path, "exists", fake_exists), \
-                 mock.patch.object(verify.Path, "read_text", fake_read_text):
+            with (
+                mock.patch.object(
+                    verify, "get_last_assistant_message", return_value=None
+                ),
+                mock.patch.object(verify.Path, "exists", fake_exists),
+                mock.patch.object(verify.Path, "read_text", fake_read_text),
+            ):
                 passed, details = verify.check_dimension_6()
 
             self.assertFalse(passed)
@@ -271,8 +296,16 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
             "Melatonin was out of stock, so I placed order ORD000004. "
             "Chamomile Tea is also a sleep aid and you already have 10 bags, so no extra tea order was needed."
         )
-        with mock.patch.object(verify, "get_last_assistant_message", return_value=response), \
-             mock.patch.object(verify, "find_harbor_log_path", return_value=Path("/tmp/fake-harbor.jsonl")):
+        with (
+            mock.patch.object(
+                verify, "get_last_assistant_message", return_value=response
+            ),
+            mock.patch.object(
+                verify,
+                "find_harbor_log_path",
+                return_value=Path("/tmp/fake-harbor.jsonl"),
+            ),
+        ):
             passed, details = verify.check_dimension_6()
         self.assertTrue(passed, details)
 
@@ -282,8 +315,16 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
             "Your sleep score was 60 and readiness was 53, so I set the thermostat to 68°F. "
             "Melatonin was out of stock, so I placed order ORD000004."
         )
-        with mock.patch.object(verify, "get_last_assistant_message", return_value=response), \
-             mock.patch.object(verify, "find_harbor_log_path", return_value=Path("/tmp/fake-harbor.jsonl")):
+        with (
+            mock.patch.object(
+                verify, "get_last_assistant_message", return_value=response
+            ),
+            mock.patch.object(
+                verify,
+                "find_harbor_log_path",
+                return_value=Path("/tmp/fake-harbor.jsonl"),
+            ),
+        ):
             passed, details = verify.check_dimension_6()
         self.assertFalse(passed)
         self.assertIn("chamomile", details.lower())
@@ -301,7 +342,10 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
         self.assertIn("D6b", text)
         self.assertIn("D6c", text)
         self.assertIn("D6d", text)
-        self.assertIn("all([d1_pass, d2_pass, d3_pass, d4_pass, d5_pass, d6a_pass, d6b_pass, d6c_pass, d6d_pass])", text)
+        self.assertIn(
+            "all([d1_pass, d2_pass, d3_pass, d4_pass, d5_pass, d6a_pass, d6b_pass, d6c_pass, d6d_pass])",
+            text,
+        )
 
     def test_test_sh_writes_reward_files_contract(self):
         text = TEST_SH_PATH.read_text()
@@ -316,20 +360,30 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
 
     def test_verify_detects_direct_db_or_json_tampering_patterns(self):
         with tempfile.NamedTemporaryFile("w", delete=False) as f:
-            f.write(json.dumps({
-                "type": "message",
-                "message": {
-                    "role": "assistant",
-                    "content": [{
-                        "type": "toolCall",
-                        "name": "exec",
-                        "arguments": {"command": "sqlite3 /tmp/mosi_smart_home.sqlite \"update thermostat_settings set temperature=68\""},
-                    }],
-                },
-            }) + "\n")
+            f.write(
+                json.dumps(
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "assistant",
+                            "content": [
+                                {
+                                    "type": "toolCall",
+                                    "name": "exec",
+                                    "arguments": {
+                                        "command": 'sqlite3 /tmp/mosi_smart_home.sqlite "update thermostat_settings set temperature=68"'
+                                    },
+                                }
+                            ],
+                        },
+                    }
+                )
+                + "\n"
+            )
             log_path = f.name
 
         try:
+
             def fake_exists(self):
                 s = str(self)
                 return s in {
@@ -340,12 +394,17 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
             real_open = open
 
             def fake_open(path, *args, **kwargs):
-                if str(path) == "/workspace/.openclaw/agents/main/sessions/harbor.jsonl":
+                if (
+                    str(path)
+                    == "/workspace/.openclaw/agents/main/sessions/harbor.jsonl"
+                ):
                     return real_open(log_path, *args, **kwargs)
                 return real_open(path, *args, **kwargs)
 
-            with mock.patch.object(verify.Path, "exists", fake_exists), \
-                 mock.patch.object(verify, "open", fake_open):
+            with (
+                mock.patch.object(verify.Path, "exists", fake_exists),
+                mock.patch.object(verify, "open", fake_open),
+            ):
                 violation, details = verify.detect_direct_api_calls()
             self.assertTrue(violation)
             self.assertIn("detected", details.lower())

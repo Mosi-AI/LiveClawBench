@@ -174,9 +174,13 @@ def check_d2_coffee_state():
     try:
         conn = sqlite3.connect(SQLITE_DB)
         cursor = conn.cursor()
-        cursor.execute("SELECT start_time FROM coffee_schedule WHERE schedule_date = '2026-05-09'")
+        cursor.execute(
+            "SELECT start_time FROM coffee_schedule WHERE schedule_date = '2026-05-09'"
+        )
         today_row = cursor.fetchone()
-        cursor.execute("SELECT start_time FROM coffee_schedule WHERE schedule_date = '2026-05-10'")
+        cursor.execute(
+            "SELECT start_time FROM coffee_schedule WHERE schedule_date = '2026-05-10'"
+        )
         tomorrow_row = cursor.fetchone()
         conn.close()
 
@@ -408,7 +412,12 @@ def check_d6_response_coffee_timing(response):
     has_departure_inference = False
     sentences = re.split(r"[.!?\n]", response_lower)
     for sentence in sentences:
-        if ("30" in sentence or "brew" in sentence or "06:30" in sentence or "6:30" in sentence) and (
+        if (
+            "30" in sentence
+            or "brew" in sentence
+            or "06:30" in sentence
+            or "6:30" in sentence
+        ) and (
             "tomorrow" in sentence
             or "2026-05-10" in sentence
             or "7" in sentence
@@ -432,7 +441,9 @@ def check_d6_response_coffee_timing(response):
         print("D6: PARTIAL (0.05)")
         return 0.05
     else:
-        print(f"D6: FAIL (0.0) - found {found}/3 required elements, tomorrow/date required")
+        print(
+            f"D6: FAIL (0.0) - found {found}/3 required elements, tomorrow/date required"
+        )
         return 0.0
 
 
@@ -508,21 +519,26 @@ def check_d8_response_shopping_list_action(response):
         for sentence in sentences
     )
     kenya_aa_reported = any(
-        sentence_mentions_item_added(sentence, ["kenya"])
-        for sentence in sentences
+        sentence_mentions_item_added(sentence, ["kenya"]) for sentence in sentences
     )
 
     if blue_mountain_reported and kenya_aa_reported:
-        print("PASS: Report says both coffee bean items were added to the shopping list")
+        print(
+            "PASS: Report says both coffee bean items were added to the shopping list"
+        )
         print("D8: PASS (0.1)")
         return 0.1
     elif blue_mountain_reported or kenya_aa_reported:
         reported_item = "Blue Mountain" if blue_mountain_reported else "Kenya AA"
-        print(f"PARTIAL: Report says only {reported_item} was added to the shopping list")
+        print(
+            f"PARTIAL: Report says only {reported_item} was added to the shopping list"
+        )
         print("D8: PARTIAL (0.05)")
         return 0.05
 
-    print("FAIL: Report does not clearly say the named coffee bean items were added to the shopping list")
+    print(
+        "FAIL: Report does not clearly say the named coffee bean items were added to the shopping list"
+    )
     print("D8: FAIL (0.0)")
     return 0.0
 
@@ -554,7 +570,13 @@ def main():
     for dim, score in results.items():
         max_score = 0.2 if dim in ["D1", "D2"] else 0.1
         partial_threshold = 0.1 if dim == "D1" else 0.05
-        status = "PASS" if score >= max_score else "PARTIAL" if score >= partial_threshold else "FAIL"
+        status = (
+            "PASS"
+            if score >= max_score
+            else "PARTIAL"
+            if score >= partial_threshold
+            else "FAIL"
+        )
         hard_req = " (HARD REQUIRED)" if dim in ["D1", "D2", "D3", "D4"] else ""
         print(f"  {dim}: {score:.3f}/{max_score:.3f} [{status}]{hard_req}")
         total_score += score
