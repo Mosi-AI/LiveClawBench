@@ -1,0 +1,133 @@
+{
+  "description": "Ground truth overlap map for the 14 fragmented skills",
+  "pipeline_stages": [
+    "ingestion",
+    "cleaning",
+    "validation",
+    "transformation",
+    "aggregation_reporting",
+    "export"
+  ],
+  "skills": {
+    "csv_data_loader": {
+      "stage": "ingestion",
+      "overlaps_with": ["data_ingestion_service"],
+      "relationship": "strict_subset",
+      "note": "CSV loading is a subset of data_ingestion_service"
+    },
+    "excel_data_reader": {
+      "stage": "ingestion",
+      "overlaps_with": ["data_ingestion_service"],
+      "relationship": "strict_subset",
+      "note": "Excel loading is a subset of data_ingestion_service"
+    },
+    "data_ingestion_service": {
+      "stage": "ingestion",
+      "overlaps_with": ["csv_data_loader", "excel_data_reader"],
+      "relationship": "superset",
+      "note": "Superset that covers CSV, Excel, JSON, Parquet ingestion"
+    },
+    "null_value_processor": {
+      "stage": "cleaning",
+      "overlaps_with": ["data_cleaning_toolkit"],
+      "relationship": "strict_subset",
+      "note": "Null handling is one operation within data_cleaning_toolkit"
+    },
+    "data_deduplicator": {
+      "stage": "cleaning",
+      "overlaps_with": ["data_cleaning_toolkit"],
+      "relationship": "strict_subset",
+      "note": "Deduplication is one operation within data_cleaning_toolkit"
+    },
+    "data_cleaning_toolkit": {
+      "stage": "cleaning",
+      "overlaps_with": ["null_value_processor", "data_deduplicator"],
+      "relationship": "superset",
+      "note": "Superset covering nulls, dedup, type coercion, outliers"
+    },
+    "schema_validator": {
+      "stage": "validation",
+      "overlaps_with": ["business_rule_checker"],
+      "relationship": "partial_overlap",
+      "note": "Schema checks (types, nullability) overlap with business_rule_checker's type and constraint checks"
+    },
+    "business_rule_checker": {
+      "stage": "validation",
+      "overlaps_with": ["schema_validator"],
+      "relationship": "partial_overlap",
+      "note": "Business rules overlap with schema validation on type/constraint checks; adds referential integrity"
+    },
+    "numeric_normalizer": {
+      "stage": "transformation",
+      "overlaps_with": ["feature_calculator"],
+      "relationship": "partial_overlap",
+      "note": "Normalization is a form of feature transformation; overlaps on numeric column processing"
+    },
+    "feature_calculator": {
+      "stage": "transformation",
+      "overlaps_with": ["numeric_normalizer"],
+      "relationship": "partial_overlap",
+      "note": "Feature calculation includes some normalization-like operations (log transform, scaling)"
+    },
+    "data_aggregator": {
+      "stage": "aggregation_reporting",
+      "overlaps_with": ["summary_report_generator"],
+      "relationship": "partial_overlap",
+      "note": "Generic aggregation engine; summary_report_generator does specific aggregations for reporting"
+    },
+    "summary_report_generator": {
+      "stage": "aggregation_reporting",
+      "overlaps_with": ["data_aggregator"],
+      "relationship": "partial_overlap",
+      "note": "Specialized aggregation+reporting; uses same group-by logic as data_aggregator"
+    },
+    "csv_export_writer": {
+      "stage": "export",
+      "overlaps_with": ["multi_format_exporter"],
+      "relationship": "strict_subset",
+      "note": "CSV export is a subset of multi_format_exporter"
+    },
+    "multi_format_exporter": {
+      "stage": "export",
+      "overlaps_with": ["csv_export_writer"],
+      "relationship": "superset",
+      "note": "Superset covering CSV, JSON, Parquet, Excel export"
+    }
+  },
+  "expected_consolidation": {
+    "min_skills": 4,
+    "max_skills": 6,
+    "ideal_groupings": [
+      {
+        "name": "data_ingestion",
+        "merges": ["csv_data_loader", "excel_data_reader", "data_ingestion_service"],
+        "stage": "ingestion"
+      },
+      {
+        "name": "data_cleaning",
+        "merges": ["null_value_processor", "data_deduplicator", "data_cleaning_toolkit"],
+        "stage": "cleaning"
+      },
+      {
+        "name": "data_validation",
+        "merges": ["schema_validator", "business_rule_checker"],
+        "stage": "validation"
+      },
+      {
+        "name": "data_transformation",
+        "merges": ["numeric_normalizer", "feature_calculator"],
+        "stage": "transformation"
+      },
+      {
+        "name": "data_aggregation_and_reporting",
+        "merges": ["data_aggregator", "summary_report_generator"],
+        "stage": "aggregation_reporting"
+      },
+      {
+        "name": "data_export",
+        "merges": ["csv_export_writer", "multi_format_exporter"],
+        "stage": "export"
+      }
+    ]
+  }
+}

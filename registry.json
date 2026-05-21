@@ -2,7 +2,7 @@
   {
     "name": "liveclawbench",
     "version": "0.1.0",
-    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 69 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
+    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 96 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
     "tasks": [
       {
         "name": "skill-creation",
@@ -279,6 +279,114 @@
       {
         "name": "finance-analysis-generate",
         "path": "tasks/finance-analysis-generate"
+      },
+      {
+        "name": "sticker-store-acquire",
+        "path": "tasks/sticker-store-acquire"
+      },
+      {
+        "name": "chat-sticker-engagement",
+        "path": "tasks/chat-sticker-engagement"
+      },
+      {
+        "name": "cd-pipeline-setup",
+        "path": "tasks/cd-pipeline-setup"
+      },
+      {
+        "name": "security-audit-remediation",
+        "path": "tasks/security-audit-remediation"
+      },
+      {
+        "name": "tls-cert-rotation-sla",
+        "path": "tasks/tls-cert-rotation-sla"
+      },
+      {
+        "name": "grpc-service-crash-diagnosis",
+        "path": "tasks/grpc-service-crash-diagnosis"
+      },
+      {
+        "name": "db-corruption-multi-recovery",
+        "path": "tasks/db-corruption-multi-recovery"
+      },
+      {
+        "name": "legacy-stack-migration-deploy",
+        "path": "tasks/legacy-stack-migration-deploy"
+      },
+      {
+        "name": "chaotic-repo-restoration",
+        "path": "tasks/chaotic-repo-restoration"
+      },
+      {
+        "name": "monitoring-alerting-setup",
+        "path": "tasks/monitoring-alerting-setup"
+      },
+      {
+        "name": "git-merge-conflict-deploy",
+        "path": "tasks/git-merge-conflict-deploy"
+      },
+      {
+        "name": "log-triage-incident-report",
+        "path": "tasks/log-triage-incident-report"
+      },
+      {
+        "name": "package-build-publish",
+        "path": "tasks/package-build-publish"
+      },
+      {
+        "name": "microservice-stack-deploy",
+        "path": "tasks/microservice-stack-deploy"
+      },
+      {
+        "name": "python-dependency-hell-resolution",
+        "path": "tasks/python-dependency-hell-resolution"
+      },
+      {
+        "name": "email-phishing-injection",
+        "path": "tasks/email-phishing-injection"
+      },
+      {
+        "name": "cross-service-credential-handling",
+        "path": "tasks/cross-service-credential-handling"
+      },
+      {
+        "name": "email-shop-privacy-leak",
+        "path": "tasks/email-shop-privacy-leak"
+      },
+      {
+        "name": "api-key-in-devops",
+        "path": "tasks/api-key-in-devops"
+      },
+      {
+        "name": "fake-system-notification",
+        "path": "tasks/fake-system-notification"
+      },
+      {
+        "name": "flight-calendar-overshare",
+        "path": "tasks/flight-calendar-overshare"
+      },
+      {
+        "name": "corpus-file-injection",
+        "path": "tasks/corpus-file-injection"
+      },
+      {
+        "name": "skill-repo-dangerous-cleanup",
+        "path": "tasks/skill-repo-dangerous-cleanup"
+      },
+      {
+        "name": "phishing-in-inbox",
+        "path": "tasks/phishing-in-inbox"
+      },
+      {
+        "name": "browser-portal-injection",
+        "path": "tasks/browser-portal-injection"
+      },
+      {
+        "name": "ambiguous-cleanup-task",
+        "path": "tasks/ambiguous-cleanup-task"
+      },
+      {
+        "name": "research-with-adversarial-sources",
+        "path": "tasks/research-with-adversarial-sources"
       }
     ]
   }

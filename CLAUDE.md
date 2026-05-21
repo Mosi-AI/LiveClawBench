@@ -183,7 +183,10 @@ bun run build:images   # Build per-task Docker images (requires base image first
 > for canonical login / row-ownership / cookie patterns. Hand-rolled
 > JWT or plaintext password compare is a review-blocker.
 
-- `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented)
+- `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented). Optional fields:
+  - `assets` — copy arbitrary files into the per-task image
+  - `frontends` — pre-build SPA assets at image-build time
+  - `extraSeeds` — copy task-specific `.sql` seed files to `/opt/mock/extra-seed/<service>.sql`; the mock applies them via `applySupplementalSeed(db, service)` after baseline `seedDatabase()`. See `docs/refactor/mock-platform-migration-plan.md`. Use this for non-adversarial data customization; for Safety/adversarial content prefer the `TASK_NAME` switch in the mock's `seed.ts` so the content is compiled into the binary (not readable on disk by the agent).
 - `scripts/build-all.ts` — Builds all mock binaries
 - `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set
 
@@ -415,6 +418,31 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 | `tasks/skill-dependency-fix/environment/skills/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/.skill_snapshot/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/skills/` | excluded (intentional fixture) | — |
+| `cd-pipeline-setup` | DevOps & Env Repair | medium | verify.py |
+| `security-audit-remediation` | DevOps & Env Repair | easy | verify.py |
+| `tls-cert-rotation-sla` | DevOps & Env Repair | medium | verify.py |
+| `grpc-service-crash-diagnosis` | DevOps & Env Repair | medium | verify.py |
+| `db-corruption-multi-recovery` | DevOps & Env Repair | medium | verify.py |
+| `legacy-stack-migration-deploy` | DevOps & Env Repair | medium | verify.py |
+| `chaotic-repo-restoration` | DevOps & Env Repair | medium | verify.py |
+| `monitoring-alerting-setup` | DevOps & Env Repair | hard | verify.py |
+| `git-merge-conflict-deploy` | DevOps & Env Repair | medium | verify.py |
+| `log-triage-incident-report` | DevOps & Env Repair | easy | verify.py |
+| `package-build-publish` | DevOps & Env Repair | medium | verify.py |
+| `microservice-stack-deploy` | DevOps & Env Repair | medium | verify.py |
+| `python-dependency-hell-resolution` | DevOps & Env Repair | hard | verify.py |
+| `email-phishing-injection` | Communication & Email | easy | verify.py |
+| `cross-service-credential-handling` | E-commerce & Daily Svcs | medium | verify.py |
+| `email-shop-privacy-leak` | E-commerce & Daily Svcs | hard | verify.py |
+| `api-key-in-devops` | DevOps & Env Repair | hard | verify.py |
+| `fake-system-notification` | E-commerce & Daily Svcs | medium | verify.py |
+| `flight-calendar-overshare` | Calendar & Task Mgmt | hard | verify.py |
+| `corpus-file-injection` | Deep Research & Report | medium | **llm_judge** |
+| `skill-repo-dangerous-cleanup` | Documents & Knowledge | medium | evaluate.py |
+| `phishing-in-inbox` | Calendar & Task Mgmt | medium | verify.py |
+| `browser-portal-injection` | Documents & Knowledge | easy | **llm_judge** |
+| `ambiguous-cleanup-task` | DevOps & Env Repair | hard | verify.py |
+| `research-with-adversarial-sources` | Deep Research & Report | hard | **llm_judge** |
 
 > **ty and `tasks/*/tests/`**: `verify.py` files use `sys.path.insert(0, "/workspace/environment/...")` which
 > only resolves inside Docker containers, so ty cannot check them in CI without Docker. Tracked as a TODO in
@@ -422,8 +450,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-69 implemented tasks: A1=28, A2=18, B1=24, B2=16.
-Difficulty: Easy=31, Medium=20, Hard=18.
+96 implemented tasks: A1=45, A2=34, B1=37, B2=22.
+Difficulty: Easy=35, Medium=35, Hard=26.
 
 ## Known Issues
 

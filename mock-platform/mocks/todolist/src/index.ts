@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { existsSync } from "node:fs";
-import { createMockApp, createRoute, registerFrontendFallback, startServer } from "mock-lib";
+import { applySupplementalSeed, createMockApp, createRoute, registerFrontendFallback, startServer } from "mock-lib";
 import { getTodolistDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
 import { registerTodoRoutes } from "./routes/todos";
@@ -9,6 +9,7 @@ export function createTodolistApp(options?: { dbPath?: string; taskName?: string
   const db = getTodolistDb({ path: options?.dbPath });
   initSchema(db);
   seedDatabase(db, options?.taskName);
+  applySupplementalSeed(db, "todolist");
 
   const mockApp = createMockApp({
     name: "todolist",

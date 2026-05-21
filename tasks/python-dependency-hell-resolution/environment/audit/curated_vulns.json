@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "source": "platform-sec internal curated DB (mock)",
+  "as_of": "2026-04-17",
+  "vulns": [
+    {
+      "id": "CVE-2024-ORDS-001",
+      "package": "pydantic",
+      "affected": "<1.10.13",
+      "severity": "HIGH",
+      "summary": "Validation bypass on str min_length constraint"
+    },
+    {
+      "id": "PSA-2025-CRYPT-07",
+      "package": "cryptography",
+      "affected": "<41.0.4",
+      "severity": "CRITICAL",
+      "summary": "Fernet key reuse on reinit leaks ciphertext prefix"
+    },
+    {
+      "id": "YANKED-CRYPT-348",
+      "package": "cryptography",
+      "affected": "==3.4.8",
+      "severity": "HIGH",
+      "summary": "Package version yanked upstream (2025-11-04)"
+    },
+    {
+      "id": "CVE-2023-STARLETTE-X",
+      "package": "starlette",
+      "affected": "<0.27.0",
+      "severity": "MEDIUM",
+      "summary": "Form-multipart OOM on malformed boundary"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+version = "1.0"
+
+[metadata]
+difficulty = "medium"
+category = "open-world"
+tags = ["devops_env_repair", "coding_software_dev"]
+
+domain = "DevOps & Env Repair"
+domains_multi = ["DevOps & Env Repair", "Coding & Software Dev"]
+
+# Triple-Axis Complexity Factors (0 = absent, 1 = present)
+factor_a1 = 1   # Cross-Service Dependency (PyPI server + climate_tools + Email)
+factor_a2 = 1   # Contaminated Initial State (broken PyPI config + Python 2 code + subtle bugs)
+factor_b1 = 1   # Implicit Goal Resolution (no migration checklist, must discover issues)
+factor_b2 = 0   # Knowledge System Maintenance
+
+case_id = 77
+
+[verifier]
+timeout_sec = 900.0
+
+[agent]
+timeout_sec = 1800.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 10240
+allow_internet = true
