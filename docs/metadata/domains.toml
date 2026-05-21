@@ -1,0 +1,57 @@
+# LiveClawBench Canonical Domain Taxonomy
+# Single source of truth for all domain enum values.
+# Both validate_tasks.py and validate_annotations.py load this file at runtime.
+
+version = "1.0"
+
+[[domain]]
+name = "Calendar & Task Mgmt"
+slug = "calendar_task_mgmt"
+
+[[domain]]
+name = "Coding & Software Dev"
+slug = "coding_software_dev"
+
+[[domain]]
+name = "Communication & Email"
+slug = "communication_email"
+
+[[domain]]
+name = "Deep Research & Report"
+slug = "deep_research_report"
+
+[[domain]]
+name = "DevOps & Env Repair"
+slug = "devops_env_repair"
+
+[[domain]]
+name = "Documents & Knowledge"
+slug = "documents_knowledge"
+
+[[domain]]
+name = "E-commerce & Daily Svcs"
+slug = "ecommerce_daily_svcs"
+
+[[domain]]
+name = "Finance & Data Analytics"
+slug = "finance_data_analytics"
+
+[[domain]]
+name = "Health & Fitness"
+slug = "health_fitness"
+
+[[domain]]
+name = "Social Media"
+slug = "social_media"
+
+[[domain]]
+name = "Smart Home"
+slug = "smart_home"
+
+[[domain]]
+name = "Browser & Web Scraping"
+slug = "browser_web_scraping"
+
+[[domain]]
+name = "Voice & Multimodal"
+slug = "voice_multimodal"

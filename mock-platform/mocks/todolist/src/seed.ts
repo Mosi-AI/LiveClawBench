@@ -57,6 +57,16 @@ function getTodayPlus(days: number): string {
   return formatLocalDate(date);
 }
 
+function getNextFriday(): string {
+  const today = new Date();
+  // Python weekday: 0=Mon … 4=Fri … 6=Sun
+  const pyWeekday = (today.getDay() + 6) % 7;
+  const daysUntilFriday = (4 - pyWeekday + 7) % 7;
+  const friday = new Date(today);
+  friday.setDate(today.getDate() + daysUntilFriday);
+  return formatLocalDate(friday);
+}
+
 function getTaskSpecificTodos(taskName: string): Array<{
   title: string;
   date: string;
@@ -105,6 +115,19 @@ function getTaskSpecificTodos(taskName: string): Array<{
           location: "Los Angeles Union Station",
           person: "Mary Grande",
           description: "Meeting mary. Contact her via email: marytheshot@gmail.com",
+        },
+      ];
+    }
+    case "pre-meeting-research-brief": {
+      const friday = getNextFriday();
+      return [
+        {
+          title: "Partnership Discussion – NovaTech AI",
+          date: friday,
+          time: "14:00",
+          location: "Conference Room A",
+          person: "Alex Morgan, NovaTech AI CEO",
+          description: "Review partnership proposal and co-sell terms. Research materials available in corpus/.",
         },
       ];
     }

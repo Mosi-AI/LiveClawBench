@@ -1,0 +1,8 @@
+{
+  "structural_valid": 0.05,
+  "structure_completeness": 0.15,
+  "anchor_coverage": 0.20,
+  "meeting_summary_accuracy": 0.15,
+  "grounding_quality": 0.25,
+  "synthesis_quality": 0.20
+}

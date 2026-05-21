@@ -22,9 +22,50 @@ REQUIRED_FILES = [
 ]
 VALID_DIFFICULTIES = {"easy", "medium", "hard"}
 DIR_NAME_PATTERN = re.compile(r"^[a-z0-9-]+$")
+DOMAINS_TOML = Path(__file__).parent.parent / "docs" / "metadata" / "domains.toml"
+
+VALID_DOMAINS = {
+    "Browser & Web Scraping",
+    "Calendar & Task Mgmt",
+    "Coding & Software Dev",
+    "Communication & Email",
+    "Deep Research & Report",
+    "DevOps & Env Repair",
+    "Documents & Knowledge",
+    "E-commerce & Daily Svcs",
+    "Finance & Data Analytics",
+    "Health & Fitness",
+    "Smart Home",
+    "Social Media",
+    "Voice & Multimodal",
+}
+DOMAIN_TO_TAG: dict[str, set[str]] = {
+    "Browser & Web Scraping": {"browser_web_scraping"},
+    "Calendar & Task Mgmt": {"calendar_task_mgmt"},
+    "Coding & Software Dev": {"coding_software_dev"},
+    "Communication & Email": {"communication_email"},
+    "Deep Research & Report": {"deep_research_report"},
+    "DevOps & Env Repair": {"devops_env_repair"},
+    "Documents & Knowledge": {"documents_knowledge"},
+    "E-commerce & Daily Svcs": {"ecommerce_daily_svcs", "e-commerce_daily_svcs"},
+    "Finance & Data Analytics": {"finance"},
+    "Health & Fitness": {"health_fitness"},
+    "Smart Home": {"smart_home"},
+    "Social Media": {"social_media"},
+    "Voice & Multimodal": {"voice_multimodal"},
+}
 
 
-def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
+def load_canonical_domains() -> set[str]:
+    if not DOMAINS_TOML.exists():
+        return set()
+    data = tomllib.loads(DOMAINS_TOML.read_text())
+    return {d["name"] for d in data.get("domain", [])}
+
+
+def validate_task(
+    task_dir: Path, canonical_domains: set[str]
+) -> tuple[list[str], list[str]]:
     """Return (errors, warnings) for a task directory."""
     errors: list[str] = []
     warnings: list[str] = []
@@ -76,11 +117,64 @@ def validate_task(task_dir: Path) -> tuple[list[str], list[str]]:
             if not meta.get("domain"):
                 errors.append("task.toml: domain must be non-empty")
 
+            # domain must be in known enum (rule 1.17)
+            domain = meta.get("domain")
+            if domain and domain not in VALID_DOMAINS:
+                errors.append(
+                    f"task.toml: domain '{domain}' is not in VALID_DOMAINS ({VALID_DOMAINS})"
+                )
+
+            # domains_multi must be in known enum and count must match tags (rule 1.13)
+            tags = meta.get("tags", [])
+            domains_multi = meta.get("domains_multi", [])
+
+            for idx, dm in enumerate(domains_multi):
+                if dm not in VALID_DOMAINS:
+                    errors.append(
+                        f"task.toml: domains_multi[{idx}] '{dm}' not in VALID_DOMAINS"
+                    )
+
+            # tag↔domain canonical mapping check (WARNING only — tolerate
+            # legacy spellings and topical tags). zip stops at the shorter
+            # list so extra topical tags are silently skipped.
+            for idx, (tag, dm) in enumerate(zip(tags, domains_multi)):
+                valid_tags = DOMAIN_TO_TAG.get(dm, set())
+                if valid_tags and tag not in valid_tags:
+                    warnings.append(
+                        f"task.toml: tag[{idx}] '{tag}' does not match "
+                        f"canonical tags for domain '{dm}' ({valid_tags})"
+                    )
+
             # capability_dimension should NOT exist
             if "capability_dimension" in meta:
                 errors.append(
                     "task.toml: capability_dimension is deprecated, remove it"
                 )
+
+            # Rule 1.13: tags length must match domains_multi length
+            tags = meta.get("tags", [])
+            domains_multi = meta.get("domains_multi", [])
+            if len(tags) != len(domains_multi):
+                errors.append(
+                    f"task.toml: len(tags)={len(tags)} != len(domains_multi)={len(domains_multi)}"
+                )
+
+            # Rule 1.17: domain enum validation
+            if canonical_domains:
+                domain = meta.get("domain")
+                if domain not in canonical_domains:
+                    errors.append(f"task.toml: domain '{domain}' not in canonical enum")
+                for dm in domains_multi:
+                    if dm not in canonical_domains:
+                        errors.append(
+                            f"task.toml: domains_multi entry '{dm}' not in canonical enum"
+                        )
+
+            # Factor completeness
+            for factor in ("factor_a1", "factor_a2", "factor_b1", "factor_b2"):
+                val = meta.get(factor)
+                if val not in (0, 1):
+                    errors.append(f"task.toml: {factor} must be 0 or 1, got {val!r}")
 
         # Required sections
         for section in ("verifier", "agent", "environment"):
@@ -127,8 +221,10 @@ def main() -> int:
     all_errors: list[tuple[str, list[str]]] = []
     all_warnings: list[tuple[str, list[str]]] = []
 
+    canonical_domains = load_canonical_domains()
+
     for task_dir in task_dirs:
-        errors, warnings = validate_task(task_dir)
+        errors, warnings = validate_task(task_dir, canonical_domains)
 
         # Check case_id uniqueness
         toml_path = task_dir / "task.toml"

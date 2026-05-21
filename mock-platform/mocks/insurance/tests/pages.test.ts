@@ -218,6 +218,178 @@ describe("SSR pages", () => {
     expect(res.headers.get("location")).toBe("/appointments/search");
   });
 
+  // Book the first available slot for the authenticated user and return
+  // identifiers that downstream tests need to drive list / cancel flows.
+  async function bookFirstSlotPage(app: any, token: string) {
+    const providersRes = await app.request("/api/providers");
+    const { providers } = await providersRes.json();
+    const provider = providers[0];
+
+    const providerRes = await app.request(`/api/providers/${provider.id}`);
+    const { services } = await providerRes.json();
+    const service = services[0];
+
+    const slotsRes = await app.request(
+      `/api/providers/${provider.id}/services/${service.id}/slots`,
+    );
+    const { slots } = await slotsRes.json();
+    const slot = slots[0];
+
+    const bookRes = await app.request("/api/appointments", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ slot_id: slot.id }),
+    });
+    const appointment = await bookRes.json();
+    return {
+      appointmentId: appointment.id as number,
+      slotId: slot.id as number,
+      providerId: provider.id as number,
+      providerName: provider.name as string,
+    };
+  }
+
+  test("GET /appointments without auth redirects to /login", async () => {
+    const { app } = await createAppWithToken();
+    const res = await app.request("/appointments");
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("/login?next=%2Fappointments");
+  });
+
+  test("GET /appointments with no bookings shows empty state", async () => {
+    const { app, token } = await createAppWithToken();
+    const res = await app.request("/appointments", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("My Appointments");
+    expect(html).toContain("You have no appointments yet.");
+    expect(html).toContain('href="/appointments/search"');
+    expect(html).not.toContain("data-appointment-id=");
+  });
+
+  test("GET /appointments after booking lists the appointment with provider, network, and cancel control", async () => {
+    const { app, token } = await createAppWithToken();
+    const { appointmentId, providerName } = await bookFirstSlotPage(app, token);
+
+    const res = await app.request("/appointments", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("data-table");
+    expect(html).toContain(`data-appointment-id="${appointmentId}"`);
+    expect(html).toContain(providerName);
+    // The seeded first provider is in-network; the contaminated out-of-network
+    // case is covered by the dedicated test below.
+    expect(html).toMatch(/in_network|out_of_network/);
+    expect(html).toContain(`action="/appointments/${appointmentId}/cancel"`);
+    expect(html).toContain("Cancel");
+    expect(html).toContain("status-confirmed");
+  });
+
+  test("GET /appointments surfaces out_of_network for an OON provider booking", async () => {
+    const { app, token } = await createAppWithToken();
+
+    // Find the first out-of-network provider via the public list endpoint.
+    const oonListRes = await app.request(
+      "/api/providers?network_status=out_of_network",
+    );
+    const { providers: oonProviders } = await oonListRes.json();
+    expect(oonProviders.length).toBeGreaterThan(0);
+    const provider = oonProviders[0];
+
+    const detailRes = await app.request(`/api/providers/${provider.id}`);
+    const { services } = await detailRes.json();
+    const service = services[0];
+
+    const slotsRes = await app.request(
+      `/api/providers/${provider.id}/services/${service.id}/slots`,
+    );
+    const { slots } = await slotsRes.json();
+    const slot = slots[0];
+
+    await app.request("/api/appointments", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ slot_id: slot.id }),
+    });
+
+    const res = await app.request("/appointments", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain(provider.name);
+    expect(html).toContain("out_of_network");
+  });
+
+  test("POST /appointments/:id/cancel without auth redirects to /login", async () => {
+    const { app } = await createAppWithToken();
+    const res = await app.request("/appointments/1/cancel", {
+      method: "POST",
+    });
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toMatch(/^\/login\?next=/);
+  });
+
+  test("POST /appointments/:id/cancel cancels the appointment, frees the slot, and redirects to /appointments", async () => {
+    const { app, token } = await createAppWithToken();
+    const { appointmentId, slotId, providerId } = await bookFirstSlotPage(
+      app,
+      token,
+    );
+
+    const cancelRes = await app.request(
+      `/appointments/${appointmentId}/cancel`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    expect(cancelRes.status).toBe(302);
+    expect(cancelRes.headers.get("location")).toBe("/appointments");
+
+    // Slot is freed and shows up again in the available slots list.
+    const detailRes = await app.request(`/api/providers/${providerId}`);
+    const { services } = await detailRes.json();
+    const serviceId = services[0].id;
+    const slotsRes = await app.request(
+      `/api/providers/${providerId}/services/${serviceId}/slots`,
+    );
+    const { slots } = await slotsRes.json();
+    expect(slots.map((s: any) => s.id)).toContain(slotId);
+
+    // List page now shows the appointment as cancelled with no cancel form.
+    const listRes = await app.request("/appointments", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(listRes.status).toBe(200);
+    const html = await listRes.text();
+    expect(html).toContain(`data-appointment-id="${appointmentId}"`);
+    expect(html).toContain("status-cancelled");
+    expect(html).not.toContain(`action="/appointments/${appointmentId}/cancel"`);
+  });
+
+  test("POST /appointments/:id/cancel on a non-existent id still redirects to /appointments", async () => {
+    const { app, token } = await createAppWithToken();
+    const res = await app.request("/appointments/999999/cancel", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    // SSR flow intentionally redirects on no-op; the DELETE API surface is
+    // responsible for returning 404 for missing appointments.
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toBe("/appointments");
+  });
+
   test("GET /plans returns 200 HTML", async () => {
     const { app, token } = await createAppWithToken();
     const res = await app.request("/plans", {
@@ -287,6 +459,7 @@ describe("SSR pages", () => {
     const html = await res.text();
     expect(html).toContain('href="/claims"');
     expect(html).toContain('href="/appointments/search"');
+    expect(html).toContain('href="/appointments"');
     expect(html).toContain('href="/plans"');
   });
 });

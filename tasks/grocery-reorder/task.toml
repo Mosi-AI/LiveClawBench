@@ -6,7 +6,7 @@ category = "open-world"
 tags = ["e_commerce_daily_svcs", "smart_home"]
 
 domain = "E-commerce & Daily Svcs"
-domains_multi = ["E-commerce & Daily Svcs"]
+domains_multi = ["E-commerce & Daily Svcs", "Smart Home"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 1   # Cross-Service Dependency (smarthome + shop)

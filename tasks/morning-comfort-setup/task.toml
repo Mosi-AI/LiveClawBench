@@ -3,10 +3,10 @@ version = "1.0"
 [metadata]
 difficulty = "medium"
 category = "open-world"
-tags = ["smart_home", "environmental_diagnosis", "coffee_scheduling"]
+tags = ["health_fitness", "smart_home"]
 
 domain = "Health & Fitness"
-domains_multi = ["Health & Fitness", "E-commerce & Daily Svcs"]
+domains_multi = ["Health & Fitness", "Smart Home"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 0   # Cross-Service Dependency (single mock service)

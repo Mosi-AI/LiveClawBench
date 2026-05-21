@@ -87,6 +87,7 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
   // Sentinel routes registered by each mock stub — must match mocks/*/src/index.ts
   const sentinelPatterns: Record<string, string> = {
     airline: "/__mock_sentinel__/airline",
+    chat: "/__mock_sentinel__/chat",
     email: "/__mock_sentinel__/email",
     shop: "/__mock_sentinel__/shop",
     todolist: "/__mock_sentinel__/todolist",
@@ -265,8 +266,8 @@ async function main() {
   // For failing mocks: delete the temp binary; leave existing dist/mock-<name> and manifest untouched.
   const isolationFailed = new Set<string>([
     ...missingSentinels,
-    ...Array.from(violations.keys()),
-    ...Array.from(readErrors.keys()),
+    ...violations.keys(),
+    ...readErrors.keys(),
   ]);
 
   for (const result of results) {
@@ -286,6 +287,12 @@ async function main() {
       let backedUpManifest = false;
 
       try {
+        // Pre-flight: remove stale backup artifacts from a previously interrupted build,
+        // but only when the corresponding final artifact still exists — if the final is gone,
+        // the backup is the last surviving copy and must be preserved.
+        try { if (hadFinal && existsSync(backupPath)) unlinkSync(backupPath); } catch { /* ignore */ }
+        try { if (hadManifest && existsSync(backupManifestPath)) unlinkSync(backupManifestPath); } catch { /* ignore */ }
+
         // Step 1: Write new manifest to temp path (no final paths touched yet)
         writeBuildManifest(manifestSnapshots.get(result.name)!, tempManifestPath);
 

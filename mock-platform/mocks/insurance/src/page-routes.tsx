@@ -11,9 +11,12 @@ import { ClaimsNewPage } from "./components/claims-new-page";
 import { ClaimDetailPage } from "./components/claim-detail-page";
 import { AppointmentsSearchPage } from "./components/appointments-search-page";
 import { ProviderDetailPage } from "./components/provider-detail-page";
+import { AppointmentsListPage } from "./components/appointments-list-page";
+import type { AppointmentRow } from "./components/appointments-list-page";
 import { PlansListPage } from "./components/plans-list-page";
 import { PlansCurrentPage } from "./components/plans-current-page";
 import { PlansSelectPage } from "./components/plans-select-page";
+import { cancelAppointment } from "./routes/appointments";
 
 const pageAuth = authRequired({ onUnauthorized: "redirect" });
 
@@ -363,6 +366,40 @@ export function registerPageRoutes(app: OpenAPIApp, db: Database): void {
     book();
 
     return c.redirect("/appointments/search");
+  });
+
+  // SSR list of the authenticated user's appointments. Joins provider to
+  // surface network_status (in_network vs out_of_network) so users can see
+  // which appointments may incur higher out-of-pocket costs.
+  app.use("/appointments", pageAuth);
+  app.page("/appointments", (c) => {
+    const userId = c.get("userId")!;
+    const user = getCurrentUser(db, userId);
+    const appointments = db
+      .query<AppointmentRow, [number]>(
+        `SELECT a.id, a.provider_name, a.service_name_snapshot, a.check_item,
+                a.slot_start_time, a.slot_end_time,
+                a.cost_snapshot, a.distance_km_snapshot, a.status,
+                p.network_status
+         FROM appointment a
+         JOIN provider p ON p.id = a.provider_id
+         WHERE a.user_id = ?
+         ORDER BY a.slot_start_time DESC`,
+      )
+      .all(userId);
+    return c.html(
+      <AppointmentsListPage user={user} appointments={appointments} />,
+    );
+  });
+
+  // SSR cancellation form target. Shares the cancelAppointment helper with
+  // the DELETE /api/appointments/:id route so both flows are atomic and
+  // mark the appointment cancelled while freeing its slot.
+  app.post("/appointments/:id/cancel", pageAuth, (c) => {
+    const userId = c.get("userId")!;
+    const id = Number(c.req.param("id"));
+    cancelAppointment(db, userId, id);
+    return c.redirect("/appointments");
   });
 
   // --- Plans pages ---
