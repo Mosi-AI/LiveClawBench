@@ -342,10 +342,19 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
         self.assertIn("D6b", text)
         self.assertIn("D6c", text)
         self.assertIn("D6d", text)
-        self.assertIn(
-            "all([d1_pass, d2_pass, d3_pass, d4_pass, d5_pass, d6a_pass, d6b_pass, d6c_pass, d6d_pass])",
-            text,
-        )
+        self.assertIn("all_pass = all(", text)
+        for name in (
+            "d1_pass",
+            "d2_pass",
+            "d3_pass",
+            "d4_pass",
+            "d5_pass",
+            "d6a_pass",
+            "d6b_pass",
+            "d6c_pass",
+            "d6d_pass",
+        ):
+            self.assertIn(name, text)
 
     def test_test_sh_writes_reward_files_contract(self):
         text = TEST_SH_PATH.read_text()
