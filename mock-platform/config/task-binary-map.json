@@ -681,7 +681,7 @@
       ],
       "frontends": [
         {
-          "src": "tasks/meeting-reschedule-response/environment/email-app/frontend",
+          "src": "tasks/email-reply/environment/email-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/email"
         }
@@ -700,7 +700,7 @@
       ],
       "frontends": [
         {
-          "src": "tasks/candidate-interview-slot-confirm/environment/email-app/frontend",
+          "src": "tasks/email-reply/environment/email-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/email"
         }
@@ -721,7 +721,7 @@
       ],
       "frontends": [
         {
-          "src": "tasks/medication-prescription-sync/environment/email-app/frontend",
+          "src": "tasks/email-reply/environment/email-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/email"
         }
@@ -746,7 +746,7 @@
       ],
       "frontends": [
         {
-          "src": "tasks/health-appointment-scheduling/environment/email-app/frontend",
+          "src": "tasks/email-reply/environment/email-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/email"
         }
@@ -767,7 +767,7 @@
       ],
       "frontends": [
         {
-          "src": "tasks/content-calendar-cross-publish/environment/email-app/frontend",
+          "src": "tasks/email-reply/environment/email-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/email"
         }
