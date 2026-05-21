@@ -1,6 +1,6 @@
 /** @jsxImportSource hono/jsx */
 import type { OpenAPIApp } from "mock-lib";
-import { assertDb, canEditCoffeeDate, getBenchmarkDate, getBenchmarkTime, getCoffeeScheduleForDate, isValidIsoDate } from "../db";
+import { assertDb, canEditCoffeeDate, getBenchmarkDate, getCoffeeScheduleForDate, isValidIsoDate } from "../db";
 import {
   CalendarPage,
   CoffeePage,
@@ -92,7 +92,7 @@ export function registerPageRoutes(app: OpenAPIApp): void {
       return c.html(<ErrorPage title="Service Error" message="Wearable data unavailable." />, 500);
     }
 
-    const today = getBenchmarkTime().split("T")[0];
+    const today = getBenchmarkDate();
     return c.html(<WearablePage data={data} date={today} />);
   });
 

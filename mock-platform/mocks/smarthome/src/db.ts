@@ -418,13 +418,13 @@ export function generatePlanId(): string {
 
   // Query existing plans with same timestamp prefix to get next suffix
   const prefix = `PLAN${timestamp}-`;
-  const existing = database.query("SELECT plan_id FROM meal_plan WHERE plan_id LIKE ? ORDER BY plan_id DESC LIMIT 1").all(`${prefix}%`) as { plan_id: string }[];
+  const existing = database.query("SELECT plan_id FROM meal_plan WHERE plan_id LIKE ? ORDER BY plan_id DESC LIMIT 1").get(`${prefix}%`) as { plan_id: string } | null;
   let nextSuffix = 1;
-  if (existing.length > 0) {
-    const lastSuffix = existing[0].plan_id.substring(prefix.length);
+  if (existing) {
+    const lastSuffix = existing.plan_id.substring(prefix.length);
     const parsed = parseInt(lastSuffix, 36);
     if (isNaN(parsed)) {
-      console.error(`mock-smarthome: WARNING: malformed plan_id "${existing[0].plan_id}", resetting suffix to 1`);
+      console.error(`mock-smarthome: WARNING: malformed plan_id "${existing.plan_id}", resetting suffix to 1`);
     } else {
       nextSuffix = parsed + 1;
     }
