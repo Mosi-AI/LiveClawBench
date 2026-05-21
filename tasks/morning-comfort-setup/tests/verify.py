@@ -395,7 +395,6 @@ def check_d6_response_coffee_timing(response):
     )
     if has_tomorrow_reference:
         print("PASS: Tomorrow/date reference mentioned")
-        found += 1
     else:
         print("FAIL: Tomorrow/date reference not mentioned")
 
@@ -426,14 +425,14 @@ def check_d6_response_coffee_timing(response):
     else:
         print("FAIL: Tomorrow's 7am/departure inference not tied to brew time")
 
-    if found == 4:
+    if found == 3 and has_tomorrow_reference:
         print("D6: PASS (0.1)")
         return 0.1
     elif found >= 2:
         print("D6: PARTIAL (0.05)")
         return 0.05
     else:
-        print(f"D6: FAIL (0.0) - found {found}/4 required elements")
+        print(f"D6: FAIL (0.0) - found {found}/3 required elements, tomorrow/date required")
         return 0.0
 
 
@@ -487,21 +486,31 @@ def check_d8_response_shopping_list_action(response):
         return 0.0
 
     response_lower = response.lower()
-    item_action_patterns = {
-        "Blue Mountain": [
-            r"blue mountain[^.\n]{0,80}(added|put)[^.\n]{0,80}(shopping list|grocery list)",
-            r"(added|put)[^.\n]{0,80}blue mountain[^.\n]{0,80}(shopping list|grocery list)",
-            r"(shopping list|grocery list)[^.\n]{0,80}blue mountain[^.\n]{0,80}(added|put)",
-        ],
-        "Kenya AA": [
-            r"kenya[^.\n]{0,80}(added|put)[^.\n]{0,80}(shopping list|grocery list)",
-            r"(added|put)[^.\n]{0,80}kenya[^.\n]{0,80}(shopping list|grocery list)",
-            r"(shopping list|grocery list)[^.\n]{0,80}kenya[^.\n]{0,80}(added|put)",
-        ],
-    }
+    sentences = [s.strip() for s in re.split(r"[.!?\n]", response_lower) if s.strip()]
 
-    blue_mountain_reported = any(re.search(p, response_lower) for p in item_action_patterns["Blue Mountain"])
-    kenya_aa_reported = any(re.search(p, response_lower) for p in item_action_patterns["Kenya AA"])
+    list_action_patterns = [
+        r"shopping list",
+        r"grocery list",
+        r"added",
+        r"put",
+        r"included",
+        r"placed",
+        r"on the list",
+    ]
+
+    def sentence_mentions_item_added(sentence: str, item_keywords: list[str]) -> bool:
+        has_item = all(keyword in sentence for keyword in item_keywords)
+        has_list = any(re.search(pattern, sentence) for pattern in list_action_patterns)
+        return has_item and has_list
+
+    blue_mountain_reported = any(
+        sentence_mentions_item_added(sentence, ["blue", "mountain"])
+        for sentence in sentences
+    )
+    kenya_aa_reported = any(
+        sentence_mentions_item_added(sentence, ["kenya"])
+        for sentence in sentences
+    )
 
     if blue_mountain_reported and kenya_aa_reported:
         print("PASS: Report says both coffee bean items were added to the shopping list")
@@ -513,7 +522,7 @@ def check_d8_response_shopping_list_action(response):
         print("D8: PARTIAL (0.05)")
         return 0.05
 
-    print("FAIL: Report does not clearly say the coffee bean items were added to the shopping list")
+    print("FAIL: Report does not clearly say the named coffee bean items were added to the shopping list")
     print("D8: FAIL (0.0)")
     return 0.0
 
