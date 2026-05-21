@@ -428,6 +428,7 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
       } else if (bin === "health") {
         lines.push(`export HEALTH_DB_PATH=/var/lib/mock-data/health/health.db`);
         lines.push(`mkdir -p /var/lib/mock-data/health`);
+        lines.push(`ln -sf /var/lib/mock-data/health/health.db /workspace/health.db`);
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
