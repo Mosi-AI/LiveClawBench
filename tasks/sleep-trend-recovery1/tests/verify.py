@@ -8,6 +8,7 @@ from pathlib import Path
 BENCHMARK_DATE = "2026-05-09"
 SEEDED_COFFEE_START = "07:00"
 MIN_DELAYED_COFFEE_START = "07:20"
+BENCHMARK_WORKOUT_START = "2026-05-09T09:00:00Z"
 RECOVERY_WORKOUTS = {"walking", "yoga", "swimming"}
 
 
@@ -78,12 +79,12 @@ def detect_direct_api_calls():
     return False, "No direct API calls detected"
 
 
-def get_last_assistant_message():
+def get_all_assistant_messages():
     log_path = find_harbor_log_path()
     if log_path is None:
         return None
 
-    last_content = None
+    all_contents = []
     with open(log_path) as handle:
         for line in handle:
             try:
@@ -97,7 +98,7 @@ def get_last_assistant_message():
                 continue
             content = entry.get("message", {}).get("content")
             if isinstance(content, str):
-                last_content = content
+                all_contents.append(content)
             elif isinstance(content, list):
                 parts = [
                     block.get("text", "")
@@ -107,12 +108,12 @@ def get_last_assistant_message():
                     and block.get("text")
                 ]
                 if parts:
-                    last_content = " ".join(parts)
-    return last_content
+                    all_contents.append(" ".join(parts))
+    return " ".join(all_contents) if all_contents else None
 
 
 def get_agent_response():
-    response = get_last_assistant_message()
+    response = get_all_assistant_messages()
     if response is None and find_harbor_log_path() is None:
         response_path = Path("/workspace/output/response.txt")
         if response_path.exists():
@@ -214,22 +215,26 @@ def check_thermostat(conn):
 
 
 def check_workout(conn):
-    row = conn.execute(
+    rows = conn.execute(
         """
-        SELECT workout_type
+        SELECT title, workout_type
         FROM calendar_event
-        WHERE title = 'HIIT Workout'
-          AND event_type = 'workout'
-          AND start_time >= '2026-05-09T00:00:00Z'
-          AND start_time < '2026-05-10T00:00:00Z'
+        WHERE event_type = 'workout'
+          AND start_time = ?
         """
-    ).fetchone()
-    if row is None:
-        return False, "No benchmark-day HIIT Workout row found"
-    workout_type = (row[0] or "").lower()
+        ,
+        (BENCHMARK_WORKOUT_START,),
+    ).fetchall()
+    if len(rows) != 1:
+        return (
+            False,
+            f"Expected exactly one benchmark workout at {BENCHMARK_WORKOUT_START}, found {len(rows)}",
+        )
+    title, workout_type = rows[0]
+    workout_type = (workout_type or "").lower()
     if workout_type not in RECOVERY_WORKOUTS:
         return False, f"workout_type={workout_type}"
-    return True, f"workout_type={workout_type}"
+    return True, f"title={title}, workout_type={workout_type}"
 
 
 def check_coffee(conn):
@@ -352,23 +357,27 @@ def score_response(response):
         r"cannot|can't|won't|will not|does not|doesn't", text
     ) and re.search(r"affect|change|retroactive|undo", text)
     today_brewed = re.search(r"today|already\s*brewed|brewed\s*today", text)
+    flags["coffee_ready_discovery"] = bool(
+        ready_language and impact_language and today_brewed
+    )
+    if flags["coffee_ready_discovery"]:
+        score += 0.05
+    else:
+        details["coffee_ready_discovery"] = (
+            "Missing READY/already-brewed impact explanation"
+        )
+
     tomorrow_question = (
         re.search(r"tomorrow", text)
         and re.search(r"would you like|do you want|should i|want me|ask|change", text)
         and re.search(r"coffee|schedule|time", text)
     )
-    flags["coffee_ready_followup"] = bool(
-        schedule_changed
-        and ready_language
-        and impact_language
-        and today_brewed
-        and tomorrow_question
-    )
-    if flags["coffee_ready_followup"]:
-        score += 0.10
+    flags["coffee_tomorrow_followup"] = bool(tomorrow_question)
+    if flags["coffee_tomorrow_followup"]:
+        score += 0.05
     else:
-        details["coffee_ready_followup"] = (
-            "Missing schedule-change acknowledgement, READY/already-brewed impact, or tomorrow follow-up question"
+        details["coffee_tomorrow_followup"] = (
+            "Missing tomorrow coffee follow-up question"
         )
 
     return round(score, 2), flags, details
@@ -394,8 +403,11 @@ def write_reward_files(score, results, details, blocked_reason=None):
         "_meta_recovery_rationale": float(results.get("recovery_rationale", False)),
         "_meta_hr_abnormal": float(results.get("hr_abnormal", False)),
         "_meta_actions_confirmed": float(results.get("actions_confirmed", False)),
-        "_meta_coffee_ready_followup": float(
-            results.get("coffee_ready_followup", False)
+        "_meta_coffee_ready_discovery": float(
+            results.get("coffee_ready_discovery", False)
+        ),
+        "_meta_coffee_tomorrow_followup": float(
+            results.get("coffee_tomorrow_followup", False)
         ),
     }
     if blocked_reason is not None:
@@ -454,7 +466,8 @@ def main():
             "recovery_rationale": False,
             "hr_abnormal": False,
             "actions_confirmed": False,
-            "coffee_ready_followup": False,
+            "coffee_ready_discovery": False,
+            "coffee_tomorrow_followup": False,
         }
         response_details = {"response": "No agent response found"}
     else:
@@ -479,7 +492,7 @@ def main():
         response_flags["sleep_metrics"]
         and response_flags["recovery_rationale"]
         and response_flags["hr_abnormal"]
-        and response_flags["coffee_ready_followup"]
+        and response_flags["coffee_ready_discovery"]
     )
     results["required_state_passed"] = required_state_passed
     results["required_response_passed"] = required_response_passed

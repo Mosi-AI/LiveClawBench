@@ -30,6 +30,23 @@ spec.loader.exec_module(verify)
 
 
 class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
+    def _make_workout_conn(self):
+        conn = sqlite3.connect(":memory:")
+        conn.executescript(
+            """
+            CREATE TABLE calendar_event (
+                id INTEGER PRIMARY KEY,
+                title TEXT NOT NULL,
+                start_time TEXT NOT NULL,
+                event_type TEXT,
+                workout_type TEXT,
+                status TEXT,
+                updated_at TEXT
+            );
+            """
+        )
+        return conn
+
     def test_health_seed_populates_current_day_sleep_outlier_and_metric_series(self):
         conn = sqlite3.connect(":memory:")
         conn.executescript(
@@ -162,6 +179,34 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL
             );
+            CREATE TABLE wearable_recovery_state (
+                id INTEGER PRIMARY KEY,
+                sleep_hours REAL NOT NULL,
+                sleep_score REAL NOT NULL,
+                readiness REAL NOT NULL,
+                resting_heart_rate REAL NOT NULL
+            );
+            CREATE TABLE user_constraints (
+                id INTEGER PRIMARY KEY,
+                calorie_target REAL NOT NULL,
+                macro_targets TEXT NOT NULL,
+                allergy_constraints TEXT NOT NULL,
+                weekly_budget_limit REAL NOT NULL
+            );
+            CREATE TABLE recipe (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                meal_type TEXT NOT NULL,
+                ingredients TEXT NOT NULL,
+                calories_total REAL NOT NULL,
+                allergens TEXT
+            );
+            CREATE TABLE meal_plan (
+                id INTEGER PRIMARY KEY,
+                plan_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                plan_data TEXT NOT NULL
+            );
             """
         )
         conn.executescript(SMARTHOME_SEED_PATH.read_text())
@@ -206,7 +251,296 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             "scheduled", verify.derive_coffee_status("2026-05-10", "07:00", clock)
         )
 
-    def test_response_scoring_requires_sleep_metrics_recovery_rationale_hr_and_coffee_followup(
+    def test_smarthome_seed_populates_wearable_data_aligned_with_health_outlier(self):
+        health_conn = sqlite3.connect(":memory:")
+        health_conn.executescript(
+            """
+            CREATE TABLE mock_user (
+                id INTEGER PRIMARY KEY,
+                username TEXT NOT NULL UNIQUE,
+                display_name TEXT
+            );
+            CREATE TABLE system_config (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            CREATE TABLE health_daily_snapshot (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                steps INTEGER,
+                active_energy_kcal REAL,
+                sleep_hours REAL,
+                sleep_quality REAL,
+                light_sleep_hours REAL,
+                deep_sleep_hours REAL,
+                rem_sleep_hours REAL,
+                low_intensity_min REAL,
+                medium_intensity_min REAL,
+                high_intensity_min REAL,
+                total_activity_min REAL,
+                resting_heart_rate_bpm INTEGER,
+                avg_heart_rate_bpm INTEGER,
+                weight_kg REAL,
+                body_fat_percent REAL,
+                blood_oxygen_percent REAL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(user_id, date)
+            );
+            CREATE TABLE health_metric_series (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                metric_type TEXT NOT NULL,
+                date TEXT NOT NULL,
+                value REAL NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now')),
+                UNIQUE(user_id, metric_type, date)
+            );
+            """
+        )
+        health_conn.executescript(HEALTH_SEED_PATH.read_text())
+        snapshot = health_conn.execute(
+            """
+            SELECT sleep_hours, sleep_quality, total_activity_min, resting_heart_rate_bpm
+            FROM health_daily_snapshot
+            WHERE user_id = 1 AND date = '2026-05-09'
+            """
+        ).fetchone()
+        self.assertEqual((6.5, 62.0, 29.0, 110), snapshot)
+
+        smarthome_conn = sqlite3.connect(":memory:")
+        smarthome_conn.executescript(
+            """
+            CREATE TABLE benchmark_clock (
+                id INTEGER PRIMARY KEY,
+                clock_time TEXT NOT NULL
+            );
+            CREATE TABLE thermostat_settings (
+                id INTEGER PRIMARY KEY,
+                mode TEXT,
+                temperature REAL,
+                updated_at TEXT
+            );
+            CREATE TABLE coffee_schedule (
+                schedule_date TEXT PRIMARY KEY,
+                start_time TEXT,
+                beans_grams INTEGER,
+                cancelled INTEGER,
+                updated_at TEXT
+            );
+            CREATE TABLE wearable_recovery_state (
+                id INTEGER PRIMARY KEY,
+                sleep_hours REAL NOT NULL,
+                sleep_score REAL NOT NULL,
+                readiness REAL NOT NULL,
+                resting_heart_rate REAL NOT NULL
+            );
+            CREATE TABLE calendar_event (
+                id INTEGER PRIMARY KEY,
+                title TEXT NOT NULL,
+                start_time TEXT NOT NULL,
+                event_type TEXT,
+                workout_type TEXT,
+                status TEXT,
+                updated_at TEXT
+            );
+            CREATE TABLE room_metrics (
+                id INTEGER PRIMARY KEY,
+                temperature REAL,
+                humidity REAL,
+                unit_temp TEXT,
+                noise REAL,
+                light REAL,
+                air_quality REAL
+            );
+            CREATE TABLE room (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL
+            );
+            CREATE TABLE user_constraints (
+                id INTEGER PRIMARY KEY,
+                calorie_target REAL NOT NULL,
+                macro_targets TEXT NOT NULL,
+                allergy_constraints TEXT NOT NULL,
+                weekly_budget_limit REAL NOT NULL
+            );
+            CREATE TABLE recipe (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                meal_type TEXT NOT NULL,
+                ingredients TEXT NOT NULL,
+                calories_total REAL NOT NULL,
+                allergens TEXT
+            );
+            CREATE TABLE meal_plan (
+                id INTEGER PRIMARY KEY,
+                plan_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                plan_data TEXT NOT NULL
+            );
+            """
+        )
+        smarthome_conn.executescript(SMARTHOME_SEED_PATH.read_text())
+
+        wearable = smarthome_conn.execute(
+            """
+            SELECT sleep_hours, sleep_score, readiness, resting_heart_rate
+            FROM wearable_recovery_state
+            WHERE id = 1
+            """
+        ).fetchone()
+        self.assertEqual((6.5, 62.0, 34.0, 110.0), wearable)
+
+    def test_smarthome_seed_populates_meal_plan_page_dependencies(self):
+        conn = sqlite3.connect(":memory:")
+        conn.executescript(
+            """
+            CREATE TABLE benchmark_clock (
+                id INTEGER PRIMARY KEY,
+                clock_time TEXT NOT NULL
+            );
+            CREATE TABLE thermostat_settings (
+                id INTEGER PRIMARY KEY,
+                mode TEXT,
+                temperature REAL,
+                updated_at TEXT
+            );
+            CREATE TABLE coffee_schedule (
+                schedule_date TEXT PRIMARY KEY,
+                start_time TEXT,
+                beans_grams INTEGER,
+                cancelled INTEGER,
+                updated_at TEXT
+            );
+            CREATE TABLE wearable_recovery_state (
+                id INTEGER PRIMARY KEY,
+                sleep_hours REAL NOT NULL,
+                sleep_score REAL NOT NULL,
+                readiness REAL NOT NULL,
+                resting_heart_rate REAL NOT NULL
+            );
+            CREATE TABLE calendar_event (
+                id INTEGER PRIMARY KEY,
+                title TEXT NOT NULL,
+                start_time TEXT NOT NULL,
+                event_type TEXT,
+                workout_type TEXT,
+                status TEXT,
+                updated_at TEXT
+            );
+            CREATE TABLE room_metrics (
+                id INTEGER PRIMARY KEY,
+                temperature REAL,
+                humidity REAL,
+                unit_temp TEXT,
+                noise REAL,
+                light REAL,
+                air_quality REAL
+            );
+            CREATE TABLE room (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL
+            );
+            CREATE TABLE user_constraints (
+                id INTEGER PRIMARY KEY,
+                calorie_target REAL NOT NULL,
+                macro_targets TEXT NOT NULL,
+                allergy_constraints TEXT NOT NULL,
+                weekly_budget_limit REAL NOT NULL
+            );
+            CREATE TABLE recipe (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                meal_type TEXT NOT NULL,
+                ingredients TEXT NOT NULL,
+                calories_total REAL NOT NULL,
+                allergens TEXT
+            );
+            """
+        )
+        conn.executescript(SMARTHOME_SEED_PATH.read_text())
+
+        constraints = conn.execute(
+            """
+            SELECT calorie_target, macro_targets, allergy_constraints, weekly_budget_limit
+            FROM user_constraints
+            WHERE id = 1
+            """
+        ).fetchone()
+        self.assertEqual(
+            (2000.0, '{"protein": 150, "carbs": 250, "fat": 65}', '["shellfish"]', 150.0),
+            constraints,
+        )
+
+        recipe_rows = conn.execute(
+            "SELECT meal_type, COUNT(*) FROM recipe GROUP BY meal_type ORDER BY meal_type"
+        ).fetchall()
+        self.assertEqual(
+            [("breakfast", 3), ("dinner", 4), ("lunch", 3)],
+            recipe_rows,
+        )
+
+    def test_check_workout_allows_renamed_recovery_workout_at_original_time(self):
+        conn = self._make_workout_conn()
+        conn.execute(
+            """
+            INSERT INTO calendar_event (
+                id, title, start_time, event_type, workout_type, status, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                1,
+                "Recovery Swim",
+                "2026-05-09T09:00:00Z",
+                "workout",
+                "swimming",
+                "undone",
+                "2026-05-09T07:45:00Z",
+            ),
+        )
+
+        passed, detail = verify.check_workout(conn)
+        self.assertTrue(passed)
+        self.assertEqual("title=Recovery Swim, workout_type=swimming", detail)
+
+    def test_check_workout_rejects_multiple_workouts_at_original_time(self):
+        conn = self._make_workout_conn()
+        conn.executemany(
+            """
+            INSERT INTO calendar_event (
+                id, title, start_time, event_type, workout_type, status, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    1,
+                    "Recovery Walk",
+                    "2026-05-09T09:00:00Z",
+                    "workout",
+                    "walking",
+                    "undone",
+                    "2026-05-09T07:45:00Z",
+                ),
+                (
+                    2,
+                    "Recovery Yoga",
+                    "2026-05-09T09:00:00Z",
+                    "workout",
+                    "yoga",
+                    "undone",
+                    "2026-05-09T07:45:00Z",
+                ),
+            ],
+        )
+
+        passed, detail = verify.check_workout(conn)
+        self.assertFalse(passed)
+        self.assertEqual(
+            "Expected exactly one benchmark workout at 2026-05-09T09:00:00Z, found 2",
+            detail,
+        )
+
+    def test_response_scoring_requires_sleep_metrics_recovery_rationale_hr_and_coffee_ready_discovery(
         self,
     ):
         complete = (
@@ -222,7 +556,8 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
         self.assertEqual(0.4, score)
         self.assertTrue(flags["sleep_metrics"])
         self.assertTrue(flags["hr_abnormal"])
-        self.assertTrue(flags["coffee_ready_followup"])
+        self.assertTrue(flags["coffee_ready_discovery"])
+        self.assertTrue(flags["coffee_tomorrow_followup"])
         self.assertEqual({}, details)
 
         no_rationale = (
@@ -247,8 +582,9 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
         )
         score, flags, details = verify.score_response(no_schedule_change)
         self.assertLess(score, 0.4)
-        self.assertFalse(flags["coffee_ready_followup"])
-        self.assertIn("coffee_ready_followup", details)
+        self.assertTrue(flags["coffee_ready_discovery"])
+        self.assertTrue(flags["coffee_tomorrow_followup"])
+        self.assertIn("actions_confirmed", details)
 
         shallow_rationale = (
             "Sleep duration was 6.5 hrs, Sleep Quality was 62%, Light Sleep was 4.09h, "
@@ -263,6 +599,19 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
         self.assertFalse(flags["recovery_rationale"])
         self.assertIn("recovery_rationale", details)
 
+        discovery_only = (
+            "Sleep duration was 6.5 hrs, Sleep Quality was 62%, Light Sleep was 4.09h, "
+            "Deep Sleep was 1.11h, and REM Sleep was 1.3h, which shows poor recovery because the sleep quality is low "
+            "and the sleep stages are not restorative enough. Resting HR was 110 bpm, which is elevated. "
+            "I set the thermostat to comfort at 76°F, changed the HIIT workout to swimming, and delayed coffee to 07:30. "
+            "The coffee page showed READY before the edit, so this schedule change cannot affect coffee already brewed today."
+        )
+        score, flags, details = verify.score_response(discovery_only)
+        self.assertEqual(0.35, score)
+        self.assertTrue(flags["coffee_ready_discovery"])
+        self.assertFalse(flags["coffee_tomorrow_followup"])
+        self.assertIn("coffee_tomorrow_followup", details)
+
         tomorrow_schedule_only = (
             "Sleep duration was 6.5 hrs, Sleep Quality was 62%, Light Sleep was 4.09h, "
             "Deep Sleep was 1.11h, and REM Sleep was 1.3h, which shows poor recovery because the sleep quality is low "
@@ -272,9 +621,10 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             "Would you like me to change tomorrow's coffee schedule instead?"
         )
         score, flags, details = verify.score_response(tomorrow_schedule_only)
-        self.assertLess(score, 0.4)
-        self.assertFalse(flags["coffee_ready_followup"])
-        self.assertIn("coffee_ready_followup", details)
+        self.assertEqual(0.4, score)
+        self.assertTrue(flags["coffee_ready_discovery"])
+        self.assertTrue(flags["coffee_tomorrow_followup"])
+        self.assertEqual({}, details)
 
         shallow = (
             "Sleep Quality was 62%, so I changed the thermostat, workout, and coffee."
@@ -283,7 +633,8 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
         self.assertLess(score, 0.4)
         self.assertFalse(flags["sleep_metrics"])
         self.assertFalse(flags["hr_abnormal"])
-        self.assertFalse(flags["coffee_ready_followup"])
+        self.assertFalse(flags["coffee_ready_discovery"])
+        self.assertFalse(flags["coffee_tomorrow_followup"])
         self.assertIn("sleep_metrics", details)
 
     def test_reference_solution_response_satisfies_required_response_contract(self):
@@ -297,7 +648,8 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
         self.assertTrue(flags["sleep_metrics"])
         self.assertTrue(flags["recovery_rationale"])
         self.assertTrue(flags["hr_abnormal"])
-        self.assertTrue(flags["coffee_ready_followup"])
+        self.assertTrue(flags["coffee_ready_discovery"])
+        self.assertTrue(flags["coffee_tomorrow_followup"])
         self.assertEqual({}, details)
 
     def test_direct_api_detector_blocks_smarthome_and_health_api_tampering(self):
@@ -331,6 +683,92 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
                 violation, details = verify.detect_direct_api_calls()
             self.assertTrue(violation)
             self.assertIn("direct API", details)
+        finally:
+            log_path.unlink()
+
+    def test_get_agent_response_aggregates_all_assistant_messages_from_harbor_log(self):
+        with tempfile.NamedTemporaryFile("w", delete=False) as f:
+            f.write(
+                json.dumps(
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "assistant",
+                            "content": "Sleep duration was 6.5 hrs and Sleep Quality was 62%.",
+                        },
+                    }
+                )
+                + "\n"
+            )
+            f.write(
+                json.dumps(
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "assistant",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Resting HR was 110 bpm and elevated.",
+                                }
+                            ],
+                        },
+                    }
+                )
+                + "\n"
+            )
+            f.write(
+                json.dumps(
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "assistant",
+                            "content": "The coffee page showed READY before the edit, so this schedule change cannot affect coffee already brewed today.",
+                        },
+                    }
+                )
+                + "\n"
+            )
+            log_path = Path(f.name)
+
+        try:
+            with mock.patch.object(
+                verify, "find_harbor_log_path", return_value=log_path
+            ):
+                response = verify.get_agent_response()
+            self.assertEqual(
+                "Sleep duration was 6.5 hrs and Sleep Quality was 62%. Resting HR was 110 bpm and elevated. The coffee page showed READY before the edit, so this schedule change cannot affect coffee already brewed today.",
+                response,
+            )
+        finally:
+            log_path.unlink()
+
+    def test_get_agent_response_prefers_harbor_aggregate_over_response_txt(self):
+        with tempfile.NamedTemporaryFile("w", delete=False) as f:
+            f.write(
+                json.dumps(
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "assistant",
+                            "content": "aggregated harbor response",
+                        },
+                    }
+                )
+                + "\n"
+            )
+            log_path = Path(f.name)
+
+        try:
+            with mock.patch.object(
+                verify, "find_harbor_log_path", return_value=log_path
+            ), mock.patch.object(
+                verify.Path, "exists", return_value=True
+            ), mock.patch.object(
+                verify.Path, "read_text", return_value="response.txt fallback"
+            ):
+                response = verify.get_agent_response()
+            self.assertEqual("aggregated harbor response", response)
         finally:
             log_path.unlink()
 
