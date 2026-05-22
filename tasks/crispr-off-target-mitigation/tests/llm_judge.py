@@ -20,12 +20,6 @@ RUBRIC = Path(__file__).with_name("rubric.json")
 
 INSTRUCTION = dc.ROOT / "instruction.md"
 
-HOME = Path.home()
-REPORT_CANDIDATES = [
-    HOME / ".openclaw" / "output" / "report.md",
-    HOME / ".openclaw" / "workspace" / "output" / "report.md",
-]
-
 DEFAULT_JUDGE_MODEL = "deepseek-v3.2"
 MAX_RETRIES = 3
 BACKOFF_BASE = 2.0
@@ -50,13 +44,6 @@ def load_json(path: Path) -> dict:
     except json.JSONDecodeError:
         return {}
     return payload if isinstance(payload, dict) else {}
-
-
-def find_report() -> Path | None:
-    for candidate in REPORT_CANDIDATES:
-        if candidate.is_file():
-            return candidate
-    return None
 
 
 def strip_code_fence(text: str) -> str:
@@ -287,9 +274,28 @@ def main() -> None:
     verifier_dir = Path("/logs/verifier")
     verifier_dir.mkdir(parents=True, exist_ok=True)
 
-    report_path = find_report()
+    report_path = dc.find_report()
     if report_path is None:
-        score = {"reward": 0.0, "report_found": False}
+        score = {
+            "reward": 0.0,
+            "_meta_report_found": 0,
+            "_meta_word_count": 0,
+            "_meta_meets_length": False,
+        }
+        (verifier_dir / "reward.json").write_text(
+            json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        (verifier_dir / "reward.txt").write_text("0.0", encoding="utf-8")
+        return
+
+    meets_length, word_count = dc.check_report_length(report_path)
+    if not meets_length:
+        score = {
+            "reward": 0.0,
+            "_meta_report_found": 1,
+            "_meta_word_count": word_count,
+            "_meta_meets_length": meets_length,
+        }
         (verifier_dir / "reward.json").write_text(
             json.dumps(score, ensure_ascii=False, indent=2), encoding="utf-8"
         )
@@ -321,7 +327,9 @@ def main() -> None:
 
     score = {
         "reward": final_reward,
-        "report_found": True,
+        "_meta_report_found": 1,
+        "_meta_word_count": word_count,
+        "_meta_meets_length": meets_length,
     }
     for d, s in dimension_scores.items():
         score[f"dimension_{d}"] = s
