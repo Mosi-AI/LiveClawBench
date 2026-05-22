@@ -60,6 +60,50 @@ describe("seed override", () => {
     expect(row!.username).toBe("admin");
   });
 
+  it("custom seed can DELETE+re-INSERT tables with FK children", async () => {
+    // Reproduces the finance-anomaly-detect pattern: seedDefaults creates
+    // account_transaction rows referencing transaction_record, then the
+    // custom seed does DELETE FROM transaction_record + INSERT.
+    // Without PRAGMA foreign_keys = OFF during custom seed, the DELETE
+    // would fail with FK constraint violation and IDs would shift.
+    writeFileSync(
+      customSeedPath,
+      [
+        "DELETE FROM account_transaction;",
+        "DELETE FROM transaction_record;",
+        "DELETE FROM sqlite_sequence WHERE name = 'transaction_record';",
+        "INSERT INTO transaction_record (trade_date, vendor_name, amount, category, status, approval_status, approval_note)",
+        "  VALUES ('2026-03-01', 'TestVendor', 9999.0, 'software', 'pending', 'pending', '');",
+      ].join("\n")
+    );
+    process.env.MOCK_FINANCE_SEED_SQL = customSeedPath;
+    finance = createFinanceApp();
+    app = finance.app;
+    await finance.seed!();
+
+    // The custom transaction should start at id=1 (not id=11+)
+    const row = finance.db
+      .query<{ id: number; vendor_name: string }, []>(
+        "SELECT id, vendor_name FROM transaction_record WHERE vendor_name = 'TestVendor'"
+      )
+      .get();
+    expect(row).toBeDefined();
+    expect(row!.id).toBe(1);
+    expect(row!.vendor_name).toBe("TestVendor");
+
+    // Only 1 transaction (defaults were deleted)
+    const count = finance.db
+      .query<{ cnt: number }, []>("SELECT COUNT(*) AS cnt FROM transaction_record")
+      .get()!;
+    expect(count.cnt).toBe(1);
+
+    // Default users still exist (seedDefaults ran first)
+    const adminRow = finance.db
+      .query<{ username: string }, []>("SELECT username FROM user WHERE username = 'admin'")
+      .get();
+    expect(adminRow).toBeDefined();
+  });
+
   it("missing file triggers warning + fallback", async () => {
     process.env.MOCK_FINANCE_SEED_SQL = "/tmp/nonexistent_finance_seed.sql";
     const warnings: string[] = [];

@@ -12,11 +12,20 @@ export function seed(db: Database): void {
   seedDefaults(db);
 
   // Apply per-task supplemental seed on top of baseline.
+  // Temporarily disable FK enforcement so that task seed.sql files can
+  // DELETE+re-INSERT parent tables (e.g. transaction_record) even when
+  // seedDefaults already created child rows (e.g. account_transaction)
+  // that reference them.  FK is re-enabled immediately after.
   const customPath = process.env.MOCK_FINANCE_SEED_SQL;
   if (customPath && existsSync(customPath)) {
     try {
       const sql = readFileSync(customPath, "utf-8");
-      db.exec(sql);
+      db.run("PRAGMA foreign_keys = OFF");
+      try {
+        db.exec(sql);
+      } finally {
+        db.run("PRAGMA foreign_keys = ON");
+      }
     } catch (err) {
       console.warn(`[finance] Custom seed file not readable at ${customPath}:`, err);
     }
