@@ -996,6 +996,36 @@
           "dest": "/opt/mock/frontend/airline"
         }
       ]
+    },
+    "ai-copyright-international-jurisprudence": {
+      "binaries": []
+    },
+    "autonomous-weapons-ethics": {
+      "binaries": []
+    },
+    "crispr-off-target-mitigation": {
+      "binaries": []
+    },
+    "cross-border-data-privacy-comparison": {
+      "binaries": []
+    },
+    "defi-systemic-risk-contagion": {
+      "binaries": []
+    },
+    "digital-religion-ai-vr": {
+      "binaries": []
+    },
+    "formal-verification-vs-fuzzing": {
+      "binaries": []
+    },
+    "fusion-energy-commercial-viability": {
+      "binaries": []
+    },
+    "long-covid-neurological-hypotheses": {
+      "binaries": []
+    },
+    "mrna-cancer-vaccines-landscape": {
+      "binaries": []
     }
   }
 }
