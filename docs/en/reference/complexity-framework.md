@@ -232,7 +232,7 @@ Factor count vs difficulty:
 | Hard       |             1.58 |           1 |       5 |       20 |
 
 The empirical reclassification (based on average solve rates across models) shows that Easy
-cases dominate (64.9%). Easy cases include both baselines (54.2%) and factor-bearing tasks
-(45.8%), with medium cases now comprising the majority of new additions (10 deep research tasks)
+cases remain the largest group (32.4%). Easy cases include both baselines (54.3%) and factor-bearing tasks
+(45.7%), with medium cases now comprising the majority of new additions (10 deep research tasks)
 for current agents. Hard cases are concentrated in tasks requiring constraint failure handling
 (B1) or specific challenging environments (A2 in DevOps).
