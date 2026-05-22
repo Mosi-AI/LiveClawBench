@@ -33,6 +33,7 @@ const BASE_IMAGE = "liveclawbench-base:latest";
  */
 function collectFilesRecursive(dir: string, results: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === "node_modules" || entry.name === "dist") continue;
     const full = join(dir, entry.name);
     if (entry.isDirectory()) {
       collectFilesRecursive(full, results);
@@ -1002,7 +1003,8 @@ async function buildTaskImage(
       const buildOutputDir = join(frontendSrc, fe.buildDir);
 
       // npm install
-      const installProc = Bun.spawn(["npm", "install", "--prefix", frontendSrc], {
+      const installProc = Bun.spawn(["npm", "install"], {
+        cwd: frontendSrc,
         stdout: "pipe",
         stderr: "pipe",
       });
@@ -1019,7 +1021,8 @@ async function buildTaskImage(
       }
 
       // npm run build
-      const buildProc = Bun.spawn(["npm", "run", "build", "--prefix", frontendSrc], {
+      const buildProc = Bun.spawn(["npm", "run", "build"], {
+        cwd: frontendSrc,
         stdout: "pipe",
         stderr: "pipe",
       });
@@ -1097,13 +1100,16 @@ async function buildTaskImage(
               error: "Stale email frontend — source changed since last build. Run `bun run build` in mock-platform/ to rebuild.",
             };
           }
-        } catch {
+        } catch (err) {
+          const reason = err instanceof SyntaxError
+            ? "Corrupt frontend manifest (invalid JSON)"
+            : `Frontend manifest check failed: ${err instanceof Error ? err.message : String(err)}`;
           return {
             task,
             success: false,
             imageTag,
             binariesIncluded: binaries,
-            error: "Corrupt frontend manifest. Run `bun run build` in mock-platform/ to regenerate.",
+            error: `${reason}. Run \`bun run build\` in mock-platform/ to regenerate.`,
           };
         }
       }
