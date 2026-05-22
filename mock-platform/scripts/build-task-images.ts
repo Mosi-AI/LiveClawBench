@@ -1047,54 +1047,59 @@ async function buildTaskImage(
   // The frontend is pre-built by build-all.ts and staged in dist/frontend-email/.
   if (binaries.includes("email")) {
     const emailFrontendDir = join(DIST_DIR, "frontend-email");
-    if (!existsSync(emailFrontendDir)) {
-      return {
-        task,
-        success: false,
-        imageTag,
-        binariesIncluded: binaries,
-        error: "Pre-built email frontend not found in dist/frontend-email/. Run `bun run build` in mock-platform/ first.",
-      };
-    }
-    // Reject stale frontend using content-hash comparison (same mechanism as binary staleness).
-    if (!force) {
-      const feManifestPath = join(DIST_DIR, "manifest-frontend-email.json");
-      if (!existsSync(feManifestPath)) {
+    if (dryRun) {
+      console.log("  [DRY RUN] auto-mount email frontend → /opt/mock/frontend/email");
+      frontendBuildDirs.push({ buildDir: emailFrontendDir, dest: "/opt/mock/frontend/email" });
+    } else {
+      if (!existsSync(emailFrontendDir)) {
         return {
           task,
           success: false,
           imageTag,
           binariesIncluded: binaries,
-          error: "No frontend manifest found. Run `bun run build` in mock-platform/ first.",
+          error: "Pre-built email frontend not found in dist/frontend-email/. Run `bun run build` in mock-platform/ first.",
         };
       }
-      try {
-        const cached: Record<string, string> = JSON.parse(readFileSync(feManifestPath, "utf-8"));
-        const emailFrontendSrc = join(import.meta.dir, "..", "mocks", "email", "frontend");
-        const currentHashes = computeFrontendHashes(emailFrontendSrc);
-        const isStale =
-          Object.keys(currentHashes).some((r) => cached[r] !== currentHashes[r]) ||
-          Object.keys(cached).some((r) => !(r in currentHashes));
-        if (isStale) {
+      // Reject stale frontend using content-hash comparison (same mechanism as binary staleness).
+      if (!force) {
+        const feManifestPath = join(DIST_DIR, "manifest-frontend-email.json");
+        if (!existsSync(feManifestPath)) {
           return {
             task,
             success: false,
             imageTag,
             binariesIncluded: binaries,
-            error: "Stale email frontend — source changed since last build. Run `bun run build` in mock-platform/ to rebuild.",
+            error: "No frontend manifest found. Run `bun run build` in mock-platform/ first.",
           };
         }
-      } catch {
-        return {
-          task,
-          success: false,
-          imageTag,
-          binariesIncluded: binaries,
-          error: "Corrupt frontend manifest. Run `bun run build` in mock-platform/ to regenerate.",
-        };
+        try {
+          const cached: Record<string, string> = JSON.parse(readFileSync(feManifestPath, "utf-8"));
+          const emailFrontendSrc = join(import.meta.dir, "..", "mocks", "email", "frontend");
+          const currentHashes = computeFrontendHashes(emailFrontendSrc);
+          const isStale =
+            Object.keys(currentHashes).some((r) => cached[r] !== currentHashes[r]) ||
+            Object.keys(cached).some((r) => !(r in currentHashes));
+          if (isStale) {
+            return {
+              task,
+              success: false,
+              imageTag,
+              binariesIncluded: binaries,
+              error: "Stale email frontend — source changed since last build. Run `bun run build` in mock-platform/ to rebuild.",
+            };
+          }
+        } catch {
+          return {
+            task,
+            success: false,
+            imageTag,
+            binariesIncluded: binaries,
+            error: "Corrupt frontend manifest. Run `bun run build` in mock-platform/ to regenerate.",
+          };
+        }
       }
+      frontendBuildDirs.push({ buildDir: emailFrontendDir, dest: "/opt/mock/frontend/email" });
     }
-    frontendBuildDirs.push({ buildDir: emailFrontendDir, dest: "/opt/mock/frontend/email" });
   }
 
   const dockerfileLines = [
