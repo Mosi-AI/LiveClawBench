@@ -188,10 +188,10 @@ bun run build:images   # Build per-task Docker images (requires base image first
 
 - `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented). Optional fields:
   - `assets` — copy arbitrary files into the per-task image
-  - `frontends` — pre-build SPA assets at image-build time
+  - `frontends` — pre-build SPA assets at image-build time (for non-email mocks only; email frontend uses auto-mount, see below)
   - `extraSeeds` — copy task-specific `.sql` seed files to `/opt/mock/extra-seed/<service>.sql`; the mock applies them via `applySupplementalSeed(db, service)` after baseline `seedDatabase()`. See `docs/refactor/mock-platform-migration-plan.md`. Use this for non-adversarial data customization; for Safety/adversarial content prefer the `TASK_NAME` switch in the mock's `seed.ts` so the content is compiled into the binary (not readable on disk by the agent).
-- `scripts/build-all.ts` — Builds all mock binaries
-- `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set
+- `scripts/build-all.ts` — Builds all mock binaries **and frontends** (mocks with a `frontend/` dir are compiled via `buildMockFrontend()` and staged to `dist/frontend-{name}/`)
+- `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set. Email frontend is **auto-mounted** to `/opt/mock/frontend/email` for any task whose `binaries` list includes `"email"` — no `frontends` entry needed in `task-binary-map.json`. Other frontends (airline, todolist) still require explicit `frontends` entries.
 
 ### Key Files
 
@@ -202,6 +202,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `mocks/shop/src/search-algorithm.ts` | Extracted search logic (single source of truth) |
 | `mocks/shop/src/search-algorithm.test.ts` | Layer 1 unit tests (bun:test snapshot tests) |
 | `mocks/doc-search/src/index.ts` | Doc-search with FTS5 + JSONL browser trace logging |
+| `mocks/email/frontend/` | Email SPA frontend (React+Vite); single source of truth for all email tasks, auto-mounted by `build-task-images.ts` |
 
 ## Task List
 

@@ -14,7 +14,7 @@
  * Usage: bun run scripts/build-task-images.ts [--dry-run]
  */
 
-import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync, readdirSync, realpathSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync, readdirSync, realpathSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 
@@ -25,6 +25,43 @@ const CONFIG_PATH = join(import.meta.dir, "..", "config", "task-binary-map.json"
 // Do NOT move this file without updating the copy logic below.
 const ENTRYPOINT_SRC = join(import.meta.dir, "..", "..", "shared", "entrypoint.sh");
 const BASE_IMAGE = "liveclawbench-base:latest";
+
+/**
+ * Compute SHA-256 hashes for all frontend source files relative to the frontend directory.
+ * Covers: src/ (all files recursively), index.html, vite.config.*, package.json.
+ * Uses the same hash format as build-all.ts computeFrontendManifest().
+ */
+function collectFilesRecursive(dir: string, results: string[] = []): string[] {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === "node_modules" || entry.name === "dist") continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectFilesRecursive(full, results);
+    } else {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+function computeFrontendHashes(frontendDir: string): Record<string, string> {
+  const files: string[] = [];
+  const srcDir = join(frontendDir, "src");
+  if (existsSync(srcDir)) {
+    files.push(...collectFilesRecursive(srcDir));
+  }
+  for (const cf of ["index.html", "vite.config.js", "vite.config.ts", "package.json"]) {
+    const p = join(frontendDir, cf);
+    if (existsSync(p)) files.push(p);
+  }
+  files.sort();
+  const hashes: Record<string, string> = {};
+  for (const f of files) {
+    const rel = relative(frontendDir, f).replace(/\\/g, "/");
+    hashes[rel] = createHash("sha256").update(readFileSync(f, "utf-8").replace(/\r\n/g, "\n")).digest("hex");
+  }
+  return hashes;
+}
 
 /**
  * Canonical port assignment per Bun mock binary.
@@ -977,7 +1014,8 @@ async function buildTaskImage(
       const buildOutputDir = join(frontendSrc, fe.buildDir);
 
       // npm install
-      const installProc = Bun.spawn(["npm", "install", "--prefix", frontendSrc], {
+      const installProc = Bun.spawn(["npm", "install"], {
+        cwd: frontendSrc,
         stdout: "pipe",
         stderr: "pipe",
       });
@@ -994,7 +1032,8 @@ async function buildTaskImage(
       }
 
       // npm run build
-      const buildProc = Bun.spawn(["npm", "run", "build", "--prefix", frontendSrc], {
+      const buildProc = Bun.spawn(["npm", "run", "build"], {
+        cwd: frontendSrc,
         stdout: "pipe",
         stderr: "pipe",
       });
@@ -1024,6 +1063,68 @@ async function buildTaskImage(
     } else {
       console.log(`  [DRY RUN] npm install && npm run build in ${frontendSrc}`);
       frontendBuildDirs.push({ buildDir: join(frontendSrc, fe.buildDir), dest: fe.dest });
+    }
+  }
+
+  // Auto-mount email frontend for any task that includes the email binary.
+  // The frontend is pre-built by build-all.ts and staged in dist/frontend-email/.
+  if (binaries.includes("email")) {
+    const emailFrontendDir = join(DIST_DIR, "frontend-email");
+    if (dryRun) {
+      console.log("  [DRY RUN] auto-mount email frontend → /opt/mock/frontend/email");
+      frontendBuildDirs.push({ buildDir: emailFrontendDir, dest: "/opt/mock/frontend/email" });
+    } else {
+      if (!existsSync(emailFrontendDir)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: "Pre-built email frontend not found in dist/frontend-email/. Run `bun run build` in mock-platform/ first.",
+        };
+      }
+      // Reject stale frontend using content-hash comparison (same mechanism as binary staleness).
+      if (!force) {
+        const feManifestPath = join(DIST_DIR, "manifest-frontend-email.json");
+        if (!existsSync(feManifestPath)) {
+          return {
+            task,
+            success: false,
+            imageTag,
+            binariesIncluded: binaries,
+            error: "No frontend manifest found. Run `bun run build` in mock-platform/ first.",
+          };
+        }
+        try {
+          const cached: Record<string, string> = JSON.parse(readFileSync(feManifestPath, "utf-8"));
+          const emailFrontendSrc = join(import.meta.dir, "..", "mocks", "email", "frontend");
+          const currentHashes = computeFrontendHashes(emailFrontendSrc);
+          const isStale =
+            Object.keys(currentHashes).some((r) => cached[r] !== currentHashes[r]) ||
+            Object.keys(cached).some((r) => !(r in currentHashes));
+          if (isStale) {
+            return {
+              task,
+              success: false,
+              imageTag,
+              binariesIncluded: binaries,
+              error: "Stale email frontend — source changed since last build. Run `bun run build` in mock-platform/ to rebuild.",
+            };
+          }
+        } catch (err) {
+          const reason = err instanceof SyntaxError
+            ? "Corrupt frontend manifest (invalid JSON)"
+            : `Frontend manifest check failed: ${err instanceof Error ? err.message : String(err)}`;
+          return {
+            task,
+            success: false,
+            imageTag,
+            binariesIncluded: binaries,
+            error: `${reason}. Run \`bun run build\` in mock-platform/ to regenerate.`,
+          };
+        }
+      }
+      frontendBuildDirs.push({ buildDir: emailFrontendDir, dest: "/opt/mock/frontend/email" });
     }
   }
 

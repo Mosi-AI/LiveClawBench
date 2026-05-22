@@ -102,13 +102,6 @@
           "src": "mock-platform/static/shop/sample_products.json",
           "dest": "/opt/mock/static/shop/products.json"
         }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-watch-shop/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "email-washer-change": {
@@ -126,37 +119,16 @@
           "src": "mock-platform/static/shop/sample_products.json",
           "dest": "/opt/mock/static/shop/products.json"
         }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-washer-change/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "email-writing": {
       "binaries": [
         "email"
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-writing/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "email-reply": {
       "binaries": [
         "email"
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "schedule-change-request": {
@@ -166,11 +138,6 @@
         "todolist"
       ],
       "frontends": [
-        {
-          "src": "tasks/schedule-change-request/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        },
         {
           "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
           "buildDir": "build",
@@ -203,11 +170,6 @@
           "dest": "/opt/mock/frontend/airline"
         },
         {
-          "src": "tasks/flight-info-change-notice/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        },
-        {
           "src": "tasks/flight-info-change-notice/environment/todolist-app/frontend",
           "buildDir": "build",
           "dest": "/opt/mock/frontend/todolist"
@@ -224,11 +186,6 @@
           "src": "tasks/flight-seat-selection/environment/airline-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/airline"
-        },
-        {
-          "src": "tasks/flight-seat-selection/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         }
       ]
     },
@@ -242,11 +199,6 @@
           "src": "tasks/flight-seat-selection-failed/environment/airline-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/airline"
-        },
-        {
-          "src": "tasks/flight-seat-selection-failed/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         }
       ]
     },
@@ -260,11 +212,6 @@
           "src": "tasks/flight-cancel-claim/environment/airline-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/airline"
-        },
-        {
-          "src": "tasks/flight-cancel-claim/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         }
       ]
     },
@@ -432,13 +379,6 @@
           "src": "tasks/social-keyword-cleanup/environment/seed.json",
           "dest": "/opt/mock/data/seed.json"
         }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-writing/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "social-event-campaign": {
@@ -450,13 +390,6 @@
         {
           "src": "tasks/social-event-campaign/environment/seed.json",
           "dest": "/opt/mock/data/seed.json"
-        }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-writing/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         }
       ]
     },
@@ -470,13 +403,6 @@
           "src": "tasks/social-data-anomaly-report/environment/seed.json",
           "dest": "/opt/mock/data/seed.json"
         }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-writing/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "social-comment-moderation": {
@@ -488,13 +414,6 @@
         {
           "src": "tasks/social-comment-moderation/environment/seed.json",
           "dest": "/opt/mock/data/seed.json"
-        }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-writing/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         }
       ]
     },
@@ -509,13 +428,6 @@
           "src": "tasks/social-cross-publish/environment/seed.json",
           "dest": "/opt/mock/data/seed.json"
         }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-writing/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "social-pinned-post-update": {
@@ -528,13 +440,6 @@
         {
           "src": "tasks/social-pinned-post-update/environment/seed.json",
           "dest": "/opt/mock/data/seed.json"
-        }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-writing/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         }
       ]
     },
@@ -616,13 +521,6 @@
     "vendor-due-diligence-brief": {
       "binaries": [
         "email"
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-writing/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "finance-anomaly-detect": {
@@ -680,13 +578,6 @@
           "src": "mock-platform/static/calendar/css/style.css",
           "dest": "/opt/mock/static/calendar/css/style.css"
         }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "candidate-interview-slot-confirm": {
@@ -698,13 +589,6 @@
         {
           "src": "mock-platform/static/calendar/css/style.css",
           "dest": "/opt/mock/static/calendar/css/style.css"
-        }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         }
       ]
     },
@@ -719,13 +603,6 @@
         {
           "src": "mock-platform/static/calendar/css/style.css",
           "dest": "/opt/mock/static/calendar/css/style.css"
-        }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         }
       ]
     },
@@ -745,13 +622,6 @@
           "src": "mock-platform/static/calendar/css/style.css",
           "dest": "/opt/mock/static/calendar/css/style.css"
         }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "content-calendar-cross-publish": {
@@ -765,13 +635,6 @@
         {
           "src": "mock-platform/static/calendar/css/style.css",
           "dest": "/opt/mock/static/calendar/css/style.css"
-        }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         }
       ]
     },
@@ -888,13 +751,6 @@
     "email-phishing-injection": {
       "binaries": [
         "email"
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "cross-service-credential-handling": {
@@ -910,13 +766,6 @@
         {
           "src": "mock-platform/static/shop/sample_products.json",
           "dest": "/opt/mock/static/shop/products.json"
-        }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         }
       ]
     },
@@ -934,13 +783,6 @@
           "src": "mock-platform/static/shop/sample_products.json",
           "dest": "/opt/mock/static/shop/products.json"
         }
-      ],
-      "frontends": [
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        }
       ]
     },
     "phishing-in-inbox": {
@@ -949,11 +791,6 @@
         "todolist"
       ],
       "frontends": [
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
-        },
         {
           "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
           "buildDir": "build",
@@ -972,11 +809,6 @@
           "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
           "buildDir": "dist",
           "dest": "/opt/mock/frontend/airline"
-        },
-        {
-          "src": "tasks/email-reply/environment/email-app/frontend",
-          "buildDir": "dist",
-          "dest": "/opt/mock/frontend/email"
         },
         {
           "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
