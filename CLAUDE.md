@@ -97,7 +97,7 @@ harbor run -p tasks/watch-shop -a openclaw \
 ### Full Dataset
 
 ```bash
-# Generic form (includes LLM judge credentials for the 7 judge tasks)
+# Generic form (includes LLM judge credentials for the 9 judge tasks)
 harbor run --dataset liveclawbench@0.1.0 -a openclaw \
   -m custom/<YOUR_MODEL_ID> \
   --n-concurrent 4 \
@@ -137,12 +137,13 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
 
-> **LLM-judge tasks** (17 tasks: `ai-copyright-international-jurisprudence`, `autonomous-weapons-ethics`,
+> **LLM-judge tasks** (19 tasks: `ai-copyright-international-jurisprudence`, `autonomous-weapons-ethics`,
 > `conflict-repair-acb`, `crispr-off-target-mitigation`, `cross-border-data-privacy-comparison`,
 > `defi-systemic-risk-contagion`, `digital-religion-ai-vr`, `formal-verification-vs-fuzzing`,
 > `fusion-energy-commercial-viability`, `incremental-update-ctp`, `live-web-research-sqlite-fts5`,
-> `long-covid-neurological-hypotheses`, `mixed-tool-memory`, `mrna-cancer-vaccines-landscape`,
-> `noise-filtering`, `pre-meeting-research-brief`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
+> `long-covid-neurological-hypotheses`, `meeting-agenda-risk-insert`, `mixed-tool-memory`,
+> `mrna-cancer-vaccines-landscape`, `noise-filtering`, `pre-meeting-research-brief`,
+> `rumor-verification-email-reply`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
 > for judge credentials because `llm_judge.py` runs in the verifier phase, outside the OpenClaw
 > agent process. **Missing `--ee` will cause the verifier to fail with
 > `RuntimeError: JUDGE_BASE_URL is not set`.**
@@ -286,7 +287,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `fusion-energy-commercial-viability` | Deep Research & Report | medium | **llm_judge** |
 | `long-covid-neurological-hypotheses` | Deep Research & Report | medium | **llm_judge** |
 | `mrna-cancer-vaccines-landscape` | Deep Research & Report | medium | **llm_judge** |
-
+| `rumor-verification-email-reply` | Deep Research & Report | hard | **llm_judge** |
+| `meeting-agenda-risk-insert` | Deep Research & Report | medium | **llm_judge** |
 ## Docker Image Architecture
 
 LiveClawBench uses a three-layer Docker image architecture:
@@ -464,8 +466,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-108 implemented tasks: A1=45, A2=34, B1=37, B2=22.
-Difficulty: Easy=35, Medium=47, Hard=26.
+110 implemented tasks: A1=47, A2=35, B1=39, B2=22.
+Difficulty: Easy=35, Medium=48, Hard=27.
 
 ## Known Issues
 

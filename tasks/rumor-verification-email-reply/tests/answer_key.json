@@ -1,0 +1,12 @@
+{
+  "target_email": "alex.rivera@veridian.inc",
+  "anchors": [
+    "unverified",
+    "unconfirmed",
+    "unclear",
+    "inconclusive",
+    "not confirmed",
+    "no confirmation",
+    "speculation"
+  ]
+}
