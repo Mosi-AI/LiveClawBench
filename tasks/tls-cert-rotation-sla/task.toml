@@ -1,0 +1,27 @@
+version = "1.0"
+
+[metadata]
+difficulty = "medium"
+category = "open-world"
+tags = ["devops_env_repair", "documents_knowledge"]
+
+domain = "DevOps & Env Repair"
+domains_multi = ["DevOps & Env Repair", "Documents & Knowledge"]
+factor_a1 = 1        # Cross-Service Dependency (Nginx + monitoring dashboard + cert renewal)
+factor_a2 = 1        # Contaminated Initial State (expired-soon cert, broken log_format, decoy certs)
+factor_b1 = 1        # Implicit Goal Resolution (no openssl hints, goal-oriented)
+factor_b2 = 1        # Knowledge System Maintenance (update runbook)
+case_id = 74
+
+[verifier]
+timeout_sec = 120
+
+[agent]
+timeout_sec = 600
+
+[environment]
+build_timeout_sec = 300
+cpus = 2
+memory_mb = 2048
+storage_mb = 4096
+allow_internet = true

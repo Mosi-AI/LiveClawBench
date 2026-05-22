@@ -69,7 +69,7 @@ KNOWN_AUTH_SHAPES = {
 # ---------------------------------------------------------------------------
 
 
-def scan_frontend():
+def scan_frontend() -> dict[str, dict[str, Any]]:
     """Scan all frontend source files and collect access patterns."""
     results: dict[str, dict[str, Any]] = defaultdict(
         lambda: {

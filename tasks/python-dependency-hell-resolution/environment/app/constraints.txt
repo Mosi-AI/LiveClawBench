@@ -1,0 +1,23 @@
+# Source-of-truth version floor for orderstream-api runtime.
+#
+# These are the versions that OPS has blessed after the 2026-04 security review.
+# If requirements.txt drifts below these floors, the POLICY.md compliance gate
+# fires and CI fails.
+#
+#   CVE-2024-ORDS-001  pydantic < 1.10.13     (validation bypass on min_length)
+#   PSA-2025-CRYPT-07  cryptography < 41.0.4  (Fernet key reuse on reinit)
+#   FASTAPI-BREAK      fastapi < 0.95.0       (include_router prefix behaviour)
+fastapi==0.95.2
+pydantic==1.10.13
+cryptography==41.0.4
+httpx==0.24.1
+starlette==0.27.0
+anyio==3.7.1
+sniffio==1.3.0
+idna==3.4
+h11==0.14.0
+certifi==2023.7.22
+typing_extensions==4.7.1
+cffi==1.15.1
+pycparser==2.21
+orjson==3.9.10

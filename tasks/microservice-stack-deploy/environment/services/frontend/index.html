@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KV Store Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 0 20px; }
+        h1 { color: #333; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { padding: 8px; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <h1>KV Store Manager</h1>
+        <div class="form-group">
+            <label for="key">Key:</label>
+            <input type="text" id="key" placeholder="Enter key">
+        </div>
+        <div class="form-group">
+            <label for="value">Value:</label>
+            <input type="text" id="value" placeholder="Enter value">
+        </div>
+        <div>
+            <button onclick="setKV()">Set</button>
+            <button onclick="getKV()">Get</button>
+            <button onclick="checkHealth()">Health Check</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const resultDiv = document.getElementById('result');
+
+        async function setKV() {
+            const key = document.getElementById('key').value;
+            const value = document.getElementById('value').value;
+            try {
+                const resp = await fetch('/api/set', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({key, value})
+                });
+                const data = await resp.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch(e) {
+                resultDiv.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        async function getKV() {
+            const key = document.getElementById('key').value;
+            try {
+                const resp = await fetch('/api/get?key=' + encodeURIComponent(key));
+                const data = await resp.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch(e) {
+                resultDiv.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        async function checkHealth() {
+            try {
+                const resp = await fetch('/api/health');
+                const data = await resp.json();
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch(e) {
+                resultDiv.textContent = 'Error: ' + e.message;
+            }
+        }
+    </script>
+</body>
+</html>

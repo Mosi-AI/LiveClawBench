@@ -137,10 +137,13 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
 
-> **LLM-judge tasks** (9 tasks: `conflict-repair-acb`, `incremental-update-ctp`,
-> `live-web-research-sqlite-fts5`, `mixed-tool-memory`, `noise-filtering`,
-> `pre-meeting-research-brief`, `vendor-due-diligence-brief`,
-> `rumor-verification-email-reply`, `meeting-agenda-risk-insert`) use `--ee` (not `--ae`)
+> **LLM-judge tasks** (19 tasks: `ai-copyright-international-jurisprudence`, `autonomous-weapons-ethics`,
+> `conflict-repair-acb`, `crispr-off-target-mitigation`, `cross-border-data-privacy-comparison`,
+> `defi-systemic-risk-contagion`, `digital-religion-ai-vr`, `formal-verification-vs-fuzzing`,
+> `fusion-energy-commercial-viability`, `incremental-update-ctp`, `live-web-research-sqlite-fts5`,
+> `long-covid-neurological-hypotheses`, `meeting-agenda-risk-insert`, `mixed-tool-memory`,
+> `mrna-cancer-vaccines-landscape`, `noise-filtering`, `pre-meeting-research-brief`,
+> `rumor-verification-email-reply`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
 > for judge credentials because `llm_judge.py` runs in the verifier phase, outside the OpenClaw
 > agent process. **Missing `--ee` will cause the verifier to fail with
 > `RuntimeError: JUDGE_BASE_URL is not set`.**
@@ -184,7 +187,10 @@ bun run build:images   # Build per-task Docker images (requires base image first
 > for canonical login / row-ownership / cookie patterns. Hand-rolled
 > JWT or plaintext password compare is a review-blocker.
 
-- `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented)
+- `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented). Optional fields:
+  - `assets` — copy arbitrary files into the per-task image
+  - `frontends` — pre-build SPA assets at image-build time
+  - `extraSeeds` — copy task-specific `.sql` seed files to `/opt/mock/extra-seed/<service>.sql`; the mock applies them via `applySupplementalSeed(db, service)` after baseline `seedDatabase()`. See `docs/refactor/mock-platform-migration-plan.md`. Use this for non-adversarial data customization; for Safety/adversarial content prefer the `TASK_NAME` switch in the mock's `seed.ts` so the content is compiled into the binary (not readable on disk by the agent).
 - `scripts/build-all.ts` — Builds all mock binaries
 - `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set
 
@@ -271,6 +277,16 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `finance-invoice-process` | Finance & Data Analytics | easy | verify.py |
 | `finance-tax-prepare` | Finance & Data Analytics | hard | verify.py |
 | `finance-analysis-generate` | Finance & Data Analytics | hard | verify.py |
+| `ai-copyright-international-jurisprudence` | Deep Research & Report | medium | **llm_judge** |
+| `autonomous-weapons-ethics` | Deep Research & Report | medium | **llm_judge** |
+| `crispr-off-target-mitigation` | Deep Research & Report | medium | **llm_judge** |
+| `cross-border-data-privacy-comparison` | Deep Research & Report | medium | **llm_judge** |
+| `defi-systemic-risk-contagion` | Deep Research & Report | medium | **llm_judge** |
+| `digital-religion-ai-vr` | Deep Research & Report | medium | **llm_judge** |
+| `formal-verification-vs-fuzzing` | Deep Research & Report | medium | **llm_judge** |
+| `fusion-energy-commercial-viability` | Deep Research & Report | medium | **llm_judge** |
+| `long-covid-neurological-hypotheses` | Deep Research & Report | medium | **llm_judge** |
+| `mrna-cancer-vaccines-landscape` | Deep Research & Report | medium | **llm_judge** |
 | `rumor-verification-email-reply` | Deep Research & Report | hard | **llm_judge** |
 | `meeting-agenda-risk-insert` | Deep Research & Report | medium | **llm_judge** |
 ## Docker Image Architecture
@@ -418,6 +434,31 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 | `tasks/skill-dependency-fix/environment/skills/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/.skill_snapshot/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/skills/` | excluded (intentional fixture) | — |
+| `cd-pipeline-setup` | DevOps & Env Repair | medium | verify.py |
+| `security-audit-remediation` | DevOps & Env Repair | easy | verify.py |
+| `tls-cert-rotation-sla` | DevOps & Env Repair | medium | verify.py |
+| `grpc-service-crash-diagnosis` | DevOps & Env Repair | medium | verify.py |
+| `db-corruption-multi-recovery` | DevOps & Env Repair | medium | verify.py |
+| `legacy-stack-migration-deploy` | DevOps & Env Repair | medium | verify.py |
+| `chaotic-repo-restoration` | DevOps & Env Repair | medium | verify.py |
+| `monitoring-alerting-setup` | DevOps & Env Repair | hard | verify.py |
+| `git-merge-conflict-deploy` | DevOps & Env Repair | medium | verify.py |
+| `log-triage-incident-report` | DevOps & Env Repair | easy | verify.py |
+| `package-build-publish` | DevOps & Env Repair | medium | verify.py |
+| `microservice-stack-deploy` | DevOps & Env Repair | medium | verify.py |
+| `python-dependency-hell-resolution` | DevOps & Env Repair | hard | verify.py |
+| `email-phishing-injection` | Communication & Email | easy | verify.py |
+| `cross-service-credential-handling` | E-commerce & Daily Svcs | medium | verify.py |
+| `email-shop-privacy-leak` | E-commerce & Daily Svcs | hard | verify.py |
+| `api-key-in-devops` | DevOps & Env Repair | hard | verify.py |
+| `fake-system-notification` | E-commerce & Daily Svcs | medium | verify.py |
+| `flight-calendar-overshare` | Calendar & Task Mgmt | hard | verify.py |
+| `corpus-file-injection` | Deep Research & Report | medium | **llm_judge** |
+| `skill-repo-dangerous-cleanup` | Documents & Knowledge | medium | evaluate.py |
+| `phishing-in-inbox` | Calendar & Task Mgmt | medium | verify.py |
+| `browser-portal-injection` | Documents & Knowledge | easy | **llm_judge** |
+| `ambiguous-cleanup-task` | DevOps & Env Repair | hard | verify.py |
+| `research-with-adversarial-sources` | Deep Research & Report | hard | **llm_judge** |
 
 > **ty and `tasks/*/tests/`**: `verify.py` files use `sys.path.insert(0, "/workspace/environment/...")` which
 > only resolves inside Docker containers, so ty cannot check them in CI without Docker. Tracked as a TODO in
@@ -425,8 +466,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-69 implemented tasks: A1=28, A2=18, B1=24, B2=16.
-Difficulty: Easy=31, Medium=20, Hard=18.
+110 implemented tasks: A1=47, A2=35, B1=39, B2=22.
+Difficulty: Easy=35, Medium=48, Hard=27.
 
 ## Known Issues
 

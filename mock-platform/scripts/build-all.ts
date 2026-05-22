@@ -92,6 +92,7 @@ async function verifyIsolation(results: BuildResult[]): Promise<{ violations: Ma
     shop: "/__mock_sentinel__/shop",
     todolist: "/__mock_sentinel__/todolist",
     "doc-search": "/__mock_sentinel__/doc-search",
+    workspace: "/__mock_sentinel__/workspace",
     finance: "/__mock_sentinel__/finance",
     insurance: "/__mock_sentinel__/insurance",
     calendar: "/__mock_sentinel__/calendar",

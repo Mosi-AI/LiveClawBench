@@ -23,6 +23,7 @@ export { BCRYPT_SALT_ROUNDS } from "./auth";
 // Database
 export { getDb, resetDb, migrate } from "./db";
 export { JsonStore } from "./db";
+export { applySupplementalSeed } from "./db";
 export type { SqliteOptions, JsonStoreOptions } from "./db";
 
 // Render

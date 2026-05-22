@@ -1,0 +1,94 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of AI and VR application areas",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of theoretical frameworks",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of stakeholder perspectives",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of quantitative usage data and metrics",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Coverage of Indigenous and non-Abrahamic traditions",
+        "weight": 0.275
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Depth of conceptual analysis",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Nuanced evaluation of tensions",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Logical rigor and calibration of claims",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Proposes a novel analytical framework or taxonomy",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Evaluates power asymmetries between platforms and institutions",
+        "weight": 0.275
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
+      },
+      {
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Addresses all named focal areas",
+        "weight": 0.2
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and precision of language",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
+      }
+    ]
+  }
+}

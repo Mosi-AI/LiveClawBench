@@ -1,0 +1,295 @@
+--- BEGIN LOG EXPORT: prod-kvstore-01 ---
+--- Exported: 2026-04-14T03:25:00Z  Window: 03:20:00 – 03:23:00 ---
+
+2026-04-14T03:20:01.112Z [INFO ] kvstore-server  GC pause 3ms (young gen, 12.4MB freed)
+2026-04-14T03:20:01.443Z [INFO ] grpc-channelz   Channel #4 subchannel READY (peer=10.0.2.17:50051)
+2026-04-14T03:20:01.887Z [DEBUG] kvstore-server  Heartbeat OK → monitoring-svc (rtt=1.2ms)
+2026-04-14T03:20:02.003Z [INFO ] kvstore-server  PUT key=config:feature_flags
+2026-04-14T03:20:02.201Z [INFO ] kvstore-server  GET key=session:b4e912
+2026-04-14T03:20:02.305Z [WARN ] grpc-transport  HTTP/2 GOAWAY received from peer; will reconnect (last_stream=482)
+2026-04-14T03:20:02.410Z [INFO ] kvstore-server  GC pause 7ms (young gen, 18.7MB freed)
+2026-04-14T03:20:02.598Z [INFO ] grpc-channelz   Channel #4 reconnect SUCCESS (attempt 1)
+2026-04-14T03:20:02.711Z [DEBUG] kvstore-server  Connection pool stats: active=8/10 idle=2 pending=0
+2026-04-14T03:20:03.045Z [INFO ] kvstore-server  PUT key=user:7891
+2026-04-14T03:20:03.198Z [INFO ] kvstore-server  GET key=user:7891
+2026-04-14T03:20:03.301Z [INFO ] kvstore-server  PUT key=cache:product:442
+2026-04-14T03:20:03.455Z [WARN ] grpc-health     Health check latency elevated: 45ms (threshold: 30ms)
+2026-04-14T03:20:03.559Z [INFO ] kvstore-server  GC pause 2ms (young gen, 8.1MB freed)
+2026-04-14T03:20:03.702Z [DEBUG] kvstore-server  Heartbeat OK → monitoring-svc (rtt=0.9ms)
+2026-04-14T03:20:04.001Z [INFO ] kvstore-server  DELETE key=temp:cleanup_9827
+2026-04-14T03:20:04.112Z [INFO ] kvstore-server  PUT key=session:cc4a01
+2026-04-14T03:20:04.233Z [INFO ] kvstore-server  GET key=config:feature_flags
+2026-04-14T03:20:04.398Z [INFO ] kvstore-server  BATCH_PUT items=50
+2026-04-14T03:20:04.501Z [DEBUG] kvstore-server  Memory usage: 127MB / 512MB (RSS)
+2026-04-14T03:20:04.622Z [INFO ] kvstore-server  PUT key=user:8001
+2026-04-14T03:20:04.799Z [INFO ] kvstore-server  PUT key=user:8002
+2026-04-14T03:20:05.001Z [INFO ] kvstore-server  GET key=session:cc4a01
+2026-04-14T03:20:05.201Z [WARN ] grpc-transport  Slow write: 120ms for 2.1KB payload (peer=10.0.2.19)
+2026-04-14T03:20:05.334Z [INFO ] kvstore-server  GC pause 4ms (young gen, 14.2MB freed)
+2026-04-14T03:20:05.500Z [INFO ] kvstore-server  PUT key=analytics:pageview:20260414
+2026-04-14T03:20:05.612Z [WARN ] grpc-channelz   Channel #7 subchannel TRANSIENT_FAILURE → CONNECTING
+2026-04-14T03:20:05.788Z [DEBUG] kvstore-server  Heartbeat OK → monitoring-svc (rtt=1.0ms)
+2026-04-14T03:20:06.009Z [INFO ] kvstore-server  PUT key=cache:product:443
+2026-04-14T03:20:06.102Z [INFO ] kvstore-server  GET key=cache:product:442
+2026-04-14T03:20:06.230Z [INFO ] kvstore-server  PUT key=session:d1f802
+2026-04-14T03:20:06.398Z [WARN ] grpc-health     Health check timeout from load-balancer-03 (no response in 5s)
+2026-04-14T03:20:06.499Z [INFO ] grpc-channelz   Channel #7 subchannel READY (peer=10.0.2.19:50051)
+2026-04-14T03:20:06.600Z [INFO ] kvstore-server  GC pause 2ms (young gen, 6.3MB freed)
+2026-04-14T03:20:06.732Z [INFO ] kvstore-server  PUT key=user:8003
+2026-04-14T03:20:06.845Z [INFO ] kvstore-server  GET key=user:8001
+2026-04-14T03:20:07.011Z [DEBUG] kvstore-server  Connection pool stats: active=10/10 idle=0 pending=3
+2026-04-14T03:20:07.198Z [WARN ] kvstore-server  Thread pool saturation: 10/10 workers busy, 3 tasks queued
+2026-04-14T03:20:07.299Z [INFO ] kvstore-server  PUT key=cache:product:444
+2026-04-14T03:20:07.422Z [INFO ] kvstore-server  PUT key=session:e2a903
+2026-04-14T03:20:07.555Z [INFO ] kvstore-server  BATCH_PUT items=100
+2026-04-14T03:20:07.678Z [INFO ] kvstore-server  GC pause 5ms (young gen, 22.1MB freed)
+2026-04-14T03:20:07.801Z [DEBUG] kvstore-server  Heartbeat OK → monitoring-svc (rtt=2.1ms)
+2026-04-14T03:20:08.002Z [WARN ] grpc-transport  Connection backpressure from 10.0.2.21 (window=0)
+2026-04-14T03:20:08.109Z [INFO ] kvstore-server  PUT key=user:8004
+2026-04-14T03:20:08.212Z [INFO ] kvstore-server  PUT key=user:8005
+2026-04-14T03:20:08.334Z [INFO ] kvstore-server  GET key=session:e2a903
+2026-04-14T03:20:08.445Z [WARN ] grpc-channelz   Channel #9 subchannel TRANSIENT_FAILURE (UNAVAILABLE: Connection refused)
+2026-04-14T03:20:08.559Z [INFO ] grpc-channelz   Channel #9 backoff: retry in 1.2s
+2026-04-14T03:20:08.700Z [INFO ] kvstore-server  GC pause 3ms (young gen, 9.8MB freed)
+2026-04-14T03:20:08.888Z [DEBUG] kvstore-server  Memory usage: 148MB / 512MB (RSS)
+2026-04-14T03:20:09.003Z [INFO ] kvstore-server  PUT key=analytics:event:click_buy
+2026-04-14T03:20:09.109Z [INFO ] kvstore-server  GET key=config:feature_flags
+2026-04-14T03:20:09.233Z [WARN ] grpc-health     Health check latency elevated: 52ms (threshold: 30ms)
+2026-04-14T03:20:09.398Z [INFO ] kvstore-server  PUT key=cache:product:445
+2026-04-14T03:20:09.499Z [INFO ] kvstore-server  DELETE key=session:b4e912
+2026-04-14T03:20:09.612Z [INFO ] kvstore-server  PUT key=user:8006
+2026-04-14T03:20:09.799Z [DEBUG] kvstore-server  Heartbeat OK → monitoring-svc (rtt=1.5ms)
+2026-04-14T03:20:10.001Z [INFO ] kvstore-server  GC pause 6ms (old gen, 34.9MB freed)
+2026-04-14T03:20:10.112Z [INFO ] kvstore-server  PUT key=session:f3b104
+2026-04-14T03:20:10.245Z [INFO ] kvstore-server  GET key=user:8003
+2026-04-14T03:20:10.398Z [INFO ] kvstore-server  BATCH_PUT items=75
+2026-04-14T03:20:10.501Z [WARN ] grpc-transport  Slow read: 89ms for 1.4KB payload (peer=10.0.2.17)
+2026-04-14T03:20:10.623Z [INFO ] kvstore-server  PUT key=user:8007
+2026-04-14T03:20:10.801Z [DEBUG] kvstore-server  Connection pool stats: active=9/10 idle=1 pending=0
+2026-04-14T03:20:11.002Z [INFO ] kvstore-server  PUT key=cache:product:446
+2026-04-14T03:20:11.112Z [INFO ] kvstore-server  GET key=cache:product:443
+2026-04-14T03:20:11.298Z [WARN ] kvstore-server  Response serialization slow: 23ms for BatchPutResponse
+2026-04-14T03:20:11.445Z [INFO ] kvstore-server  GC pause 2ms (young gen, 7.4MB freed)
+2026-04-14T03:20:11.598Z [INFO ] kvstore-server  PUT key=analytics:pageview:20260414
+2026-04-14T03:20:11.712Z [DEBUG] kvstore-server  Heartbeat OK → monitoring-svc (rtt=1.1ms)
+2026-04-14T03:20:12.001Z [INFO ] kvstore-server  PUT key=user:8008
+2026-04-14T03:20:12.155Z [INFO ] kvstore-server  PUT key=user:8009
+2026-04-14T03:20:12.298Z [WARN ] grpc-health     Health probe from monitoring-svc timed out (>2s)
+2026-04-14T03:20:12.412Z [INFO ] kvstore-server  GET key=session:f3b104
+2026-04-14T03:20:12.523Z [INFO ] kvstore-server  BATCH_PUT items=100
+2026-04-14T03:20:12.698Z [WARN ] grpc-channelz   Channel #7 window_update stall (peer=10.0.2.19)
+2026-04-14T03:20:12.811Z [INFO ] kvstore-server  GC pause 4ms (young gen, 15.6MB freed)
+2026-04-14T03:20:13.002Z [DEBUG] kvstore-server  Memory usage: 162MB / 512MB (RSS)
+2026-04-14T03:20:13.145Z [INFO ] kvstore-server  PUT key=cache:product:447
+2026-04-14T03:20:13.267Z [INFO ] kvstore-server  GET key=user:8006
+2026-04-14T03:20:13.390Z [WARN ] grpc-transport  HTTP/2 GOAWAY received from peer; will reconnect (last_stream=1024)
+2026-04-14T03:20:13.512Z [INFO ] grpc-channelz   Channel #7 reconnect SUCCESS (attempt 1)
+2026-04-14T03:20:13.645Z [INFO ] kvstore-server  DELETE key=temp:cleanup_9828
+2026-04-14T03:20:13.798Z [INFO ] kvstore-server  PUT key=session:a4c205
+2026-04-14T03:20:14.002Z [DEBUG] kvstore-server  Heartbeat OK → monitoring-svc (rtt=0.8ms)
+2026-04-14T03:20:14.112Z [WARN ] grpc-transport  Slow write: 145ms for 3.7KB payload (peer=10.0.2.21)
+2026-04-14T03:20:14.278Z [INFO ] kvstore-server  GC pause 3ms (young gen, 11.2MB freed)
+2026-04-14T03:20:14.445Z [INFO ] kvstore-server  PUT key=user:8010
+2026-04-14T03:20:14.532Z [INFO ] kvstore-server  PUT key=user:8011
+2026-04-14T03:20:14.654Z [INFO ] kvstore-server  PUT key=user:8012
+2026-04-14T03:20:14.801Z [INFO ] kvstore-server  BATCH_PUT items=98
+2026-04-14T03:20:15.002Z [WARN ] grpc-channelz   Channel #4 subchannel TRANSIENT_FAILURE → CONNECTING
+2026-04-14T03:20:15.132Z [INFO ] grpc-channelz   Channel #4 subchannel READY (peer=10.0.2.17:50051)
+2026-04-14T03:20:15.278Z [INFO ] kvstore-server  GET key=session:a4c205
+2026-04-14T03:20:15.401Z [DEBUG] kvstore-server  Connection pool stats: active=10/10 idle=0 pending=5
+2026-04-14T03:20:15.523Z [WARN ] kvstore-server  Thread pool saturation: 10/10 workers busy, 5 tasks queued
+2026-04-14T03:20:15.678Z [INFO ] kvstore-server  PUT key=cache:product:448
+2026-04-14T03:20:15.812Z [INFO ] kvstore-server  GC pause 8ms (old gen, 41.3MB freed)
+2026-04-14T03:20:16.002Z [INFO ] kvstore-server  PUT key=analytics:event:add_cart
+2026-04-14T03:20:16.123Z [DEBUG] kvstore-server  Heartbeat OK → monitoring-svc (rtt=1.8ms)
+2026-04-14T03:20:16.289Z [INFO ] kvstore-server  PUT key=user:8013
+2026-04-14T03:20:16.401Z [INFO ] kvstore-server  GET key=user:8010
+2026-04-14T03:20:16.534Z [INFO ] kvstore-server  PUT key=session:b5d306
+2026-04-14T03:20:16.701Z [WARN ] grpc-health     Health check latency elevated: 67ms (threshold: 30ms)
+2026-04-14T03:20:16.823Z [INFO ] kvstore-server  BATCH_PUT items=100
+2026-04-14T03:20:17.001Z [WARN ] grpc-transport  Connection backpressure from 10.0.2.17 (window=0)
+2026-04-14T03:20:17.156Z [INFO ] kvstore-server  GC pause 3ms (young gen, 13.6MB freed)
+2026-04-14T03:20:17.312Z [DEBUG] kvstore-server  Memory usage: 178MB / 512MB (RSS)
+2026-04-14T03:20:17.478Z [INFO ] kvstore-server  PUT key=cache:product:449
+2026-04-14T03:20:17.612Z [INFO ] kvstore-server  GET key=cache:product:447
+2026-04-14T03:20:17.798Z [INFO ] kvstore-server  PUT key=user:8014
+2026-04-14T03:20:18.001Z [WARN ] grpc-channelz   Channel #9 subchannel TRANSIENT_FAILURE (UNAVAILABLE: connect timeout)
+2026-04-14T03:20:18.145Z [INFO ] grpc-channelz   Channel #9 backoff: retry in 2.4s
+2026-04-14T03:20:18.312Z [INFO ] kvstore-server  DELETE key=session:cc4a01
+2026-04-14T03:20:18.456Z [DEBUG] kvstore-server  Heartbeat OK → monitoring-svc (rtt=1.3ms)
+2026-04-14T03:20:18.601Z [INFO ] kvstore-server  PUT key=user:8015
+2026-04-14T03:20:18.745Z [INFO ] kvstore-server  GC pause 5ms (young gen, 19.4MB freed)
+2026-04-14T03:20:19.001Z [INFO ] kvstore-server  GET key=session:b5d306
+2026-04-14T03:20:19.178Z [INFO ] kvstore-server  PUT key=analytics:pageview:20260414
+2026-04-14T03:20:19.345Z [WARN ] grpc-transport  Slow read: 78ms for 0.9KB payload (peer=10.0.2.19)
+2026-04-14T03:20:19.501Z [INFO ] kvstore-server  BATCH_PUT items=62
+2026-04-14T03:20:19.698Z [INFO ] kvstore-server  PUT key=user:8016
+2026-04-14T03:20:19.801Z [DEBUG] kvstore-server  Connection pool stats: active=8/10 idle=2 pending=0
+2026-04-14T03:20:20.002Z [INFO ] kvstore-server  GC pause 2ms (young gen, 5.7MB freed)
+2026-04-14T03:20:20.165Z [INFO ] kvstore-server  GET key=config:feature_flags
+2026-04-14T03:20:20.321Z [INFO ] kvstore-server  PUT key=cache:product:450
+2026-04-14T03:20:20.478Z [WARN ] grpc-health     Health probe from lb-02 returned SERVING (latency 12ms)
+2026-04-14T03:20:20.645Z [DEBUG] kvstore-server  Heartbeat OK → monitoring-svc (rtt=0.7ms)
+2026-04-14T03:20:20.812Z [INFO ] kvstore-server  PUT key=user:8017
+2026-04-14T03:20:21.001Z [INFO ] kvstore-server  PUT key=user:8018
+2026-04-14T03:20:21.189Z [INFO ] kvstore-server  BATCH_PUT items=100
+2026-04-14T03:20:21.345Z [WARN ] kvstore-server  Response serialization slow: 31ms for BatchPutResponse
+2026-04-14T03:20:21.512Z [INFO ] kvstore-server  GC pause 4ms (young gen, 16.8MB freed)
+2026-04-14T03:20:21.678Z [INFO ] kvstore-server  GET key=user:8015
+2026-04-14T03:20:21.812Z [DEBUG] kvstore-server  Memory usage: 189MB / 512MB (RSS)
+2026-04-14T03:20:22.001Z [INFO ] kvstore-server  PUT key=session:c6e407
+2026-04-14T03:20:22.167Z [WARN ] grpc-transport  HTTP/2 GOAWAY received from peer; will reconnect (last_stream=1536)
+
+--- SPIKE START (concurrent load from stress-test framework) ---
+
+2026-04-14T03:22:01.001Z [WARN ] kvstore-server  Thread pool saturation: 10/10 workers busy, 14 tasks queued
+2026-04-14T03:22:01.101Z [INFO ] kvstore-server  PUT key=stress:0000
+2026-04-14T03:22:01.102Z [INFO ] kvstore-server  PUT key=stress:0001
+2026-04-14T03:22:01.103Z [INFO ] kvstore-server  PUT key=stress:0002
+2026-04-14T03:22:01.104Z [INFO ] kvstore-server  PUT key=stress:0003
+2026-04-14T03:22:01.105Z [INFO ] kvstore-server  PUT key=stress:0004
+2026-04-14T03:22:01.110Z [WARN ] grpc-channelz   Channel #4 subchannel TRANSIENT_FAILURE → CONNECTING
+2026-04-14T03:22:01.145Z [INFO ] kvstore-server  PUT key=stress:0005
+2026-04-14T03:22:01.146Z [INFO ] kvstore-server  PUT key=stress:0006
+2026-04-14T03:22:01.199Z [WARN ] grpc-health     Health check latency elevated: 230ms (threshold: 30ms)
+2026-04-14T03:22:01.201Z [INFO ] kvstore-server  GC pause 14ms (young gen, 28.4MB freed)
+2026-04-14T03:22:01.250Z [DEBUG] kvstore-server  Heartbeat TIMEOUT → monitoring-svc (>3s)
+2026-04-14T03:22:01.301Z [INFO ] kvstore-server  PUT key=stress:0007
+2026-04-14T03:22:01.302Z [INFO ] kvstore-server  PUT key=stress:0008
+2026-04-14T03:22:01.350Z [WARN ] kvstore-server  Thread pool saturation: 10/10 workers busy, 28 tasks queued
+2026-04-14T03:22:01.401Z [INFO ] kvstore-server  PUT key=stress:0009
+2026-04-14T03:22:01.402Z [INFO ] kvstore-server  PUT key=stress:0010
+2026-04-14T03:22:01.450Z [WARN ] grpc-transport  Connection backpressure from 10.0.2.17 (window=0)
+2026-04-14T03:22:01.501Z [INFO ] kvstore-server  PUT key=stress:0011
+2026-04-14T03:22:01.550Z [WARN ] grpc-transport  Slow write: 312ms for 1.8KB payload (peer=10.0.2.19)
+2026-04-14T03:22:01.601Z [DEBUG] kvstore-server  Memory usage: 204MB / 512MB (RSS)
+2026-04-14T03:22:01.701Z [INFO ] kvstore-server  PUT key=stress:0012
+2026-04-14T03:22:01.801Z [WARN ] grpc-channelz   Channel #4 subchannel READY (peer=10.0.2.17:50051)
+2026-04-14T03:22:01.901Z [INFO ] kvstore-server  GC pause 18ms (young gen, 32.1MB freed)
+2026-04-14T03:22:02.001Z [WARN ] kvstore-server  Thread pool saturation: 10/10 workers busy, 42 tasks queued
+2026-04-14T03:22:02.101Z [INFO ] kvstore-server  PUT key=stress:0013 through stress:0050 (bulk log suppressed)
+2026-04-14T03:22:02.201Z [WARN ] grpc-health     Health check latency elevated: 890ms (threshold: 30ms)
+2026-04-14T03:22:02.301Z [WARN ] grpc-transport  HTTP/2 window_update stall on stream 482 (peer=10.0.2.21)
+2026-04-14T03:22:02.401Z [DEBUG] kvstore-server  Heartbeat TIMEOUT → monitoring-svc (>3s)
+2026-04-14T03:22:02.501Z [INFO ] kvstore-server  GC pause 9ms (young gen, 25.7MB freed)
+2026-04-14T03:22:02.601Z [WARN ] grpc-channelz   Channel #7 subchannel TRANSIENT_FAILURE → CONNECTING
+2026-04-14T03:22:02.701Z [WARN ] kvstore-server  Response serialization slow: 156ms for PutResponse
+2026-04-14T03:22:02.801Z [DEBUG] kvstore-server  Memory usage: 221MB / 512MB (RSS)
+2026-04-14T03:22:03.001Z [INFO ] kvstore-server  PUT key=stress:0051 through stress:0100 (bulk log suppressed)
+2026-04-14T03:22:03.201Z [WARN ] grpc-transport  Slow read: 445ms for 2.8KB payload (peer=10.0.2.17)
+2026-04-14T03:22:03.401Z [WARN ] kvstore-server  Thread pool saturation: 10/10 workers busy, 67 tasks queued
+2026-04-14T03:22:03.501Z [INFO ] kvstore-server  GC pause 22ms (old gen, 54.3MB freed)
+2026-04-14T03:22:03.601Z [WARN ] grpc-health     Multiple health probes timed out (lb-01, lb-02, lb-03)
+2026-04-14T03:22:03.701Z [WARN ] grpc-channelz   Channel #9 subchannel TRANSIENT_FAILURE (UNAVAILABLE: connect timeout)
+2026-04-14T03:22:03.801Z [DEBUG] kvstore-server  Heartbeat TIMEOUT → monitoring-svc (>3s)
+2026-04-14T03:22:04.001Z [WARN ] grpc-transport  Connection backpressure from 10.0.2.19 (window=0)
+2026-04-14T03:22:04.101Z [INFO ] kvstore-server  PUT key=stress:0101 through stress:0200 (bulk log suppressed)
+2026-04-14T03:22:04.301Z [WARN ] kvstore-server  Response serialization slow: 234ms for GetResponse
+2026-04-14T03:22:04.501Z [DEBUG] kvstore-server  Memory usage: 245MB / 512MB (RSS)
+
+--- FIRST EXCEPTION at 03:22:05Z ---
+
+2026-04-14T03:22:05.001Z [ERROR] kvstore-server  Unhandled exception in RPC handler:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/usr/local/lib/python3.12/site-packages/grpc/_server.py", line 546, in _handle_unary_unary
+    return _unary_response_in_pool(...)
+  File "/workspace/kv-store/server.py", line 48, in BatchPut
+    success, failure, msg = self.backend.batch_put(request.items)
+  File "/workspace/kv-store/store.py", line 47, in batch_put
+    item = items[i]
+IndexError: list index out of range
+
+2026-04-14T03:22:05.101Z [WARN ] grpc-transport  Slow write: 567ms for 1.2KB payload (peer=10.0.2.17)
+2026-04-14T03:22:05.201Z [INFO ] kvstore-server  GC pause 11ms (young gen, 27.9MB freed)
+2026-04-14T03:22:05.301Z [WARN ] kvstore-server  Thread pool saturation: 10/10 workers busy, 89 tasks queued
+2026-04-14T03:22:05.401Z [WARN ] grpc-health     Health check latency elevated: 1245ms (threshold: 30ms)
+2026-04-14T03:22:05.501Z [DEBUG] kvstore-server  Heartbeat TIMEOUT → monitoring-svc (>3s)
+2026-04-14T03:22:05.601Z [WARN ] grpc-channelz   Channel #4 window_update stall (peer=10.0.2.17)
+2026-04-14T03:22:05.701Z [WARN ] grpc-transport  HTTP/2 RST_STREAM on stream 891 (INTERNAL_ERROR)
+2026-04-14T03:22:05.801Z [INFO ] kvstore-server  PUT key=stress:0201 through stress:0300 (bulk log suppressed)
+2026-04-14T03:22:05.901Z [DEBUG] kvstore-server  Memory usage: 251MB / 512MB (RSS)
+2026-04-14T03:22:06.001Z [WARN ] grpc-channelz   Channel #7 subchannel READY (peer=10.0.2.19:50051)
+2026-04-14T03:22:06.101Z [INFO ] kvstore-server  GC pause 7ms (young gen, 18.3MB freed)
+2026-04-14T03:22:06.201Z [WARN ] grpc-transport  Connection backpressure from 10.0.2.21 (window=0)
+2026-04-14T03:22:06.301Z [WARN ] kvstore-server  Response serialization slow: 178ms for PutResponse
+2026-04-14T03:22:06.401Z [WARN ] grpc-health     Health probe from monitoring-svc returned NOT_SERVING
+2026-04-14T03:22:06.501Z [DEBUG] kvstore-server  Heartbeat FAILED → monitoring-svc (status=NOT_SERVING)
+2026-04-14T03:22:06.601Z [WARN ] grpc-transport  Slow read: 623ms for 4.1KB payload (peer=10.0.2.19)
+
+--- SECOND EXCEPTION at 03:22:07Z ---
+
+2026-04-14T03:22:07.001Z [ERROR] kvstore-server  Unhandled exception in RPC handler:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/workspace/kv-store/server.py", line 39, in Get
+    found, value = self.backend.get(request.key)
+  File "/workspace/kv-store/store.py", line 29, in get
+    return True, self._data[key]
+KeyError: 'session:aef329'
+
+2026-04-14T03:22:07.101Z [WARN ] grpc-channelz   Channel #4 subchannel TRANSIENT_FAILURE → CONNECTING
+2026-04-14T03:22:07.201Z [WARN ] kvstore-server  Thread pool saturation: 10/10 workers busy, 112 tasks queued
+2026-04-14T03:22:07.301Z [INFO ] kvstore-server  GC pause 15ms (old gen, 48.7MB freed)
+2026-04-14T03:22:07.401Z [DEBUG] kvstore-server  Memory usage: 234MB / 512MB (RSS)
+2026-04-14T03:22:07.501Z [WARN ] grpc-transport  HTTP/2 GOAWAY received from peer; will reconnect (last_stream=2048)
+2026-04-14T03:22:07.601Z [WARN ] grpc-health     Multiple health probes timed out (lb-01, lb-02, lb-03)
+2026-04-14T03:22:07.701Z [DEBUG] kvstore-server  Heartbeat TIMEOUT → monitoring-svc (>3s)
+2026-04-14T03:22:07.801Z [WARN ] grpc-channelz   Channel #4 subchannel READY (peer=10.0.2.17:50051)
+2026-04-14T03:22:07.901Z [INFO ] kvstore-server  PUT key=stress:0301 through stress:0400 (bulk log suppressed)
+2026-04-14T03:22:08.001Z [WARN ] grpc-transport  Slow write: 890ms for 3.2KB payload (peer=10.0.2.21)
+2026-04-14T03:22:08.101Z [WARN ] kvstore-server  Response serialization slow: 345ms for BatchPutResponse
+2026-04-14T03:22:08.201Z [INFO ] kvstore-server  GC pause 6ms (young gen, 14.5MB freed)
+2026-04-14T03:22:08.301Z [WARN ] grpc-health     Health check latency elevated: 2100ms (threshold: 30ms)
+2026-04-14T03:22:08.401Z [WARN ] grpc-transport  Connection backpressure from 10.0.2.17 (window=0)
+2026-04-14T03:22:08.501Z [DEBUG] kvstore-server  Heartbeat FAILED → monitoring-svc (status=NOT_SERVING)
+2026-04-14T03:22:08.601Z [WARN ] grpc-channelz   Channel #7 window_update stall (peer=10.0.2.19)
+2026-04-14T03:22:08.701Z [WARN ] grpc-channelz   Channel #9 subchannel TRANSIENT_FAILURE (UNAVAILABLE: Connection refused)
+2026-04-14T03:22:08.801Z [WARN ] kvstore-server  Thread pool saturation: 10/10 workers busy, 134 tasks queued
+2026-04-14T03:22:08.901Z [DEBUG] kvstore-server  Memory usage: 247MB / 512MB (RSS)
+
+--- THIRD EXCEPTION at 03:22:09Z ---
+
+2026-04-14T03:22:09.001Z [ERROR] kvstore-server  Unhandled exception in RPC handler:
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/workspace/kv-store/server.py", line 48, in BatchPut
+    success, failure, msg = self.backend.batch_put(request.items)
+  File "/workspace/kv-store/store.py", line 47, in batch_put
+    item = items[i]
+IndexError: list index out of range
+
+2026-04-14T03:22:09.101Z [WARN ] grpc-transport  HTTP/2 RST_STREAM on stream 2134 (INTERNAL_ERROR)
+2026-04-14T03:22:09.201Z [WARN ] grpc-health     Health probe from lb-03 returned NOT_SERVING
+2026-04-14T03:22:09.301Z [INFO ] kvstore-server  GC pause 19ms (old gen, 62.1MB freed)
+2026-04-14T03:22:09.401Z [WARN ] kvstore-server  Thread pool saturation: 10/10 workers busy, 156 tasks queued
+2026-04-14T03:22:09.501Z [DEBUG] kvstore-server  Memory usage: 218MB / 512MB (RSS)
+2026-04-14T03:22:09.601Z [WARN ] grpc-channelz   Channel #4 subchannel TRANSIENT_FAILURE → CONNECTING
+2026-04-14T03:22:09.701Z [WARN ] grpc-transport  Connection backpressure from 10.0.2.19 (window=0)
+2026-04-14T03:22:09.801Z [DEBUG] kvstore-server  Heartbeat TIMEOUT → monitoring-svc (>3s)
+2026-04-14T03:22:09.901Z [WARN ] grpc-transport  Slow read: 1023ms for 5.2KB payload (peer=10.0.2.17)
+2026-04-14T03:22:10.001Z [INFO ] kvstore-server  PUT key=stress:0401 through stress:0487 (bulk log suppressed)
+2026-04-14T03:22:10.201Z [WARN ] grpc-health     Health check latency elevated: 3400ms (threshold: 30ms)
+2026-04-14T03:22:10.401Z [WARN ] kvstore-server  Response serialization slow: 512ms for GetResponse
+2026-04-14T03:22:10.501Z [INFO ] kvstore-server  GC pause 8ms (young gen, 21.3MB freed)
+2026-04-14T03:22:10.601Z [WARN ] grpc-channelz   Channel #7 subchannel TRANSIENT_FAILURE (UNAVAILABLE: connect timeout)
+2026-04-14T03:22:10.701Z [WARN ] grpc-channelz   Channel #4 subchannel READY (peer=10.0.2.17:50051)
+2026-04-14T03:22:10.801Z [DEBUG] kvstore-server  Memory usage: 229MB / 512MB (RSS)
+
+--- SERVICE TERMINATED BY OOM KILLER ---
+
+2026-04-14T03:22:11.001Z [FATAL] kernel          Out of memory: Kill process 4821 (python3) score 492
+2026-04-14T03:22:11.002Z [FATAL] kernel          Killed process 4821 total-vm:1048576kB, anon-rss:524288kB
+
+--- END LOG EXPORT ---
+
+System info at crash time:
+  Python: 3.12.x
+  grpcio: 1.64.x
+  OS: Ubuntu 22.04 (container)
+  Threads active: 10 (ThreadPoolExecutor-0)
+  Total requests before crash: ~487
+  Uptime before crash: ~2m12s

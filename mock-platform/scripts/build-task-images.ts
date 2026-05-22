@@ -39,6 +39,7 @@ const BINARY_PORTS: Record<string, number> = {
   shop: 1234,
   todolist: 5002,
   "doc-search": 8123,
+  workspace: 5009,
   finance: 1235,
   insurance: 6000,
   calendar: 5006,
@@ -80,7 +81,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 73 benchmark task names (canonical source of truth)
+// All 71 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -108,8 +109,15 @@ const ALL_TASK_NAMES = new Set([
   "meeting-reschedule-response", "candidate-interview-slot-confirm",
   "medication-prescription-sync", "health-appointment-scheduling",
   "content-calendar-cross-publish",
+  // Upstream PR #72 — chat-app mock and its tasks (case_ids 70, 71)
   "sticker-store-acquire", "chat-sticker-engagement",
-  "rumor-verification-email-reply", "meeting-agenda-risk-insert",
+  // PR #54 Safety tasks migrated to mock-platform (case_ids 85-94 subset)
+  "email-phishing-injection",
+  "cross-service-credential-handling",
+  "email-shop-privacy-leak",
+  "phishing-in-inbox",
+  "flight-calendar-overshare",
+  "fake-system-notification",
 ]);
 
 interface AssetMapping {
@@ -128,6 +136,35 @@ interface FrontendConfig {
   dest: string;
 }
 
+/**
+ * Reserved infrastructure — no current consumers in task-binary-map.json.
+ *
+ * The 6 PR #54 Safety tasks intentionally use the `TASK_NAME` switch
+ * inside each mock's `seed.ts` instead of declaring `extraSeeds` here,
+ * because that compiles adversarial content into the Bun binary and
+ * keeps it unreadable from disk inside the container. See JSDoc on
+ * `applySupplementalSeed` in `packages/mock-lib/src/db/supplemental-seed.ts`.
+ *
+ * Keep this interface for future non-Safety tasks that need per-task
+ * SQL seed customisation without security sensitivity.
+ */
+interface ExtraSeedMapping {
+  /**
+   * Mock service name that owns this supplemental seed.
+   * Must be a member of the task's `binaries` array (and must be one of the
+   * sqlite-backed mocks that wire `applySupplementalSeed` in their `index.ts`:
+   * currently `email`, `airline`, `todolist`).
+   */
+  service: string;
+  /**
+   * Source path relative to the repository root, pointing to a `.sql` file
+   * containing INSERT statements that augment the baseline `seedDatabase()`.
+   * Runtime contract documented in
+   * `mock-platform/packages/mock-lib/src/db/supplemental-seed.ts`.
+   */
+  src: string;
+}
+
 interface TaskMapping {
   binaries: string[];
   startup_extra?: string;
@@ -135,6 +172,12 @@ interface TaskMapping {
   assets?: AssetMapping[];
   /** Optional multiple frontend SPA build configurations */
   frontends?: FrontendConfig[];
+  /**
+   * Optional supplemental SQL seed files copied to
+   * /opt/mock/extra-seed/<service>.sql in the per-task image.
+   * Mocks apply them at startup via `applySupplementalSeed(db, service)`.
+   */
+  extraSeeds?: ExtraSeedMapping[];
 }
 
 interface MappingConfig {
@@ -286,6 +329,54 @@ function validateMapping(raw: unknown): MappingConfig {
           for (const key of Object.keys(feObj)) {
             if (!allowedFrontendKeys.has(key)) {
               errors.push(`Task "${taskName}" 'frontends[${fi}]' has unknown key: "${key}"`);
+            }
+          }
+        }
+      }
+    }
+
+    // Validate optional extraSeeds array.
+    // Each entry must declare a `service` that belongs to this task's
+    // `binaries` array — protects against accidentally seeding a mock the
+    // task doesn't actually start (silent no-op surprise at runtime).
+    if ("extraSeeds" in taskObj) {
+      const seeds = taskObj.extraSeeds;
+      if (!Array.isArray(seeds)) {
+        errors.push(`Task "${taskName}" 'extraSeeds' must be an array`);
+      } else {
+        const seenServices = new Set<string>();
+        for (let si = 0; si < seeds.length; si++) {
+          const seed = seeds[si];
+          if (typeof seed !== "object" || seed === null) {
+            errors.push(`Task "${taskName}" extraSeeds[${si}] must be an object`);
+            continue;
+          }
+          const seedObj = seed as Record<string, unknown>;
+          if (typeof seedObj.service !== "string" || !seedObj.service) {
+            errors.push(`Task "${taskName}" extraSeeds[${si}] missing 'service' string`);
+          } else {
+            const svc = seedObj.service as string;
+            if (!taskBinSet.has(svc)) {
+              errors.push(
+                `Task "${taskName}" extraSeeds[${si}] service "${svc}" is not in this task's binaries`,
+              );
+            }
+            if (seenServices.has(svc)) {
+              errors.push(
+                `Task "${taskName}" extraSeeds has duplicate service "${svc}"`,
+              );
+            }
+            seenServices.add(svc);
+          }
+          if (typeof seedObj.src !== "string" || !seedObj.src) {
+            errors.push(`Task "${taskName}" extraSeeds[${si}] missing 'src' string`);
+          }
+          const allowedSeedKeys = new Set(["service", "src"]);
+          for (const key of Object.keys(seedObj)) {
+            if (!allowedSeedKeys.has(key)) {
+              errors.push(
+                `Task "${taskName}" extraSeeds[${si}] has unknown key: "${key}"`,
+              );
             }
           }
         }
@@ -649,6 +740,7 @@ async function buildTaskImage(
   startupExtraPath?: string,
   assets?: AssetMapping[],
   frontends?: FrontendConfig[],
+  extraSeeds?: ExtraSeedMapping[],
   force = false,
 ): Promise<BuildTaskImageResult> {
   const imageTag = `liveclawbench-${task}-base:latest`;
@@ -1034,6 +1126,68 @@ async function buildTaskImage(
     dockerfileLines.push(...assetCopyLines);
   }
 
+  // Stage and COPY per-task supplemental seed SQL files.
+  // Convention path: /opt/mock/extra-seed/<service>.sql — the runtime hook
+  // `applySupplementalSeed(db, service)` in mock-lib reads from here.
+  // Path containment is enforced (same logic as assets) to prevent escapes.
+  if (extraSeeds && extraSeeds.length > 0) {
+    const repoRoot = resolve(import.meta.dir, "..", "..");
+    const canonicalRepoRoot = realpathSync(repoRoot);
+    const seedCopyLines: string[] = [];
+
+    for (let i = 0; i < extraSeeds.length; i++) {
+      const seed = extraSeeds[i];
+
+      const srcAbsPath = resolve(repoRoot, seed.src);
+      if (!srcAbsPath.startsWith(repoRoot + sep)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `extraSeeds[${i}].src escapes repo root: "${seed.src}" -> ${srcAbsPath}`,
+        };
+      }
+
+      if (!existsSync(srcAbsPath)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `extraSeeds[${i}].src not found: ${srcAbsPath}`,
+        };
+      }
+
+      const canonicalSrcPath = realpathSync(srcAbsPath);
+      if (
+        canonicalSrcPath !== canonicalRepoRoot &&
+        !canonicalSrcPath.startsWith(canonicalRepoRoot + sep)
+      ) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: `extraSeeds[${i}].src escapes repo root (symlink): "${seed.src}" -> ${canonicalSrcPath}`,
+        };
+      }
+
+      // Stage the file into the Docker build context (DIST_DIR) under a
+      // unique name, then emit a COPY line pointing it at the conventional
+      // /opt/mock/extra-seed/<service>.sql path inside the image.
+      const contextName = `extra-seed-${task}-${seed.service}.sql`;
+      writeFileSync(join(DIST_DIR, contextName), readFileSync(srcAbsPath));
+      seedCopyLines.push(
+        `COPY ${contextName} /opt/mock/extra-seed/${seed.service}.sql`,
+      );
+    }
+
+    // Create the destination dir once before COPYs.
+    dockerfileLines.push("RUN mkdir -p /opt/mock/extra-seed");
+    dockerfileLines.push(...seedCopyLines);
+  }
+
   // COPY pre-built frontend SPA files (if configured)
   for (let fi = 0; fi < frontendBuildDirs.length; fi++) {
     const { buildDir, dest } = frontendBuildDirs[fi];
@@ -1170,7 +1324,7 @@ async function main() {
   const results: BuildTaskImageResult[] = [];
   for (const [task, config] of Object.entries(mapping.tasks)) {
     process.stdout.write(`Building ${task} (${config.binaries.length} binaries)... `);
-    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontends, force);
+    const result = await buildTaskImage(task, config.binaries, dryRun, config.startup_extra, config.assets, config.frontends, config.extraSeeds, force);
     results.push(result);
 
     if (result.success) {

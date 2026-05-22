@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { existsSync } from "node:fs";
-import { createMockApp, createRoute, registerFrontendFallback, startServer } from "mock-lib";
+import { applySupplementalSeed, createMockApp, createRoute, registerFrontendFallback, startServer } from "mock-lib";
 import { getEmailDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
 import { registerAuthRoutes } from "./routes/auth";
@@ -12,6 +12,7 @@ export function createEmailApp(options?: { dbPath?: string }) {
   const db = getEmailDb({ path: options?.dbPath });
   initSchema(db);
   seedDatabase(db);
+  applySupplementalSeed(db, "email");
 
   const mockApp = createMockApp({
     name: "email",

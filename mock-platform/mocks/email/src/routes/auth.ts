@@ -85,7 +85,10 @@ export function registerAuthRoutes(app: OpenAPIApp, db: Database): void {
   app.openApiRoute(loginRoute, async (c) => {
     const { username, password } = c.req.valid("json");
 
-    const row = db.query("SELECT id, password_hash FROM users WHERE username = ?").get(username) as
+    const row = db.query("SELECT id, password_hash FROM users WHERE username = ? OR email = ?").get(
+      username,
+      username
+    ) as
       | { id: number; password_hash: string }
       | null;
     if (!row) {

@@ -1,0 +1,94 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
+  },
+  "criteria": {
+    "insight": [
+      {
+        "criterion": "Critical appraisal of evidence quality",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Mechanistic reasoning linking approach to outcome",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Context-sensitive evaluation and recommendations",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Proposes a novel analytical framework or taxonomy",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Provides quantitative estimates with confidence ranges",
+        "weight": 0.275
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
+      },
+      {
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Addresses all three intervention areas",
+        "weight": 0.2
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and precision of language",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
+      }
+    ],
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of off-target mechanisms",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of guide RNA design tools",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of engineered variants and validation",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of regulatory approval pathways",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Coverage of patient-specific risk factors",
+        "weight": 0.275
+      }
+    ]
+  }
+}

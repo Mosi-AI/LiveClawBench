@@ -1,0 +1,26 @@
+version = "1.0"
+
+[metadata]
+difficulty = "hard"
+category = "open-world"
+tags = ["devops_env_repair"]
+domain = "DevOps & Env Repair"
+domains_multi = ["DevOps & Env Repair"]
+factor_a1 = 0
+factor_a2 = 1   # Contaminated Initial State (6 stacked dependency bugs + decoys)
+factor_b1 = 1   # Implicit Goal Resolution (CI is red — agent must triage 6 root causes)
+factor_b2 = 0
+case_id = 84
+
+[verifier]
+timeout_sec = 180.0
+
+[agent]
+timeout_sec = 900.0
+
+[environment]
+build_timeout_sec = 900.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 10240
+allow_internet = false

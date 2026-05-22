@@ -1,0 +1,94 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of core approaches and variants",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of tradeoff dimensions",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of hybrid and complementary strategies",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of specific standard clauses and benchmarks",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Coverage of tool maturity and competitive evaluation",
+        "weight": 0.275
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Rigor in handling assumptions and guarantees",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Quality of tradeoff analysis",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Context-sensitive decision framework",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Proposes a novel analytical framework or taxonomy",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Identifies domains where both approaches fail",
+        "weight": 0.275
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
+      },
+      {
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Covers all mandated comparison dimensions",
+        "weight": 0.2
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and precision of language",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+Sprint 24 Retrospective — 2024-09-15
+
+Attendees: Alice (PM), Bob (Backend), Carol (Frontend), Dave (QA)
+
+Key Updates:
+- Backend API v2 migration completed ahead of schedule. All endpoints now return consistent error codes.
+- Frontend performance improved: LCP dropped from 2.8s to 1.4s after lazy-loading refactor.
+
+Evidence:
+- Load-test report (run by Dave on 2024-09-14) shows 99th-percentile latency under 120ms.
+
+Action Items:
+1. Carol to update the component library documentation (due 2024-09-20).
+2. Bob to schedule the database shard review with the infra team (due 2024-09-22).
+3. Alice to prepare the Q4 roadmap draft for leadership review (due 2024-09-25).
+
+Next Sprint Focus: Polish the onboarding flow and address tech-debt tickets.

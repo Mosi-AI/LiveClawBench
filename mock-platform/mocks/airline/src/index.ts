@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { existsSync } from "node:fs";
-import { createMockApp, createRoute, startServer, registerFrontendFallback, authRequired } from "mock-lib";
+import { applySupplementalSeed, createMockApp, createRoute, startServer, registerFrontendFallback, authRequired } from "mock-lib";
 import { getAirlineDb, initSchema } from "./db";
 import { seedDatabase } from "./seed";
 import { registerAuthRoutes } from "./routes/auth";
@@ -19,6 +19,7 @@ export function createAirlineApp(options?: { dbPath?: string; frontendDir?: stri
   const db = getAirlineDb({ dbPath: options?.dbPath });
   initSchema(db);
   seedDatabase(db);
+  applySupplementalSeed(db, "airline");
 
   const candidateFrontendDir = options?.frontendDir ?? process.env.FRONTEND_DIR ?? "/opt/mock/frontend/airline";
   const frontendDir = existsSync(candidateFrontendDir) ? candidateFrontendDir : undefined;

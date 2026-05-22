@@ -156,6 +156,19 @@
         "mock-lib": "workspace:*",
       },
     },
+    "mocks/workspace": {
+      "name": "@mock/workspace",
+      "version": "0.1.0",
+      "dependencies": {
+        "bcryptjs": "^2.4.3",
+        "hono": "^4.8.0",
+        "mock-lib": "workspace:*",
+        "zod": "^3.24.0",
+      },
+      "devDependencies": {
+        "@types/bcryptjs": "^2.4.6",
+      },
+    },
     "packages/mock-lib": {
       "name": "mock-lib",
       "version": "0.1.0",
@@ -202,6 +215,8 @@
     "@mock/todolist": ["@mock/todolist@workspace:mocks/todolist"],
 
     "@mock/weather": ["@mock/weather@workspace:mocks/weather"],
+
+    "@mock/workspace": ["@mock/workspace@workspace:mocks/workspace"],
 
     "@types/bcryptjs": ["@types/bcryptjs@2.4.6", "", {}, "sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ=="],
 

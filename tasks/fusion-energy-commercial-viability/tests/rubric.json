@@ -1,0 +1,94 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of major confinement approaches",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of commercialization outlook",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of practical constraints",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of specific engineering targets and metrics",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Coverage of LCOE estimates and cost comparisons",
+        "weight": 0.275
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Distinguishes scientific progress from commercial viability",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Critically evaluates breakthrough claims",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Calibrated reasoning about timelines",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Provides probability ranges for timeline estimates",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Identifies conditions under which conclusions would change",
+        "weight": 0.275
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
+      },
+      {
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Covers all required approach categories",
+        "weight": 0.2
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and precision of language",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
+      }
+    ]
+  }
+}
