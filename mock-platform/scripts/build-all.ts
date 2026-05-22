@@ -172,6 +172,28 @@ function collectSrcFiles(dir: string, visited = new Set<string>()): string[] {
   return results;
 }
 
+/**
+ * Collect all files in a directory tree, skipping node_modules/ and dist/.
+ * Used for frontend source hashing where multiple file types exist (.jsx, .js, .css).
+ */
+function collectAllFiles(dir: string, visited = new Set<string>()): string[] {
+  let realDir: string;
+  try { realDir = realpathSync(dir); } catch { realDir = dir; }
+  if (visited.has(realDir)) return [];
+  visited.add(realDir);
+  const results: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === "node_modules" || entry.name === "dist") continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...collectAllFiles(full, visited));
+    } else {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
 function computeBuildManifest(name: string): Record<string, string> {
   const srcDir = join(MOCKS_DIR, name, "src");
   const files = collectSrcFiles(srcDir).sort();
@@ -188,6 +210,34 @@ function computeBuildManifest(name: string): Record<string, string> {
 
 function writeBuildManifest(manifest: Record<string, string>, destPath: string): void {
   writeFileSync(destPath, JSON.stringify(manifest, null, 2), "utf-8");
+}
+
+/**
+ * Compute a content-hash manifest for a mock's frontend source files.
+ * Covers: src/ (all files recursively), index.html, vite.config.*, package.json.
+ * Excludes: node_modules/, dist/, package-lock.json.
+ * Enables build-task-images.ts to detect stale frontend assets with the
+ * same SHA-256 hash comparison used for binary staleness.
+ */
+function computeFrontendManifest(name: string): Record<string, string> {
+  const frontendDir = join(MOCKS_DIR, name, "frontend");
+  const files: string[] = [];
+  const srcDir = join(frontendDir, "src");
+  if (existsSync(srcDir)) {
+    files.push(...collectAllFiles(srcDir));
+  }
+  for (const configFile of ["index.html", "vite.config.js", "vite.config.ts", "package.json"]) {
+    const configPath = join(frontendDir, configFile);
+    if (existsSync(configPath)) files.push(configPath);
+  }
+  files.sort();
+  const manifest: Record<string, string> = {};
+  for (const f of files) {
+    const rel = relative(frontendDir, f).replace(/\\/g, "/");
+    const content = readFileSync(f, "utf-8").replace(/\r\n/g, "\n");
+    manifest[rel] = createHash("sha256").update(content).digest("hex");
+  }
+  return manifest;
 }
 
 async function buildMockFrontend(name: string): Promise<BuildResult> {
@@ -259,6 +309,9 @@ async function buildMockFrontend(name: string): Promise<BuildResult> {
     if (cpProc.exitCode !== 0) {
       return { name: `${name}-frontend`, success: false, error: `Failed to stage frontend: ${cpProc.stderr}` };
     }
+
+    // Write frontend manifest for staleness detection by build-task-images.ts
+    writeBuildManifest(computeFrontendManifest(name), join(DIST_DIR, `manifest-frontend-${name}.json`));
 
     return { name: `${name}-frontend`, success: true };
   } catch (err) {

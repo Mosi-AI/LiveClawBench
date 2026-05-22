@@ -14,7 +14,7 @@
  * Usage: bun run scripts/build-task-images.ts [--dry-run]
  */
 
-import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync, readdirSync, realpathSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync, readdirSync, realpathSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 
@@ -27,24 +27,30 @@ const ENTRYPOINT_SRC = join(import.meta.dir, "..", "..", "shared", "entrypoint.s
 const BASE_IMAGE = "liveclawbench-base:latest";
 
 /**
- * Return the most recent mtime (ms) among all files in a directory tree,
- * or 0 if the directory doesn't exist or is empty.
+ * Compute SHA-256 hashes for all frontend source files relative to the frontend directory.
+ * Covers: src/ (all files recursively), index.html, vite.config.*, package.json.
+ * Uses the same hash format as build-all.ts computeFrontendManifest().
  */
-function newestMtime(dir: string): number {
-  if (!existsSync(dir)) return 0;
-  let latest = 0;
-  try {
-    const entries = readdirSync(dir, { withFileTypes: true, recursive: true });
+function computeFrontendHashes(frontendDir: string): Record<string, string> {
+  const files: string[] = [];
+  const srcDir = join(frontendDir, "src");
+  if (existsSync(srcDir)) {
+    const entries = readdirSync(srcDir, { withFileTypes: true, recursive: true });
     for (const entry of entries) {
-      if (entry.isFile()) {
-        try {
-          const mtime = statSync(join(entry.parentPath, entry.name)).mtimeMs;
-          if (mtime > latest) latest = mtime;
-        } catch { /* skip unreadable files */ }
-      }
+      if (entry.isFile()) files.push(join(entry.parentPath, entry.name));
     }
-  } catch { /* skip unreadable dirs */ }
-  return latest;
+  }
+  for (const cf of ["index.html", "vite.config.js", "vite.config.ts", "package.json"]) {
+    const p = join(frontendDir, cf);
+    if (existsSync(p)) files.push(p);
+  }
+  files.sort();
+  const hashes: Record<string, string> = {};
+  for (const f of files) {
+    const rel = relative(frontendDir, f).replace(/\\/g, "/");
+    hashes[rel] = createHash("sha256").update(readFileSync(f, "utf-8").replace(/\r\n/g, "\n")).digest("hex");
+  }
+  return hashes;
 }
 
 /**
@@ -1050,16 +1056,42 @@ async function buildTaskImage(
         error: "Pre-built email frontend not found in dist/frontend-email/. Run `bun run build` in mock-platform/ first.",
       };
     }
-    // Staleness guard: warn if source is newer than the built output.
-    const emailFrontendSrc = join(import.meta.dir, "..", "mocks", "email", "frontend");
-    if (existsSync(emailFrontendSrc)) {
-      const srcMtime = newestMtime(emailFrontendSrc);
-      const distMtime = newestMtime(emailFrontendDir);
-      if (srcMtime > 0 && distMtime > 0 && srcMtime > distMtime) {
-        console.warn(
-          `  WARNING: ${task} — email frontend source is newer than dist/frontend-email/. ` +
-          `Run \`bun run build\` in mock-platform/ to rebuild.`,
-        );
+    // Reject stale frontend using content-hash comparison (same mechanism as binary staleness).
+    if (!force) {
+      const feManifestPath = join(DIST_DIR, "manifest-frontend-email.json");
+      if (!existsSync(feManifestPath)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: "No frontend manifest found. Run `bun run build` in mock-platform/ first.",
+        };
+      }
+      try {
+        const cached: Record<string, string> = JSON.parse(readFileSync(feManifestPath, "utf-8"));
+        const emailFrontendSrc = join(import.meta.dir, "..", "mocks", "email", "frontend");
+        const currentHashes = computeFrontendHashes(emailFrontendSrc);
+        const isStale =
+          Object.keys(currentHashes).some((r) => cached[r] !== currentHashes[r]) ||
+          Object.keys(cached).some((r) => !(r in currentHashes));
+        if (isStale) {
+          return {
+            task,
+            success: false,
+            imageTag,
+            binariesIncluded: binaries,
+            error: "Stale email frontend — source changed since last build. Run `bun run build` in mock-platform/ to rebuild.",
+          };
+        }
+      } catch {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: "Corrupt frontend manifest. Run `bun run build` in mock-platform/ to regenerate.",
+        };
       }
     }
     frontendBuildDirs.push({ buildDir: emailFrontendDir, dest: "/opt/mock/frontend/email" });
