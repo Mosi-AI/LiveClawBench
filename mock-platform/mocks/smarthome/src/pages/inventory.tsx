@@ -254,6 +254,7 @@ window.onclick = function(event) {
 }
 `}>
     <h1>Shopping List</h1>
+    <p style="margin-top:-8px; margin-bottom:16px; color:#666; font-size:14px;">Track items that need restocking.</p>
 
     <div id="item-modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4);">
       <div style="background:white; margin:80px auto; padding:20px; border-radius:8px; width:400px; max-width:90%;">

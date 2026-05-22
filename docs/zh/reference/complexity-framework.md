@@ -107,4 +107,4 @@
 |      97 | workspace-task-record-batch       |     M      |    |    |    |    | Calendar & Task Mgmt       |
 |      98 | workspace-brief-tracking          |     M      |    |    |    |    | Documents & Knowledge      |
 |      99 | smarthome-sleep-quality           |     H      | ✓  | ✓  | ✓  |    | E-commerce & Daily Svcs    |
-|     100 | sleep-trend-recovery1             |     M      | ✓  | ✓  |    |    | Health & Fitness           |
+|     100 | sleep-trend-recovery1             |     M      | ✓  | ✓  | ✓  |    | Health & Fitness           |

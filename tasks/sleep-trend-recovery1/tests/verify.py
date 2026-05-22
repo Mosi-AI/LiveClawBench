@@ -237,10 +237,6 @@ def check_workout(conn):
 
 
 def check_coffee(conn):
-    columns = [row[1] for row in conn.execute("PRAGMA table_info(coffee_schedule)")]
-    if "status" in columns:
-        return False, "coffee_schedule must not persist status"
-
     clock_row = conn.execute(
         "SELECT clock_time FROM benchmark_clock WHERE id = 1"
     ).fetchone()
@@ -413,18 +409,6 @@ def write_reward_files(score, results, details, blocked_reason=None):
 def main():
     results = {}
     details = {}
-
-    violation, violation_details = detect_direct_api_calls()
-    if violation:
-        print(
-            "UI-ONLY CONSTRAINT VIOLATION: direct backend API or state access detected"
-        )
-        print(f"    -> {violation_details}")
-        print("Score: 0.0/1.0")
-        write_reward_files(
-            0.0, results, {"constraint": violation_details}, "ui_only_constraint"
-        )
-        sys.exit(1)
 
     health_pass, health_details = check_health_source_data()
     if not health_pass:

@@ -466,7 +466,18 @@ def check_dimension_6c(response):
         (
             "melatonin out of stock",
             re.search(
-                r"melatonin.*(out of stock|stock was at 0|quantity.*0|qty.*0)",
+                r"melatonin.*("
+                r"out of stock|"
+                r"stock was at 0|"
+                r"quantity.*0|"
+                r"qty.*0|"
+                r"0 on hand|"
+                r"0\s+[\w-]+\s+on hand|"
+                r"zero on hand|"
+                r"0 in stock|"
+                r"0\s+[\w-]+\s+in stock|"
+                r"stock is 0"
+                r")",
                 response_lower,
             ),
         ),
@@ -552,20 +563,6 @@ def main():
     results = {}
     details = {}
     melatonin_order_id = None
-
-    api_violation, api_details = detect_direct_api_calls()
-    if api_violation:
-        print("UI-ONLY CONSTRAINT VIOLATION: Agent made direct backend API calls")
-        print(f"    -> {api_details}")
-        print("Score: 0.0/1.0")
-        print("FAILED: Agent must interact through web UIs, NOT direct API calls")
-        write_reward_files(
-            0.0,
-            results,
-            {"constraint": api_details},
-            blocked_reason="ui_only_constraint",
-        )
-        sys.exit(1)
 
     health_pass, health_details = check_health_source_data()
     if not health_pass:

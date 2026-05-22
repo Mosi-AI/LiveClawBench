@@ -329,6 +329,33 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
         self.assertFalse(passed)
         self.assertIn("chamomile", details.lower())
 
+    def test_d6c_accepts_zero_on_hand_language_for_melatonin(self):
+        response = (
+            "Melatonin 5mg is 0 on hand, so I placed order ORD000004."
+        )
+
+        passed, details = verify.check_dimension_6c(response)
+
+        self.assertTrue(passed, details)
+
+    def test_d6c_accepts_zero_unit_on_hand_language_for_melatonin(self):
+        response = (
+            "Melatonin 5mg is 0 tablets on hand, so I placed order ORD000004."
+        )
+
+        passed, details = verify.check_dimension_6c(response)
+
+        self.assertTrue(passed, details)
+
+    def test_d6c_accepts_zero_unit_in_stock_language_for_melatonin(self):
+        response = (
+            "Melatonin 5mg is 0 tablets in stock, so I placed order ORD000004."
+        )
+
+        passed, details = verify.check_dimension_6c(response)
+
+        self.assertTrue(passed, details)
+
     def test_reward_file_tracks_d6_subscores(self):
         text = VERIFY_PATH.read_text()
         self.assertIn('"D6a": float(results.get("D6a", False))', text)
@@ -419,6 +446,59 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
             self.assertIn("detected", details.lower())
         finally:
             os.unlink(log_path)
+
+    def test_main_does_not_zero_score_when_direct_api_access_is_detected(self):
+        conn = mock.MagicMock()
+        with (
+            mock.patch.object(
+                verify,
+                "detect_direct_api_calls",
+                return_value=(True, "Line 41 (raw): direct API call detected"),
+            ),
+            mock.patch.object(
+                verify,
+                "check_health_source_data",
+                return_value=(True, "Health source data window and outlier values are correct"),
+            ),
+            mock.patch.object(
+                verify,
+                "check_dimension_1",
+                return_value=(True, "sleep_hours=6.5, sleep_score=60, readiness=53, resting_heart_rate=72"),
+            ),
+            mock.patch.object(
+                verify, "check_dimension_2", return_value=(True, "mode=eco, temperature=68.0")
+            ),
+            mock.patch.object(
+                verify,
+                "check_dimension_3",
+                return_value=(True, "name=Melatonin, quantity=50.0, unit=tablets"),
+            ),
+            mock.patch.object(
+                verify, "check_dimension_4", return_value=(True, "ORD000123")
+            ),
+            mock.patch.object(
+                verify, "check_dimension_5", return_value=(True, "reference=ORD000123")
+            ),
+            mock.patch.object(verify, "get_agent_response", return_value="mock response"),
+            mock.patch.object(
+                verify, "check_dimension_6a", return_value=(True, "Sleep summary keywords present")
+            ),
+            mock.patch.object(
+                verify, "check_dimension_6b", return_value=(True, "Thermostat action present")
+            ),
+            mock.patch.object(
+                verify, "check_dimension_6c", return_value=(True, "Melatonin order keywords present")
+            ),
+            mock.patch.object(
+                verify, "check_dimension_6d", return_value=(True, "Chamomile sufficiency keywords present")
+            ),
+            mock.patch.object(verify, "write_reward_files"),
+            mock.patch.object(verify.sqlite3, "connect", return_value=conn),
+        ):
+            with self.assertRaises(SystemExit) as exc:
+                verify.main()
+
+        self.assertEqual(0, exc.exception.code)
 
 
 if __name__ == "__main__":

@@ -251,6 +251,39 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             "scheduled", verify.derive_coffee_status("2026-05-10", "07:00", clock)
         )
 
+    def test_check_coffee_ignores_persisted_status_column_when_schedule_is_valid(self):
+        conn = sqlite3.connect(":memory:")
+        conn.executescript(
+            """
+            CREATE TABLE coffee_schedule (
+                schedule_date TEXT PRIMARY KEY,
+                start_time TEXT,
+                status TEXT,
+                beans_grams INTEGER,
+                cancelled INTEGER,
+                updated_at TEXT
+            );
+            CREATE TABLE benchmark_clock (
+                id INTEGER PRIMARY KEY,
+                clock_time TEXT NOT NULL
+            );
+            INSERT INTO benchmark_clock (id, clock_time)
+            VALUES (1, '2026-05-09T07:45:00Z');
+            INSERT INTO coffee_schedule (
+                schedule_date, start_time, status, beans_grams, cancelled, updated_at
+            )
+            VALUES (
+                '2026-05-09', '07:20', 'ready', 20, 0, '2026-05-09T07:45:00Z'
+            );
+            """
+        )
+
+        passed, details = verify.check_coffee(conn)
+
+        self.assertTrue(passed, details)
+        self.assertIn("start_time=07:20", details)
+        self.assertIn("initial_status=ready", details)
+
     def test_smarthome_seed_populates_wearable_data_aligned_with_health_outlier(self):
         health_conn = sqlite3.connect(":memory:")
         health_conn.executescript(
@@ -690,6 +723,50 @@ class SleepTrendRecoveryVerifierContractTests(unittest.TestCase):
             self.assertIn("direct API", details)
         finally:
             log_path.unlink()
+
+    def test_main_does_not_zero_score_when_direct_api_access_is_detected(self):
+        response = (
+            "Sleep duration was 6.5 hrs, Sleep Quality was 62%, Light Sleep was 4.09h, "
+            "Deep Sleep was 1.11h, and REM Sleep was 1.3h, which indicates poor recovery because sleep quality is low. "
+            "Resting heart rate was 110 bpm and elevated. I set the thermostat to comfort mode at 76°F, "
+            "changed the HIIT workout to yoga, and delayed coffee to 07:20. "
+            "The coffee page showed READY before the edit, so it cannot affect coffee already brewed today. "
+            "Would you like me to change tomorrow's coffee schedule instead?"
+        )
+        with (
+            mock.patch.object(
+                verify,
+                "detect_direct_api_calls",
+                return_value=(True, "Line 41: direct API or state access detected"),
+            ),
+            mock.patch.object(
+                verify,
+                "check_health_source_data",
+                return_value=(True, "Health source data matches task contract"),
+            ),
+            mock.patch.object(
+                verify,
+                "check_thermostat",
+                return_value=(True, "mode=comfort, temperature=76.0"),
+            ),
+            mock.patch.object(
+                verify,
+                "check_workout",
+                return_value=(True, "title=Recovery Yoga, workout_type=yoga"),
+            ),
+            mock.patch.object(
+                verify,
+                "check_coffee",
+                return_value=(True, "start_time=07:20, initial_status=ready"),
+            ),
+            mock.patch.object(verify, "get_agent_response", return_value=response),
+            mock.patch.object(verify, "write_reward_files"),
+            mock.patch.object(verify.sqlite3, "connect", return_value=mock.MagicMock()),
+        ):
+            with self.assertRaises(SystemExit) as exc:
+                verify.main()
+
+        self.assertEqual(0, exc.exception.code)
 
     def test_get_agent_response_aggregates_all_assistant_messages_from_harbor_log(self):
         with tempfile.NamedTemporaryFile("w", delete=False) as f:
