@@ -4,20 +4,39 @@ import { round2 } from "../utils";
 import { generateWerkzeugHashSync } from "../helpers";
 
 export function seed(db: Database): void {
-  const seedPath = process.env.MOCK_FINANCE_SEED_SQL ?? "/opt/mock/data/finance_seed.sql";
+  // Always seed baseline fixtures first so that foreign-key targets
+  // (users, accounts, etc.) exist before any per-task override SQL runs.
+  // Previously the custom seed replaced defaults entirely, which caused
+  // seedV2's dashboard_config INSERT to fail with FK constraint violated
+  // because the user table was empty.
+  seedDefaults(db);
 
-  if (existsSync(seedPath)) {
+  // Apply per-task supplemental seed on top of baseline.
+  const customPath = process.env.MOCK_FINANCE_SEED_SQL;
+  if (customPath && existsSync(customPath)) {
     try {
-      const sql = readFileSync(seedPath, "utf-8");
+      const sql = readFileSync(customPath, "utf-8");
       db.exec(sql);
-      return;
-    } catch {
-      console.warn(`[finance] Seed file not readable at ${seedPath}, falling back to default seed.`);
+    } catch (err) {
+      console.warn(`[finance] Custom seed file not readable at ${customPath}:`, err);
     }
-  } else if (process.env.MOCK_FINANCE_SEED_SQL) {
-    console.warn(`[finance] Seed file not found at ${seedPath}, falling back to default seed.`);
+  } else if (customPath) {
+    console.warn(`[finance] Custom seed file not found at ${customPath}`);
   }
 
+  // Legacy fallback path when env var is unset.
+  const fallbackPath = "/opt/mock/data/finance_seed.sql";
+  if (!customPath && existsSync(fallbackPath)) {
+    try {
+      const sql = readFileSync(fallbackPath, "utf-8");
+      db.exec(sql);
+    } catch (err) {
+      console.warn(`[finance] Fallback seed file not readable at ${fallbackPath}:`, err);
+    }
+  }
+}
+
+function seedDefaults(db: Database): void {
   // Default fixtures
 
   // Users (passwords hashed with Werkzeug-compatible PBKDF2)

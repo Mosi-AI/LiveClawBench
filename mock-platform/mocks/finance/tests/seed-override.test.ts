@@ -23,7 +23,7 @@ describe("seed override", () => {
     }
   });
 
-  it("MOCK_FINANCE_SEED_SQL override works when file exists", async () => {
+  it("MOCK_FINANCE_SEED_SQL supplements baseline fixtures", async () => {
     writeFileSync(
       customSeedPath,
       `INSERT INTO user (username, password_hash, role, is_active) VALUES ('custom', 'custom_hash', 'user', 1);`
@@ -33,11 +33,19 @@ describe("seed override", () => {
     app = finance.app;
     await finance.seed!();
 
-    const row = finance.db
+    // Custom user exists
+    const customRow = finance.db
       .query<{ username: string }, []>("SELECT username FROM user WHERE username = 'custom'")
       .get();
-    expect(row).toBeDefined();
-    expect(row!.username).toBe("custom");
+    expect(customRow).toBeDefined();
+    expect(customRow!.username).toBe("custom");
+
+    // Default user also still exists (supplement, not replace)
+    const defaultRow = finance.db
+      .query<{ username: string }, []>("SELECT username FROM user WHERE username = 'admin'")
+      .get();
+    expect(defaultRow).toBeDefined();
+    expect(defaultRow!.username).toBe("admin");
   });
 
   it("unset env uses default seed", async () => {
@@ -66,7 +74,7 @@ describe("seed override", () => {
 
     console.warn = originalWarn;
 
-    expect(warnings.some((w) => w.includes("falling back to default seed"))).toBe(true);
+    expect(warnings.some((w) => w.includes("Custom seed file not found"))).toBe(true);
     const row = finance.db
       .query<{ username: string }, []>("SELECT username FROM user WHERE username = 'admin'")
       .get();
