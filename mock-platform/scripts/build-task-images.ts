@@ -117,6 +117,8 @@ const ALL_TASK_NAMES = new Set([
   "phishing-in-inbox",
   "flight-calendar-overshare",
   "fake-system-notification",
+  "release-note-regression-watch",
+  "paginated-directory-shortlist-export",
 ]);
 
 interface AssetMapping {

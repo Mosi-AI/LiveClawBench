@@ -1,0 +1,4 @@
+category: Technology
+region: North America
+min_rating: 4.0
+status: Active

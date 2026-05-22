@@ -995,6 +995,12 @@
           "dest": "/opt/mock/frontend/airline"
         }
       ]
+    },
+    "release-note-regression-watch": {
+      "binaries": []
+    },
+    "paginated-directory-shortlist-export": {
+      "binaries": []
     }
   }
 }
