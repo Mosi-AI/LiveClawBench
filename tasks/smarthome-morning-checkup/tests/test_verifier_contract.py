@@ -5,7 +5,6 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-
 TASK_DIR = Path(__file__).resolve().parent.parent
 VERIFY_PATH = TASK_DIR / "tests" / "verify.py"
 

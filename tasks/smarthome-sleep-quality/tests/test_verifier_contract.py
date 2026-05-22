@@ -330,27 +330,21 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
         self.assertIn("chamomile", details.lower())
 
     def test_d6c_accepts_zero_on_hand_language_for_melatonin(self):
-        response = (
-            "Melatonin 5mg is 0 on hand, so I placed order ORD000004."
-        )
+        response = "Melatonin 5mg is 0 on hand, so I placed order ORD000004."
 
         passed, details = verify.check_dimension_6c(response)
 
         self.assertTrue(passed, details)
 
     def test_d6c_accepts_zero_unit_on_hand_language_for_melatonin(self):
-        response = (
-            "Melatonin 5mg is 0 tablets on hand, so I placed order ORD000004."
-        )
+        response = "Melatonin 5mg is 0 tablets on hand, so I placed order ORD000004."
 
         passed, details = verify.check_dimension_6c(response)
 
         self.assertTrue(passed, details)
 
     def test_d6c_accepts_zero_unit_in_stock_language_for_melatonin(self):
-        response = (
-            "Melatonin 5mg is 0 tablets in stock, so I placed order ORD000004."
-        )
+        response = "Melatonin 5mg is 0 tablets in stock, so I placed order ORD000004."
 
         passed, details = verify.check_dimension_6c(response)
 
@@ -458,15 +452,23 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
             mock.patch.object(
                 verify,
                 "check_health_source_data",
-                return_value=(True, "Health source data window and outlier values are correct"),
+                return_value=(
+                    True,
+                    "Health source data window and outlier values are correct",
+                ),
             ),
             mock.patch.object(
                 verify,
                 "check_dimension_1",
-                return_value=(True, "sleep_hours=6.5, sleep_score=60, readiness=53, resting_heart_rate=72"),
+                return_value=(
+                    True,
+                    "sleep_hours=6.5, sleep_score=60, readiness=53, resting_heart_rate=72",
+                ),
             ),
             mock.patch.object(
-                verify, "check_dimension_2", return_value=(True, "mode=eco, temperature=68.0")
+                verify,
+                "check_dimension_2",
+                return_value=(True, "mode=eco, temperature=68.0"),
             ),
             mock.patch.object(
                 verify,
@@ -479,18 +481,28 @@ class SmartHomeSleepQualityVerifierTests(unittest.TestCase):
             mock.patch.object(
                 verify, "check_dimension_5", return_value=(True, "reference=ORD000123")
             ),
-            mock.patch.object(verify, "get_agent_response", return_value="mock response"),
             mock.patch.object(
-                verify, "check_dimension_6a", return_value=(True, "Sleep summary keywords present")
+                verify, "get_agent_response", return_value="mock response"
             ),
             mock.patch.object(
-                verify, "check_dimension_6b", return_value=(True, "Thermostat action present")
+                verify,
+                "check_dimension_6a",
+                return_value=(True, "Sleep summary keywords present"),
             ),
             mock.patch.object(
-                verify, "check_dimension_6c", return_value=(True, "Melatonin order keywords present")
+                verify,
+                "check_dimension_6b",
+                return_value=(True, "Thermostat action present"),
             ),
             mock.patch.object(
-                verify, "check_dimension_6d", return_value=(True, "Chamomile sufficiency keywords present")
+                verify,
+                "check_dimension_6c",
+                return_value=(True, "Melatonin order keywords present"),
+            ),
+            mock.patch.object(
+                verify,
+                "check_dimension_6d",
+                return_value=(True, "Chamomile sufficiency keywords present"),
             ),
             mock.patch.object(verify, "write_reward_files"),
             mock.patch.object(verify.sqlite3, "connect", return_value=conn),
