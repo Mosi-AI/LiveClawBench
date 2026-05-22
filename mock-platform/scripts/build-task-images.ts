@@ -27,10 +27,10 @@ const ENTRYPOINT_SRC = join(import.meta.dir, "..", "..", "shared", "entrypoint.s
 const BASE_IMAGE = "liveclawbench-base:latest";
 
 /**
- * Canonical port assignment per binary.
- * These match the existing Python/Flask mock service ports so that
- * task instruction.md prompts and verification scripts continue to work
- * without modification during the Plan 2 migration.
+ * Canonical port assignment per Bun mock binary.
+ * Instruction.md prompts and verification scripts must reference these ports.
+ * Some ports differ from the original Flask service ports (e.g. insurance: 5010
+ * instead of the legacy 6000 which is in Chrome's unsafe-port list).
  */
 const BINARY_PORTS: Record<string, number> = {
   airline: 5000,

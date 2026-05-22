@@ -2,7 +2,7 @@
 set -euo pipefail
 
 CALENDAR_API="http://localhost:5006"
-SOCIAL_API="http://localhost:5004"
+SOCIAL_API="http://localhost:5008"
 EMAIL="peter.griffin@work.mosi.inc"
 PASSWORD="password123"
 
