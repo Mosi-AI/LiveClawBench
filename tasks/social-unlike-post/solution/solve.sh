@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="http://localhost:5004"
+BASE_URL="http://localhost:5008"
 USERNAME="alice"
 PASSWORD="demo123"
 

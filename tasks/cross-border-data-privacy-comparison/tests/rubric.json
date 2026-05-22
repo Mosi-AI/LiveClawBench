@@ -1,0 +1,94 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of three target regulatory regimes",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of cross-border transfer mechanisms",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of enforcement institutions and patterns",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of specific enforcement actions and fines",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Coverage of data localization requirements",
+        "weight": 0.275
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Depth of analytical reasoning on tensions",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Critical evaluation of enforcement patterns",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Interpretive nuance on ambiguity",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Proposes a novel analytical framework or taxonomy",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Provides quantitative estimates with confidence ranges",
+        "weight": 0.275
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
+      },
+      {
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Addresses all required legal regimes",
+        "weight": 0.2
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and precision of language",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
+      }
+    ]
+  }
+}

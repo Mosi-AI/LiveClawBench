@@ -24,7 +24,7 @@ import sys
 import urllib.error
 import urllib.request
 
-SOCIAL_URL = "http://127.0.0.1:5004"
+SOCIAL_URL = "http://127.0.0.1:5008"
 EMAIL_DB_PATH = "/var/lib/mock-data/email/email.db"
 
 SOCIAL_USERNAME = "mosi_brand"

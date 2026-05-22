@@ -2,7 +2,7 @@
   {
     "name": "liveclawbench",
     "version": "0.1.0",
-    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 100 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
+    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 118 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
     "tasks": [
       {
         "name": "skill-creation",
@@ -395,6 +395,78 @@
       {
         "name": "workspace-brief-tracking",
         "path": "tasks/workspace-brief-tracking"
+      },
+      {
+        "name": "ai-copyright-international-jurisprudence",
+        "path": "tasks/ai-copyright-international-jurisprudence"
+      },
+      {
+        "name": "autonomous-weapons-ethics",
+        "path": "tasks/autonomous-weapons-ethics"
+      },
+      {
+        "name": "crispr-off-target-mitigation",
+        "path": "tasks/crispr-off-target-mitigation"
+      },
+      {
+        "name": "cross-border-data-privacy-comparison",
+        "path": "tasks/cross-border-data-privacy-comparison"
+      },
+      {
+        "name": "defi-systemic-risk-contagion",
+        "path": "tasks/defi-systemic-risk-contagion"
+      },
+      {
+        "name": "digital-religion-ai-vr",
+        "path": "tasks/digital-religion-ai-vr"
+      },
+      {
+        "name": "formal-verification-vs-fuzzing",
+        "path": "tasks/formal-verification-vs-fuzzing"
+      },
+      {
+        "name": "fusion-energy-commercial-viability",
+        "path": "tasks/fusion-energy-commercial-viability"
+      },
+      {
+        "name": "long-covid-neurological-hypotheses",
+        "path": "tasks/long-covid-neurological-hypotheses"
+      },
+      {
+        "name": "mrna-cancer-vaccines-landscape",
+        "path": "tasks/mrna-cancer-vaccines-landscape"
+      },
+      {
+        "name": "ansible-iptables-ipset",
+        "path": "tasks/ansible-iptables-ipset"
+      },
+      {
+        "name": "citation-network-influence",
+        "path": "tasks/citation-network-influence"
+      },
+      {
+        "name": "element-web-unverified-device",
+        "path": "tasks/element-web-unverified-device"
+      },
+      {
+        "name": "ga-classical-optimization",
+        "path": "tasks/ga-classical-optimization"
+      },
+      {
+        "name": "ga-gol-persistent-structures",
+        "path": "tasks/ga-gol-persistent-structures"
+      },
+      {
+        "name": "openlibrary-3rd-metadata-source",
+        "path": "tasks/openlibrary-3rd-metadata-source"
+      },
+      {
+        "name": "teleport-gcp-cert-identity",
+        "path": "tasks/teleport-gcp-cert-identity"
+      },
+      {
+        "name": "vuls-kernel-detection",
+        "path": "tasks/vuls-kernel-detection"
       },
       {
         "name": "smarthome-sleep-quality",

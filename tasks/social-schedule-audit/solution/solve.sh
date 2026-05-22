@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="http://127.0.0.1:5004"
+BASE_URL="http://127.0.0.1:5008"
 
 # Step 1: Login as mosi_brand
 echo "Step 1: Logging in as mosi_brand..."

@@ -4,20 +4,37 @@ import { round2 } from "../utils";
 import { generateWerkzeugHashSync } from "../helpers";
 
 export function seed(db: Database): void {
-  const seedPath = process.env.MOCK_FINANCE_SEED_SQL ?? "/opt/mock/data/finance_seed.sql";
+  // Always seed baseline fixtures first so that foreign-key targets
+  // (users, accounts, etc.) exist before any per-task override SQL runs.
+  // Previously the custom seed replaced defaults entirely, which caused
+  // seedV2's dashboard_config INSERT to fail with FK constraint violated
+  // because the user table was empty.
+  seedDefaults(db);
 
-  if (existsSync(seedPath)) {
+  // Apply per-task supplemental seed on top of baseline.
+  // Temporarily disable FK enforcement so that task seed.sql files can
+  // DELETE+re-INSERT parent tables (e.g. transaction_record) even when
+  // seedDefaults already created child rows (e.g. account_transaction)
+  // that reference them.  FK is re-enabled immediately after.
+  const customPath = process.env.MOCK_FINANCE_SEED_SQL;
+  if (customPath && existsSync(customPath)) {
     try {
-      const sql = readFileSync(seedPath, "utf-8");
-      db.exec(sql);
-      return;
-    } catch {
-      console.warn(`[finance] Seed file not readable at ${seedPath}, falling back to default seed.`);
+      const sql = readFileSync(customPath, "utf-8");
+      db.run("PRAGMA foreign_keys = OFF");
+      try {
+        db.exec(sql);
+      } finally {
+        db.run("PRAGMA foreign_keys = ON");
+      }
+    } catch (err) {
+      console.warn(`[finance] Custom seed file not readable at ${customPath}:`, err);
     }
-  } else if (process.env.MOCK_FINANCE_SEED_SQL) {
-    console.warn(`[finance] Seed file not found at ${seedPath}, falling back to default seed.`);
+  } else if (customPath) {
+    console.warn(`[finance] Custom seed file not found at ${customPath}`);
   }
+}
 
+function seedDefaults(db: Database): void {
   // Default fixtures
 
   // Users (passwords hashed with Werkzeug-compatible PBKDF2)

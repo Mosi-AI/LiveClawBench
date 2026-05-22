@@ -1,0 +1,33 @@
+version = "1.0"
+
+[metadata]
+difficulty = "hard"
+category = "open-world"
+tags = ["coding_software_dev"]
+
+domain = "Coding & Software Dev"
+domains_multi = ["Coding & Software Dev"]
+
+# Triple-Axis Complexity Factors (0 = absent, 1 = present)
+factor_a1 = 0   # A1: Cross-Service Dependency
+factor_a2 = 1   # A2: Contaminated Initial State (bug exists at base_commit; 3-of-4 transition paths fail)
+factor_b1 = 1   # B1: Implicit Goal Resolution (issue is a user-symptom; cross-cutting "every transition" invariant is implicit)
+factor_b2 = 0   # B2: Knowledge System Maintenance
+
+case_id = 111
+
+[verifier]
+timeout_sec = 1800.0
+
+[agent]
+# Long-horizon SWE-Pro hard: 28 fail_to_pass tests across crypto state machine + dispatcher + UI badge.
+timeout_sec = 7200.0
+
+[environment]
+# element-web npm install historically takes 20-30 min; allow ample headroom.
+build_timeout_sec = 3600.0
+cpus = 4
+memory_mb = 16384
+storage_mb = 32768
+allow_internet = true
+# Pre-built image — see environment/Dockerfile header for the build command.

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 EMAIL_URL="http://localhost:5001"
-SOCIAL_URL="http://localhost:5004"
+SOCIAL_URL="http://localhost:5008"
 
 # Step 1: Login to email to read the keyword instructions
 echo "Logging into email..."

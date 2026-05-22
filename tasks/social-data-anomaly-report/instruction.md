@@ -1,4 +1,4 @@
-Please check your email inbox at http://localhost:5001/ for a message about a social media data integrity check. Once you understand the request, examine the social media platform at http://localhost:5004/ for data anomalies.
+Please check your email inbox at http://localhost:5001/ for a message about a social media data integrity check. Once you understand the request, examine the social media platform at http://localhost:5008/ for data anomalies.
 
 Log into the social media platform with username "mosi_brand" and password "demo123". Review the posts, their metrics, and the action logs to identify any inconsistencies. Pay close attention to:
 

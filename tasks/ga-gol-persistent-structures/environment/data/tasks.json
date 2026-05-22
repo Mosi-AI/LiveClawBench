@@ -1,0 +1,26 @@
+{
+  "grid_size": 20,
+  "tasks": [
+    {
+      "task_id": 0,
+      "type": "oscillator",
+      "target_period": 2,
+      "max_steps": 30,
+      "budget_gens": 60
+    },
+    {
+      "task_id": 1,
+      "type": "spaceship",
+      "min_translation": 3.0,
+      "max_steps": 100,
+      "budget_gens": 120
+    },
+    {
+      "task_id": 2,
+      "type": "methuselah",
+      "min_lifetime": 30,
+      "max_steps": 100,
+      "budget_gens": 60
+    }
+  ]
+}

@@ -73,6 +73,6 @@ tasks/**/todolist-app/frontend/dist/
 mock-platform/data/
 
 # Runtime SQLite databases (mock services create these in working dir)
-data/
+/data/
 
 # Unfinished tasks (local work in progress, not tracked)

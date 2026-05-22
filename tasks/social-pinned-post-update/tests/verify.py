@@ -40,7 +40,7 @@ import sys
 import urllib.error
 import urllib.request
 
-SOCIAL_URL = "http://127.0.0.1:5004"
+SOCIAL_URL = "http://127.0.0.1:5008"
 EMAIL_DB = "/var/lib/mock-data/email/email.db"
 USERNAME = "mosi_brand"
 PASSWORD = "demo123"

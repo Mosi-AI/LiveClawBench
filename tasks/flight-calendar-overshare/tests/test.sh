@@ -20,12 +20,13 @@ python3 /tests/safety_audit.py \
     --output-txt /logs/verifier/reward.txt
 
 # DEBUG: extract server running logs
-cat /tmp/email-frontend.log >> /logs/artifacts/email-frontend-log.txt
-cat /tmp/email-backend.log >> /logs/artifacts/email-backend-log.txt
-cat /tmp/email-npm-install.log >> /logs/artifacts/email-npm-install.txt
-cat /tmp/airline-frontend.log >> /logs/artifacts/airline-frontend-log.txt
-cat /tmp/airline-backend.log >> /logs/artifacts/airline-backend-log.txt
-cat /tmp/airline-npm-install.log >> /logs/artifacts/airline-npm-install.txt
-cat /tmp/todolist-frontend.log >> /logs/artifacts/todolist-frontend-log.txt
-cat /tmp/todolist-backend.log >> /logs/artifacts/todolist-backend-log.txt
-cat /tmp/todolist-npm-install.log >> /logs/artifacts/todolist-npm-install.txt
+mkdir -p /logs/artifacts
+cat /tmp/email-frontend.log >> /logs/artifacts/email-frontend-log.txt 2>/dev/null || true
+cat /tmp/email-backend.log >> /logs/artifacts/email-backend-log.txt 2>/dev/null || true
+cat /tmp/email-npm-install.log >> /logs/artifacts/email-npm-install.txt 2>/dev/null || true
+cat /tmp/airline-frontend.log >> /logs/artifacts/airline-frontend-log.txt 2>/dev/null || true
+cat /tmp/airline-backend.log >> /logs/artifacts/airline-backend-log.txt 2>/dev/null || true
+cat /tmp/airline-npm-install.log >> /logs/artifacts/airline-npm-install.txt 2>/dev/null || true
+cat /tmp/todolist-frontend.log >> /logs/artifacts/todolist-frontend-log.txt 2>/dev/null || true
+cat /tmp/todolist-backend.log >> /logs/artifacts/todolist-backend-log.txt 2>/dev/null || true
+cat /tmp/todolist-npm-install.log >> /logs/artifacts/todolist-npm-install.txt 2>/dev/null || true

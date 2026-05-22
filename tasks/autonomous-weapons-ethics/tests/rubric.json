@@ -1,0 +1,94 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of major ethical frameworks",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of legal and accountability frameworks",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of national and international positions",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of non-Western ethical traditions",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Coverage of specific treaty text analysis",
+        "weight": 0.275
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Depth of comparative ethical analysis",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Critical evaluation of major arguments",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Synthesis of tensions and unresolved questions",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Proposes a novel analytical framework or taxonomy",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Provides conditions under which conclusions would change",
+        "weight": 0.275
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
+      },
+      {
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Covers both required subject domains",
+        "weight": 0.2
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and precision of language",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
+      }
+    ]
+  }
+}

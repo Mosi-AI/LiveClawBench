@@ -1,0 +1,94 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of authorship and ownership rules",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of infringement issues",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of fair use and exceptions",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of specific statutory articles and clauses",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Coverage of collective licensing positions",
+        "weight": 0.275
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Depth of legal reasoning",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Nuanced treatment of ambiguity",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Integration of normative and policy tensions",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Proposes specific doctrinal tests or frameworks",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Evaluates copyright interactions with other IP regimes",
+        "weight": 0.275
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
+      },
+      {
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Addresses all three named legal issue areas",
+        "weight": 0.2
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and precision of language",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
+      }
+    ]
+  }
+}

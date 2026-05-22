@@ -12,7 +12,7 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 
 | Repository | Role | URL |
 |---|---|---|
-| **LiveClawBench** (this repo) | Task corpus — 69 harbor-format benchmark tasks | — |
+| **LiveClawBench** (this repo) | Task corpus — 116 harbor-format benchmark tasks | — |
 | **claw-harbor** | Evaluation framework (fork of harbor with OpenClaw support) | https://github.com/Mosi-AI/claw-harbor |
 | **OpenClaw** | Agent platform running inside task containers | https://github.com/openclaw/openclaw |
 
@@ -137,9 +137,12 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
 
-> **LLM-judge tasks** (7 tasks: `conflict-repair-acb`, `incremental-update-ctp`,
-> `live-web-research-sqlite-fts5`, `mixed-tool-memory`, `noise-filtering`,
-> `pre-meeting-research-brief`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
+> **LLM-judge tasks** (17 tasks: `ai-copyright-international-jurisprudence`, `autonomous-weapons-ethics`,
+> `conflict-repair-acb`, `crispr-off-target-mitigation`, `cross-border-data-privacy-comparison`,
+> `defi-systemic-risk-contagion`, `digital-religion-ai-vr`, `formal-verification-vs-fuzzing`,
+> `fusion-energy-commercial-viability`, `incremental-update-ctp`, `live-web-research-sqlite-fts5`,
+> `long-covid-neurological-hypotheses`, `mixed-tool-memory`, `mrna-cancer-vaccines-landscape`,
+> `noise-filtering`, `pre-meeting-research-brief`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
 > for judge credentials because `llm_judge.py` runs in the verifier phase, outside the OpenClaw
 > agent process. **Missing `--ee` will cause the verifier to fail with
 > `RuntimeError: JUDGE_BASE_URL is not set`.**
@@ -185,10 +188,10 @@ bun run build:images   # Build per-task Docker images (requires base image first
 
 - `config/task-binary-map.json` — Maps each task to its required mock binaries (stub vs implemented). Optional fields:
   - `assets` — copy arbitrary files into the per-task image
-  - `frontends` — pre-build SPA assets at image-build time
+  - `frontends` — pre-build SPA assets at image-build time (for non-email mocks only; email frontend uses auto-mount, see below)
   - `extraSeeds` — copy task-specific `.sql` seed files to `/opt/mock/extra-seed/<service>.sql`; the mock applies them via `applySupplementalSeed(db, service)` after baseline `seedDatabase()`. See `docs/refactor/mock-platform-migration-plan.md`. Use this for non-adversarial data customization; for Safety/adversarial content prefer the `TASK_NAME` switch in the mock's `seed.ts` so the content is compiled into the binary (not readable on disk by the agent).
-- `scripts/build-all.ts` — Builds all mock binaries
-- `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set
+- `scripts/build-all.ts` — Builds all mock binaries **and frontends** (mocks with a `frontend/` dir are compiled via `buildMockFrontend()` and staged to `dist/frontend-{name}/`)
+- `scripts/build-task-images.ts` — Creates per-task Docker images with correct binary set. Email frontend is **auto-mounted** to `/opt/mock/frontend/email` for any task whose `binaries` list includes `"email"` — no `frontends` entry needed in `task-binary-map.json`. Other frontends (airline, todolist) still require explicit `frontends` entries.
 
 ### Key Files
 
@@ -199,6 +202,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `mocks/shop/src/search-algorithm.ts` | Extracted search logic (single source of truth) |
 | `mocks/shop/src/search-algorithm.test.ts` | Layer 1 unit tests (bun:test snapshot tests) |
 | `mocks/doc-search/src/index.ts` | Doc-search with FTS5 + JSONL browser trace logging |
+| `mocks/email/frontend/` | Email SPA frontend (React+Vite); single source of truth for all email tasks, auto-mounted by `build-task-images.ts` |
 
 ## Task List
 
@@ -273,6 +277,17 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `finance-invoice-process` | Finance & Data Analytics | easy | verify.py |
 | `finance-tax-prepare` | Finance & Data Analytics | hard | verify.py |
 | `finance-analysis-generate` | Finance & Data Analytics | hard | verify.py |
+| `ai-copyright-international-jurisprudence` | Deep Research & Report | medium | **llm_judge** |
+| `autonomous-weapons-ethics` | Deep Research & Report | medium | **llm_judge** |
+| `crispr-off-target-mitigation` | Deep Research & Report | medium | **llm_judge** |
+| `cross-border-data-privacy-comparison` | Deep Research & Report | medium | **llm_judge** |
+| `defi-systemic-risk-contagion` | Deep Research & Report | medium | **llm_judge** |
+| `digital-religion-ai-vr` | Deep Research & Report | medium | **llm_judge** |
+| `formal-verification-vs-fuzzing` | Deep Research & Report | medium | **llm_judge** |
+| `fusion-energy-commercial-viability` | Deep Research & Report | medium | **llm_judge** |
+| `long-covid-neurological-hypotheses` | Deep Research & Report | medium | **llm_judge** |
+| `mrna-cancer-vaccines-landscape` | Deep Research & Report | medium | **llm_judge** |
+
 ## Docker Image Architecture
 
 LiveClawBench uses a three-layer Docker image architecture:
@@ -443,6 +458,16 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 | `browser-portal-injection` | Documents & Knowledge | easy | **llm_judge** |
 | `ambiguous-cleanup-task` | DevOps & Env Repair | hard | verify.py |
 | `research-with-adversarial-sources` | Deep Research & Report | hard | **llm_judge** |
+| `workspace-task-record-batch` | Calendar & Task Mgmt | medium | verify.py |
+| `workspace-brief-tracking` | Documents & Knowledge | medium | verify.py |
+| `ansible-iptables-ipset` | Coding & Software Dev | hard | verify.py |
+| `citation-network-influence` | Coding & Software Dev | hard | verify.py |
+| `element-web-unverified-device` | Coding & Software Dev | hard | verify.py |
+| `ga-classical-optimization` | Coding & Software Dev | hard | verify.py |
+| `ga-gol-persistent-structures` | Coding & Software Dev | hard | verify.py |
+| `openlibrary-3rd-metadata-source` | Coding & Software Dev | hard | verify.py |
+| `teleport-gcp-cert-identity` | Coding & Software Dev | hard | verify.py |
+| `vuls-kernel-detection` | Coding & Software Dev | hard | verify.py |
 
 > **ty and `tasks/*/tests/`**: `verify.py` files use `sys.path.insert(0, "/workspace/environment/...")` which
 > only resolves inside Docker containers, so ty cannot check them in CI without Docker. Tracked as a TODO in
@@ -450,8 +475,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-96 implemented tasks: A1=45, A2=34, B1=37, B2=22.
-Difficulty: Easy=35, Medium=35, Hard=26.
+116 implemented tasks: A1=47, A2=37, B1=42, B2=26.
+Difficulty: Easy=35, Medium=47, Hard=34.
 
 ## Known Issues
 

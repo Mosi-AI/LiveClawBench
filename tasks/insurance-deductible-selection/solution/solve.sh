@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API_BASE="http://localhost:6000"
+API_BASE="http://localhost:5010"
 EMAIL="peter.griffin@work.mosi.inc"
 PASSWORD="password123"
 

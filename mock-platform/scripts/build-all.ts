@@ -172,6 +172,28 @@ function collectSrcFiles(dir: string, visited = new Set<string>()): string[] {
   return results;
 }
 
+/**
+ * Collect all files in a directory tree, skipping node_modules/ and dist/.
+ * Used for frontend source hashing where multiple file types exist (.jsx, .js, .css).
+ */
+function collectAllFiles(dir: string, visited = new Set<string>()): string[] {
+  let realDir: string;
+  try { realDir = realpathSync(dir); } catch { realDir = dir; }
+  if (visited.has(realDir)) return [];
+  visited.add(realDir);
+  const results: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === "node_modules" || entry.name === "dist") continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...collectAllFiles(full, visited));
+    } else {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
 function computeBuildManifest(name: string): Record<string, string> {
   const srcDir = join(MOCKS_DIR, name, "src");
   const files = collectSrcFiles(srcDir).sort();
@@ -188,6 +210,115 @@ function computeBuildManifest(name: string): Record<string, string> {
 
 function writeBuildManifest(manifest: Record<string, string>, destPath: string): void {
   writeFileSync(destPath, JSON.stringify(manifest, null, 2), "utf-8");
+}
+
+/**
+ * Compute a content-hash manifest for a mock's frontend source files.
+ * Covers: src/ (all files recursively), index.html, vite.config.*, package.json.
+ * Excludes: node_modules/, dist/, package-lock.json.
+ * Enables build-task-images.ts to detect stale frontend assets with the
+ * same SHA-256 hash comparison used for binary staleness.
+ */
+function computeFrontendManifest(name: string): Record<string, string> {
+  const frontendDir = join(MOCKS_DIR, name, "frontend");
+  const files: string[] = [];
+  const srcDir = join(frontendDir, "src");
+  if (existsSync(srcDir)) {
+    files.push(...collectAllFiles(srcDir));
+  }
+  for (const configFile of ["index.html", "vite.config.js", "vite.config.ts", "package.json"]) {
+    const configPath = join(frontendDir, configFile);
+    if (existsSync(configPath)) files.push(configPath);
+  }
+  files.sort();
+  const manifest: Record<string, string> = {};
+  for (const f of files) {
+    const rel = relative(frontendDir, f).replace(/\\/g, "/");
+    const content = readFileSync(f, "utf-8").replace(/\r\n/g, "\n");
+    manifest[rel] = createHash("sha256").update(content).digest("hex");
+  }
+  return manifest;
+}
+
+async function buildMockFrontend(name: string): Promise<BuildResult> {
+  const frontendDir = join(MOCKS_DIR, name, "frontend");
+  if (!existsSync(frontendDir)) {
+    // No frontend to build — not a failure, just a no-op
+    return { name: `${name}-frontend`, success: true };
+  }
+
+  const packageJsonPath = join(frontendDir, "package.json");
+  if (!existsSync(packageJsonPath)) {
+    return { name: `${name}-frontend`, success: false, error: "package.json not found in frontend dir" };
+  }
+
+  // Check node/npm availability
+  const nodeCheck = Bun.spawnSync(["node", "--version"], { stdout: "pipe" });
+  if (nodeCheck.exitCode !== 0) {
+    return { name: `${name}-frontend`, success: false, error: "node is required for frontend builds but not found" };
+  }
+  const nodeVersion = new TextDecoder().decode(nodeCheck.stdout).trim();
+  const majorVersion = parseInt(nodeVersion.replace(/^v/, "").split(".")[0], 10);
+  if (majorVersion < 18) {
+    return { name: `${name}-frontend`, success: false, error: `Node.js >= 18 required (found ${nodeVersion})` };
+  }
+
+  const npmCheck = Bun.spawnSync(["npm", "--version"], { stdout: "pipe" });
+  if (npmCheck.exitCode !== 0) {
+    return { name: `${name}-frontend`, success: false, error: "npm is required for frontend builds but not found" };
+  }
+
+  try {
+    // npm install
+    const installProc = Bun.spawn(["npm", "install"], {
+      cwd: frontendDir,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const installExit = await installProc.exited;
+    if (installExit !== 0) {
+      const stderr = await new Response(installProc.stderr).text();
+      return { name: `${name}-frontend`, success: false, error: `npm install failed: ${stderr.trim()}` };
+    }
+
+    // npm run build
+    const buildProc = Bun.spawn(["npm", "run", "build"], {
+      cwd: frontendDir,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const buildExit = await buildProc.exited;
+    if (buildExit !== 0) {
+      const stderr = await new Response(buildProc.stderr).text();
+      return { name: `${name}-frontend`, success: false, error: `npm run build failed: ${stderr.trim()}` };
+    }
+
+    const buildOutputDir = join(frontendDir, "dist");
+    if (!existsSync(buildOutputDir)) {
+      return { name: `${name}-frontend`, success: false, error: `Build output not found: ${buildOutputDir}` };
+    }
+
+    // Stage built frontend into DIST_DIR so build-task-images.ts can COPY it
+    const stagedDir = join(DIST_DIR, `frontend-${name}`);
+    // Clean any previous staged frontend
+    if (existsSync(stagedDir)) {
+      const rmProc = Bun.spawnSync(["rm", "-rf", stagedDir]);
+      if (rmProc.exitCode !== 0) {
+        return { name: `${name}-frontend`, success: false, error: `Failed to clean staged dir: ${rmProc.stderr}` };
+      }
+    }
+    const cpProc = Bun.spawnSync(["cp", "-r", `${buildOutputDir}/.`, stagedDir]);
+    if (cpProc.exitCode !== 0) {
+      return { name: `${name}-frontend`, success: false, error: `Failed to stage frontend: ${cpProc.stderr}` };
+    }
+
+    // Write frontend manifest for staleness detection by build-task-images.ts
+    writeBuildManifest(computeFrontendManifest(name), join(DIST_DIR, `manifest-frontend-${name}.json`));
+
+    return { name: `${name}-frontend`, success: true };
+  } catch (err) {
+    return { name: `${name}-frontend`, success: false, error: String(err) };
+  }
 }
 
 async function main() {
@@ -382,18 +513,6 @@ async function main() {
     console.log("PASS: All binaries contain own sentinel, no cross-contamination.");
   }
 
-  // Summary report
-  console.log(`\n=== Build Summary ===`);
-  console.log(`Passed: ${passed.length}/${results.length}`);
-  console.log(`Failed: ${failed.length}/${results.length}`);
-
-  if (failed.length > 0) {
-    console.log("\nFailed mocks:");
-    for (const f of failed) {
-      console.log(`  - ${f.name}`);
-    }
-  }
-
   // Exit with error if all mocks failed
   if (passed.length === 0) {
     console.error("\nAll mocks failed to compile.");
@@ -407,8 +526,57 @@ async function main() {
     process.exit(1);
   }
 
-  // Build compatibility gate: exit 0 even if some mocks failed
-  // (individual failures are reported but don't block the pipeline)
+  // Build mock frontends (e.g. email SPA) for mocks that bundle their own UI
+  console.log("\n=== Frontend Build ===");
+  const frontendResults: BuildResult[] = [];
+  for (const name of mocks) {
+    // Only build frontends for mocks that compiled successfully
+    const mockResult = results.find((r) => r.name === name);
+    if (!mockResult?.success) continue;
+
+    process.stdout.write(`Building frontend for ${name}... `);
+    const feResult = await buildMockFrontend(name);
+    frontendResults.push(feResult);
+    if (feResult.success) {
+      console.log("OK");
+    } else {
+      console.log(`FAILED`);
+      console.error(`  Error: ${feResult.error}`);
+    }
+  }
+
+  // Summary report
+  console.log(`\n=== Build Summary ===`);
+  console.log(`Passed: ${passed.length}/${results.length}`);
+  console.log(`Failed: ${failed.length}/${results.length}`);
+
+  if (failed.length > 0) {
+    console.log("\nFailed mocks:");
+    for (const f of failed) {
+      console.log(`  - ${f.name}`);
+    }
+  }
+
+  const fePassed = frontendResults.filter((r) => r.success);
+  const feFailed = frontendResults.filter((r) => !r.success);
+  if (frontendResults.length > 0) {
+    console.log(`\nFrontends: ${fePassed.length}/${frontendResults.length}`);
+    if (feFailed.length > 0) {
+      console.log("Failed frontends:");
+      for (const f of feFailed) {
+        console.log(`  - ${f.name}: ${f.error}`);
+      }
+    }
+  }
+
+  // Frontend build failures are fatal — downstream image builds depend on
+  // the frontend assets existing in dist/. A failed frontend build would
+  // produce a confusing error only at image-build time.
+  if (feFailed.length > 0) {
+    console.error("\nFrontend build failures are fatal. Fix them before running build:images.");
+    process.exit(1);
+  }
+
   console.log("\nBuild pipeline complete.");
 }
 

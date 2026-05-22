@@ -8,7 +8,7 @@ cd /workspace
 # 3. Delete violating comments (switch accounts as needed)
 # 4. Reply to legitimate question from brand account
 
-SOCIAL="http://127.0.0.1:5004"
+SOCIAL="http://127.0.0.1:5008"
 COOKIE_JAR="/tmp/social_cookies.txt"
 
 social_login() {

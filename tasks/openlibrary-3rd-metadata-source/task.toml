@@ -1,0 +1,31 @@
+version = "1.0"
+
+[metadata]
+difficulty = "hard"
+category = "open-world"
+tags = ["coding_software_dev"]
+
+domain = "Coding & Software Dev"
+domains_multi = ["Coding & Software Dev"]
+
+# Triple-Axis Complexity Factors (0 = absent, 1 = present)
+factor_a1 = 1   # A1: Cross-Service Dependency (3rd metadata source must coordinate with Amazon + ISBNdb existing sources)
+factor_a2 = 0   # A2: Contaminated Initial State
+factor_b1 = 0   # B1: Implicit Goal Resolution
+factor_b2 = 1   # B2: Knowledge System Maintenance (resolver abstraction must accept N sources without per-source branching)
+
+case_id = 114
+
+[verifier]
+timeout_sec = 1500.0
+
+[agent]
+timeout_sec = 7200.0
+
+[environment]
+# openlibrary depends on Solr / PostgreSQL — sweap-images snapshot or compose stack needed.
+build_timeout_sec = 3600.0
+cpus = 4
+memory_mb = 12288
+storage_mb = 32768
+allow_internet = true

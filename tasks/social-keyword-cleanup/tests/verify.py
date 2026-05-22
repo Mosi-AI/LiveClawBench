@@ -33,7 +33,7 @@ import sys
 import urllib.error
 import urllib.request
 
-SOCIAL_URL = "http://127.0.0.1:5004"
+SOCIAL_URL = "http://127.0.0.1:5008"
 
 SOCIAL_USERNAME = "mosi_brand"
 SOCIAL_PASSWORD = "demo123"

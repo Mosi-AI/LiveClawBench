@@ -1,6 +1,6 @@
 Please help me audit and fix scheduling anomalies on the Mosi Social platform.
 
-Open http://localhost:5004/ in your browser, log in as mosi_brand (password: demo123), and review all posts managed by this account. There are several data inconsistencies you need to find and correct:
+Open http://localhost:5008/ in your browser, log in as mosi_brand (password: demo123), and review all posts managed by this account. There are several data inconsistencies you need to find and correct:
 
 1. **Published posts missing timestamps**: Some posts are marked as "published" but have no published_at date. These need to be fixed — either set the status back to "draft", or re-publish them so they get a proper published_at timestamp.
 

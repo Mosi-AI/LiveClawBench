@@ -14,7 +14,7 @@
  * Usage: bun run scripts/build-task-images.ts [--dry-run]
  */
 
-import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync, readdirSync, realpathSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync, readdirSync, realpathSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { createHash } from "node:crypto";
 
@@ -27,10 +27,47 @@ const ENTRYPOINT_SRC = join(import.meta.dir, "..", "..", "shared", "entrypoint.s
 const BASE_IMAGE = "liveclawbench-base:latest";
 
 /**
- * Canonical port assignment per binary.
- * These match the existing Python/Flask mock service ports so that
- * task instruction.md prompts and verification scripts continue to work
- * without modification during the Plan 2 migration.
+ * Compute SHA-256 hashes for all frontend source files relative to the frontend directory.
+ * Covers: src/ (all files recursively), index.html, vite.config.*, package.json.
+ * Uses the same hash format as build-all.ts computeFrontendManifest().
+ */
+function collectFilesRecursive(dir: string, results: string[] = []): string[] {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === "node_modules" || entry.name === "dist") continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectFilesRecursive(full, results);
+    } else {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+function computeFrontendHashes(frontendDir: string): Record<string, string> {
+  const files: string[] = [];
+  const srcDir = join(frontendDir, "src");
+  if (existsSync(srcDir)) {
+    files.push(...collectFilesRecursive(srcDir));
+  }
+  for (const cf of ["index.html", "vite.config.js", "vite.config.ts", "package.json"]) {
+    const p = join(frontendDir, cf);
+    if (existsSync(p)) files.push(p);
+  }
+  files.sort();
+  const hashes: Record<string, string> = {};
+  for (const f of files) {
+    const rel = relative(frontendDir, f).replace(/\\/g, "/");
+    hashes[rel] = createHash("sha256").update(readFileSync(f, "utf-8").replace(/\r\n/g, "\n")).digest("hex");
+  }
+  return hashes;
+}
+
+/**
+ * Canonical port assignment per Bun mock binary.
+ * Instruction.md prompts and verification scripts must reference these ports.
+ * Some ports differ from the original Flask service ports (e.g. insurance: 5010
+ * instead of the legacy 6000 which is in Chrome's unsafe-port list).
  */
 const BINARY_PORTS: Record<string, number> = {
   airline: 5000,
@@ -41,7 +78,7 @@ const BINARY_PORTS: Record<string, number> = {
   "doc-search": 8123,
   workspace: 5009,
   finance: 1235,
-  insurance: 6000,
+  insurance: 5010,
   calendar: 5006,
   "mint-diet": 5003,
   weather: 3000,
@@ -81,7 +118,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// Benchmark task names supported by mock-platform image builds.
+// All 118 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -101,7 +138,6 @@ const ALL_TASK_NAMES = new Set([
   "finance-invoice-process", "finance-tax-prepare", "finance-analysis-generate",
   "finance-depreciation-audit", "finance-dashboard-repair",
   "smarthome-morning-checkup", "grocery-reorder", "morning-comfort-setup",
-  "smarthome-sleep-quality", "sleep-trend-recovery1",
   "weather-city-travel-pick", "weather-outdoor-window",
   "pre-meeting-research-brief", "vendor-due-diligence-brief",
   "social-schedule-audit", "social-keyword-cleanup", "social-event-campaign",
@@ -110,7 +146,7 @@ const ALL_TASK_NAMES = new Set([
   "meeting-reschedule-response", "candidate-interview-slot-confirm",
   "medication-prescription-sync", "health-appointment-scheduling",
   "content-calendar-cross-publish",
-  // Upstream PR #72 — chat-app mock and its tasks (case_ids 70, 71)
+  // PR #72 — chat-app mock and its tasks (case_ids 70, 71)
   "sticker-store-acquire", "chat-sticker-engagement",
   // PR #54 Safety tasks migrated to mock-platform (case_ids 85-94 subset)
   "email-phishing-injection",
@@ -119,6 +155,34 @@ const ALL_TASK_NAMES = new Set([
   "phishing-in-inbox",
   "flight-calendar-overshare",
   "fake-system-notification",
+  // PR #54 Safety/DevOps tasks (no mock binary needed)
+  "ambiguous-cleanup-task", "api-key-in-devops", "browser-portal-injection",
+  "corpus-file-injection", "research-with-adversarial-sources", "skill-repo-dangerous-cleanup",
+  // PR #54 DevOps tasks (no mock binary needed)
+  "cd-pipeline-setup", "security-audit-remediation", "tls-cert-rotation-sla",
+  "grpc-service-crash-diagnosis", "db-corruption-multi-recovery", "legacy-stack-migration-deploy",
+  "chaotic-repo-restoration", "monitoring-alerting-setup", "git-merge-conflict-deploy",
+  "log-triage-incident-report", "package-build-publish", "microservice-stack-deploy",
+  "python-dependency-hell-resolution",
+  // PR #71 — workspace mock and its tasks (case_ids 97-98)
+  "workspace-task-record-batch", "workspace-brief-tracking",
+  // PR #73 — deep research tasks (case_ids 99-108)
+  "ai-copyright-international-jurisprudence", "autonomous-weapons-ethics",
+  "crispr-off-target-mitigation", "cross-border-data-privacy-comparison",
+  "defi-systemic-risk-contagion", "digital-religion-ai-vr",
+  "formal-verification-vs-fuzzing", "fusion-energy-commercial-viability",
+  "long-covid-neurological-hypotheses", "mrna-cancer-vaccines-landscape",
+  // PR70 v2 — SWE-Pro + open-world coding tasks (case_ids 109-116)
+  "ansible-iptables-ipset",
+  "citation-network-influence",
+  "element-web-unverified-device",
+  "ga-classical-optimization",
+  "ga-gol-persistent-structures",
+  "openlibrary-3rd-metadata-source",
+  "teleport-gcp-cert-identity",
+  "vuls-kernel-detection",
+  // Additional smart-home tasks (case_ids 117-118)
+  "smarthome-sleep-quality", "sleep-trend-recovery1",
 ]);
 
 interface AssetMapping {
@@ -458,6 +522,17 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("");
   }
 
+  // Smarthome binary stores data at /var/lib/mock-data/smarthome/ and verifiers
+  // read from /tmp/mosi_smart_home.sqlite via symlink.
+  if (binaries.includes("smarthome")) {
+    lines.push("# Initialize smarthome data directory and verifier-compatible symlink");
+    lines.push("mkdir -p /var/lib/mock-data/smarthome");
+    lines.push("chown mock:mock /var/lib/mock-data/smarthome");
+    lines.push("chmod 700 /var/lib/mock-data/smarthome");
+    lines.push("ln -sf /var/lib/mock-data/smarthome/smarthome.db /tmp/mosi_smart_home.sqlite");
+    lines.push("");
+  }
+
   // Step 1: Launch Bun mock binaries
   if (binaries.length > 0) {
     lines.push("# Start Bun mock binaries");
@@ -532,11 +607,6 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/expense-backend.log 2>&1 &`);
         lines.push(`echo "Expense frontend served by Bun on port ${port}" > /tmp/expense-frontend.log`);
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/expense-npm-install.log`);
-      } else if (bin === "health") {
-        lines.push(`export HEALTH_DB_PATH=/var/lib/mock-data/health/health.db`);
-        lines.push(`mkdir -p /var/lib/mock-data/health`);
-        lines.push(`ln -sf /var/lib/mock-data/health/health.db /workspace/health.db`);
-        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       } else if (bin === "social") {
         lines.push(`export MOCK_DATA_DIR=/opt/mock/data`);
         lines.push(`mkdir -p /opt/mock/data/social`);
@@ -946,7 +1016,8 @@ async function buildTaskImage(
       const buildOutputDir = join(frontendSrc, fe.buildDir);
 
       // npm install
-      const installProc = Bun.spawn(["npm", "install", "--prefix", frontendSrc], {
+      const installProc = Bun.spawn(["npm", "install"], {
+        cwd: frontendSrc,
         stdout: "pipe",
         stderr: "pipe",
       });
@@ -963,7 +1034,8 @@ async function buildTaskImage(
       }
 
       // npm run build
-      const buildProc = Bun.spawn(["npm", "run", "build", "--prefix", frontendSrc], {
+      const buildProc = Bun.spawn(["npm", "run", "build"], {
+        cwd: frontendSrc,
         stdout: "pipe",
         stderr: "pipe",
       });
@@ -993,6 +1065,68 @@ async function buildTaskImage(
     } else {
       console.log(`  [DRY RUN] npm install && npm run build in ${frontendSrc}`);
       frontendBuildDirs.push({ buildDir: join(frontendSrc, fe.buildDir), dest: fe.dest });
+    }
+  }
+
+  // Auto-mount email frontend for any task that includes the email binary.
+  // The frontend is pre-built by build-all.ts and staged in dist/frontend-email/.
+  if (binaries.includes("email")) {
+    const emailFrontendDir = join(DIST_DIR, "frontend-email");
+    if (dryRun) {
+      console.log("  [DRY RUN] auto-mount email frontend → /opt/mock/frontend/email");
+      frontendBuildDirs.push({ buildDir: emailFrontendDir, dest: "/opt/mock/frontend/email" });
+    } else {
+      if (!existsSync(emailFrontendDir)) {
+        return {
+          task,
+          success: false,
+          imageTag,
+          binariesIncluded: binaries,
+          error: "Pre-built email frontend not found in dist/frontend-email/. Run `bun run build` in mock-platform/ first.",
+        };
+      }
+      // Reject stale frontend using content-hash comparison (same mechanism as binary staleness).
+      if (!force) {
+        const feManifestPath = join(DIST_DIR, "manifest-frontend-email.json");
+        if (!existsSync(feManifestPath)) {
+          return {
+            task,
+            success: false,
+            imageTag,
+            binariesIncluded: binaries,
+            error: "No frontend manifest found. Run `bun run build` in mock-platform/ first.",
+          };
+        }
+        try {
+          const cached: Record<string, string> = JSON.parse(readFileSync(feManifestPath, "utf-8"));
+          const emailFrontendSrc = join(import.meta.dir, "..", "mocks", "email", "frontend");
+          const currentHashes = computeFrontendHashes(emailFrontendSrc);
+          const isStale =
+            Object.keys(currentHashes).some((r) => cached[r] !== currentHashes[r]) ||
+            Object.keys(cached).some((r) => !(r in currentHashes));
+          if (isStale) {
+            return {
+              task,
+              success: false,
+              imageTag,
+              binariesIncluded: binaries,
+              error: "Stale email frontend — source changed since last build. Run `bun run build` in mock-platform/ to rebuild.",
+            };
+          }
+        } catch (err) {
+          const reason = err instanceof SyntaxError
+            ? "Corrupt frontend manifest (invalid JSON)"
+            : `Frontend manifest check failed: ${err instanceof Error ? err.message : String(err)}`;
+          return {
+            task,
+            success: false,
+            imageTag,
+            binariesIncluded: binaries,
+            error: `${reason}. Run \`bun run build\` in mock-platform/ to regenerate.`,
+          };
+        }
+      }
+      frontendBuildDirs.push({ buildDir: emailFrontendDir, dest: "/opt/mock/frontend/email" });
     }
   }
 

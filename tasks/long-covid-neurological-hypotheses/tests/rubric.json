@@ -1,0 +1,94 @@
+{
+  "dimension_weights": {
+    "instruction_following": 0.1,
+    "insight": 0.5,
+    "comprehensiveness": 0.32,
+    "readability": 0.08
+  },
+  "criteria": {
+    "comprehensiveness": [
+      {
+        "criterion": "Coverage of mechanistic hypotheses",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of biomarker categories",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of treatment approaches",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Coverage of diagnostic criteria evolution",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Coverage of large cohort specifics and sizes",
+        "weight": 0.275
+      }
+    ],
+    "insight": [
+      {
+        "criterion": "Critical appraisal of evidentiary strength",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Integration of biomarkers with pathophysiology",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Handling of heterogeneity and uncertainty",
+        "weight": 0.15
+      },
+      {
+        "criterion": "Proposes testable predictions distinguishing hypotheses",
+        "weight": 0.275
+      },
+      {
+        "criterion": "Evaluates therapies with evidence quality ratings",
+        "weight": 0.275
+      }
+    ],
+    "instruction_following": [
+      {
+        "criterion": "Quantitative claims cite sources or methods",
+        "weight": 0.3
+      },
+      {
+        "criterion": "Restates question and maps sections to components",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Includes at least 15 references with URLs or DOIs",
+        "weight": 0.25
+      },
+      {
+        "criterion": "Covers all requested topical components",
+        "weight": 0.2
+      }
+    ],
+    "readability": [
+      {
+        "criterion": "Clarity and precision of language",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Logical organization and flow",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Paragraph coherence and transitions",
+        "weight": 0.22
+      },
+      {
+        "criterion": "Formatting and visual hierarchy",
+        "weight": 0.17
+      },
+      {
+        "criterion": "Structured comparison tables included",
+        "weight": 0.17
+      }
+    ]
+  }
+}

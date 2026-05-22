@@ -1,0 +1,30 @@
+version = "1.0"
+
+[metadata]
+difficulty = "hard"
+category = "open-world"
+tags = ["coding_software_dev"]
+
+domain = "Coding & Software Dev"
+domains_multi = ["Coding & Software Dev"]
+
+# Triple-Axis Complexity Factors (0 = absent, 1 = present)
+factor_a1 = 0   # A1: Cross-Service Dependency
+factor_a2 = 1   # A2: Contaminated Initial State (module missing the match_set surface area)
+factor_b1 = 1   # B1: Implicit Goal Resolution (idempotency under iptables-save round-trip is implicit, never in the issue)
+factor_b2 = 0   # B2: Knowledge System Maintenance
+
+case_id = 109
+
+[verifier]
+timeout_sec = 900.0
+
+[agent]
+timeout_sec = 5400.0
+
+[environment]
+build_timeout_sec = 1200.0
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+allow_internet = true

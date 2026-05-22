@@ -1,6 +1,6 @@
 Please help me manage my health insurance and schedule care appointments. I need to complete these tasks:
 
-1. **Submit a reimbursement claim** on the company insurance portal (http://localhost:6000/). Log in with email peter.griffin@work.mosi.inc and password password123. Submit a claim for a recent lab visit: claim type "reimbursement", total amount $250.00, provider name "Metro Lab Services", check item "lab", service date 2026-05-10, and add a note saying "Annual blood work follow-up".
+1. **Submit a reimbursement claim** on the company insurance portal (http://localhost:5010/). Log in with email peter.griffin@work.mosi.inc and password password123. Submit a claim for a recent lab visit: claim type "reimbursement", total amount $250.00, provider name "Metro Lab Services", check item "lab", service date 2026-05-10, and add a note saying "Annual blood work follow-up".
 
 2. **Book two healthcare appointments** on the same insurance portal:
    - A **Blood Test** at Metro Lab Services

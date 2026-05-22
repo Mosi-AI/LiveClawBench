@@ -25,7 +25,7 @@ set -euo pipefail
 
 EMAIL_URL="http://127.0.0.1:5001"
 CALENDAR_URL="http://127.0.0.1:5006"
-SOCIAL_URL="http://127.0.0.1:5004"
+SOCIAL_URL="http://127.0.0.1:5008"
 
 EMAIL_USER="peter"
 EMAIL_PASSWORD="password123"
