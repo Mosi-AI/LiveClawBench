@@ -4,7 +4,7 @@ Please help me update the pinned post on our company's social media account. Her
 
 2. **Check the company calendar** at http://localhost:5006/ — log in as peter.griffin@work.mosi.inc (password: password123). Find the event titled "Social Media Q2 Content Plan" and look for the verification code stored in it. You'll need this code to confirm the pinned post change.
 
-3. **Log into the social media platform** at http://localhost:5004/ using the company account mosi_brand (password: demo123).
+3. **Log into the social media platform** at http://localhost:5008/ using the company account mosi_brand (password: demo123).
 
 4. **Unpin the current pinned post** (the launch announcement post).
 

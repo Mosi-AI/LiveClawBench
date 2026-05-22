@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSURANCE_API="http://localhost:6000"
+INSURANCE_API="http://127.0.0.1:5010"
 CALENDAR_API="http://localhost:5003"
 EMAIL="peter.griffin@work.mosi.inc"
 PASSWORD="password123"

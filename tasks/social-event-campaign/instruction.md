@@ -2,7 +2,7 @@ Please help me with publishing an event campaign post. Here is what you need to 
 
 1. **Check your email inbox** at http://localhost:5174/ — log in as peter (password: password123). There is an email from the Events Team about publishing an event campaign post. Read it carefully to learn what needs to be done.
 
-2. **Log into the Mosi Social platform** at http://localhost:5004/ using the account credentials mentioned in the email (username: mosi_brand, password: demo123).
+2. **Log into the Mosi Social platform** at http://localhost:5008/ using the account credentials mentioned in the email (username: mosi_brand, password: demo123).
 
 3. **Find the draft event campaign post** and publish it by changing its status to "published".
 

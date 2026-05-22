@@ -1,4 +1,4 @@
-Please check your company email system (http://localhost:5174/) for a message from the Community Management team about comment moderation on our social media platform. After reading the email, follow the instructions to moderate comments on Mosi Social (http://localhost:5004/).
+Please check your company email system (http://localhost:5174/) for a message from the Community Management team about comment moderation on our social media platform. After reading the email, follow the instructions to moderate comments on Mosi Social (http://localhost:5008/).
 
 You have access to the following accounts (all passwords are "demo123"):
 - **mosi_brand** — the official brand account for posting and replying to customers

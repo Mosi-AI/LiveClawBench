@@ -41,7 +41,7 @@ const BINARY_PORTS: Record<string, number> = {
   "doc-search": 8123,
   workspace: 5009,
   finance: 1235,
-  insurance: 6000,
+  insurance: 5010,
   calendar: 5006,
   "mint-diet": 5003,
   weather: 3000,
@@ -480,6 +480,17 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_orders.json /tmp/mosi_shop_orders.json");
     lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_cart.json /tmp/mosi_shop_cart.json");
     lines.push("ln -sf /var/lib/mock-data/shop/mosi_shop_user.json /tmp/mosi_shop_user.json");
+    lines.push("");
+  }
+
+  // Smarthome binary stores data at /var/lib/mock-data/smarthome/ and verifiers
+  // read from /tmp/mosi_smart_home.sqlite via symlink.
+  if (binaries.includes("smarthome")) {
+    lines.push("# Initialize smarthome data directory and verifier-compatible symlink");
+    lines.push("mkdir -p /var/lib/mock-data/smarthome");
+    lines.push("chown mock:mock /var/lib/mock-data/smarthome");
+    lines.push("chmod 700 /var/lib/mock-data/smarthome");
+    lines.push("ln -sf /var/lib/mock-data/smarthome/smarthome.db /tmp/mosi_smart_home.sqlite");
     lines.push("");
   }
 
