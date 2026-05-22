@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 96-case annotation table (96 implemented),
+It covers factor definitions, the full 108-case annotation table (108 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 96-Case Factor Annotation Table
+## 1. 108-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -127,6 +127,16 @@ single, clean environment without structural complexity.
 |     96 | research-with-adversarial-sources |     H      | ✓  |    |    | ✓  | Deep Research & Report     |
 |     97 | workspace-task-record-batch       |     M      |    |    |    |    | Calendar & Task Mgmt       |
 |     98 | workspace-brief-tracking          |     M      |    |    |    |    | Documents & Knowledge      |
+|      99 | crispr-off-target-mitigation      |     M      |    |    |    |    | Deep Research & Report     |
+|     100 | autonomous-weapons-ethics         |     M      |    |    |    |    | Deep Research & Report     |
+|     101 | cross-border-data-privacy-comparison |  M      |    |    |    |    | Deep Research & Report     |
+|     102 | defi-systemic-risk-contagion      |     M      |    |    |    |    | Deep Research & Report     |
+|     103 | formal-verification-vs-fuzzing    |     M      |    |    |    |    | Deep Research & Report     |
+|     104 | mrna-cancer-vaccines-landscape    |     M      |    |    |    |    | Deep Research & Report     |
+|     105 | digital-religion-ai-vr            |     M      |    |    |    |    | Deep Research & Report     |
+|     106 | fusion-energy-commercial-viability |    M      |    |    |    |    | Deep Research & Report     |
+|     107 | ai-copyright-international-jurisprudence | M    |    |    |    |    | Deep Research & Report     |
+|     108 | long-covid-neurological-hypotheses |    M      |    |    |    |    | Deep Research & Report     |
 
 ---
 
@@ -134,21 +144,21 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    45 |      46.9% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2     | Contaminated Initial State     |    34 |      35.4% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1     | Implicit Goal Resolution       |    37 |      38.5% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2     | Knowledge System Maintenance   |    22 |      22.9% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1     | Cross-Service Dependency       |    45 |      41.7% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2     | Contaminated Initial State     |    34 |      31.5% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1     | Implicit Goal Resolution       |    37 |      34.3% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| B2     | Knowledge System Maintenance   |    22 |      20.4% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> Percentages are relative to 96 implemented cases.
+> Percentages are relative to 108 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 22 cases (22.9%)
-- Single factor: 30 cases (31.3%)
-- Dual factor: 26 cases (27.1%)
-- Triple factor: 16 cases (16.7%)
-- Quad factor: 2 cases (2.1%)
-- **Multi-factor (≥2 factors): 44 cases (45.8%)**
+- No factors (baseline): 32 cases (29.6%)
+- Single factor: 30 cases (27.8%)
+- Dual factor: 26 cases (24.1%)
+- Triple factor: 16 cases (14.8%)
+- Quad factor: 2 cases (1.9%)
+- **Multi-factor (≥2 factors): 44 cases (40.7%)**
 
 ---
 
@@ -167,7 +177,7 @@ Factor occurrence frequency per primary domain:
 | Deep Research & Report     |  2 |  1 |  2 |  3 |                      8 |
 | Health & Fitness           |  2 |  3 |  3 |  0 |                      8 |
 | Social Media               |  6 |  3 |  6 |  0 |                     15 |
-| Finance & Data Analytics   |   4 |   5 |   6 |   4 |                      19 |
+| Finance & Data Analytics   |  4 |  5 |  6 |  4 |                     19 |
 
 Key observations:
 - **B2 is highly concentrated in Documents & Knowledge** (9/12), reflecting the nature of knowledge management tasks
@@ -209,20 +219,20 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    31 |      43.7% | skill-conflict-resolution, skill-dependency-fix, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, skill-combination, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, meeting-reschedule-response, candidate-interview-slot-confirm, finance-expense-log, finance-invoice-process |
-| Medium     |    21 |      29.6% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-test, grocery-reorder, morning-comfort-setup, weather-city-travel-pick, pre-meeting-research-brief, vendor-due-diligence-brief, social-schedule-audit, social-keyword-cleanup, social-event-campaign, finance-anomaly-detect, finance-budget-alert, sticker-store-acquire |
-| Hard       |    19 |      26.8% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, weather-outdoor-window, social-data-anomaly-report, social-comment-moderation, social-cross-publish, social-pinned-post-update, medication-prescription-sync, health-appointment-scheduling, content-calendar-cross-publish, finance-tax-prepare, finance-analysis-generate, finance-depreciation-audit, finance-dashboard-repair, chat-sticker-engagement |
+| Easy       |    35 |      32.4% | skill-conflict-resolution, skill-dependency-fix, email-writing, email-reply, flight-seat-selection, flight-info-change-notice, baggage-tracking-application, blog-site-from-scratch, blog-site-completion-from-starter, washer-shop, watch-shop, washer-change, info-change, email-washer-change, incremental-update-ctp, conflict-repair-acb, mixed-tool-memory, skill-combination, mint-diet-snack-log, weather-aqi-report, social-media-posting, social-unlike-post, expense-draft-delete, insurance-deductible-selection, health-daily-record, nutrition-log-meal, mint-diet-comprehensive, meeting-reschedule-response, candidate-interview-slot-confirm, finance-expense-log, finance-invoice-process |
+| Medium     |    47 |      43.5% | skill-creation, skill-supplementation, skill-repository-curation, flight-booking, schedule-change-request, noise-filtering, live-web-research-sqlite-fts5, health-insurance-optimization, finance-monthly-close, smarthome-test, grocery-reorder, morning-comfort-setup, weather-city-travel-pick, pre-meeting-research-brief, vendor-due-diligence-brief, social-schedule-audit, social-keyword-cleanup, social-event-campaign, finance-anomaly-detect, finance-budget-alert, sticker-store-acquire, crispr-off-target-mitigation, autonomous-weapons-ethics, cross-border-data-privacy-comparison, defi-systemic-risk-contagion, formal-verification-vs-fuzzing, mrna-cancer-vaccines-landscape, digital-religion-ai-vr, fusion-energy-commercial-viability, ai-copyright-international-jurisprudence, long-covid-neurological-hypotheses |
+| Hard       |    26 |      24.1% | flight-seat-selection-failed, flight-cancel-claim, email-watch-shop, vue-build-fix-single, vue-build-fix-chain, finance-portfolio-rebalancing, weather-outdoor-window, social-data-anomaly-report, social-comment-moderation, social-cross-publish, social-pinned-post-update, medication-prescription-sync, health-appointment-scheduling, content-calendar-cross-publish, finance-tax-prepare, finance-analysis-generate, finance-depreciation-audit, finance-dashboard-repair, chat-sticker-engagement |
 
 Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
-| Easy       |             0.61 |          16 |       11 |       4 |
-| Medium     |             1.33 |           3 |       8 |       10 |
-| Hard       |             1.63 |           1 |       5 |       13 |
+| Easy       |             0.46 |          19 |       12 |       4 |
+| Medium     |             1.09 |           7 |      16 |       24 |
+| Hard       |             1.58 |           1 |       5 |       20 |
 
 The empirical reclassification (based on average solve rates across models) shows that Easy
 cases dominate (64.9%). Easy cases include both baselines (54.2%) and factor-bearing tasks
-(45.8%), indicating that many structural complexity factors do not pose significant difficulty
+(45.8%), with medium cases now comprising the majority of new additions (10 deep research tasks)
 for current agents. Hard cases are concentrated in tasks requiring constraint failure handling
 (B1) or specific challenging environments (A2 in DevOps).
