@@ -32,17 +32,6 @@ export function seed(db: Database): void {
   } else if (customPath) {
     console.warn(`[finance] Custom seed file not found at ${customPath}`);
   }
-
-  // Legacy fallback path when env var is unset.
-  const fallbackPath = "/opt/mock/data/finance_seed.sql";
-  if (!customPath && existsSync(fallbackPath)) {
-    try {
-      const sql = readFileSync(fallbackPath, "utf-8");
-      db.exec(sql);
-    } catch (err) {
-      console.warn(`[finance] Fallback seed file not readable at ${fallbackPath}:`, err);
-    }
-  }
 }
 
 function seedDefaults(db: Database): void {
