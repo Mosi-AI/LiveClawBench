@@ -270,7 +270,8 @@ async function buildMockFrontend(name: string): Promise<BuildResult> {
 
   try {
     // npm install
-    const installProc = Bun.spawn(["npm", "install", "--prefix", frontendDir], {
+    const installProc = Bun.spawn(["npm", "install"], {
+      cwd: frontendDir,
       stdout: "pipe",
       stderr: "pipe",
     });
@@ -281,7 +282,8 @@ async function buildMockFrontend(name: string): Promise<BuildResult> {
     }
 
     // npm run build
-    const buildProc = Bun.spawn(["npm", "run", "build", "--prefix", frontendDir], {
+    const buildProc = Bun.spawn(["npm", "run", "build"], {
+      cwd: frontendDir,
       stdout: "pipe",
       stderr: "pipe",
     });

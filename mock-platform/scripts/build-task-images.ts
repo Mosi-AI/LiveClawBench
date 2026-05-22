@@ -31,14 +31,23 @@ const BASE_IMAGE = "liveclawbench-base:latest";
  * Covers: src/ (all files recursively), index.html, vite.config.*, package.json.
  * Uses the same hash format as build-all.ts computeFrontendManifest().
  */
+function collectFilesRecursive(dir: string, results: string[] = []): string[] {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectFilesRecursive(full, results);
+    } else {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
 function computeFrontendHashes(frontendDir: string): Record<string, string> {
   const files: string[] = [];
   const srcDir = join(frontendDir, "src");
   if (existsSync(srcDir)) {
-    const entries = readdirSync(srcDir, { withFileTypes: true, recursive: true });
-    for (const entry of entries) {
-      if (entry.isFile()) files.push(join(entry.parentPath, entry.name));
-    }
+    files.push(...collectFilesRecursive(srcDir));
   }
   for (const cf of ["index.html", "vite.config.js", "vite.config.ts", "package.json"]) {
     const p = join(frontendDir, cf);
