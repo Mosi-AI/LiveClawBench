@@ -50,7 +50,9 @@ class AIClient:
         }
 
         url = f"{self.base_url}/chat/completions"
-        resp = requests.post(url, headers=self._headers(), json=payload, timeout=HTTP_TIMEOUT_S)
+        resp = requests.post(
+            url, headers=self._headers(), json=payload, timeout=HTTP_TIMEOUT_S
+        )
         if resp.status_code != 200:
             raise Exception(f"API {resp.status_code}: {resp.text[:500]}")
 
@@ -60,7 +62,9 @@ class AIClient:
 
 
 def parse_llm_output_as_json(text: str, expected_type: type = list):
-    match = re.search(r'<json_output>(.*?)</json_output>', text, re.DOTALL | re.IGNORECASE)
+    match = re.search(
+        r"<json_output>(.*?)</json_output>", text, re.DOTALL | re.IGNORECASE
+    )
     if match:
         json_str = match.group(1).strip()
     else:
@@ -74,16 +78,20 @@ def parse_llm_output_as_json(text: str, expected_type: type = list):
         json_str = json_str.strip()
 
     parsed_data = json.loads(json_str)
-    if not isinstance(parsed_data, expected_type) or (isinstance(parsed_data, (list, dict)) and not parsed_data):
+    if not isinstance(parsed_data, expected_type) or (
+        isinstance(parsed_data, (list, dict)) and not parsed_data
+    ):
         return None
     return parsed_data
 
 
 def validate_weights(data, expected_sum=1.0, tolerance=1e-6):
     if isinstance(data, list):
-        if not data or not all(isinstance(item, dict) and 'weight' in item for item in data):
+        if not data or not all(
+            isinstance(item, dict) and "weight" in item for item in data
+        ):
             return False
-        total_weight = sum(float(item['weight']) for item in data)
+        total_weight = sum(float(item["weight"]) for item in data)
         return abs(total_weight - expected_sum) < tolerance
     return False
 
@@ -125,10 +133,12 @@ def generate_readability(ai_client: AIClient, prompt: str) -> list:
             if parsed and validate_weights(parsed):
                 cleaned = []
                 for c in parsed:
-                    cleaned.append({
-                        "criterion": c.get("criterion", ""),
-                        "weight": c.get("weight", 0.0),
-                    })
+                    cleaned.append(
+                        {
+                            "criterion": c.get("criterion", ""),
+                            "weight": c.get("weight", 0.0),
+                        }
+                    )
                 return cleaned
         except Exception as exc:
             print(f"    attempt {attempt + 1} failed: {exc}")
@@ -164,7 +174,9 @@ def main():
         rubric_path = TASKS_DIR / task / "tests" / "rubric.json"
         data = json.loads(rubric_path.read_text())
         data["criteria"]["readability"] = criteria
-        rubric_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        rubric_path.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         print(f"  written -> {rubric_path}")
 
     print("All done.")

@@ -97,7 +97,10 @@ def extract_chat_text(payload: dict) -> str:
         if isinstance(content, list):
             parts = []
             for item in content:
-                if isinstance(item, dict) and item.get("type") in {"text", "output_text"}:
+                if isinstance(item, dict) and item.get("type") in {
+                    "text",
+                    "output_text",
+                }:
                     parts.append(str(item.get("text", "")))
             return "\n".join(parts)
     return ""
@@ -206,24 +209,28 @@ def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
     raise RuntimeError("LLM judge request failed: " + " | ".join(errors))
 
 
-def judge_dimension(dimension: str, criteria: list[dict], instruction: str, report_text: str) -> tuple[float, dict]:
+def judge_dimension(
+    dimension: str, criteria: list[dict], instruction: str, report_text: str
+) -> tuple[float, dict]:
     """Score one dimension with retries. Returns (dimension_score, debug_info)."""
     criteria_lines = []
     for c in criteria:
         criteria_lines.append(f"- {c['criterion']} (weight: {c['weight']})")
 
-    user_prompt = "\n".join([
-        "# Task Instruction",
-        instruction,
-        "",
-        "# Agent Report",
-        report_text,
-        "",
-        f"# Dimension: {dimension}",
-        "Score the report against each criterion below. Return JSON only.",
-        "",
-        *criteria_lines,
-    ])
+    user_prompt = "\n".join(
+        [
+            "# Task Instruction",
+            instruction,
+            "",
+            "# Agent Report",
+            report_text,
+            "",
+            f"# Dimension: {dimension}",
+            "Score the report against each criterion below. Return JSON only.",
+            "",
+            *criteria_lines,
+        ]
+    )
 
     last_error = ""
     for attempt in range(MAX_RETRIES):
@@ -237,7 +244,9 @@ def judge_dimension(dimension: str, criteria: list[dict], instruction: str, repo
             for c in criteria:
                 name = c["criterion"]
                 weight = c["weight"]
-                score_entry = next((s for s in scores if s.get("criterion") == name), None)
+                score_entry = next(
+                    (s for s in scores if s.get("criterion") == name), None
+                )
                 if score_entry is None:
                     raise RuntimeError(f"missing score for criterion: {name}")
                 score = score_entry.get("score", 0.0)
@@ -259,7 +268,7 @@ def judge_dimension(dimension: str, criteria: list[dict], instruction: str, repo
         except Exception as exc:
             last_error = str(exc)
             if attempt < MAX_RETRIES - 1:
-                sleep_s = BACKOFF_BASE ** attempt
+                sleep_s = BACKOFF_BASE**attempt
                 time.sleep(sleep_s)
 
     return 0.0, {
@@ -299,13 +308,14 @@ def main() -> None:
         criteria = criteria_by_dimension.get(dimension, [])
         if not isinstance(criteria, list):
             criteria = []
-        dim_score, debug = judge_dimension(dimension, criteria, instruction, report_text)
+        dim_score, debug = judge_dimension(
+            dimension, criteria, instruction, report_text
+        )
         dimension_scores[dimension] = dim_score
         raw_responses.append(debug)
 
     final_reward = sum(
-        dimension_scores.get(d, 0.0) * w
-        for d, w in dimension_weights.items()
+        dimension_scores.get(d, 0.0) * w for d, w in dimension_weights.items()
     )
     final_reward = round(min(1.0, max(0.0, final_reward)), 4)
 

@@ -42,6 +42,7 @@ DEFAULT_SAMPLE_COUNT = 1
 MAX_OUTPUT_TOKENS = 64000
 HTTP_TIMEOUT_S = 600
 
+
 # ── AI Client ──────────────────────────────────────────────────────
 class AIClient:
     def __init__(self, api_key: str, model: str, base_url: str):
@@ -69,7 +70,9 @@ class AIClient:
         }
 
         url = f"{self.base_url}/chat/completions"
-        resp = requests.post(url, headers=self._headers(), json=payload, timeout=HTTP_TIMEOUT_S)
+        resp = requests.post(
+            url, headers=self._headers(), json=payload, timeout=HTTP_TIMEOUT_S
+        )
         if resp.status_code != 200:
             raise Exception(f"API {resp.status_code}: {resp.text[:500]}")
 
@@ -80,7 +83,9 @@ class AIClient:
 
 # ── JSON Parser ────────────────────────────────────────────────────
 def parse_llm_output_as_json(text: str, expected_type: type = list):
-    match = re.search(r'<json_output>(.*?)</json_output>', text, re.DOTALL | re.IGNORECASE)
+    match = re.search(
+        r"<json_output>(.*?)</json_output>", text, re.DOTALL | re.IGNORECASE
+    )
     if match:
         json_str = match.group(1).strip()
     else:
@@ -94,7 +99,9 @@ def parse_llm_output_as_json(text: str, expected_type: type = list):
         json_str = json_str.strip()
 
     parsed_data = json.loads(json_str)
-    if not isinstance(parsed_data, expected_type) or (isinstance(parsed_data, (list, dict)) and not parsed_data):
+    if not isinstance(parsed_data, expected_type) or (
+        isinstance(parsed_data, (list, dict)) and not parsed_data
+    ):
         return None
     return parsed_data
 
@@ -106,21 +113,27 @@ def validate_weights(data, expected_sum=1.0, tolerance=1e-6):
         total_weight = sum(float(value) for value in data.values())
         return abs(total_weight - expected_sum) < tolerance
     elif isinstance(data, list):
-        if not data or not all(isinstance(item, dict) and 'weight' in item for item in data):
+        if not data or not all(
+            isinstance(item, dict) and "weight" in item for item in data
+        ):
             return False
-        total_weight = sum(float(item['weight']) for item in data)
+        total_weight = sum(float(item["weight"]) for item in data)
         return abs(total_weight - expected_sum) < tolerance
     return False
 
 
 def round_weights_and_adjust(weights, decimal_places=2):
-    rounded_weights = {dim: round(float(weight), decimal_places) for dim, weight in weights.items()}
+    rounded_weights = {
+        dim: round(float(weight), decimal_places) for dim, weight in weights.items()
+    }
     total = sum(rounded_weights.values())
     diff = 1.0 - total
     if abs(diff) > 1e-10:
         # Add diff to the last key alphabetically to ensure determinism
         last_key = sorted(rounded_weights.keys())[-1]
-        rounded_weights[last_key] = round(rounded_weights[last_key] + diff, decimal_places)
+        rounded_weights[last_key] = round(
+            rounded_weights[last_key] + diff, decimal_places
+        )
     return rounded_weights
 
 
@@ -275,12 +288,14 @@ def get_prompts():
             "insight": _EN_INSIGHT_PROMPT,
             "instruction_following": _EN_INST_PROMPT,
             "readability": _EN_READABILITY_PROMPT,
-        }
+        },
     }
 
 
 # ── Generation logic ───────────────────────────────────────────────
-def generate_weights_for_task(ai_client: AIClient, prompt: str, sample_count: int = DEFAULT_SAMPLE_COUNT) -> dict | None:
+def generate_weights_for_task(
+    ai_client: AIClient, prompt: str, sample_count: int = DEFAULT_SAMPLE_COUNT
+) -> dict | None:
     prompts = get_prompts()
     weight_prompt_template = prompts["weight_prompt"]
     user_prompt = weight_prompt_template.format(task_prompt=prompt)
@@ -289,8 +304,12 @@ def generate_weights_for_task(ai_client: AIClient, prompt: str, sample_count: in
     for _ in range(sample_count):
         for attempt in range(RETRY_ATTEMPTS):
             try:
-                weights_output = ai_client.generate(user_prompt=user_prompt, system_prompt="")
-                parsed_weights = parse_llm_output_as_json(weights_output, expected_type=dict)
+                weights_output = ai_client.generate(
+                    user_prompt=user_prompt, system_prompt=""
+                )
+                parsed_weights = parse_llm_output_as_json(
+                    weights_output, expected_type=dict
+                )
                 if parsed_weights and validate_weights(parsed_weights):
                     weights_samples.append(parsed_weights)
                     break
@@ -330,15 +349,21 @@ def generate_criteria_for_task(ai_client: AIClient, prompt: str) -> dict:
         user_prompt_criteria = criteria_prompt_template.format(task_prompt=prompt)
         for attempt in range(RETRY_ATTEMPTS):
             try:
-                criteria_output = ai_client.generate(user_prompt=user_prompt_criteria, system_prompt="")
-                parsed_criteria = parse_llm_output_as_json(criteria_output, expected_type=list)
+                criteria_output = ai_client.generate(
+                    user_prompt=user_prompt_criteria, system_prompt=""
+                )
+                parsed_criteria = parse_llm_output_as_json(
+                    criteria_output, expected_type=list
+                )
                 if parsed_criteria and validate_weights(parsed_criteria):
                     cleaned = []
                     for c in parsed_criteria:
-                        cleaned.append({
-                            "criterion": c.get("criterion", ""),
-                            "weight": c.get("weight", 0.0),
-                        })
+                        cleaned.append(
+                            {
+                                "criterion": c.get("criterion", ""),
+                                "weight": c.get("weight", 0.0),
+                            }
+                        )
                     current_criterions[dim_name] = cleaned
                     break
             except Exception as exc:
