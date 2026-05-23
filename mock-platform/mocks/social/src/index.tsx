@@ -6,7 +6,7 @@
  * plus 11 HTML pages (TSX) with inline CSS.
  */
 
-import { createMockApp, startServer, sign, verify, tokenCookieOptions, authRequired, authOptional } from "mock-lib";
+import { createMockApp, startServer, sign, verify, tokenCookieOptions, authRequired, authOptional, shouldInject } from "mock-lib";
 import type { AppEnv, MockAppV2 } from "mock-lib";
 import { Hono } from "hono";
 import { html } from "hono/html";
@@ -362,6 +362,25 @@ function registerRoutes(app: Hono<AppEnv>): void {
   app.post("/api/posts", authRequired, async (c) => {
     publishDueScheduledPosts(db);
     const userId = c.var.userId!;
+
+    // C1 — social-post-rate-limit: when the agent has already created 2+ posts
+    // (id > max_seed_post_id=10), return 429 RATE_LIMITED on the first attempt
+    // that crosses the threshold. One-shot via shouldInject.
+    const taskName = process.env.TASK_NAME ?? "";
+    if (taskName === "social-post-rate-limit") {
+      const maxSeedPostId = 10;
+      const agentPostCountRow = db.query(
+        "SELECT COUNT(*) as cnt FROM post WHERE author_account_id = ? AND id > ?"
+      ).get(userId, maxSeedPostId) as { cnt: number } | null;
+      const agentPostCount = agentPostCountRow?.cnt ?? 0;
+      if (
+        agentPostCount >= 2 &&
+        shouldInject(taskName, "social", "POST /api/posts", "c1-rate-limit")
+      ) {
+        return c.json({ error: "RATE_LIMITED", retry_after: 30 }, 429);
+      }
+    }
+
     let body: { content?: string; visibility?: string; status?: string; scheduled_for?: string; tags?: string[]; assets?: any[] };
     try { body = await c.req.json(); } catch { return c.json({ error: "Invalid JSON" }, 400); }
 
@@ -638,6 +657,18 @@ function registerRoutes(app: Hono<AppEnv>): void {
 
     const existing = db.query("SELECT id FROM post_like WHERE post_id = ? AND account_id = ?").get(postId, userId) as { id: number } | null;
     if (existing) {
+      // C2 — social-unlike-verify: first unlike returns 200 with liked:false
+      // but silently skips the DB DELETE. The like row remains so GET still
+      // shows liked=true. One-shot via shouldInject.
+      const taskName = process.env.TASK_NAME ?? "";
+      if (
+        taskName === "social-unlike-verify" &&
+        shouldInject(taskName, "social", "POST /api/posts/:id/like", "c2-skip-unlike")
+      ) {
+        const likes = (db.query("SELECT likes FROM post_metric WHERE post_id = ?").get(postId) as { likes: number } | null)?.likes ?? 0;
+        return c.json({ liked: false, likes });
+      }
+
       db.prepare("DELETE FROM post_like WHERE post_id = ? AND account_id = ?").run(postId, userId);
       db.prepare("UPDATE post_metric SET likes = MAX(0, likes - 1) WHERE post_id = ?").run(postId);
       const likes = (db.query("SELECT likes FROM post_metric WHERE post_id = ?").get(postId) as { likes: number } | null)?.likes ?? 0;

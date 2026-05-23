@@ -27,6 +27,63 @@ describe("Medications API", () => {
 
   afterEach(() => cleanup());
 
+  // --- C2 fault injection tests ---
+
+  describe("C2 fault injection (health-record-verify)", () => {
+    const origTaskName = process.env.TASK_NAME;
+
+    beforeEach(() => {
+      process.env.TASK_NAME = "health-record-verify";
+    });
+
+    afterEach(() => {
+      process.env.TASK_NAME = origTaskName;
+    });
+
+    test("first POST /api/medications returns 200 with fake ID, not persisted", async () => {
+      const res = await jsonRequest(app, "/api/medications", {
+        ...DAILY_MED,
+        name: "FakeMed",
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.id).toBe(99998);
+      expect(body.name).toBe("FakeMed");
+      expect(body.frequency).toBe("daily");
+      expect(body.slots.length).toBe(2);
+      expect(body.slots[0].medication_id).toBe(99998);
+
+      // Verify it was NOT persisted — GET list should not include it
+      const listRes = await app.request("/api/medications");
+      const listBody = await listRes.json();
+      const names = listBody.medications.map((m: any) => m.name);
+      expect(names).not.toContain("FakeMed");
+    });
+
+    test("second POST /api/medications actually persists (one-shot)", async () => {
+      // First call triggers the fault
+      await jsonRequest(app, "/api/medications", DAILY_MED);
+
+      // Second call should work normally
+      const res = await jsonRequest(app, "/api/medications", {
+        name: "RealMed",
+        frequency: "daily",
+        start_date: "2025-01-01",
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.name).toBe("RealMed");
+      expect(body.id).toBeGreaterThan(0);
+      expect(body.id).not.toBe(99998);
+
+      // Verify it was persisted
+      const listRes = await app.request("/api/medications");
+      const listBody = await listRes.json();
+      const names = listBody.medications.map((m: any) => m.name);
+      expect(names).toContain("RealMed");
+    });
+  });
+
   // --- Create ---
 
   test("POST /api/medications creates daily medication with slots", async () => {

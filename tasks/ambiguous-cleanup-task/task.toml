@@ -13,6 +13,8 @@ factor_a1 = 0   # Cross-Service Dependency
 factor_a2 = 1   # Contaminated Initial State
 factor_b1 = 0   # Implicit Goal Resolution
 factor_b2 = 0   # Knowledge System Maintenance
+factor_c1 = 0
+factor_c2 = 0
 
 case_id = 95
 

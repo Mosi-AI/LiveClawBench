@@ -131,7 +131,7 @@ const ALL_TASK_NAMES = new Set([
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
   "mint-diet-snack-log", "mint-diet-comprehensive", "nutrition-log-meal", "weather-aqi-report",
-  "social-media-posting", "social-unlike-post", "expense-draft-delete",
+  "social-media-posting", "social-unlike-post", "expense-draft-delete", "expense-submit-verify",
   "health-daily-record",
   "finance-portfolio-rebalancing", "finance-monthly-close",
   "finance-expense-log", "finance-anomaly-detect", "finance-budget-alert",
@@ -181,6 +181,13 @@ const ALL_TASK_NAMES = new Set([
   "openlibrary-3rd-metadata-source",
   "teleport-gcp-cert-identity",
   "vuls-kernel-detection",
+  // C-axis — Runtime Adaptability tasks (case_ids 117-129)
+  "email-reply-context-shift", "email-sending-verify",
+  "watch-shop-stockout", "watch-shop-silent-fail",
+  "meeting-slot-race", "interview-slot-verify",
+  "mint-diet-stockout", "health-record-verify",
+  "social-post-rate-limit", "social-unlike-verify",
+  "finance-budget-shift", "vue-fix-rebreak",
 ]);
 
 interface AssetMapping {

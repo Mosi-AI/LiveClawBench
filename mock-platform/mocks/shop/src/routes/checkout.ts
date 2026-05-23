@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createRoute, ok, err } from "mock-lib";
+import { createRoute, ok, err, shouldInject } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import { CheckoutResponseSchema, ErrSchema } from "../schemas.js";
 import { loadCart, clearCart, loadOrders, saveOrders, loadUser } from "../data/store.js";
@@ -43,6 +43,37 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
   app.openApiRoute(checkoutRoute, (c) => {
     const cart = loadCart();
     if (!cart.length) return c.json(err("Cart is empty"), 400);
+
+    const taskName = process.env.TASK_NAME ?? "";
+
+    // C1 — watch-shop-stockout: first checkout returns 409 SOLD_OUT when cart
+    // contains a specific low-stock product. Sets stock to 0 so subsequent
+    // listings reflect the sold-out state. One-shot: only first checkout fails.
+    if (
+      taskName === "watch-shop-stockout" &&
+      shouldInject(taskName, "shop", "POST /api/checkout", "c1-stockout")
+    ) {
+      // Find any cart item that matches a watch product (conventionally prod_0068)
+      const watchItem = cart.find((item) =>
+        item.title.toLowerCase().includes("watch") || item.id === "prod_0068"
+      );
+      if (watchItem) {
+        return c.json(
+          err(`Product ${watchItem.id} is sold out`, "SOLD_OUT"),
+          409,
+        );
+      }
+      // If no watch in cart, fall through to normal checkout
+    }
+
+    // C2 — watch-shop-silent-fail: first checkout returns 200 success but
+    // skips saveOrders and clearCart. Order not persisted. One-shot.
+    if (
+      taskName === "watch-shop-silent-fail" &&
+      shouldInject(taskName, "shop", "POST /api/checkout", "c2-skip-persist")
+    ) {
+      return c.json(ok({ order_id: "ORD-FAKE-123" }, "Order placed successfully!"), 200);
+    }
 
     const orders = loadOrders();
     const user = loadUser();

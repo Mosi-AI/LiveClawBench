@@ -13,6 +13,8 @@ factor_a1 = 0   # A1: Cross-Service Dependency
 factor_a2 = 1   # A2: Contaminated Initial State (duplicated string-replace logic in 3 distro scanners is a latent contamination)
 factor_b1 = 0   # B1: Implicit Goal Resolution
 factor_b2 = 1   # B2: Knowledge System Maintenance (RH / Debian / Ubuntu scanners are a knowledge corpus that must stay consistent)
+factor_c1 = 0
+factor_c2 = 0
 
 case_id = 116
 

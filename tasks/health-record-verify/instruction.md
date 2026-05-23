@@ -1,0 +1,1 @@
+Please add a new allergen record "Peanuts" with severity "high" to your health profile at http://localhost:5007/. After adding it, verify the allergen appears in your records by checking the allergen list.

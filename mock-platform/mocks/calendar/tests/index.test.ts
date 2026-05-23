@@ -1,7 +1,8 @@
-import { describe, expect, test, beforeEach } from "bun:test";
+import { describe, expect, test, beforeEach, afterEach } from "bun:test";
 import { createCalendarApp } from "../src/index";
 import { getCalendarDb, resetCalendarDb } from "../src/db";
 import { seedDatabase } from "../src/seed";
+import { resetInjectionState } from "mock-lib";
 
 describe("calendar mock", () => {
   let app: ReturnType<typeof createCalendarApp>["app"];
@@ -810,5 +811,212 @@ describe("calendar create form page route", () => {
     const list = await listRes.json();
     const titles = list.events.map((e: { title: string }) => e.title);
     expect(titles).not.toContain("Malformed Date Create");
+  });
+});
+
+// --- C1 / C2 fault injection tests ---
+
+describe("calendar C1 fault injection — meeting-slot-race", () => {
+  let app: ReturnType<typeof createCalendarApp>["app"];
+  let token: string;
+  let originalTaskName: string | undefined;
+
+  beforeEach(async () => {
+    originalTaskName = process.env.TASK_NAME;
+    process.env.CALENDAR_DB_PATH = ":memory:";
+    process.env.TASK_NAME = "meeting-slot-race";
+    resetInjectionState();
+    app = createCalendarApp().app;
+    token = await login(app);
+  });
+
+  afterEach(() => {
+    process.env.TASK_NAME = originalTaskName;
+    resetInjectionState();
+  });
+
+  test("C1: first POST /api/events returns 409 due to injected blocking event", async () => {
+    const res = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Rescheduled Meeting",
+        start_time: "2026-05-23T10:00:00Z",
+        end_time: "2026-05-23T11:00:00Z",
+      }),
+    });
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(body.success).toBe(false);
+    expect(body.message).toBe("time_overlap");
+  });
+
+  test("C1: second POST /api/events succeeds (one-shot semantics)", async () => {
+    // First request triggers the fault injection and fails.
+    const res1 = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Rescheduled Meeting",
+        start_time: "2026-05-23T10:00:00Z",
+        end_time: "2026-05-23T11:00:00Z",
+      }),
+    });
+    expect(res1.status).toBe(409);
+
+    // Second request should also fail because the blocking event is still in DB.
+    // But injection does NOT fire again, so the agent could pick a different slot.
+    // Test with a different time slot (no overlap with injected event).
+    const res2 = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Different Meeting",
+        start_time: "2026-05-23T14:00:00Z",
+        end_time: "2026-05-23T15:00:00Z",
+      }),
+    });
+    expect(res2.status).toBe(201);
+    const body = await res2.json();
+    expect(body.title).toBe("Different Meeting");
+  });
+
+  test("C1: injected blocking event is visible in user's event list", async () => {
+    // Trigger C1 injection (it fails with 409 but event is in DB).
+    await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "My Event",
+        start_time: "2026-06-01T09:00:00Z",
+        end_time: "2026-06-01T10:00:00Z",
+      }),
+    });
+
+    // The injected "Team Standup" event should be visible since it uses
+    // the same user_id as the authenticated user.
+    const listRes = await app.request("/api/events", {
+      headers: authHeaders(token),
+    });
+    expect(listRes.status).toBe(200);
+    const body = await listRes.json();
+    const titles = body.events.map((e: { title: string }) => e.title);
+    expect(titles).toContain("Team Standup");
+  });
+
+  test("C1: non-matching TASK_NAME does not inject", async () => {
+    process.env.TASK_NAME = "meeting-reschedule-response";
+    resetInjectionState();
+    // Recreate app for new task name.
+    app = createCalendarApp().app;
+    token = await login(app);
+
+    const res = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Normal Meeting",
+        start_time: "2026-05-23T10:00:00Z",
+        end_time: "2026-05-23T11:00:00Z",
+      }),
+    });
+    expect(res.status).toBe(201);
+  });
+});
+
+describe("calendar C2 fault injection — interview-slot-verify", () => {
+  let app: ReturnType<typeof createCalendarApp>["app"];
+  let token: string;
+  let originalTaskName: string | undefined;
+
+  beforeEach(async () => {
+    originalTaskName = process.env.TASK_NAME;
+    process.env.CALENDAR_DB_PATH = ":memory:";
+    process.env.TASK_NAME = "interview-slot-verify";
+    resetInjectionState();
+    app = createCalendarApp().app;
+    token = await login(app);
+  });
+
+  afterEach(() => {
+    process.env.TASK_NAME = originalTaskName;
+    resetInjectionState();
+  });
+
+  test("C2: response shows requested time but DB stores shifted time", async () => {
+    const res = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Senior Developer Interview",
+        start_time: "2026-05-26T14:00:00Z",
+        end_time: "2026-05-26T15:00:00Z",
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+
+    // Response should show the ORIGINAL requested time.
+    expect(body.title).toBe("Senior Developer Interview");
+    expect(body.start_time).toBe("2026-05-26T14:00:00.000Z");
+    expect(body.end_time).toBe("2026-05-26T15:00:00.000Z");
+
+    // But GETting the event reveals the shifted time (+1 hour).
+    const getRes = await app.request(`/api/events/${body.id}`, {
+      headers: authHeaders(token),
+    });
+    expect(getRes.status).toBe(200);
+    const stored = await getRes.json();
+    expect(stored.start_time).toBe("2026-05-26T15:00:00.000Z");
+    expect(stored.end_time).toBe("2026-05-26T16:00:00.000Z");
+  });
+
+  test("C2: second event creation is not shifted (one-shot)", async () => {
+    // First request triggers C2 (shifted).
+    await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "First Event",
+        start_time: "2026-05-26T14:00:00Z",
+        end_time: "2026-05-26T15:00:00Z",
+      }),
+    });
+
+    // Second request should NOT be shifted.
+    const res = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Second Event",
+        start_time: "2026-05-26T16:00:00Z",
+        end_time: "2026-05-26T17:00:00Z",
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.start_time).toBe("2026-05-26T16:00:00.000Z");
+    expect(body.end_time).toBe("2026-05-26T17:00:00.000Z");
+  });
+
+  test("C2: non-matching TASK_NAME does not shift", async () => {
+    process.env.TASK_NAME = "candidate-interview-slot-confirm";
+    resetInjectionState();
+    app = createCalendarApp().app;
+    token = await login(app);
+
+    const res = await app.request("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({
+        title: "Normal Interview",
+        start_time: "2026-05-26T14:00:00Z",
+        end_time: "2026-05-26T15:00:00Z",
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.start_time).toBe("2026-05-26T14:00:00.000Z");
+    expect(body.end_time).toBe("2026-05-26T15:00:00.000Z");
   });
 });

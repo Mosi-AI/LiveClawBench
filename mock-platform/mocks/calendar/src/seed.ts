@@ -34,6 +34,13 @@ const SEED_USERS: SeedUser[] = [
   },
 ];
 
+// C1/C2 variant tasks reuse the same calendar seed as their base tasks.
+// The meeting-reschedule-response base task has no calendar events (only
+// email + calendar interaction), and candidate-interview-slot-confirm also
+// has no pre-seeded calendar events. Calendar C1/C2 fault injection is
+// handled in the POST /api/events route handler (routes/events.ts), not
+// in seed data.
+
 function seedTaskData(db: Database, userId: number, taskName: string): void {
   const existingEvents = db.query("SELECT COUNT(*) as count FROM calendar_event").get() as { count: number };
   if (existingEvents.count > 0) return;
@@ -105,6 +112,13 @@ function seedTaskData(db: Database, userId: number, taskName: string): void {
         ],
       );
       console.log("calendar: seeded task data for social-pinned-post-update");
+      break;
+
+    // C1/C2 variant tasks: no pre-seeded calendar events. Fault injection
+    // is handled in the POST /api/events route handler.
+    case "meeting-slot-race":
+    case "interview-slot-verify":
+      console.log(`calendar: no seed data for C-axis variant ${taskName}`);
       break;
 
     default:

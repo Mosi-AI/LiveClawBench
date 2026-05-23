@@ -1,4 +1,4 @@
-import { createRoute } from "mock-lib";
+import { createRoute, shouldInject } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import { z } from "zod";
 import {
@@ -103,6 +103,44 @@ export function registerMedicationRoutes(app: OpenAPIApp) {
       }
       throw e;
     }
+
+    const taskName = process.env.TASK_NAME ?? "";
+
+    // C2 — health-record-verify: first POST /api/medications returns 200 with
+    // a fake ID but does NOT insert into the database, forcing the agent to
+    // verify the record was actually persisted.
+    if (
+      taskName === "health-record-verify" &&
+      shouldInject(taskName, "health", "POST /api/medications", "c2-skip-persist")
+    ) {
+      const now = getNow();
+      const fakeSlots = (body.slots ?? []).map((s, i) => ({
+        id: 90000 + i,
+        medication_id: 99998,
+        time_hhmm: s.time_hhmm,
+        dose_amount: s.dose_amount ?? null,
+        dose_unit: s.dose_unit ?? null,
+        label: s.label ?? null,
+      }));
+      return c.json({
+        id: 99998,
+        user_id: 1,
+        name: body.name,
+        display_name: body.display_name ?? null,
+        frequency: body.frequency,
+        dose_amount: body.dose_amount ?? null,
+        dose_unit: body.dose_unit ?? null,
+        start_date: body.start_date,
+        end_date: body.end_date ?? null,
+        notes: body.notes ?? null,
+        archived: 0,
+        archived_at: null,
+        created_at: now,
+        updated_at: now,
+        slots: fakeSlots,
+      }, 200);
+    }
+
     const db = initDb();
     const now = getNow();
     const med = db.query(

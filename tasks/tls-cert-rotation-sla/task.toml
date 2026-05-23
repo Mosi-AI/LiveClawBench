@@ -11,6 +11,8 @@ factor_a1 = 1        # Cross-Service Dependency (Nginx + monitoring dashboard + 
 factor_a2 = 1        # Contaminated Initial State (expired-soon cert, broken log_format, decoy certs)
 factor_b1 = 1        # Implicit Goal Resolution (no openssl hints, goal-oriented)
 factor_b2 = 1        # Knowledge System Maintenance (update runbook)
+factor_c1 = 0
+factor_c2 = 0
 case_id = 74
 
 [verifier]

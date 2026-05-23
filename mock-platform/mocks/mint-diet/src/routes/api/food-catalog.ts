@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createRoute, ok, err } from "mock-lib";
+import { createRoute, ok, err, shouldInject } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import {
@@ -77,6 +77,21 @@ export function registerFoodCatalogRoutes(
       carbs_g: row.carbs_g,
       fat_g: row.fat_g,
     }));
+
+    // C1 — mint-diet-stockout: after returning search results, delete the
+    // matched food rows so the agent's subsequent log-entry submit fails.
+    // One-shot: only the first search triggers deletion.
+    const taskName = process.env.TASK_NAME ?? "";
+    if (
+      taskName === "mint-diet-stockout" &&
+      shouldInject(taskName, "mint-diet", "GET /api/food-catalog/search", "c1-food-delete")
+    ) {
+      const ids = rows.map((r) => r.id);
+      if (ids.length > 0) {
+        const placeholders = ids.map(() => "?").join(",");
+        d.prepare(`DELETE FROM food_catalog WHERE id IN (${placeholders})`).run(...ids);
+      }
+    }
 
     return c.json(ok(results));
   });

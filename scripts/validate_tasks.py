@@ -171,7 +171,14 @@ def validate_task(
                         )
 
             # Factor completeness
-            for factor in ("factor_a1", "factor_a2", "factor_b1", "factor_b2"):
+            for factor in (
+                "factor_a1",
+                "factor_a2",
+                "factor_b1",
+                "factor_b2",
+                "factor_c1",
+                "factor_c2",
+            ):
                 val = meta.get(factor)
                 if val not in (0, 1):
                     errors.append(f"task.toml: {factor} must be 0 or 1, got {val!r}")

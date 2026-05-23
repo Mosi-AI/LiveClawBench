@@ -1,4 +1,4 @@
-import { resetDb } from "mock-lib";
+import { resetDb, resetInjectionState } from "mock-lib";
 import { unlinkSync } from "node:fs";
 import { createHealthApp } from "../src/index";
 
@@ -10,6 +10,7 @@ function removeDbFiles() {
 
 export function createTestApp() {
   resetDb();
+  resetInjectionState();
   removeDbFiles();
   const mockApp = createHealthApp();
   return mockApp.app;
@@ -48,5 +49,6 @@ export async function deleteRequest(
 
 export function cleanup() {
   resetDb();
+  resetInjectionState();
   removeDbFiles();
 }

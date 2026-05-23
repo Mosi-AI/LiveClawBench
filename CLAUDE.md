@@ -220,6 +220,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | Task Dir | Domain | Difficulty | Verifier |
 |---|---|---|---|
 | `watch-shop` | E-commerce & Daily Svcs | easy | verify.py |
+| `watch-shop-stockout` | E-commerce & Daily Svcs | hard | verify.py |
+| `watch-shop-silent-fail` | E-commerce & Daily Svcs | hard | verify.py |
 | `washer-shop` | E-commerce & Daily Svcs | easy | verify.py |
 | `info-change` | E-commerce & Daily Svcs | easy | verify.py |
 | `washer-change` | E-commerce & Daily Svcs | easy | verify.py |
@@ -227,6 +229,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `email-washer-change` | E-commerce & Daily Svcs | easy | verify.py |
 | `email-writing` | Communication & Email | easy | verify.py |
 | `email-reply` | Communication & Email | easy | verify.py |
+| `email-reply-context-shift` | Communication & Email | hard | verify.py |
+| `email-sending-verify` | Communication & Email | medium | verify.py |
 | `schedule-change-request` | Calendar & Task Mgmt | medium | verify.py |
 | `flight-booking` | E-commerce & Daily Svcs | medium | verify.py |
 | `flight-info-change-notice` | Calendar & Task Mgmt | easy | verify.py |
@@ -238,6 +242,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `blog-site-completion-from-starter` | Coding & Software Dev | easy | verify.py |
 | `vue-build-fix-single` | DevOps & Env Repair | hard | verify.py |
 | `vue-build-fix-chain` | DevOps & Env Repair | hard | verify.py |
+| `vue-fix-rebreak` | DevOps & Env Repair | hard | verify.py |
 | `skill-creation` | Documents & Knowledge | medium | evaluate.py |
 | `skill-repository-curation` | Documents & Knowledge | medium | evaluate.py |
 | `skill-supplementation` | Documents & Knowledge | medium | evaluate.py |
@@ -254,9 +259,13 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
 | `health-daily-record` | Health & Fitness | easy | verify.py |
+| `health-record-verify` | Health & Fitness | medium | verify.py |
 | `expense-draft-delete` | Finance & Data Analytics | easy | verify.py |
+| `expense-submit-verify` | Finance & Data Analytics | medium | verify.py |
 | `social-media-posting` | Social Media | easy | verify.py |
 | `social-unlike-post` | Social Media | easy | verify.py |
+| `social-post-rate-limit` | Social Media | hard | verify.py |
+| `social-unlike-verify` | Social Media | medium | verify.py |
 | `social-event-campaign` | Social Media | medium | verify.py |
 | `social-keyword-cleanup` | Social Media | medium | verify.py |
 | `social-schedule-audit` | Social Media | medium | verify.py |
@@ -265,6 +274,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `social-data-anomaly-report` | Social Media | hard | verify.py |
 | `social-pinned-post-update` | Social Media | hard | verify.py |
 | `mint-diet-comprehensive` | Health & Fitness | easy | verify.py |
+| `mint-diet-stockout` | Health & Fitness | hard | verify.py |
 | `nutrition-log-meal` | Health & Fitness | easy | verify.py |
 | `weather-city-travel-pick` | Health & Fitness | medium | verify.py |
 | `weather-outdoor-window` | Health & Fitness | hard | verify.py |
@@ -276,12 +286,15 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
 | `vendor-due-diligence-brief` | Deep Research & Report | medium | **llm_judge** |
 | `meeting-reschedule-response` | Calendar & Task Mgmt | easy | verify.py |
+| `meeting-slot-race` | Calendar & Task Mgmt | hard | verify.py |
 | `candidate-interview-slot-confirm` | Calendar & Task Mgmt | easy | verify.py |
+| `interview-slot-verify` | Calendar & Task Mgmt | medium | verify.py |
 | `medication-prescription-sync` | Health & Fitness | hard | verify.py |
 | `health-appointment-scheduling` | Health & Fitness | hard | verify.py |
 | `content-calendar-cross-publish` | Calendar & Task Mgmt | hard | verify.py |
 | `finance-anomaly-detect` | Finance & Data Analytics | medium | verify.py |
 | `finance-budget-alert` | Finance & Data Analytics | medium | verify.py |
+| `finance-budget-shift` | Finance & Data Analytics | hard | verify.py |
 | `finance-dashboard-repair` | Finance & Data Analytics | hard | verify.py |
 | `finance-depreciation-audit` | Finance & Data Analytics | hard | verify.py |
 | `finance-expense-log` | Finance & Data Analytics | easy | verify.py |
@@ -488,8 +501,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-116 implemented tasks: A1=47, A2=37, B1=42, B2=26.
-Difficulty: Easy=35, Medium=47, Hard=34.
+129 implemented tasks: A1=50, A2=39, B1=42, B2=26, C1=7, C2=6.
+Difficulty: Easy=35, Medium=58, Hard=36.
 
 ## Known Issues
 

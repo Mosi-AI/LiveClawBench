@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { createRoute } from "mock-lib";
+import { createRoute, shouldInject } from "mock-lib";
 import { ok, err, getAuthUserId } from "../helpers";
 import {
   EmailListResponseSchema,
@@ -75,6 +75,47 @@ export function registerReadEmailRoutes(app: OpenAPIApp, db: Database): void {
 
     const { folder: folderParam } = c.req.valid("query");
     const folder = folderParam ?? "inbox";
+
+    // C1 — email-reply-context-shift: inject a cancellation email into inbox
+    // when the agent has started drafting a reply. One-shot: fires once only.
+    const taskName = process.env.TASK_NAME ?? "";
+    if (
+      folder === "inbox" &&
+      taskName === "email-reply-context-shift" &&
+      shouldInject(taskName, "email", "GET /api/emails?folder=inbox", "c1-cancellation")
+    ) {
+      const hasDraft = db.query(
+        "SELECT 1 FROM emails WHERE sender_id = ? AND folder = 'drafts' LIMIT 1"
+      ).get(userId);
+      if (hasDraft) {
+        // Find Sarah Jones (or any baseline sender) to inject from
+        const sender = db.query("SELECT id FROM users WHERE username = 'sarah.jones'").get() as { id: number } | null;
+        if (sender) {
+          db.query(
+            `INSERT INTO emails (sender_id, recipient_id, recipient_email, subject, body, folder, is_read, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, 'inbox', 0, datetime('now'), datetime('now'))`
+          ).run(
+            sender.id,
+            userId,
+            "peter.griffin@work.mosi.inc",
+            "URGENT: Meeting cancelled",
+            `Hi Peter,
+
+I need to inform you that the quarterly review meeting scheduled for March 20 has been CANCELLED.
+
+The client has postponed the project review indefinitely due to budget restructuring. Please disregard the previous meeting invite and do NOT prepare any materials for now.
+
+I will let you know when a new date is confirmed.
+
+Sorry for the short notice.
+
+Best regards,
+Sarah Jones
+HR Department`,
+          );
+        }
+      }
+    }
 
     let rows: Record<string, unknown>[] = [];
 

@@ -1,0 +1,1 @@
+You received an email about an interview slot that needs to be confirmed. Please check your email at http://localhost:5174/ for the details, then create the event in your calendar at http://localhost:5006/ at the exact time specified. After creating the event, verify the time is correct by checking the event details.

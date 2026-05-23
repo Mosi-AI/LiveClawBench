@@ -38,6 +38,43 @@ interface SeedData {
   activities?: SeedActivity[];
 }
 
+// Task-specific seed data compiled into the binary.
+// Used when seed.json is absent but the mock needs predictable data for a known task.
+const TASK_SEEDS: Record<string, SeedData> = {
+  "expense-submit-verify": {
+    drafts: [
+      {
+        draft_code: "EXP-001",
+        vendor_name: "Cloudflare",
+        category: "software",
+        amount: 150.0,
+        currency: "USD",
+        invoice_date: "2026-04-15",
+        expense_date: "2026-04-15",
+        notes: "April software",
+        source_type: "manual",
+        status: "draft",
+        attachment_ref: null,
+        owner_email: "alice@mosi.inc",
+      },
+      {
+        draft_code: "EXP-002",
+        vendor_name: "AWS",
+        category: "transport",
+        amount: 89.5,
+        currency: "USD",
+        invoice_date: "2026-04-20",
+        expense_date: "2026-04-20",
+        notes: "April cloud",
+        source_type: "manual",
+        status: "draft",
+        attachment_ref: null,
+        owner_email: "alice@mosi.inc",
+      },
+    ],
+  },
+};
+
 export function seed(): void {
   const db = getDb({ path: process.env.EXPENSE_MOCK_DB_PATH || ":memory:", autoMigrate: false });
   const dataDir = process.env.EXPENSE_MOCK_DATA_DIR || "/opt/mock/data";
@@ -59,12 +96,20 @@ export function seed(): void {
 
     // Layer 1: optional seed.json (per-task fixture; absent for the bare mock binary)
     const seedPath = join(dataDir, "seed.json");
-    if (!existsSync(seedPath)) {
+    let seedData: SeedData | null = null;
+    if (existsSync(seedPath)) {
+      seedData = JSON.parse(readFileSync(seedPath, "utf-8"));
+    } else {
+      // Layer 1b: task-specific compiled seed data
+      const taskName = process.env.TASK_NAME ?? "";
+      if (taskName in TASK_SEEDS) {
+        seedData = TASK_SEEDS[taskName];
+      }
+    }
+    if (!seedData) {
       db.exec("COMMIT");
       return;
     }
-
-    const seedData: SeedData = JSON.parse(readFileSync(seedPath, "utf-8"));
 
     // Insert seed users
     if (seedData.users) {

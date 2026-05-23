@@ -10,6 +10,8 @@ factor_a1 = 1   # Cross-Service Dependency (DB + App + Nginx log correlation)
 factor_a2 = 1   # Contaminated Initial State (noise logs, misleading errors injected)
 factor_b1 = 1   # Implicit Goal Resolution (must distinguish noise from signal)
 factor_b2 = 0
+factor_c1 = 0
+factor_c2 = 0
 case_id = 81
 
 [verifier]

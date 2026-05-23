@@ -1,0 +1,1 @@
+You received an email about a rescheduled meeting. Please check your email at http://localhost:5174/ for the details, then create the corresponding event in your calendar at http://localhost:5006/ at the specified time. After creating the event, verify it appears correctly in your calendar.

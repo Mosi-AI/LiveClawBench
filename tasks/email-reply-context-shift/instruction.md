@@ -1,0 +1,3 @@
+Please check if I have received an email from parrot.ai in my company email system website (http://localhost:5174/, open it in your browser). They told me a few days ago that they would compile their recent requirements and send them to me. If you have indeed received their email, please reply to them to let them know that we have received it and will handle it properly.
+
+After sending your reply, please confirm the email appears in your sent folder.
