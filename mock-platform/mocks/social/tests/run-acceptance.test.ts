@@ -13,24 +13,25 @@ const MOCK_PLATFORM_ROOT = resolve(MOCK_ROOT, "../..");
 // ---------------------------------------------------------------------------
 
 /**
- * Probes an available port by trying multiple candidates sequentially,
- * starting in the high range where EADDRINUSE is unlikely.
+ * Probes an available port by binding a temporary server on port 0
+ * (OS-assigned), reading the assigned port, and stopping it.
+ * Retries a few times in case of a race between stop() and spawn().
  */
 function probeAvailablePort(): number {
-  const candidates = Array.from({ length: 100 }, (_, i) => 45000 + i);
-  for (const port of candidates) {
+  for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const srv = Bun.serve({
-        port,
+        port: 0,
         fetch() { return new Response("ok"); }
       });
+      const port = srv.port;
       srv.stop();
       return port;
     } catch {
-      // port in use, try next
+      // Race or bind failure, retry
     }
   }
-  throw new Error("Could not find an available port in 45000-45099");
+  throw new Error("Could not find an available port after 5 attempts");
 }
 
 let serverProcess: any;
