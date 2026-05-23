@@ -1,7 +1,7 @@
 # LiveClawBench 复杂度框架
 
 本文档是 LiveClawBench 任务复杂度标注的唯一参考来源。
-涵盖因子定义、完整的 109 case 标注表（109 个已实现）、
+涵盖因子定义、完整的 110 case 标注表（110 个已实现）、
 摘要统计、领域覆盖和控制对。
 
 ## 复杂度因子定义
@@ -17,7 +17,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 ---
 
-## 1. 109 Case 因子标注表
+## 1. 110 Case 因子标注表
 
 `✓` 表示该 case 包含对应因子。
 
@@ -132,6 +132,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |     107 | ai-copyright-international-jurisprudence | M |    |    |    |    | Deep Research & Report     |
 |     108 | long-covid-neurological-hypotheses |  M   |    |    |    |    | Deep Research & Report     |
 |     109 | cookiewall-locale-policy-diff      |  M   |    | ✓  | ✓  |    | Documents & Knowledge      |
+|     110 | pressroom-alias-collector          |  M   | ✓  | ✓  | ✓  |    | Documents & Knowledge      |
 
 
 ---
@@ -140,21 +141,21 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |    45 |  41.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2   | 初始状态污染             |    35 |  32.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, cookiewall-locale-policy-diff |
-| B1   | 隐式目标解析             |    38 |  34.9% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, cookiewall-locale-policy-diff |
-| B2   | 知识系统维护             |    22 |  20.2% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1   | 跨服务依赖               |    46 |  41.8% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, pressroom-alias-collector |
+| A2   | 初始状态污染             |    36 |  32.7% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, cookiewall-locale-policy-diff, pressroom-alias-collector |
+| B1   | 隐式目标解析             |    39 |  35.5% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, cookiewall-locale-policy-diff, pressroom-alias-collector |
+| B2   | 知识系统维护             |    22 |  20.0% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> 占比以 109 个已实现 case 总数为分母。
+> 占比以 110 个已实现 case 总数为分母。
 
 因子组合分布：
 
-- 无因子（基准）：32 个 case（29.4%）
-- 单因子：30 个 case（27.5%）
-- 双因子：27 个 case（24.8%）
-- 三因子：16 个 case（14.7%）
+- 无因子（基准）：32 个 case（29.1%）
+- 单因子：30 个 case（27.3%）
+- 双因子：27 个 case（24.5%）
+- 三因子：17 个 case（15.5%）
 - 四因子：2 个 case（1.8%）
-- **多因子（≥2 个因子）：45 个 case（41.3%）**
+- **多因子（≥2 个因子）：46 个 case（41.8%）**
 
 ---
 

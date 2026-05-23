@@ -120,6 +120,7 @@ const ALL_TASK_NAMES = new Set([
   "fake-system-notification",
   // Browser tasks with Python HTTP servers (case_ids 109+)
   "cookiewall-locale-policy-diff",
+  "pressroom-alias-collector",
 ]);
 
 interface AssetMapping {

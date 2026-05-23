@@ -458,6 +458,7 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 | `ambiguous-cleanup-task` | DevOps & Env Repair | hard | verify.py |
 | `research-with-adversarial-sources` | Deep Research & Report | hard | **llm_judge** |
 | `cookiewall-locale-policy-diff` | Documents & Knowledge | medium | verify.py |
+| `pressroom-alias-collector` | Documents & Knowledge | medium | verify.py |
 
 > **ty and `tasks/*/tests/`**: `verify.py` files use `sys.path.insert(0, "/workspace/environment/...")` which
 > only resolves inside Docker containers, so ty cannot check them in CI without Docker. Tracked as a TODO in
@@ -465,8 +466,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-109 implemented tasks: A1=45, A2=35, B1=38, B2=22.
-Difficulty: Easy=35, Medium=48, Hard=26.
+110 implemented tasks: A1=46, A2=36, B1=39, B2=22.
+Difficulty: Easy=35, Medium=49, Hard=26.
 
 ## Known Issues
 

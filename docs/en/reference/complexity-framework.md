@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 109-case annotation table (109 implemented),
+It covers factor definitions, the full 110-case annotation table (110 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 109-Case Factor Annotation Table
+## 1. 110-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -138,6 +138,7 @@ single, clean environment without structural complexity.
 |     107 | ai-copyright-international-jurisprudence | M    |    |    |    |    | Deep Research & Report     |
 |     108 | long-covid-neurological-hypotheses |    M      |    |    |    |    | Deep Research & Report     |
 |     109 | cookiewall-locale-policy-diff      |     M      |    | ✓  | ✓  |    | Documents & Knowledge      |
+|     110 | pressroom-alias-collector          |     M      | ✓  | ✓  | ✓  |    | Documents & Knowledge      |
 
 ---
 
@@ -145,21 +146,21 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    45 |      41.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2     | Contaminated Initial State     |    35 |      32.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, cookiewall-locale-policy-diff |
-| B1     | Implicit Goal Resolution       |    38 |      34.9% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, cookiewall-locale-policy-diff |
-| B2     | Knowledge System Maintenance   |    22 |      20.2% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1     | Cross-Service Dependency       |    46 |      41.8% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, pressroom-alias-collector |
+| A2     | Contaminated Initial State     |    36 |      32.7% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, cookiewall-locale-policy-diff, pressroom-alias-collector |
+| B1     | Implicit Goal Resolution       |    39 |      35.5% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, cookiewall-locale-policy-diff, pressroom-alias-collector |
+| B2     | Knowledge System Maintenance   |    22 |      20.0% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> Percentages are relative to 109 implemented cases.
+> Percentages are relative to 110 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 32 cases (29.4%)
-- Single factor: 30 cases (27.5%)
-- Dual factor: 27 cases (24.8%)
-- Triple factor: 16 cases (14.7%)
+- No factors (baseline): 32 cases (29.1%)
+- Single factor: 30 cases (27.3%)
+- Dual factor: 27 cases (24.5%)
+- Triple factor: 17 cases (15.5%)
 - Quad factor: 2 cases (1.8%)
-- **Multi-factor (≥2 factors): 45 cases (41.3%)**
+- **Multi-factor (≥2 factors): 46 cases (41.8%)**
 
 ---
 

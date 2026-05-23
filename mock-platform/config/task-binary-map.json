@@ -1030,6 +1030,10 @@
     "cookiewall-locale-policy-diff": {
       "binaries": [],
       "startup_extra": "tasks/cookiewall-locale-policy-diff/environment/startup.sh"
+    },
+    "pressroom-alias-collector": {
+      "binaries": [],
+      "startup_extra": "tasks/pressroom-alias-collector/environment/startup.sh"
     }
   }
 }
