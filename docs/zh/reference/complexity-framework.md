@@ -1,7 +1,7 @@
 # LiveClawBench 复杂度框架
 
 本文档是 LiveClawBench 任务复杂度标注的唯一参考来源。
-涵盖因子定义、完整的 116 case 标注表（116 个已实现）、
+涵盖因子定义、完整的 117 case 标注表（117 个已实现）、
 摘要统计、领域覆盖和控制对。
 
 ## 复杂度因子定义
@@ -17,7 +17,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 ---
 
-## 1. 116 Case 因子标注表
+## 1. 117 Case 因子标注表
 
 `✓` 表示该 case 包含对应因子。
 
@@ -139,6 +139,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |     114 | openlibrary-3rd-metadata-source   |  H   | ✓  |    |    | ✓  | Coding & Software Dev      |
 |     115 | teleport-gcp-cert-identity        |  H   | ✓  |    |    | ✓  | Coding & Software Dev      |
 |     116 | vuls-kernel-detection             |  H   |    | ✓  |    | ✓  | Coding & Software Dev      |
+|     117 | ad-library-snapshot-capture       |  M   |    | ✓  | ✓  |    | Social Media & Operations  |
 
 
 ---
@@ -148,20 +149,20 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
 | A1   | 跨服务依赖               |    47 |  40.5% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2   | 初始状态污染             |    37 |  31.9% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1   | 隐式目标解析             |    42 |  36.2% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| A2   | 初始状态污染             |    38 |  32.5% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1   | 隐式目标解析             |    43 |  36.8% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
 | B2   | 知识系统维护             |    26 |  22.4% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> 占比以 116 个已实现 case 总数为分母。
+> 占比以 117 个已实现 case 总数为分母。
 
 因子组合分布：
 
 - 无因子（基准）：34 个 case（29.3%）
 - 单因子：32 个 case（27.6%）
-- 双因子：32 个 case（27.6%）
-- 三因子：16 个 case（13.8%）
+- 双因子：33 个 case（28.2%）
+- 三因子：16 个 case（13.7%）
 - 四因子：2 个 case（1.7%）
-- **多因子（≥2 个因子）：50 个 case（43.1%）**
+- **多因子（≥2 个因子）：51 个 case（43.6%）**
 
 
 ---
@@ -181,6 +182,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 | Deep Research & Report     |  2 |  1 |  2 |  3 |            8 |
 | Health & Fitness           |  2 |  3 |  3 |  0 |            8 |
 | Social Media               |  6 |  3 |  6 |  0 |           15 |
+| Social Media & Operations  |  0 |  1 |  1 |  0 |                      2 |
 | Finance & Data Analytics   |  4 |  5 |  6 |  4 |                     19 |
 
 关键观察：
@@ -222,7 +224,7 @@ LiveClawBench 包含 2 个经验证具有有效难度梯度的控制对。
 | 难度 | 数量 | 占比   | Case 列表 |
 |:----:|-----:|-------:|-----------|
 | 简单 |    35 |  30.2% | （详见 registry；35 个简单 case） |
-| 中等 |    47 |  40.5% | （详见 registry；47 个中等 case，含 10 个深度研究和 2 个 workspace 任务） |
+| 中等 |    48 |  41.0% | （详见 registry；48 个中等 case，含 10 个深度研究和 2 个 workspace 任务） |
 | 困难 |    34 |  29.3% | （详见 registry；34 个困难 case，含 8 个 SWE-Pro/开放世界编码任务） |
 
 因子数量与难度关系：

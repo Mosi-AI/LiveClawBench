@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 116-case annotation table (116 implemented),
+It covers factor definitions, the full 117-case annotation table (117 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -145,6 +145,7 @@ single, clean environment without structural complexity.
 |     114 | openlibrary-3rd-metadata-source   |     H      | ✓  |    |    | ✓  | Coding & Software Dev      |
 |     115 | teleport-gcp-cert-identity        |     H      | ✓  |    |    | ✓  | Coding & Software Dev      |
 |     116 | vuls-kernel-detection             |     H      |    | ✓  |    | ✓  | Coding & Software Dev      |
+|     117 | ad-library-snapshot-capture       |     M      |    | ✓  | ✓  |    | Social Media & Operations  |
 
 ---
 
@@ -153,20 +154,20 @@ single, clean environment without structural complexity.
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
 | A1     | Cross-Service Dependency       |    47 |      40.5% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2     | Contaminated Initial State     |    37 |      31.9% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1     | Implicit Goal Resolution       |    42 |      36.2% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| A2     | Contaminated Initial State     |    38 |      32.5% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1     | Implicit Goal Resolution       |    43 |      36.8% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
 | B2     | Knowledge System Maintenance   |    26 |      22.4% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> Percentages are relative to 116 implemented cases.
+> Percentages are relative to 117 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 34 cases (29.3%)
-- Single factor: 32 cases (27.6%)
-- Dual factor: 32 cases (27.6%)
-- Triple factor: 16 cases (13.8%)
+- No factors (baseline): 34 cases (29.1%)
+- Single factor: 32 cases (27.4%)
+- Dual factor: 33 cases (28.2%)
+- Triple factor: 16 cases (13.7%)
 - Quad factor: 2 cases (1.7%)
-- **Multi-factor (≥2 factors): 50 cases (43.1%)**
+- **Multi-factor (≥2 factors): 51 cases (43.6%)**
 
 
 ---
@@ -186,6 +187,7 @@ Factor occurrence frequency per primary domain:
 | Deep Research & Report     |  2 |  1 |  2 |  3 |                      8 |
 | Health & Fitness           |  2 |  3 |  3 |  0 |                      8 |
 | Social Media               |  6 |  3 |  6 |  0 |                     15 |
+| Social Media & Operations  |  0 |  1 |  1 |  0 |                      2 |
 | Finance & Data Analytics   |  4 |  5 |  6 |  4 |                     19 |
 
 Key observations:
@@ -229,7 +231,7 @@ Pair design rationale:
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
 | Easy       |    35 |      30.2% | (see registry; 35 easy cases) |
-| Medium     |    47 |      40.5% | (see registry; 47 medium cases including 10 deep research and 2 workspace tasks) |
+| Medium     |    48 |      41.0% | (see registry; 48 medium cases including 10 deep research and 2 workspace tasks) |
 | Hard       |    34 |      29.3% | (see registry; 34 hard cases including 8 SWE-Pro/open-world coding tasks) |
 
 Factor count vs difficulty:

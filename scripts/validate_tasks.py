@@ -38,6 +38,8 @@ VALID_DOMAINS = {
     "Smart Home",
     "Social Media",
     "Voice & Multimodal",
+    "Social Media & Operations",
+    "Content Creation & Multimedia",
 }
 DOMAIN_TO_TAG: dict[str, set[str]] = {
     "Browser & Web Scraping": {"browser_web_scraping"},
@@ -53,6 +55,8 @@ DOMAIN_TO_TAG: dict[str, set[str]] = {
     "Smart Home": {"smart_home"},
     "Social Media": {"social_media"},
     "Voice & Multimodal": {"voice_multimodal"},
+    "Social Media & Operations": {"social_media_operations"},
+    "Content Creation & Multimedia": {"content_creation_multimedia"},
 }
 
 

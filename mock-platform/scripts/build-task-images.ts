@@ -181,6 +181,7 @@ const ALL_TASK_NAMES = new Set([
   "openlibrary-3rd-metadata-source",
   "teleport-gcp-cert-identity",
   "vuls-kernel-detection",
+  "ad-library-snapshot-capture",
 ]);
 
 interface AssetMapping {

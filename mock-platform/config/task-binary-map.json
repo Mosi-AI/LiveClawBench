@@ -949,6 +949,10 @@
     },
     "mrna-cancer-vaccines-landscape": {
       "binaries": []
+    },
+    "ad-library-snapshot-capture": {
+      "binaries": [],
+      "startup_extra": "tasks/ad-library-snapshot-capture/environment/startup.sh"
     }
   }
 }

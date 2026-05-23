@@ -319,6 +319,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `vuls-kernel-detection` | Coding & Software Dev | hard | verify.py |
 | `chat-sticker-engagement` | E-commerce & Daily Svcs | hard | verify.py |
 | `sticker-store-acquire` | E-commerce & Daily Svcs | medium | verify.py |
+| `ad-library-snapshot-capture` | Social Media & Operations | medium | verify.py |
 
 ## Docker Image Architecture
 
@@ -472,8 +473,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-116 implemented tasks: A1=47, A2=37, B1=42, B2=26.
-Difficulty: Easy=35, Medium=47, Hard=34.
+117 implemented tasks: A1=47, A2=38, B1=43, B2=26.
+Difficulty: Easy=35, Medium=48, Hard=34.
 
 ## Known Issues
 

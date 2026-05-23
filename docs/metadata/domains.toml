@@ -55,3 +55,11 @@ slug = "browser_web_scraping"
 [[domain]]
 name = "Voice & Multimodal"
 slug = "voice_multimodal"
+
+[[domain]]
+name = "Social Media & Operations"
+slug = "social_media_operations"
+
+[[domain]]
+name = "Content Creation & Multimedia"
+slug = "content_creation_multimedia"
