@@ -9,29 +9,66 @@ const MOCK_ROOT = resolve(import.meta.dir, "..");
 const MOCK_PLATFORM_ROOT = resolve(MOCK_ROOT, "../..");
 
 // ---------------------------------------------------------------------------
-// Dynamic port allocation — avoids EADDRINUSE brittleness of fixed ports
+// Deterministic port allocation — avoids EADDRINUSE without requiring the
+// test process to bind a temporary socket (Bun 1.3.11 rejects port 0).
 // ---------------------------------------------------------------------------
 
+/** Pick a candidate port based on process.pid so parallel test runners
+ *  (different pids) land on disjoint ranges. */
+function pickCandidatePort(attempt: number): number {
+  const base = 30000 + (process.pid % 20000);
+  return base + attempt * 7;
+}
+
 /**
- * Probes an available port by binding a temporary server on port 0
- * (OS-assigned), reading the assigned port, and stopping it.
- * Retries a few times in case of a race between stop() and spawn().
+ * Spawn the compiled binary on a candidate port and wait for /health.
+ * Retries with new candidates on startup or health-check failure.
  */
-function probeAvailablePort(): number {
-  for (let attempt = 0; attempt < 5; attempt++) {
+async function startServer(binaryPath: string): Promise<void> {
+  const maxAttempts = 5;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const port = pickCandidatePort(attempt);
+    (globalThis as any).TEST_PORT = port;
+    (globalThis as any).TEST_BASE_URL = `http://127.0.0.1:${port}`;
+
+    serverProcess = Bun.spawn(
+      [binaryPath, "--port", String(port)],
+      {
+        cwd: MOCK_ROOT,
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    );
+
     try {
-      const srv = Bun.serve({
-        port: 0,
-        fetch() { return new Response("ok"); }
-      });
-      const port = srv.port;
-      srv.stop();
-      return port;
-    } catch {
-      // Race or bind failure, retry
+      await waitForHealth(serverProcess);
+      return; // success
+    } catch (err: any) {
+      const exitInfo = serverProcess.exitCode !== null ? ` (exit code: ${serverProcess.exitCode})` : "";
+      let stderrText = "";
+      try {
+        stderrText = await new Response(serverProcess.stderr).text();
+      } catch {
+        // ignore read failure
+      }
+
+      // Kill the failed process before retrying
+      try {
+        serverProcess.kill();
+      } catch {
+        // ignore
+      }
+
+      if (attempt === maxAttempts - 1) {
+        throw new Error(
+          `Server failed to start after ${maxAttempts} attempts. ` +
+            `Last error: ${err.message}${exitInfo}. ` +
+            `Stderr: ${stderrText || "(empty)"}`,
+        );
+      }
+      // Otherwise continue to next candidate port
     }
   }
-  throw new Error("Could not find an available port after 5 attempts");
 }
 
 let serverProcess: any;
@@ -164,28 +201,8 @@ describe("Social Mock AC Tests", () => {
     // Build native binary for current platform
     const binaryPath = await buildNativeBinary();
 
-    // Probe an available port so we never fail to start due to EADDRINUSE
-    const port = probeAvailablePort();
-    (globalThis as any).TEST_PORT = port;
-    (globalThis as any).TEST_BASE_URL = `http://127.0.0.1:${port}`;
-
-    // Spawn binary with the dynamically allocated port
-    serverProcess = Bun.spawn(
-      [binaryPath, "--port", String(port)],
-      {
-        cwd: MOCK_ROOT,
-        stdout: "pipe",
-        stderr: "pipe",
-      },
-    );
-
-    // Surface any startup error immediately — do not mask it as "not ready"
-    try {
-      await waitForHealth(serverProcess);
-    } catch (err: any) {
-      const extraInfo = serverProcess.exitCode !== null ? ` (exit code: ${serverProcess.exitCode})` : "";
-      throw new Error(`${err.message}${extraInfo}. This usually means the mock process failed to start. Check stderr output above.`);
-    }
+    // Start server with retry loop (deterministic port allocation)
+    await startServer(binaryPath);
   }, 120000); // 120s timeout for beforeAll
 
   afterAll(() => {
