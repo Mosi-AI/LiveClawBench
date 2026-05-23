@@ -8,11 +8,22 @@ Bun+Hono mock services that simulate real-world APIs inside task containers. Eac
 mock-platform/
 ├── packages/mock-lib/         # Shared library
 ├── mocks/                     # Per-service implementations
-│   ├── shop/
-│   ├── doc-search/
 │   ├── airline/
+│   ├── calendar/
+│   ├── chat/
+│   ├── doc-search/
 │   ├── email/
-│   └── todolist/
+│   ├── expense/
+│   ├── finance/
+│   ├── health/
+│   ├── insurance/
+│   ├── mint-diet/
+│   ├── shop/
+│   ├── smarthome/
+│   ├── social/
+│   ├── todolist/
+│   ├── weather/
+│   └── workspace/
 ├── scripts/                   # Build & image tools
 ├── config/                    # Task-to-binary mapping
 └── docs/                      # API docs & test references
@@ -44,11 +55,22 @@ Search parity between the legacy Python mock implementations and the current Bun
 
 | Service | Directory | Binary | Description |
 |---------|-----------|--------|-------------|
-| Shop | `mocks/shop/` | `mock-shop` | E-commerce: products, cart, orders, user profile, search |
-| Doc-search | `mocks/doc-search/` | `mock-doc-search` | FTS5 full-text search with BM25 ranking, JSONL access logging |
 | Airline | `mocks/airline/` | `mock-airline` | Flight booking, seat selection, baggage tracking |
+| Calendar | `mocks/calendar/` | `mock-calendar` | Calendar events CRUD with overlap rejection |
+| Chat | `mocks/chat/` | `mock-chat` | Chat messaging with sticker engagement |
+| Doc-search | `mocks/doc-search/` | `mock-doc-search` | FTS5 full-text search with BM25 ranking, JSONL access logging |
 | Email | `mocks/email/` | `mock-email` | Email inbox, compose, reply |
-| Todolist | `mocks/todolist/` | `mock-todolist` | Task management |
+| Expense | `mocks/expense/` | `mock-expense` | Expense tracking and draft management |
+| Finance | `mocks/finance/` | `mock-finance` | Portfolio, invoices, tax, budget, anomaly detection |
+| Health | `mocks/health/` | `mock-health` | Health records, medication tracking, appointments |
+| Insurance | `mocks/insurance/` | `mock-insurance` | Health insurance: claims, appointments, plan selection |
+| Mint-diet | `mocks/mint-diet/` | `mock-mint-diet` | Diet logging, nutrition tracking, snack management |
+| Shop | `mocks/shop/` | `mock-shop` | E-commerce: products, cart, orders, user profile, search |
+| Smarthome | `mocks/smarthome/` | `mock-smarthome` | Smart device management and automation |
+| Social | `mocks/social/` | `mock-social` | Social media posting, scheduling, analytics, moderation |
+| Todolist | `mocks/todolist/` | `mock-todolist` | Task management with date filtering |
+| Weather | `mocks/weather/` | `mock-weather` | Weather reports, AQI, outdoor activity recommendations |
+| Workspace | `mocks/workspace/` | `mock-workspace` | Workspace briefs, task records, batch operations |
 
 API documentation is auto-generated as OpenAPI 3.1 specs in `dist/openapi/*.json`. Run `bun run generate-openapi` to regenerate after route changes.
 

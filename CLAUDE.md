@@ -55,7 +55,7 @@ source .venv/bin/activate
 ```bash
 uv venv .venv
 source .venv/bin/activate
-uv pip install "harbor @ git+https://github.com/Mosi-AI/claw-harbor.git@v0.1.0"
+uv pip install "harbor @ git+https://github.com/Mosi-AI/claw-harbor.git@main"
 ```
 
 ### API Key Configuration
@@ -137,12 +137,14 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
 
-> **LLM-judge tasks** (17 tasks: `ai-copyright-international-jurisprudence`, `autonomous-weapons-ethics`,
-> `conflict-repair-acb`, `crispr-off-target-mitigation`, `cross-border-data-privacy-comparison`,
+> **LLM-judge tasks** (20 tasks: `ai-copyright-international-jurisprudence`, `autonomous-weapons-ethics`,
+> `browser-portal-injection`, `conflict-repair-acb`, `corpus-file-injection`,
+> `crispr-off-target-mitigation`, `cross-border-data-privacy-comparison`,
 > `defi-systemic-risk-contagion`, `digital-religion-ai-vr`, `formal-verification-vs-fuzzing`,
 > `fusion-energy-commercial-viability`, `incremental-update-ctp`, `live-web-research-sqlite-fts5`,
 > `long-covid-neurological-hypotheses`, `mixed-tool-memory`, `mrna-cancer-vaccines-landscape`,
-> `noise-filtering`, `pre-meeting-research-brief`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
+> `noise-filtering`, `pre-meeting-research-brief`, `research-with-adversarial-sources`,
+> `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
 > for judge credentials because `llm_judge.py` runs in the verifier phase, outside the OpenClaw
 > agent process. **Missing `--ee` will cause the verifier to fail with
 > `RuntimeError: JUDGE_BASE_URL is not set`.**
@@ -159,15 +161,8 @@ task containers. Each mock compiles to a standalone binary via `bun build --comp
 
 ### Mock Services
 
-| Service | Directory | Binary | Description |
-|---|---|---|---|
-| Shop | `mocks/shop/` | `mock-shop` | E-commerce: products, cart, orders, user profile, search |
-| Doc-search | `mocks/doc-search/` | `mock-doc-search` | Full-text search with FTS5, BM25 ranking, JSONL access log |
-| Airline | `mocks/airline/` | `mock-airline` | Flight booking, seat selection, baggage tracking |
-| Email | `mocks/email/` | `mock-email` | Email inbox, compose, reply |
-| Todolist | `mocks/todolist/` | `mock-todolist` | Task management |
-| Insurance | `mocks/insurance/` | `mock-insurance` | Health insurance: claims, appointments, plan selection |
-| Calendar | `mocks/calendar/` | `mock-calendar` | Calendar events CRUD with overlap rejection |
+16 mock services covering e-commerce, travel, communication, finance, health, social media, and more.
+See [`mock-platform/README.md`](mock-platform/README.md) for the full service directory, build commands, and internal API docs.
 
 ### Build Commands
 
@@ -287,6 +282,43 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `fusion-energy-commercial-viability` | Deep Research & Report | medium | **llm_judge** |
 | `long-covid-neurological-hypotheses` | Deep Research & Report | medium | **llm_judge** |
 | `mrna-cancer-vaccines-landscape` | Deep Research & Report | medium | **llm_judge** |
+| `cd-pipeline-setup` | DevOps & Env Repair | medium | verify.py |
+| `security-audit-remediation` | DevOps & Env Repair | easy | verify.py |
+| `tls-cert-rotation-sla` | DevOps & Env Repair | medium | verify.py |
+| `grpc-service-crash-diagnosis` | DevOps & Env Repair | medium | verify.py |
+| `db-corruption-multi-recovery` | DevOps & Env Repair | medium | verify.py |
+| `legacy-stack-migration-deploy` | DevOps & Env Repair | medium | verify.py |
+| `chaotic-repo-restoration` | DevOps & Env Repair | medium | verify.py |
+| `monitoring-alerting-setup` | DevOps & Env Repair | hard | verify.py |
+| `git-merge-conflict-deploy` | DevOps & Env Repair | medium | verify.py |
+| `log-triage-incident-report` | DevOps & Env Repair | easy | verify.py |
+| `package-build-publish` | DevOps & Env Repair | medium | verify.py |
+| `microservice-stack-deploy` | DevOps & Env Repair | medium | verify.py |
+| `python-dependency-hell-resolution` | DevOps & Env Repair | hard | verify.py |
+| `email-phishing-injection` | Communication & Email | easy | verify.py |
+| `cross-service-credential-handling` | E-commerce & Daily Svcs | medium | verify.py |
+| `email-shop-privacy-leak` | E-commerce & Daily Svcs | hard | verify.py |
+| `api-key-in-devops` | DevOps & Env Repair | hard | verify.py |
+| `fake-system-notification` | E-commerce & Daily Svcs | medium | verify.py |
+| `flight-calendar-overshare` | Calendar & Task Mgmt | hard | verify.py |
+| `corpus-file-injection` | Deep Research & Report | medium | **llm_judge** |
+| `skill-repo-dangerous-cleanup` | Documents & Knowledge | medium | evaluate.py |
+| `phishing-in-inbox` | Calendar & Task Mgmt | medium | verify.py |
+| `browser-portal-injection` | Documents & Knowledge | easy | **llm_judge** |
+| `ambiguous-cleanup-task` | DevOps & Env Repair | hard | verify.py |
+| `research-with-adversarial-sources` | Deep Research & Report | hard | **llm_judge** |
+| `workspace-task-record-batch` | Calendar & Task Mgmt | medium | verify.py |
+| `workspace-brief-tracking` | Documents & Knowledge | medium | verify.py |
+| `ansible-iptables-ipset` | Coding & Software Dev | hard | verify.py |
+| `citation-network-influence` | Coding & Software Dev | hard | verify.py |
+| `element-web-unverified-device` | Coding & Software Dev | hard | verify.py |
+| `ga-classical-optimization` | Coding & Software Dev | hard | verify.py |
+| `ga-gol-persistent-structures` | Coding & Software Dev | hard | verify.py |
+| `openlibrary-3rd-metadata-source` | Coding & Software Dev | hard | verify.py |
+| `teleport-gcp-cert-identity` | Coding & Software Dev | hard | verify.py |
+| `vuls-kernel-detection` | Coding & Software Dev | hard | verify.py |
+| `chat-sticker-engagement` | E-commerce & Daily Svcs | hard | verify.py |
+| `sticker-store-acquire` | E-commerce & Daily Svcs | medium | verify.py |
 
 ## Docker Image Architecture
 
@@ -433,41 +465,6 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 | `tasks/skill-dependency-fix/environment/skills/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/.skill_snapshot/` | excluded (intentional fixture) | — |
 | `tasks/skill-repository-curation/environment/skills/` | excluded (intentional fixture) | — |
-| `cd-pipeline-setup` | DevOps & Env Repair | medium | verify.py |
-| `security-audit-remediation` | DevOps & Env Repair | easy | verify.py |
-| `tls-cert-rotation-sla` | DevOps & Env Repair | medium | verify.py |
-| `grpc-service-crash-diagnosis` | DevOps & Env Repair | medium | verify.py |
-| `db-corruption-multi-recovery` | DevOps & Env Repair | medium | verify.py |
-| `legacy-stack-migration-deploy` | DevOps & Env Repair | medium | verify.py |
-| `chaotic-repo-restoration` | DevOps & Env Repair | medium | verify.py |
-| `monitoring-alerting-setup` | DevOps & Env Repair | hard | verify.py |
-| `git-merge-conflict-deploy` | DevOps & Env Repair | medium | verify.py |
-| `log-triage-incident-report` | DevOps & Env Repair | easy | verify.py |
-| `package-build-publish` | DevOps & Env Repair | medium | verify.py |
-| `microservice-stack-deploy` | DevOps & Env Repair | medium | verify.py |
-| `python-dependency-hell-resolution` | DevOps & Env Repair | hard | verify.py |
-| `email-phishing-injection` | Communication & Email | easy | verify.py |
-| `cross-service-credential-handling` | E-commerce & Daily Svcs | medium | verify.py |
-| `email-shop-privacy-leak` | E-commerce & Daily Svcs | hard | verify.py |
-| `api-key-in-devops` | DevOps & Env Repair | hard | verify.py |
-| `fake-system-notification` | E-commerce & Daily Svcs | medium | verify.py |
-| `flight-calendar-overshare` | Calendar & Task Mgmt | hard | verify.py |
-| `corpus-file-injection` | Deep Research & Report | medium | **llm_judge** |
-| `skill-repo-dangerous-cleanup` | Documents & Knowledge | medium | evaluate.py |
-| `phishing-in-inbox` | Calendar & Task Mgmt | medium | verify.py |
-| `browser-portal-injection` | Documents & Knowledge | easy | **llm_judge** |
-| `ambiguous-cleanup-task` | DevOps & Env Repair | hard | verify.py |
-| `research-with-adversarial-sources` | Deep Research & Report | hard | **llm_judge** |
-| `workspace-task-record-batch` | Calendar & Task Mgmt | medium | verify.py |
-| `workspace-brief-tracking` | Documents & Knowledge | medium | verify.py |
-| `ansible-iptables-ipset` | Coding & Software Dev | hard | verify.py |
-| `citation-network-influence` | Coding & Software Dev | hard | verify.py |
-| `element-web-unverified-device` | Coding & Software Dev | hard | verify.py |
-| `ga-classical-optimization` | Coding & Software Dev | hard | verify.py |
-| `ga-gol-persistent-structures` | Coding & Software Dev | hard | verify.py |
-| `openlibrary-3rd-metadata-source` | Coding & Software Dev | hard | verify.py |
-| `teleport-gcp-cert-identity` | Coding & Software Dev | hard | verify.py |
-| `vuls-kernel-detection` | Coding & Software Dev | hard | verify.py |
 
 > **ty and `tasks/*/tests/`**: `verify.py` files use `sys.path.insert(0, "/workspace/environment/...")` which
 > only resolves inside Docker containers, so ty cannot check them in CI without Docker. Tracked as a TODO in

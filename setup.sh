@@ -4,7 +4,7 @@
 set -euo pipefail
 
 HARBOR_REPO_URL="https://github.com/Mosi-AI/claw-harbor.git"
-HARBOR_VERSION="v0.1.0"
+HARBOR_VERSION="main"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 VENV_DIR="$SCRIPT_DIR/.venv"
 

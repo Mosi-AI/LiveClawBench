@@ -24,7 +24,7 @@ LiveClawBench's design goal: build a benchmark that **systematically measures th
 
 We decompose the complexity of assistant tasks into three orthogonal axes, each containing independently manipulable complexity factors.
 
-> For the complete factor definitions, 32-case annotation table, and statistics, see [Complexity Framework Reference](../reference/complexity-framework.md).
+> For the complete factor definitions, 116-case annotation table, and statistics, see [Complexity Framework Reference](../reference/complexity-framework.md).
 
 ### Axis A: Environment Complexity
 

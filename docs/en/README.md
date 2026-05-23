@@ -20,7 +20,7 @@ Technical reference for task format and complexity annotations:
 
 | Reference | Description |
 |-----------|-------------|
-| [Complexity Framework](reference/complexity-framework.md) | Factor definitions, 32-case annotation table, domain heatmap, controlled pairs |
+| [Complexity Framework](reference/complexity-framework.md) | Factor definitions, 116-case annotation table, domain heatmap, controlled pairs |
 | [Task Format](reference/task-format.md) | Harbor task directory structure, `task.toml` fields, evaluation rubric |
 | [Jobs Output](reference/jobs-output.md) | `harbor run -o jobs` directory layout, file lifecycle (bind mounts), key fields, troubleshooting |
 

@@ -250,7 +250,7 @@ harbor run -p tasks/flight-seat-selection -a openclaw \
 
 ## Running the Full Dataset
 
-LiveClawBench registers its 32 tasks as a dataset named `liveclawbench@0.1.0` in the local `registry.json`.
+LiveClawBench registers its 116 tasks as a dataset named `liveclawbench@0.1.0` in the local `registry.json`.
 
 ### Option 1: Local registry (recommended for development)
 
@@ -287,7 +287,7 @@ wait
 
 This avoids the timestamp collision issue entirely because each `harbor run` writes to a distinct `jobs/<task-name>/` directory.
 
-> **Tip:** When using the per-task loop approach, remember to also pass `--ee JUDGE_*` variables for the 5 LLM-judge tasks. See [LLM-judge tasks](#llm-judge-tasks) for the full list and explanation.
+> **Tip:** When using the per-task loop approach, remember to also pass `--ee JUDGE_*` variables for the 20 LLM-judge tasks. See [LLM-judge tasks](#llm-judge-tasks) for the full list and explanation.
 
 ### Option 3: Use the provided script
 
@@ -349,7 +349,7 @@ See [Jobs Output](../reference/jobs-output.md) for the full directory layout and
 
 ## LLM-judge tasks
 
-Five tasks use an LLM-as-judge verifier (`llm_judge.py`) instead of pure rule-based scoring. These tasks require a **separate judge model API** that the verifier calls during the scoring phase — distinct from the model under evaluation.
+Twenty tasks use an LLM-as-judge verifier (`llm_judge.py`) instead of pure rule-based scoring. These tasks require a **separate judge model API** that the verifier calls during the scoring phase — distinct from the model under evaluation.
 
 ### Required environment variables
 
@@ -384,10 +384,25 @@ The judge model can be the same endpoint as the agent model or a different one. 
 | Task | Difficulty |
 |------|-----------|
 | `noise-filtering` | medium |
-| `incremental-update-ctp` | medium |
-| `conflict-repair-acb` | medium |
-| `mixed-tool-memory` | hard |
-| `live-web-research-sqlite-fts5` | hard |
+| `mixed-tool-memory` | easy |
+| `incremental-update-ctp` | easy |
+| `conflict-repair-acb` | easy |
+| `live-web-research-sqlite-fts5` | medium |
+| `pre-meeting-research-brief` | medium |
+| `vendor-due-diligence-brief` | medium |
+| `ai-copyright-international-jurisprudence` | medium |
+| `autonomous-weapons-ethics` | medium |
+| `browser-portal-injection` | easy |
+| `corpus-file-injection` | medium |
+| `crispr-off-target-mitigation` | medium |
+| `cross-border-data-privacy-comparison` | medium |
+| `defi-systemic-risk-contagion` | medium |
+| `digital-religion-ai-vr` | medium |
+| `formal-verification-vs-fuzzing` | medium |
+| `fusion-energy-commercial-viability` | medium |
+| `long-covid-neurological-hypotheses` | medium |
+| `mrna-cancer-vaccines-landscape` | medium |
+| `research-with-adversarial-sources` | hard |
 
 ## Hard Task Tips
 
