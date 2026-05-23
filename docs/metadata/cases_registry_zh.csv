@@ -107,3 +107,4 @@ case_id,ability_category,Case name,description,difficulty,Synthesize guidance,do
 106,深度研究,fusion-energy-commercial-viability,商业聚变能源的时间线与前景，包括托卡马克、惯性约束和替代方案，以及如何评估突破声明,M,评价agent在复杂主题上开展独立深度研究、综合多源证据并产出结构化分析报告与批判性评估的能力,Deep Research & Report,Deep Research & Report,0,0,0,0,implemented
 107,深度研究,ai-copyright-international-jurisprudence,不同司法管辖区对AI生成作品的版权处理及作者权、侵权和合理使用的国际判例趋势,M,评价agent在复杂主题上开展独立深度研究（含预设研究材料）、综合多源证据并产出结构化分析报告与批判性评估的能力,Deep Research & Report,Deep Research & Report,0,0,0,0,implemented
 108,深度研究,long-covid-neurological-hypotheses,长新冠神经症状的主要假说与治疗方法，包括持续机制、生物标志物和新兴治疗策略,M,评价agent在复杂主题上开展独立深度研究（含预设研究材料）、综合多源证据并产出结构化分析报告与批判性评估的能力,Deep Research & Report,Deep Research & Report,0,0,0,0,implemented
+109,浏览器,cookiewall-locale-policy-diff,比较政策门户网站上英文和欧盟本地化数据保留政策（含GDPR Cookie墙遮罩和干扰页面）,M,评价agent在带有Cookie同意摩擦的浏览器政策门户中导航、处理全屏GDPR Cookie墙并生成区域特定政策差异结构化摘要的能力,Documents & Knowledge,"Documents & Knowledge;Browser & Web Scraping",0,1,1,0,implemented

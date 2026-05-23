@@ -1,7 +1,7 @@
 # LiveClawBench 复杂度框架
 
 本文档是 LiveClawBench 任务复杂度标注的唯一参考来源。
-涵盖因子定义、完整的 108 case 标注表（108 个已实现）、
+涵盖因子定义、完整的 109 case 标注表（109 个已实现）、
 摘要统计、领域覆盖和控制对。
 
 ## 复杂度因子定义
@@ -17,7 +17,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 ---
 
-## 1. 108 Case 因子标注表
+## 1. 109 Case 因子标注表
 
 `✓` 表示该 case 包含对应因子。
 
@@ -131,6 +131,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |     106 | fusion-energy-commercial-viability |  M   |    |    |    |    | Deep Research & Report     |
 |     107 | ai-copyright-international-jurisprudence | M |    |    |    |    | Deep Research & Report     |
 |     108 | long-covid-neurological-hypotheses |  M   |    |    |    |    | Deep Research & Report     |
+|     109 | cookiewall-locale-policy-diff      |  M   |    | ✓  | ✓  |    | Documents & Knowledge      |
 
 
 ---
@@ -139,21 +140,21 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |    45 |  41.7% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2   | 初始状态污染             |    34 |  31.5% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1   | 隐式目标解析             |    37 |  34.3% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2   | 知识系统维护             |    22 |  20.4% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1   | 跨服务依赖               |    45 |  41.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2   | 初始状态污染             |    35 |  32.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, cookiewall-locale-policy-diff |
+| B1   | 隐式目标解析             |    38 |  34.9% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, cookiewall-locale-policy-diff |
+| B2   | 知识系统维护             |    22 |  20.2% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> 占比以 108 个已实现 case 总数为分母。
+> 占比以 109 个已实现 case 总数为分母。
 
 因子组合分布：
 
-- 无因子（基准）：32 个 case（29.6%）
-- 单因子：30 个 case（27.8%）
-- 双因子：26 个 case（24.1%）
-- 三因子：16 个 case（14.8%）
-- 四因子：2 个 case（1.9%）
-- **多因子（≥2 个因子）：44 个 case（40.7%）**
+- 无因子（基准）：32 个 case（29.4%）
+- 单因子：30 个 case（27.5%）
+- 双因子：27 个 case（24.8%）
+- 三因子：16 个 case（14.7%）
+- 四因子：2 个 case（1.8%）
+- **多因子（≥2 个因子）：45 个 case（41.3%）**
 
 ---
 
@@ -163,7 +164,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 主要领域                   | A1 | A2 | B1 | B2 | 因子实例总数 |
 |----------------------------|----|----|----|----|:------------:|
-| Documents & Knowledge      |  2 |  2 |  0 |  9 |           13 |
+| Documents & Knowledge      |  2 |  3 |  1 |  9 |           15 |
 | Communication & Email      |  0 |  0 |  0 |  0 |            0 |
 | E-commerce & Daily Svcs    |  7 |  0 |  6 |  0 |           13 |
 | Calendar & Task Mgmt       |  5 |  1 |  2 |  0 |            8 |

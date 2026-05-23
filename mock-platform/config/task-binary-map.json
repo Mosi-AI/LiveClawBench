@@ -1026,6 +1026,10 @@
     },
     "mrna-cancer-vaccines-landscape": {
       "binaries": []
+    },
+    "cookiewall-locale-policy-diff": {
+      "binaries": [],
+      "startup_extra": "tasks/cookiewall-locale-policy-diff/environment/startup.sh"
     }
   }
 }

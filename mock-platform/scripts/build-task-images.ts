@@ -118,6 +118,8 @@ const ALL_TASK_NAMES = new Set([
   "phishing-in-inbox",
   "flight-calendar-overshare",
   "fake-system-notification",
+  // Browser tasks with Python HTTP servers (case_ids 109+)
+  "cookiewall-locale-policy-diff",
 ]);
 
 interface AssetMapping {
