@@ -153,14 +153,14 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
 
-> **LLM-judge tasks** (20 tasks: `ai-copyright-international-jurisprudence`, `autonomous-weapons-ethics`,
+> **LLM-judge tasks** (21 tasks: `ai-copyright-international-jurisprudence`, `autonomous-weapons-ethics`,
 > `browser-portal-injection`, `conflict-repair-acb`, `corpus-file-injection`,
 > `crispr-off-target-mitigation`, `cross-border-data-privacy-comparison`,
-> `defi-systemic-risk-contagion`, `digital-religion-ai-vr`, `formal-verification-vs-fuzzing`,
-> `fusion-energy-commercial-viability`, `incremental-update-ctp`, `live-web-research-sqlite-fts5`,
-> `long-covid-neurological-hypotheses`, `mixed-tool-memory`, `mrna-cancer-vaccines-landscape`,
-> `noise-filtering`, `pre-meeting-research-brief`, `research-with-adversarial-sources`,
-> `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
+> `defi-systemic-risk-contagion`, `digital-religion-ai-vr`, `email-reply-context-shift`,
+> `formal-verification-vs-fuzzing`, `fusion-energy-commercial-viability`, `incremental-update-ctp`,
+> `live-web-research-sqlite-fts5`, `long-covid-neurological-hypotheses`, `mixed-tool-memory`,
+> `mrna-cancer-vaccines-landscape`, `noise-filtering`, `pre-meeting-research-brief`,
+> `research-with-adversarial-sources`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
 > for judge credentials because `llm_judge.py` runs in the verifier phase, outside the OpenClaw
 > agent process. **Missing `--ee` will cause the verifier to fail with
 > `RuntimeError: JUDGE_BASE_URL is not set`.**
@@ -220,8 +220,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | Task Dir | Domain | Difficulty | Verifier |
 |---|---|---|---|
 | `watch-shop` | E-commerce & Daily Svcs | easy | verify.py |
-| `watch-shop-stockout` | E-commerce & Daily Svcs | hard | verify.py |
-| `watch-shop-silent-fail` | E-commerce & Daily Svcs | hard | verify.py |
+| `watch-shop-stockout` | E-commerce & Daily Svcs | medium | verify.py |
+| `watch-shop-silent-fail` | E-commerce & Daily Svcs | medium | verify.py |
 | `washer-shop` | E-commerce & Daily Svcs | easy | verify.py |
 | `info-change` | E-commerce & Daily Svcs | easy | verify.py |
 | `washer-change` | E-commerce & Daily Svcs | easy | verify.py |
@@ -229,7 +229,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `email-washer-change` | E-commerce & Daily Svcs | easy | verify.py |
 | `email-writing` | Communication & Email | easy | verify.py |
 | `email-reply` | Communication & Email | easy | verify.py |
-| `email-reply-context-shift` | Communication & Email | hard | verify.py |
+| `email-reply-context-shift` | Communication & Email | medium | **llm_judge** |
 | `email-sending-verify` | Communication & Email | medium | verify.py |
 | `schedule-change-request` | Calendar & Task Mgmt | medium | verify.py |
 | `flight-booking` | E-commerce & Daily Svcs | medium | verify.py |
@@ -264,7 +264,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `expense-submit-verify` | Finance & Data Analytics | medium | verify.py |
 | `social-media-posting` | Social Media | easy | verify.py |
 | `social-unlike-post` | Social Media | easy | verify.py |
-| `social-post-rate-limit` | Social Media | hard | verify.py |
+| `social-post-rate-limit` | Social Media | medium | verify.py |
 | `social-unlike-verify` | Social Media | medium | verify.py |
 | `social-event-campaign` | Social Media | medium | verify.py |
 | `social-keyword-cleanup` | Social Media | medium | verify.py |
@@ -274,7 +274,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `social-data-anomaly-report` | Social Media | hard | verify.py |
 | `social-pinned-post-update` | Social Media | hard | verify.py |
 | `mint-diet-comprehensive` | Health & Fitness | easy | verify.py |
-| `mint-diet-stockout` | Health & Fitness | hard | verify.py |
+| `mint-diet-stockout` | Health & Fitness | medium | verify.py |
 | `nutrition-log-meal` | Health & Fitness | easy | verify.py |
 | `weather-city-travel-pick` | Health & Fitness | medium | verify.py |
 | `weather-outdoor-window` | Health & Fitness | hard | verify.py |
@@ -286,7 +286,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
 | `vendor-due-diligence-brief` | Deep Research & Report | medium | **llm_judge** |
 | `meeting-reschedule-response` | Calendar & Task Mgmt | easy | verify.py |
-| `meeting-slot-race` | Calendar & Task Mgmt | hard | verify.py |
+| `meeting-slot-race` | Calendar & Task Mgmt | medium | verify.py |
 | `candidate-interview-slot-confirm` | Calendar & Task Mgmt | easy | verify.py |
 | `interview-slot-verify` | Calendar & Task Mgmt | medium | verify.py |
 | `medication-prescription-sync` | Health & Fitness | hard | verify.py |

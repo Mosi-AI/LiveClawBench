@@ -244,8 +244,9 @@ describe("C1 fault injection — finance-budget-shift", () => {
     expect(alertRes.status).toBe(200);
     const alertJson = await alertRes.json();
 
-    // Now 6 violations: original 3 (Engineering, Sales, Marketing) + 3 new (HR, Finance, Operations)
-    expect(alertJson.violations.length).toBe(6);
+    // Now 5 violations: Engineering, Marketing over-budget + HR, Finance, Operations now over-budget after C1
+    // Sales was fixed by A2 (negative expense corrected)
+    expect(alertJson.violations.length).toBe(5);
 
     // HR should now be over budget (120K actual > 100K budget)
     const hrViolation = alertJson.violations.find(

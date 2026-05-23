@@ -61,18 +61,24 @@ describe("finance C-axis fault injection", () => {
       await finance.seed!();
     });
 
-    test("first POST lowers budget for non-violating departments", async () => {
+    test("first POST fixes A2 and lowers budget for non-violating departments", async () => {
       const cookie = await login();
 
-      // Before: HR budget is 150K
+      // Before: HR budget is 150K, Sales has negative expense
       const before = finance.db
-        .query<{ budget_amount: number }, [string, string]>(
-          "SELECT budget_amount FROM department_financial_record WHERE month = ? AND department_name = ?",
+        .query<{ budget_amount: number; actual_expense_amount: number }, [string, string]>(
+          "SELECT budget_amount, actual_expense_amount FROM department_financial_record WHERE month = ? AND department_name = ?",
         )
         .get("2026-03", "HR");
       expect(before!.budget_amount).toBe(150000.0);
+      const salesBefore = finance.db
+        .query<{ actual_expense_amount: number }, [string, string]>(
+          "SELECT actual_expense_amount FROM department_financial_record WHERE month = ? AND department_name = ?",
+        )
+        .get("2026-03", "Sales");
+      expect(salesBefore!.actual_expense_amount).toBe(-5000.0);
 
-      // First POST triggers C1
+      // First POST triggers A2 fix + C1 shift
       const res = await app.request("/api/departments/budget-alerts", {
         method: "POST",
         headers: { Cookie: cookie, "Content-Type": "application/json" },
@@ -80,7 +86,10 @@ describe("finance C-axis fault injection", () => {
       });
       expect(res.status).toBe(200);
       const json = await res.json();
-      expect(json.violations.length).toBe(6);
+      // After C1: HR, Finance, Operations are now over-budget (120K/140K/130K > 100K)
+      // Plus Engineering and Marketing still over-budget
+      // Sales fixed (5K < 150K)
+      expect(json.violations.length).toBe(5);
 
       // After: HR budget is 100K
       const after = finance.db
@@ -89,6 +98,14 @@ describe("finance C-axis fault injection", () => {
         )
         .get("2026-03", "HR");
       expect(after!.budget_amount).toBe(100000.0);
+
+      // Sales fixed
+      const salesAfter = finance.db
+        .query<{ actual_expense_amount: number }, [string, string]>(
+          "SELECT actual_expense_amount FROM department_financial_record WHERE month = ? AND department_name = ?",
+        )
+        .get("2026-03", "Sales");
+      expect(salesAfter!.actual_expense_amount).toBe(5000.0);
     });
 
     test("second POST does not lower budgets further (one-shot)", async () => {
@@ -128,7 +145,7 @@ describe("finance C-axis fault injection", () => {
       const res = await app.request("/api/departments/budget-alerts", {
         method: "POST",
         headers: { Cookie: cookie, "Content-Type": "application/json" },
-        body: JSON.stringify({ month: "2026-03", department_name: "Marketing", threshold: 0.8 }),
+        body: JSON.stringify({ month: "2026-03", department_name: "Marketing", threshold: 120000 }),
       });
       expect(res.status).toBe(200);
 
@@ -139,7 +156,21 @@ describe("finance C-axis fault injection", () => {
         .get();
       expect(alert).toBeDefined();
       expect(alert!.department_name).toBe("Marketing");
-      expect(alert!.threshold).toBe(0.8);
+      expect(alert!.threshold).toBe(120000);
+    });
+
+    test("returns 400 THRESHOLD_EXCEEDED when threshold exceeds lowered budget", async () => {
+      const cookie = await login();
+
+      // Try to set alert for HR with threshold > 100000 (lowered by C1)
+      const res = await app.request("/api/departments/budget-alerts", {
+        method: "POST",
+        headers: { Cookie: cookie, "Content-Type": "application/json" },
+        body: JSON.stringify({ month: "2026-03", department_name: "HR", threshold: 150000 }),
+      });
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.error).toBe("THRESHOLD_EXCEEDED");
     });
   });
 

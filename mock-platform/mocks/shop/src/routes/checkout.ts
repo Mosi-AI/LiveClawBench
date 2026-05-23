@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createRoute, ok, err, shouldInject } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import { CheckoutResponseSchema, ErrSchema } from "../schemas.js";
-import { loadCart, clearCart, loadOrders, saveOrders, loadUser, setStock, decrementStock } from "../data/store.js";
+import { loadCart, clearCart, loadOrders, saveOrders, loadUser, setStock, decrementStock, getStock } from "../data/store.js";
 import { DEFAULT_USER } from "../data/defaults.js";
 import type { Order } from "../types.js";
 
@@ -82,6 +82,19 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
       shouldInject(taskName, "shop", "POST /api/checkout", "c2-skip-persist")
     ) {
       return c.json(ok({ order_id: "ORD-FAKE-123" }, "Order placed successfully!"), 200);
+    }
+
+    // For C1 stockout task, enforce runtime stock check before order creation
+    if (taskName === "watch-shop-stockout") {
+      for (const item of cart) {
+        const stock = getStock(item.id);
+        if (stock !== undefined && stock <= 0) {
+          return c.json(
+            err(`Product ${item.id} is sold out`, "SOLD_OUT"),
+            409,
+          );
+        }
+      }
     }
 
     const orders = loadOrders();

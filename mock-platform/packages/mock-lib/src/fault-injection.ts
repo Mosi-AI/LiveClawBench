@@ -10,6 +10,23 @@
  * non-C-axis tasks (default branches preserve original behavior).
  */
 
+/** Registered C-axis tasks that may trigger fault injection. */
+const REGISTERED_TASKS = new Set([
+  "email-reply-context-shift",
+  "email-sending-verify",
+  "watch-shop-stockout",
+  "watch-shop-silent-fail",
+  "meeting-slot-race",
+  "interview-slot-verify",
+  "mint-diet-stockout",
+  "health-record-verify",
+  "social-post-rate-limit",
+  "social-unlike-verify",
+  "expense-submit-verify",
+  "finance-budget-shift",
+  "vue-fix-rebreak",
+]);
+
 /** Opaque key for tracking one-shot fault state. */
 type FaultKey = `${string}::${string}::${string}::${string}`;
 
@@ -31,6 +48,9 @@ function makeKey(
  * `(taskName, service, route, faultId)` tuple within this process,
  * then `false` on every subsequent call — one-shot semantics.
  *
+ * Only registered C-axis tasks are eligible for fault injection;
+ * arbitrary non-target task names return `false` without recording state.
+ *
  * @param taskName  Value of `process.env.TASK_NAME` (the running task directory name).
  * @param service   Mock service name, e.g. `"email"`, `"shop"`.
  * @param route     Route identifier, e.g. `"POST /api/send"`.
@@ -44,6 +64,9 @@ export function shouldInject(
   faultId: string | undefined | null,
 ): boolean {
   if (!taskName || !service || !route || !faultId) {
+    return false;
+  }
+  if (!REGISTERED_TASKS.has(taskName)) {
     return false;
   }
   const key = makeKey(taskName, service, route, faultId);

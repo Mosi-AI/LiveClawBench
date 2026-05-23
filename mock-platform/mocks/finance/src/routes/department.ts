@@ -79,24 +79,31 @@ export function registerDepartmentRoutes(app: OpenAPIApp, db: Database) {
 
     const taskName = process.env.TASK_NAME ?? "";
 
-    // C1 — finance-budget-shift: after the agent has read the A2-corrupted
-    // March 2026 data and attempts to create a budget alert, lower
-    // budget_amount for non-violating departments (HR, Finance, Operations)
-    // so they become over-budget on subsequent reads. One-shot via
-    // shouldInject.
-    if (
-      taskName === "finance-budget-shift" &&
-      shouldInject(taskName, "finance", "POST /api/*", "c1-budget-shift")
-    ) {
+    // For finance-budget-shift: auto-fix A2 corruption (negative actual_expense)
+    // before applying C1 shift, then enforce threshold against post-shift budget.
+    if (taskName === "finance-budget-shift") {
+      // Fix A2: Sales has negative actual_expense_amount in seed
       db.run(
         `UPDATE department_financial_record
-         SET budget_amount = 100000.0, updated_at = datetime('now')
+         SET actual_expense_amount = ABS(actual_expense_amount), updated_at = datetime('now')
          WHERE month = '2026-03'
-         AND department_name IN ('HR', 'Finance', 'Operations')`,
+         AND actual_expense_amount < 0`,
       );
+
+      // C1: one-shot lower budget for non-violating departments
+      if (
+        shouldInject(taskName, "finance", "POST /api/departments/budget-alerts", "c1-budget-shift")
+      ) {
+        db.run(
+          `UPDATE department_financial_record
+           SET budget_amount = 100000.0, updated_at = datetime('now')
+           WHERE month = '2026-03'
+           AND department_name IN ('HR', 'Finance', 'Operations')`,
+        );
+      }
     }
 
-    // Fetch records after potential C1 mutation
+    // Fetch records after potential mutation
     const rows = db
       .query<{
         department_name: string;
@@ -114,6 +121,21 @@ export function registerDepartmentRoutes(app: OpenAPIApp, db: Database) {
 
     // Persist budget alert record when agent explicitly sets up an alert
     if (department_name && threshold !== undefined) {
+      // For finance-budget-shift, enforce threshold against the (possibly lowered) budget
+      if (taskName === "finance-budget-shift") {
+        const deptRow = rows.find((r) => r.department_name === department_name);
+        if (deptRow && threshold > deptRow.budget_amount) {
+          return c.json(
+            {
+              error: "THRESHOLD_EXCEEDED",
+              message: `Threshold ${threshold} exceeds budget ${deptRow.budget_amount} for ${department_name}`,
+              budget_amount: deptRow.budget_amount,
+            },
+            400,
+          );
+        }
+      }
+
       db.run(
         `INSERT INTO budget_alert (department_name, threshold, month)
          VALUES (?, ?, ?)`,

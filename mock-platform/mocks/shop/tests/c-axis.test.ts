@@ -59,7 +59,7 @@ describe("shop C-axis fault injection", () => {
       expect(body.message).toContain("sold out");
     });
 
-    test("second checkout succeeds (one-shot)", async () => {
+    test("second checkout succeeds after removing sold-out watch (one-shot)", async () => {
       // Add watch to cart, checkout (fails with SOLD_OUT)
       await app.request("/api/cart/add", {
         method: "POST",
@@ -69,12 +69,14 @@ describe("shop C-axis fault injection", () => {
       const first = await app.request("/api/checkout", { method: "POST" });
       expect(first.status).toBe(409);
 
-      // Cart should still have the item (checkout failed)
+      // Remove the sold-out watch from cart
+      await app.request("/api/cart/remove/prod_0068", { method: "DELETE" });
+
       // Add a different item for the retry
-      await app.request("/api/cart", {
+      await app.request("/api/cart/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_id: "prod_0001", quantity: 1 }),
+        body: JSON.stringify({ product_id: "prod_0001" }),
       });
 
       // Second checkout should succeed
@@ -84,6 +86,32 @@ describe("shop C-axis fault injection", () => {
       expect(body.data.order_id).toBeDefined();
       // Should NOT be the fake order ID
       expect(body.data.order_id).not.toBe("ORD-FAKE-123");
+
+      // Final order must NOT contain the sold-out watch
+      const ordersRes = await app.request("/api/orders");
+      const orders = await ordersRes.json();
+      const order = orders.data.orders.find((o: any) => o.order_id === body.data.order_id);
+      expect(order).toBeDefined();
+      const itemIds = order.items.map((i: any) => i.id);
+      expect(itemIds).not.toContain("prod_0068");
+    });
+
+    test("checkout blocks when runtime stock is 0 after C1 fires", async () => {
+      // First checkout with watch triggers C1 and sets stock to 0
+      await app.request("/api/cart/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: "prod_0068" }),
+      });
+      const first = await app.request("/api/checkout", { method: "POST" });
+      expect(first.status).toBe(409);
+
+      // Cart still has the watch (checkout failed, cart unchanged)
+      // Attempt checkout again — stock is now 0, should be blocked
+      const second = await app.request("/api/checkout", { method: "POST" });
+      expect(second.status).toBe(409);
+      const body = await second.json();
+      expect(body.message).toContain("sold out");
     });
 
     test("stock state reflects sold-out after C1 fires", async () => {
