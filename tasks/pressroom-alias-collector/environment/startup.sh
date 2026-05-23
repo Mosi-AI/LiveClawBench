@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 python3 /workspace/environment/pressroom_server.py &
 i=0
 while [ $i -lt 30 ]; do
