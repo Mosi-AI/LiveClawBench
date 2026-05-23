@@ -48,6 +48,7 @@ def token_f1(expected: str, actual: str) -> float:
         return 0.0
     return 2 * precision * recall / (precision + recall)
 
+
 # Keywords for detecting each anomaly in the email body.
 # Multiple variants per anomaly to catch natural language variation.
 ANOMALY_KEYWORDS = {
