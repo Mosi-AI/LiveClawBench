@@ -6,6 +6,27 @@
       "content": "Join us for the Mosi Tech Innovation Summit 2026! Early bird registration is now open. Three days of cutting-edge tech talks, workshops, and networking. #TechSummit #MosiEvents",
       "status": "draft",
       "has_event_cta": 1
+    },
+    {
+      "id": 201,
+      "author_username": "mosi_brand",
+      "content": "Internal team lunch this Friday at 12pm. Please RSVP by Thursday noon.",
+      "status": "draft",
+      "has_event_cta": 0
+    },
+    {
+      "id": 202,
+      "author_username": "mosi_brand",
+      "content": "Testing the new post editor functionality. This is just a test draft — please ignore.",
+      "status": "draft",
+      "has_event_cta": 0
+    },
+    {
+      "id": 203,
+      "author_username": "mosi_brand",
+      "content": "Our summer internship program is now accepting applications. Apply by June 30.",
+      "status": "draft",
+      "has_event_cta": 0
     }
   ],
   "event_campaigns": [

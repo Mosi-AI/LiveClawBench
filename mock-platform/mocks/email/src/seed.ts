@@ -439,72 +439,48 @@ const SENDER_COMM_MANAGER = { username: "comm.manager", email: "comm.manager@mos
 const SENDER_CEO = { username: "ceo.mosi", email: "ceo@mosi.inc" };
 
 const INBOX_CROSS_PUBLISH = {
-  subject: "Cross-Publish Content to Social Media",
+  subject: "Summer Tech Summit social push",
   body: `Hi,
 
-Our marketing team has prepared a new promotional post that needs to be published on the Mosi Social platform. Here's the content:
+Marketing wants to push the Summer Tech Summit on social. I attached the talking points below. You'll also want to check the calendar for the confirmed event date — the social post should reference that. Get it up on the brand account when ready.
 
-Title: Summer Tech Summit 2026 - Early Bird Registration Open
-
-Content:
-"Join us for the biggest tech event of the year! The Summer Tech Summit 2026 brings together industry leaders, innovators, and tech enthusiasts for three days of keynotes, workshops, and networking.
-
-Key highlights:
-- 50+ speaker sessions
-- Hands-on workshops
-- Startup pitch competition
-- Evening networking events
-
-Early bird pricing ends June 30. Register now to save 30%!
-
-#TechSummit2026 #SummerSummit #TechConference"
-
-Please check the company calendar for the event date and recommended posting format, then publish this to our social media account.
+Talking points: industry leaders, 50+ sessions, workshops, startup pitches, networking, early bird ends June 30, save 30%.
 
 Best regards,
-Marketing Team`,
+Marketing Team (social.team@mosi.inc)`,
   days_ago: 0,
   is_read: 0,
 };
 
 const INBOX_PINNED_POST = {
-  subject: "Update Pinned Post on Social Media",
+  subject: "Refresh featured content",
   body: `Hi,
 
-We need to update the pinned post on our social media account. The current pinned post about our launch is outdated.
-
-Please pin the post about our "10K followers giveaway" instead, and unpin the current one. You'll need a verification code from the calendar event titled "Social Media Q2 Content Plan" to complete this change.
+Time to refresh the featured content on the brand page. The launch announcement has been up there for a while — the community team would rather highlight something more recent. There's a note in the calendar about the change procedure. Make sure you follow that before confirming with the social team.
 
 Best regards,
-Social Media Team`,
+Social Media Team (social-team@mosi.inc)`,
   days_ago: 0,
   is_read: 0,
 };
 
 const INBOX_EVENT_CAMPAIGN = {
-  subject: "Publish Event Campaign Post",
+  subject: "Event campaign ready to go live",
   body: `Hi,
 
-We have a draft post ready for our upcoming event campaign on the social media platform. It's currently saved as a draft under the Mosi Brand account.
-
-Please review the draft and publish it. After publishing, send a notification email to events@mosi.inc with the subject "Event Campaign Published" confirming the post is live.
+The Events Team has finalized the Mosi Tech Innovation Summit materials. The campaign content is sitting in drafts on the brand account. Get it live when you have a moment, and loop in the events team once it's out.
 
 Thanks,
-Events Team`,
+Events Team (events@mosi.inc)`,
   days_ago: 0,
   is_read: 0,
 };
 
 const INBOX_KEYWORD_CLEANUP = {
-  subject: "Remove Posts with Specific Keywords",
+  subject: "Clean up old campaign content",
   body: `Hi,
 
-We need to clean up some posts on our social media account. Please delete all posts that contain any of the following keywords:
-
-- "giveaway"
-- "milestone"
-
-These posts were part of a completed campaign and should be removed. Delete each post one by one through the platform.
+We've wrapped up the Q1 engagement campaigns. Can you clear out any leftover promotional posts and personal milestone announcements from the brand feed? The community team wants a clean slate for Q2.
 
 Best regards,
 Content Moderation Team`,
@@ -513,14 +489,10 @@ Content Moderation Team`,
 };
 
 const INBOX_COMMENT_MODERATION = {
-  subject: "Moderate Comments on Recent Posts",
+  subject: "Comment section cleanup needed",
   body: `Hi,
 
-Several comments on our social media posts need moderation. Please review the recent comments and reply to the ones that ask questions. Use the brand account (mosi_brand) for official replies.
-
-Also, check if any comments violate our keyword rules. If you find violations, hide or delete those comments.
-
-Important: some comments may need replies from different accounts. Use the account switch feature to respond appropriately.
+The community team flagged some noise in the comment sections. A few posts are getting off-topic replies and there's been feedback about unhelpful responses. Can you tidy things up and make sure legitimate questions get proper answers?
 
 Best regards,
 Community Management`,
@@ -529,20 +501,13 @@ Community Management`,
 };
 
 const INBOX_ANOMALY_REPORT = {
-  subject: "Social Media Data Integrity Check",
+  subject: "Analytics numbers look off",
   body: `Hi,
 
-We suspect there might be data inconsistencies in our social media analytics. Please review the post metrics and action logs on the platform to identify any anomalies.
-
-Specifically check for:
-- Posts with metrics that don't match their action logs
-- Posts with inconsistent status and published_at values
-- Any orphaned or duplicate data entries
-
-Once you've identified all anomalies, send a detailed report to data-team@mosi.inc with the subject "Social Media Data Anomaly Report" listing each issue you found.
+We've had some odd feedback about the analytics numbers not adding up. Could you take a look at the post data and see if anything looks off? If you find anything suspicious, flag it with the data team.
 
 Best regards,
-Data Integrity Team`,
+Data Integrity Team (data-team@mosi.inc)`,
   days_ago: 0,
   is_read: 0,
 };

@@ -4,9 +4,9 @@ Verifier for social-data-anomaly-report task (case_id=53).
 
 Checks that the agent sent an anomaly report email via the email mock.
 Scoring:
-  - 0.3 for sending an email to the correct recipient (data-team@mosi.inc)
-  - 0.3 for using the correct subject ("Social Media Data Anomaly Report")
-  - 0.4 for mentioning at least 2 of the 3 seeded anomalies in the body
+  - 0.1 for sending an email to the correct recipient (data-team@mosi.inc)
+  - 0.4 for using the correct subject ("Social Media Data Anomaly Report")
+  - 0.5 for mentioning at least 2 of the 3 seeded anomalies in the body
 
 Seeded anomalies:
   1. Post 101: status=published but published_at=NULL
@@ -33,6 +33,20 @@ EMAIL_DB = "/var/lib/mock-data/email/email.db"
 
 EXPECTED_RECIPIENT = "data-team@mosi.inc"
 EXPECTED_SUBJECT = "Social Media Data Anomaly Report"
+
+
+def token_f1(expected: str, actual: str) -> float:
+    """Compute token-level F1 between two strings."""
+    expected_tokens = set(expected.lower().split())
+    actual_tokens = set(actual.lower().split())
+    if not expected_tokens or not actual_tokens:
+        return 0.0
+    matched = expected_tokens & actual_tokens
+    precision = len(matched) / len(actual_tokens)
+    recall = len(matched) / len(expected_tokens)
+    if precision + recall == 0:
+        return 0.0
+    return 2 * precision * recall / (precision + recall)
 
 # Keywords for detecting each anomaly in the email body.
 # Multiple variants per anomaly to catch natural language variation.
@@ -130,20 +144,21 @@ def main():
 
     # --- Step 2: Score recipient ---
     if recipient_email == EXPECTED_RECIPIENT:
-        score += 0.3
+        score += 0.1
         messages.append(f"PASS: Email sent to correct recipient ({recipient_email})")
     else:
         messages.append(
             f"FAIL: Wrong recipient (got '{recipient_email}', expected '{EXPECTED_RECIPIENT}')"
         )
 
-    # --- Step 3: Score subject ---
-    if subject and EXPECTED_SUBJECT.lower() in subject.lower():
-        score += 0.3
-        messages.append(f"PASS: Correct subject ('{subject}')")
+    # --- Step 3: Score subject (F1-based) ---
+    subject_f1 = token_f1(EXPECTED_SUBJECT, subject or "")
+    if subject_f1 >= 0.5:
+        score += 0.4
+        messages.append(f"PASS: Correct subject ('{subject}', F1={subject_f1:.2f})")
     else:
         messages.append(
-            f"FAIL: Wrong subject (got '{subject}', expected '{EXPECTED_SUBJECT}')"
+            f"FAIL: Wrong subject (got '{subject}', F1={subject_f1:.2f} against '{EXPECTED_SUBJECT}')"
         )
 
     # --- Step 4: Score anomaly mentions ---
@@ -158,12 +173,12 @@ def main():
             anomaly_details.append(anomaly_key)
 
     if anomalies_found >= 2:
-        score += 0.4
+        score += 0.5
         messages.append(
             f"PASS: Found {anomalies_found}/3 anomalies in body ({', '.join(anomaly_details)})"
         )
     elif anomalies_found == 1:
-        score += 0.2
+        score += 0.25
         messages.append(
             f"PARTIAL: Found only {anomalies_found}/3 anomalies in body ({', '.join(anomaly_details)})"
         )

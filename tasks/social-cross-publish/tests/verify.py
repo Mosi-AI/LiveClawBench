@@ -4,12 +4,12 @@ Verifier for social-cross-publish task (case_id=55).
 
 The agent must read email, check calendar for event date, then publish a post.
 
-Scoring (5 dimensions, 0.2 each):
-  - 0.2 for published post with correct topic ("Summer Tech Summit")
-  - 0.2 for correct author (mosi_brand)
-  - 0.2 for email-specific content (early bird, June 30, save 30%, 50+ speaker)
-  - 0.2 for email-specified hashtags (#TechSummit2026 #SummerSummit #TechConference)
-  - 0.2 for calendar-derived content (event date "June 15")
+Scoring:
+  - 0.05 for published post with correct topic ("Summer Tech Summit")
+  - 0.05 for correct author (mosi_brand)
+  - 0.10 for email-specific content (early bird, June 30, save 30%, 50+ speaker)
+  - 0.50 for email-specified hashtags (#TechSummit2026 #SummerSummit #TechConference)
+  - 0.30 for calendar-derived content (event date "June 15")
 
 Gate: if calendar dimension is 0, total score is capped at 0.4 (below pass threshold).
 
@@ -33,6 +33,36 @@ EMAIL_PHRASES = ["early bird", "june 30", "save 30", "50+ speaker"]
 EMAIL_HASHTAGS = ["#techsummit2026", "#summersummit", "#techconference"]
 
 CALENDAR_DATE_PHRASES = ["june 15", "jun 15", "6/15", "06/15"]
+
+
+def token_f1(expected: str, actual: str) -> float:
+    """Compute token-level F1 between two strings."""
+    expected_tokens = set(expected.lower().split())
+    actual_tokens = set(actual.lower().split())
+    if not expected_tokens or not actual_tokens:
+        return 0.0
+    matched = expected_tokens & actual_tokens
+    precision = len(matched) / len(actual_tokens)
+    recall = len(matched) / len(expected_tokens)
+    if precision + recall == 0:
+        return 0.0
+    return 2 * precision * recall / (precision + recall)
+
+
+def hashtag_set_f1(expected_hashtags: list[str], text: str) -> float:
+    """Extract hashtags from text and compute set F1 against expected hashtags."""
+    import re
+
+    found = set(re.findall(r"#\w+", text.lower()))
+    expected = set(h.lower() for h in expected_hashtags)
+    if not expected or not found:
+        return 0.0
+    matched = expected & found
+    precision = len(matched) / len(found)
+    recall = len(matched) / len(expected)
+    if precision + recall == 0:
+        return 0.0
+    return 2 * precision * recall / (precision + recall)
 
 
 def api(path, method="GET", data=None, cookie=None):
@@ -119,10 +149,10 @@ def main():
                 print(f"  {msg}")
             sys.exit(0 if score >= 0.5 else 1)
 
-        # Dimension 1: Published with correct topic (0.2)
+        # Dimension 1: Published with correct topic (0.05)
         dim1_score = 0.0
         if target_post.get("status") == "published":
-            dim1_score = 0.2
+            dim1_score = 0.05
             messages.append(
                 f"PASS: published post with topic match (id={target_post.get('id')})"
             )
@@ -131,31 +161,31 @@ def main():
                 f"FAIL: topic match but status='{target_post.get('status')}', expected 'published'"
             )
 
-        # Dimension 2: Correct author (0.2)
+        # Dimension 2: Correct author (0.05)
         dim2_score = 0.0
         author_username = target_post.get("author_username", "")
         author_id = target_post.get("author_account_id", 0)
         if author_username == "mosi_brand" or author_id == 1:
-            dim2_score = 0.2
+            dim2_score = 0.05
             messages.append("PASS: post authored by mosi_brand")
         else:
             messages.append(
                 f"FAIL: post authored by '{author_username}' (id={author_id})"
             )
 
-        # Dimension 3: Email-specific content (0.2)
+        # Dimension 3: Email-specific content (0.10)
         dim3_score = 0.0
         content_lower = target_post.get("content", "").lower()
         found_phrases = [p for p in EMAIL_PHRASES if p in content_lower]
         if len(found_phrases) >= 1:
-            dim3_score = 0.2
+            dim3_score = 0.10
             messages.append(f"PASS: email-specific content found: {found_phrases}")
         else:
             messages.append(
                 f"FAIL: no email-specific content (expected: {EMAIL_PHRASES})"
             )
 
-        # Dimension 4: Email-specified hashtags (0.2)
+        # Dimension 4: Email-specified hashtags (0.50) — F1-based
         dim4_score = 0.0
         tags = target_post.get("tags", [])
         tag_labels = [
@@ -163,21 +193,20 @@ def main():
         ]
         combined = content_lower + " " + " ".join(tag_labels).lower()
 
-        found_hashtags = [h for h in EMAIL_HASHTAGS if h in combined]
-        if len(found_hashtags) >= 2:
-            dim4_score = 0.2
-            messages.append(f"PASS: email hashtags found: {found_hashtags}")
-        elif len(found_hashtags) == 1:
-            dim4_score = 0.1
-            messages.append(f"PARTIAL: one email hashtag found: {found_hashtags}")
+        hashtag_f1 = hashtag_set_f1(EMAIL_HASHTAGS, combined)
+        dim4_score = 0.50 * hashtag_f1
+        if hashtag_f1 >= 0.5:
+            messages.append(f"PASS: email hashtag set F1={hashtag_f1:.2f}")
+        elif hashtag_f1 > 0:
+            messages.append(f"PARTIAL: email hashtag set F1={hashtag_f1:.2f}")
         else:
             messages.append(f"FAIL: no email hashtags (expected: {EMAIL_HASHTAGS})")
 
-        # Dimension 5: Calendar-derived event date (0.2)
+        # Dimension 5: Calendar-derived event date (0.30)
         dim5_score = 0.0
         found_date = [d for d in CALENDAR_DATE_PHRASES if d in content_lower]
         if found_date:
-            dim5_score = 0.2
+            dim5_score = 0.30
             messages.append(f"PASS: calendar-derived event date found: {found_date}")
         else:
             messages.append(

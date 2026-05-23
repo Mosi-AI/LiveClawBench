@@ -6,6 +6,41 @@
       "content": "Important company announcement: We are expanding to European markets! Stay tuned for more details. #Expansion #MosiEU",
       "status": "published",
       "published_at": "2026-03-05 08:00:00"
+    },
+    {
+      "id": 201,
+      "author_username": "mosi_brand",
+      "content": "5K followers celebration! Thank you all for your support on this journey.",
+      "status": "published",
+      "published_at": "2026-02-20 10:00:00"
+    },
+    {
+      "id": 202,
+      "author_username": "mosi_brand",
+      "content": "New product giveaway: win a Mosi Pro subscription for one year! Enter now.",
+      "status": "published",
+      "published_at": "2026-03-01 14:00:00"
+    },
+    {
+      "id": 203,
+      "author_username": "mosi_brand",
+      "content": "Launch party recap: photos and highlights from our biggest event yet.",
+      "status": "published",
+      "published_at": "2026-02-15 09:00:00"
+    },
+    {
+      "id": 204,
+      "author_username": "mosi_brand",
+      "content": "Community guidelines update: please read and share with your network.",
+      "status": "published",
+      "published_at": "2026-03-10 11:00:00"
+    },
+    {
+      "id": 205,
+      "author_username": "mosi_brand",
+      "content": "Weekly tips: growing your audience on Mosi Social. #GrowthTips",
+      "status": "published",
+      "published_at": "2026-03-12 08:00:00"
     }
   ],
   "accounts": [],
@@ -15,7 +50,12 @@
   "follow_relations": [],
   "keyword_rules": [],
   "post_metrics": [
-    {"post_id": 101, "impressions": 8500, "likes": 420, "replies": 18, "reposts": 95, "clicks": 200, "profile_visits": 180, "new_followers": 22}
+    {"post_id": 101, "impressions": 8500, "likes": 420, "replies": 18, "reposts": 95, "clicks": 200, "profile_visits": 180, "new_followers": 22},
+    {"post_id": 201, "impressions": 3200, "likes": 156, "replies": 8, "reposts": 34, "clicks": 45, "profile_visits": 67, "new_followers": 12},
+    {"post_id": 202, "impressions": 5400, "likes": 278, "replies": 22, "reposts": 89, "clicks": 156, "profile_visits": 134, "new_followers": 31},
+    {"post_id": 203, "impressions": 7600, "likes": 390, "replies": 15, "reposts": 112, "clicks": 234, "profile_visits": 198, "new_followers": 45},
+    {"post_id": 204, "impressions": 1200, "likes": 45, "replies": 3, "reposts": 12, "clicks": 23, "profile_visits": 34, "new_followers": 5},
+    {"post_id": 205, "impressions": 2100, "likes": 89, "replies": 6, "reposts": 23, "clicks": 34, "profile_visits": 56, "new_followers": 9}
   ],
   "event_campaigns": [],
   "action_logs": [

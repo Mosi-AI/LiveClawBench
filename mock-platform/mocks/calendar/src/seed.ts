@@ -49,7 +49,7 @@ function seedTaskData(db: Database, userId: number, taskName: string): void {
           "2026-06-15 09:00:00",
           "2026-06-15 10:00:00",
           "social-campaign",
-          "POST_FORMAT: include event date June 15, 2026 and CTA: Register now at https://summit.mosi.inc",
+          "Summit logistics confirmed for mid-June. Social assets and posting timeline referenced.",
         ],
       );
       db.run(
@@ -61,7 +61,31 @@ function seedTaskData(db: Database, userId: number, taskName: string): void {
           "2026-06-14 14:00:00",
           "2026-06-14 15:00:00",
           "social-campaign",
-          "cross-publish-guidelines",
+          "Q2 publishing guidelines",
+        ],
+      );
+      db.run(
+        `INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          userId,
+          "June All-Hands Meeting",
+          "2026-06-16 10:00:00",
+          "2026-06-16 11:00:00",
+          "internal",
+          "Company-wide update scheduled for mid-June.",
+        ],
+      );
+      db.run(
+        `INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          userId,
+          "Product Launch Prep - June Cycle",
+          "2026-06-17 14:00:00",
+          "2026-06-17 15:30:00",
+          "product",
+          "Launch timeline and social coordination notes.",
         ],
       );
       console.log("calendar: seeded task data for social-cross-publish");
@@ -77,7 +101,7 @@ function seedTaskData(db: Database, userId: number, taskName: string): void {
           "2026-06-10 10:00:00",
           "2026-06-10 11:30:00",
           "social-content",
-          "VERIFICATION-CODE:SM-Q2-7842",
+          "Q2 content planning notes. Verification required for pinned post updates: SM-Q2-7842",
         ],
       );
       console.log("calendar: seeded task data for social-pinned-post-update");

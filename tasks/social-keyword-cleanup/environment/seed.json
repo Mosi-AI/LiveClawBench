@@ -2,7 +2,12 @@
   "posts": [
     {"id": 101, "author_username": "mosi_brand", "content": "Exclusive giveaway for our loyal followers! Share this post to win prizes. #HolidayGiveaway", "status": "published", "published_at": "2026-02-14 10:00:00"},
     {"id": 102, "author_username": "mosi_brand", "content": "Just reached a personal milestone - 100 days on this platform! #Milestone #Personal", "status": "published", "published_at": "2026-02-20 15:00:00"},
-    {"id": 103, "author_username": "mosi_brand", "content": "My latest video editing tutorial is now live! Check it out. #Tutorial #Editing", "status": "published", "published_at": "2026-02-25 09:00:00"}
+    {"id": 103, "author_username": "mosi_brand", "content": "My latest video editing tutorial is now live! Check it out. #Tutorial #Editing", "status": "published", "published_at": "2026-02-25 09:00:00"},
+    {"id": 201, "author_username": "mosi_brand", "content": "The results of our holiday giveaway are now available. Winners announced in the latest blog post!", "status": "published", "published_at": "2026-03-01 10:00:00"},
+    {"id": 202, "author_username": "mosi_brand", "content": "Reflecting on my milestone journey — 100 days of content creation. Thank you all for the support.", "status": "published", "published_at": "2026-03-05 14:00:00"},
+    {"id": 203, "author_username": "mosi_brand", "content": "New tutorial: How to edit videos like a pro. Step by step guide inside. #Tutorial", "status": "published", "published_at": "2026-03-10 09:00:00"},
+    {"id": 204, "author_username": "mosi_brand", "content": "Weekly community round-up: best posts from last week. Check them out! #Community", "status": "published", "published_at": "2026-03-12 11:00:00"},
+    {"id": 205, "author_username": "mosi_brand", "content": "Giveaway terms and conditions updated as of March 2026. Please review before participating.", "status": "published", "published_at": "2026-03-15 08:00:00"}
   ],
   "tags": [],
   "post_tags": [],

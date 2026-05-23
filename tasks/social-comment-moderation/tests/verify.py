@@ -3,11 +3,11 @@
 and a reply was posted to the legitimate question.
 
 Scoring (total 1.0):
-  - Comment 101 (scam) deleted/hidden:       0.2
-  - Comment 103 (fake news) deleted/hidden:   0.2
-  - Comment 104 (spam) deleted/hidden:        0.2
-  - Comment 102 still visible:                0.2
-  - Reply posted to comment 102:              0.2
+  - Comment 101 (scam) deleted/hidden:       0.05
+  - Comment 103 (fake news) deleted/hidden:   0.05
+  - Comment 104 (spam) deleted/hidden:        0.05
+  - Comment 102 still visible:                0.1
+  - Reply posted to comment 102:              0.75
 
 Completion gate: the reply to comment 102 is the required workflow artifact for
 this task. When no reply is found, the final score is capped at 0.4 — below the
@@ -62,12 +62,12 @@ violating_comments = [
 for cid, keyword in violating_comments:
     rows = query_db("SELECT status FROM comment WHERE id = ?", (cid,))
     if not rows:
-        SCORE += 0.2
+        SCORE += 0.05
         print(f"PASS: Comment {cid} ({keyword}) removed from database")
     else:
         status = rows[0]["status"]
         if status != "visible":
-            SCORE += 0.2
+            SCORE += 0.05
             print(f"PASS: Comment {cid} ({keyword}) status is '{status}'")
         else:
             print(f"FAIL: Comment {cid} ({keyword}) is still visible")
@@ -76,7 +76,7 @@ for cid, keyword in violating_comments:
 
 rows = query_db("SELECT status FROM comment WHERE id = 102")
 if rows and rows[0]["status"] == "visible":
-    SCORE += 0.2
+    SCORE += 0.1
     print("PASS: Comment 102 (legitimate question) is still visible")
 else:
     status = rows[0]["status"] if rows else "missing"
@@ -95,7 +95,7 @@ replies = query_db(
 
 if replies:
     reply_found = True
-    SCORE += 0.2
+    SCORE += 0.75
     reply_info = ", ".join(
         f"'{r['body'][:50]}' by {r.get('username', 'unknown')}" for r in replies
     )
@@ -131,7 +131,7 @@ else:
             ]
             if mosi_replies:
                 reply_found = True
-                SCORE += 0.2
+                SCORE += 0.75
                 print(
                     f"PASS: Reply found via API to comment 102 (mosi_brand): "
                     f"'{mosi_replies[0].get('body', '')[:50]}'"

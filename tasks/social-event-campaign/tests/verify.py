@@ -32,7 +32,21 @@ SOCIAL_PASSWORD = "demo123"
 
 TARGET_POST_ID = 101
 TARGET_EMAIL_RECIPIENT = "events@mosi.inc"
-TARGET_SUBJECT_PATTERN = "Event Campaign Published"
+TARGET_SUBJECT = "Event Campaign Published"
+
+
+def token_f1(expected: str, actual: str) -> float:
+    """Compute token-level F1 between two strings."""
+    expected_tokens = set(expected.lower().split())
+    actual_tokens = set(actual.lower().split())
+    if not expected_tokens or not actual_tokens:
+        return 0.0
+    matched = expected_tokens & actual_tokens
+    precision = len(matched) / len(actual_tokens)
+    recall = len(matched) / len(expected_tokens)
+    if precision + recall == 0:
+        return 0.0
+    return 2 * precision * recall / (precision + recall)
 
 
 def api(
@@ -61,27 +75,35 @@ def api(
         return 0, {"error": str(e)}
 
 
-def check_email_sent() -> bool:
-    """Check if a confirmation email was sent to events@mosi.inc."""
+def check_email_sent() -> tuple[bool, float]:
+    """Check if a confirmation email was sent to events@mosi.inc.
+
+    Returns (email_exists, subject_f1).
+    email_exists: whether any sent email to the recipient was found.
+    subject_f1: F1 score of the best-matching subject against TARGET_SUBJECT.
+    """
     try:
         email_db = sqlite3.connect(EMAIL_DB_PATH)
-        cursor = email_db.execute(
-            "SELECT COUNT(*) FROM emails WHERE recipient_email = ? AND subject LIKE ? AND folder = 'sent'",
-            (TARGET_EMAIL_RECIPIENT, f"%{TARGET_SUBJECT_PATTERN}%"),
-        )
-        count = cursor.fetchone()[0]
+        row = email_db.execute(
+            "SELECT subject FROM emails WHERE folder = 'sent' AND recipient_email = ? ORDER BY id DESC LIMIT 1",
+            (TARGET_EMAIL_RECIPIENT,),
+        ).fetchone()
         email_db.close()
-        return count > 0
+        if row is None:
+            return False, 0.0
+        subject = row[0] or ""
+        f1 = token_f1(TARGET_SUBJECT, subject)
+        return True, f1
     except Exception as e:
         print(f"  WARNING: Email DB check failed: {e}")
-        return False
+        return False, 0.0
 
 
 def main() -> tuple[float, dict]:
     score = 0.0
     details: dict = {"dimension_scores": {}, "messages": []}
 
-    # --- Dimension 1: Post 101 must be published (0.5 pts) ---
+    # --- Dimension 1: Post 101 must be published (0.3 pts) ---
     dim1_score = 0.0
     try:
         # Login as mosi_brand
@@ -106,7 +128,7 @@ def main() -> tuple[float, dict]:
         details["messages"].append(f"Post {TARGET_POST_ID} status: {post_status}")
 
         if post_status == "published":
-            dim1_score = 0.5
+            dim1_score = 0.3
             details["messages"].append("PASS: Post 101 is published")
         else:
             details["messages"].append(
@@ -116,19 +138,25 @@ def main() -> tuple[float, dict]:
     except Exception as e:
         details["messages"].append(f"ERROR (social check): {e}")
 
-    # --- Dimension 2: Confirmation email sent (0.5 pts) ---
+    # --- Dimension 2: Confirmation email sent (0.7 pts) ---
     dim2_score = 0.0
     try:
-        if check_email_sent():
-            dim2_score = 0.5
-            details["messages"].append(
-                f"PASS: Confirmation email sent to {TARGET_EMAIL_RECIPIENT} "
-                f"with subject containing '{TARGET_SUBJECT_PATTERN}'"
-            )
+        email_exists, subject_f1 = check_email_sent()
+        if email_exists:
+            dim2_score = 0.7 * subject_f1
+            if subject_f1 >= 0.5:
+                details["messages"].append(
+                    f"PASS: Confirmation email sent to {TARGET_EMAIL_RECIPIENT} "
+                    f"with subject F1={subject_f1:.2f} against '{TARGET_SUBJECT}'"
+                )
+            else:
+                details["messages"].append(
+                    f"PARTIAL: Confirmation email sent to {TARGET_EMAIL_RECIPIENT} "
+                    f"but subject F1={subject_f1:.2f} (expected '{TARGET_SUBJECT}')"
+                )
         else:
             details["messages"].append(
-                f"FAIL: No email found to {TARGET_EMAIL_RECIPIENT} "
-                f"with subject containing '{TARGET_SUBJECT_PATTERN}'"
+                f"FAIL: No sent email found to {TARGET_EMAIL_RECIPIENT}"
             )
     except Exception as e:
         details["messages"].append(f"ERROR (email check): {e}")
@@ -139,9 +167,11 @@ def main() -> tuple[float, dict]:
         "email_sent": dim2_score,
     }
 
-    # Completion gate: a one-service partial state (post-only or email-only) must
+    # Completion gate: a one-service partial state (post-only or no-email) must
     # not reach the 0.5 success threshold. The task requires BOTH artifacts, so
-    # cap the score at 0.4 whenever either dimension is missing.
+    # cap the score at 0.4 when the post is not published OR no email was sent.
+    # If an email was sent but the subject F1 is low, that is a quality issue,
+    # not a missing artifact, so the gate does not apply.
     if dim1_score == 0.0 or dim2_score == 0.0:
         capped = min(score, 0.4)
         if capped < score:

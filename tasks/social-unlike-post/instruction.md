@@ -1,4 +1,1 @@
-Please help me unlike a post I previously liked on the Mosi Social platform.
-Open http://localhost:5008/ in your browser, log in as alice (password: demo123),
-find a post that shows as liked by you, and remove that like.
-Confirm that the post no longer appears as liked and that the like count decreased.
+I left a like on a post over on Mosi Social (http://localhost:5008/) that I'd like to take back. My account is alice / demo123. Could you remove it for me and just confirm it's actually gone?
