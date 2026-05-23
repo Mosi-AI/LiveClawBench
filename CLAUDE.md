@@ -68,6 +68,7 @@ Edit `.env` and uncomment the block for your provider. Agent credentials are inj
 | Anthropic | `anthropic/<model-id>` | `ANTHROPIC_API_KEY` |
 | OpenAI | `openai/<model-id>` | `OPENAI_API_KEY` |
 | Gemini | `gemini/<model-id>` | `GEMINI_API_KEY` |
+| Moonshot | `moonshot/<model-id>` | `MOONSHOT_API_KEY` (native) or `CUSTOM_API_KEY` + `CUSTOM_BASE_URL` (proxy) |
 | Any OpenAI-compatible | `custom/<model-id>` | `CUSTOM_API_KEY` + `CUSTOM_BASE_URL` (+ optional `CUSTOM_CONTEXT_WINDOW` / `CUSTOM_MAX_TOKENS` / `CUSTOM_REASONING` / `CUSTOM_API`) |
 
 ## Running Tasks
@@ -92,6 +93,21 @@ harbor run -p tasks/watch-shop -a openclaw \
   -n 1 -o jobs \
   --ae VOLCANO_ENGINE_API_KEY="$VOLCANO_ENGINE_API_KEY" \
   --debug
+
+# Example: Moonshot (native endpoint)
+harbor run -p tasks/watch-shop -a openclaw \
+  -m moonshot/kimi-k2.5 \
+  -n 1 -o jobs \
+  --ae MOONSHOT_API_KEY="$MOONSHOT_API_KEY" \
+  --debug
+
+# Example: Moonshot via OpenAI-compatible proxy (e.g., Alibaba Bailian)
+harbor run -p tasks/watch-shop -a openclaw \
+  -m moonshot/qwen3.6-flash \
+  -n 1 -o jobs \
+  --ae CUSTOM_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1" \
+  --ae CUSTOM_API_KEY="$CUSTOM_API_KEY" \
+  --timeout-multiplier 2.0 --debug
 ```
 
 ### Full Dataset
