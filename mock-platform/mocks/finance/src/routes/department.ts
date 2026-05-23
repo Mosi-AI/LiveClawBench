@@ -51,6 +51,8 @@ export function registerDepartmentRoutes(app: OpenAPIApp, db: Database) {
           "application/json": {
             schema: z.object({
               month: z.string(),
+              department_name: z.string().optional(),
+              threshold: z.number().optional(),
             }),
           },
         },
@@ -63,14 +65,14 @@ export function registerDepartmentRoutes(app: OpenAPIApp, db: Database) {
   });
 
   app.openApiRoute(budgetAlertRoute, async (c) => {
-    let body: { month?: string };
+    let body: { month?: string; department_name?: string; threshold?: number };
     try {
       body = await c.req.json();
     } catch {
       return c.json({ error: "Invalid JSON" }, 400);
     }
 
-    const { month } = body;
+    const { month, department_name, threshold } = body;
     if (!month) {
       return c.json({ error: "month is required" }, 400);
     }
@@ -109,6 +111,15 @@ export function registerDepartmentRoutes(app: OpenAPIApp, db: Database) {
     const violations = rows.filter((r) =>
       r.actual_expense_amount < 0 || r.actual_expense_amount > r.budget_amount,
     );
+
+    // Persist budget alert record when agent explicitly sets up an alert
+    if (department_name && threshold !== undefined) {
+      db.run(
+        `INSERT INTO budget_alert (department_name, threshold, month)
+         VALUES (?, ?, ?)`,
+        [department_name, threshold, month],
+      );
+    }
 
     return c.json({
       month,

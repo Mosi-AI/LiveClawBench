@@ -36,4 +36,30 @@ describe("fault-injection", () => {
     // hasFired does not consume the one-shot
     expect(hasFired("t", "svc", "r", "f")).toBe(true);
   });
+
+  it("returns false for null taskName without recording state", () => {
+    resetInjectionState();
+    expect(shouldInject(null, "svc", "r", "f")).toBe(false);
+    // State should remain empty — no entry was created
+    expect(hasFired("null", "svc", "r", "f")).toBe(false);
+  });
+
+  it("returns false for undefined taskName without recording state", () => {
+    resetInjectionState();
+    expect(shouldInject(undefined, "svc", "r", "f")).toBe(false);
+  });
+
+  it("returns false for empty-string parameters", () => {
+    resetInjectionState();
+    expect(shouldInject("", "svc", "r", "f")).toBe(false);
+    expect(shouldInject("t", "", "r", "f")).toBe(false);
+  });
+
+  it("returns false for arbitrary non-target task names", () => {
+    resetInjectionState();
+    expect(shouldInject("some-random-task", "svc", "r", "f")).toBe(true);
+    expect(shouldInject("different-task", "svc", "r", "f")).toBe(true);
+    // These are different tuples, so both fire independently
+    expect(shouldInject("some-random-task", "svc", "r", "f")).toBe(false);
+  });
 });

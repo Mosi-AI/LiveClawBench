@@ -38,11 +38,14 @@ function makeKey(
  *                  e.g. `"c1-stockout"`, `"c2-silent-fail"`.
  */
 export function shouldInject(
-  taskName: string,
-  service: string,
-  route: string,
-  faultId: string,
+  taskName: string | undefined | null,
+  service: string | undefined | null,
+  route: string | undefined | null,
+  faultId: string | undefined | null,
 ): boolean {
+  if (!taskName || !service || !route || !faultId) {
+    return false;
+  }
   const key = makeKey(taskName, service, route, faultId);
   if (fired.has(key)) {
     return false;

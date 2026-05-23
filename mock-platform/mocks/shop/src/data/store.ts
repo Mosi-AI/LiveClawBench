@@ -1,5 +1,5 @@
 import { JsonStore } from "mock-lib";
-import type { CartItem, Order, UserData } from "../types.js";
+import type { CartItem, Order, Product, UserData } from "../types.js";
 import { DEFAULT_USER } from "./defaults.js";
 
 // Data directory for persistent shop state. The per-task startup script creates this
@@ -56,4 +56,40 @@ export function loadOrders(): Order[] {
 
 export function saveOrders(orders: Order[]): void {
   getStore().write("mosi_shop_orders", orders);
+}
+
+// ---------------------------------------------------------------------------
+// Mutable stock state — C-axis (Runtime Adaptability) only
+//
+// In-memory Map loaded once from products JSON at startup. Not synced to disk.
+// Only active when TASK_NAME is a C-axis task that needs stock mutation.
+// ---------------------------------------------------------------------------
+
+const stockMap = new Map<string, number>();
+
+export function initStockFromProducts(products: Product[]): void {
+  for (const p of products) {
+    if (p.stock_quantity != null && p.stock_quantity > 0) {
+      stockMap.set(p.id, p.stock_quantity);
+    }
+  }
+}
+
+export function getStock(productId: string): number | undefined {
+  return stockMap.get(productId);
+}
+
+export function setStock(productId: string, quantity: number): void {
+  stockMap.set(productId, quantity);
+}
+
+export function decrementStock(productId: string, qty: number = 1): number {
+  const current = stockMap.get(productId) ?? 0;
+  const next = Math.max(0, current - qty);
+  stockMap.set(productId, next);
+  return next;
+}
+
+export function resetStock(): void {
+  stockMap.clear();
 }

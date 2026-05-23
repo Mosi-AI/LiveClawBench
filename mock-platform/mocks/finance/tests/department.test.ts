@@ -64,11 +64,12 @@ describe("departments", () => {
       "dashboard_config",
       "portfolio_holding",
       "portfolio_order",
+      "budget_alert",
     ];
     for (const t of expected) {
       expect(tableNames).toContain(t);
     }
-    expect(tableNames.length).toBe(15);
+    expect(tableNames.length).toBe(16);
   });
 
   it("user count is 3", async () => {
@@ -143,6 +144,30 @@ describe("POST /api/departments/budget-alerts", () => {
     const json = await res.json();
     expect(json.success).toBe(false);
     expect(json.message).toContain("Invalid JSON");
+  });
+
+  it("persists budget_alert when department_name and threshold are provided", async () => {
+    const cookie = await login(app);
+    const res = await app.request("/api/departments/budget-alerts", {
+      method: "POST",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({ month: "2026-01", department_name: "Marketing", threshold: 0.8 }),
+    });
+    expect(res.status).toBe(200);
+
+    const row = finance.db
+      .query<{ count: number }, []>("SELECT COUNT(*) AS count FROM budget_alert")
+      .get();
+    expect(row!.count).toBe(1);
+
+    const alert = finance.db
+      .query<{ department_name: string; threshold: number; month: string }, []>(
+        "SELECT department_name, threshold, month FROM budget_alert LIMIT 1"
+      )
+      .get();
+    expect(alert!.department_name).toBe("Marketing");
+    expect(alert!.threshold).toBe(0.8);
+    expect(alert!.month).toBe("2026-01");
   });
 });
 

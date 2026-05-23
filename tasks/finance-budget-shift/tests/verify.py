@@ -23,7 +23,7 @@ def main():
     # Check department financial records for budget alert setup
     try:
         records = conn.execute(
-            "SELECT id, department_name, budget_amount, actual_amount FROM department_financial_record"
+            "SELECT id, department_name, budget_amount, actual_expense_amount FROM department_financial_record"
         ).fetchall()
     except Exception:
         records = []

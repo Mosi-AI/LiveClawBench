@@ -24,7 +24,7 @@ import {
 } from "./schemas.js";
 import type { Product } from "./types.js";
 import { loadProducts, seedUser, seedOrders } from "./data/seed.js";
-import { loadCart, loadUser, loadOrders, resetStore } from "./data/store.js";
+import { loadCart, loadUser, loadOrders, resetStore, initStockFromProducts, getStock } from "./data/store.js";
 import { HomePage } from "./components/home-page.js";
 import { ResultsPage } from "./components/results-page.js";
 import { CartPage } from "./components/cart-page.js";
@@ -81,6 +81,21 @@ export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
 
   app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
+  // Stock-aware product accessor — for C-tasks, reflects mutable stock state.
+  // Must be defined before use in both search page and API routes.
+  const stockAwareProducts = (): Product[] => {
+    const taskName = process.env.TASK_NAME ?? "";
+    if (taskName === "watch-shop-stockout") {
+      return allProducts.map((p) => {
+        const stock = getStock(p.id);
+        return stock !== undefined
+          ? { ...p, stock_quantity: stock, low_stock: stock <= 5 }
+          : p;
+      });
+    }
+    return allProducts;
+  };
+
   // HTML pages
   app.page("/", (c) => c.html(<HomePage />));
 
@@ -106,7 +121,8 @@ export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
     let totalPages = 0;
 
     if (q) {
-      const allResults = filterAndSortProducts(allProducts, {
+      const stockProducts = stockAwareProducts();
+      const allResults = filterAndSortProducts(stockProducts, {
         query: q,
         minPrice: min_price,
         maxPrice: max_price,
@@ -148,7 +164,7 @@ export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
   });
 
   // API routes
-  registerProductRoutes(app, () => allProducts);
+  registerProductRoutes(app, stockAwareProducts);
   registerCartRoutes(app, () => allProducts);
   registerCheckoutRoutes(app);
   registerOrderRoutes(app);
@@ -158,6 +174,7 @@ export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
     ...mockApp,
     seed: async () => {
       allProducts = await loadProducts(options?.productsPath);
+      initStockFromProducts(allProducts);
       seedUser();
       seedOrders(allProducts);
     },

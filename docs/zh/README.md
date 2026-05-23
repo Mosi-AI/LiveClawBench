@@ -29,7 +29,7 @@ LiveClawBench：在复杂真实助手任务上评测 LLM Agent。
 | 文档 | 描述 |
 |------|------|
 | [真实助手任务为何困难？](background/assistant_task_complexity.md) | 因子叠加效应、benchmark 对比、框架意义 |
-| [未来 Factor 规划](roadmap/future_factors.md) | A3/A4/B3/C-axis 扩展路线图及优先级顺序 |
+| [未来 Factor 规划](roadmap/future_factors.md) | A3/A4/B3/C3/C4 扩展路线图；C1/C2 已实现（见复杂度框架） |
 
 ## 元数据
 

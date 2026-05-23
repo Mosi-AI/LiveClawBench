@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createRoute, ok, err, shouldInject } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import { CheckoutResponseSchema, ErrSchema } from "../schemas.js";
-import { loadCart, clearCart, loadOrders, saveOrders, loadUser } from "../data/store.js";
+import { loadCart, clearCart, loadOrders, saveOrders, loadUser, setStock, decrementStock } from "../data/store.js";
 import { DEFAULT_USER } from "../data/defaults.js";
 import type { Order } from "../types.js";
 
@@ -29,6 +29,14 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
         },
         description: "Cart is empty",
       },
+      409: {
+        content: {
+          "application/json": {
+            schema: ErrSchema,
+          },
+        },
+        description: "Product sold out",
+      },
       500: {
         content: {
           "application/json": {
@@ -47,7 +55,7 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
     const taskName = process.env.TASK_NAME ?? "";
 
     // C1 — watch-shop-stockout: first checkout returns 409 SOLD_OUT when cart
-    // contains a specific low-stock product. Sets stock to 0 so subsequent
+    // contains a specific low-stock product. Depletes stock to 0 so subsequent
     // listings reflect the sold-out state. One-shot: only first checkout fails.
     if (
       taskName === "watch-shop-stockout" &&
@@ -58,6 +66,7 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
         item.title.toLowerCase().includes("watch") || item.id === "prod_0068"
       );
       if (watchItem) {
+        setStock(watchItem.id, 0);
         return c.json(
           err(`Product ${watchItem.id} is sold out`, "SOLD_OUT"),
           409,
@@ -106,6 +115,14 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
 
     orders.push(order);
     orders.sort((a, b) => b.order_id.localeCompare(a.order_id));
+
+    // Decrement stock for C-task checkouts so stock state stays accurate
+    if (taskName === "watch-shop-stockout") {
+      for (const item of cart) {
+        decrementStock(item.id, item.quantity);
+      }
+    }
+
     try {
       saveOrders(orders);
     } catch (e) {
