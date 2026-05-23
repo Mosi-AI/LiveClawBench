@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 118-case annotation table (118 implemented),
+It covers factor definitions, the full 119-case annotation table (119 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -23,7 +23,7 @@ single, clean environment without structural complexity.
 
 ---
 
-## 1. 118-Case Factor Annotation Table
+## 1. 119-Case Factor Annotation Table
 
 `✓` indicates the case carries the corresponding factor.
 
@@ -147,6 +147,7 @@ single, clean environment without structural complexity.
 |     116 | vuls-kernel-detection             |     H      |    | ✓  |    | ✓  | Coding & Software Dev      |
 |     117 | smarthome-sleep-quality           |     H      | ✓  | ✓  | ✓  |    | E-commerce & Daily Svcs    |
 |     118 | sleep-trend-recovery1             |     M      | ✓  | ✓  | ✓  |    | Health & Fitness           |
+|     119 | sleep-trend-recovery2             |     M      | ✓  | ✓  | ✓  |    | Health & Fitness           |
 
 ---
 
@@ -154,21 +155,21 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    49 |      41.5% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2     | Contaminated Initial State     |    39 |      33.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, sleep-trend-recovery1 |
-| B1     | Implicit Goal Resolution       |    44 |      37.3% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-morning-checkup, pre-meeting-research-brief |
-| B2     | Knowledge System Maintenance   |    26 |      22.0% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1     | Cross-Service Dependency       |    50 |      42.0% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, sleep-trend-recovery2 |
+| A2     | Contaminated Initial State     |    40 |      33.6% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, sleep-trend-recovery2 |
+| B1     | Implicit Goal Resolution       |    45 |      37.8% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-morning-checkup, sleep-trend-recovery2 |
+| B2     | Knowledge System Maintenance   |    26 |      21.8% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> Percentages are relative to 118 implemented cases.
+> Percentages are relative to 119 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 34 cases (28.8%)
-- Single factor: 32 cases (27.1%)
-- Dual factor: 32 cases (27.1%)
-- Triple factor: 18 cases (15.3%)
+- No factors (baseline): 34 cases (28.6%)
+- Single factor: 32 cases (26.9%)
+- Dual factor: 32 cases (26.9%)
+- Triple factor: 19 cases (16.0%)
 - Quad factor: 2 cases (1.7%)
-- **Multi-factor (≥2 factors): 52 cases (44.1%)**
+- **Multi-factor (≥2 factors): 53 cases (44.5%)**
 
 
 ---
@@ -186,7 +187,7 @@ Factor occurrence frequency per primary domain:
 | Coding & Software Dev      |  2 |  4 |  5 |  4 |                     15 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |                      2 |
 | Deep Research & Report     |  2 |  1 |  2 |  3 |                      8 |
-| Health & Fitness           |  3 |  4 |  4 |  0 |                     11 |
+| Health & Fitness           |  4 |  5 |  5 |  0 |                     14 |
 | Social Media               |  6 |  3 |  6 |  0 |                     15 |
 | Finance & Data Analytics   |  4 |  5 |  6 |  4 |                     19 |
 
@@ -195,7 +196,7 @@ Key observations:
 - **A1 is the most broadly distributed**, spanning 8 domains — cross-service coordination is a universal complexity source
 - **B1 appears across 7 domains**, with especially strong coverage in E-commerce, Social Media, and Health & Fitness
 - **Communication & Email has no factors** — these cases serve as pure baselines
-- **Health & Fitness gains additional multi-factor coverage** through `sleep-trend-recovery1` and the cross-environment `smarthome-sleep-quality`, alongside `morning-comfort-setup`
+- **Health & Fitness gains additional multi-factor coverage** through `sleep-trend-recovery1`, `sleep-trend-recovery2`, and the cross-environment `smarthome-sleep-quality`, alongside `morning-comfort-setup`
 - **Social Media (9 tasks) leads total factor instances (15)** — the 7 new tasks span A1=6, A2=3, B1=6
 - **Finance & Data Analytics gains A2+B1 coverage** — finance-dashboard-repair (A2+B2), finance-expense-log (B1), finance-anomaly-detect (A2+B1), finance-budget-alert (A1+A2), finance-tax-prepare (A1+B1+B2), finance-analysis-generate (A1+B1+B2), finance-depreciation-audit (A2+B1+B2) add 19 factor instances
 
@@ -230,19 +231,19 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    35 |      29.7% | (see registry; 35 easy cases) |
-| Medium     |    48 |      40.7% | (see registry; 48 medium cases including 10 deep research, 2 workspace tasks, and sleep-trend-recovery1) |
-| Hard       |    35 |      29.7% | (see registry; 35 hard cases including 8 SWE-Pro/open-world coding tasks and smarthome-sleep-quality) |
+| Easy       |    35 |      29.4% | (see registry; 35 easy cases) |
+| Medium     |    49 |      41.2% | (see registry; 49 medium cases including 10 deep research, 2 workspace tasks, sleep-trend-recovery1, and sleep-trend-recovery2) |
+| Hard       |    35 |      29.4% | (see registry; 35 hard cases including 8 SWE-Pro/open-world coding tasks and smarthome-sleep-quality) |
 
 Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
 | Easy       |             0.83 |          17 |       11 |       7 |
-| Medium     |             1.29 |          16 |       11 |       21 |
+| Medium     |             1.31 |          16 |       11 |       22 |
 | Hard       |             1.91 |           1 |       10 |       24 |
 
-The current distribution is led by Medium cases (40.7%), driven by the deep-research expansion
-and additional multi-factor smart-home tasks. Easy and Hard now each account for 29.7% of the
+The current distribution is led by Medium cases (41.2%), driven by the deep-research expansion
+and additional multi-factor smart-home tasks. Easy and Hard now each account for 29.4% of the
 implemented set. Hard cases remain concentrated in tasks requiring constraint-failure handling,
 contaminated-state repair, or challenging open-world coding environments.

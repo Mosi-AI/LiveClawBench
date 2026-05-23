@@ -1,7 +1,7 @@
 # LiveClawBench 复杂度框架
 
 本文档是 LiveClawBench 任务复杂度标注的唯一参考来源。
-涵盖因子定义、完整的 118 case 标注表（118 个已实现）、
+涵盖因子定义、完整的 119 case 标注表（119 个已实现）、
 摘要统计、领域覆盖和控制对。
 
 ## 复杂度因子定义
@@ -17,7 +17,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 ---
 
-## 1. 118 Case 因子标注表
+## 1. 119 Case 因子标注表
 
 `✓` 表示该 case 包含对应因子。
 
@@ -141,6 +141,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |     116 | vuls-kernel-detection             |  H   |    | ✓  |    | ✓  | Coding & Software Dev      |
 |     117 | smarthome-sleep-quality           |  H   | ✓  | ✓  | ✓  |    | E-commerce & Daily Svcs    |
 |     118 | sleep-trend-recovery1             |  M   | ✓  | ✓  | ✓  |    | Health & Fitness           |
+|     119 | sleep-trend-recovery2             |  M   | ✓  | ✓  | ✓  |    | Health & Fitness           |
 
 
 ---
@@ -149,21 +150,21 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |    49 |  41.5% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2   | 初始状态污染             |    39 |  33.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, sleep-trend-recovery1 |
-| B1   | 隐式目标解析             |    44 |  37.3% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-morning-checkup, pre-meeting-research-brief |
-| B2   | 知识系统维护             |    26 |  22.0% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1   | 跨服务依赖               |    50 |  42.0% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, sleep-trend-recovery2 |
+| A2   | 初始状态污染             |    40 |  33.6% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, sleep-trend-recovery2 |
+| B1   | 隐式目标解析             |    45 |  37.8% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-morning-checkup, sleep-trend-recovery2 |
+| B2   | 知识系统维护             |    26 |  21.8% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> 占比以 118 个已实现 case 总数为分母。
+> 占比以 119 个已实现 case 总数为分母。
 
 因子组合分布：
 
-- 无因子（基准）：34 个 case（28.8%）
-- 单因子：32 个 case（27.1%）
-- 双因子：32 个 case（27.1%）
-- 三因子：18 个 case（15.3%）
+- 无因子（基准）：34 个 case（28.6%）
+- 单因子：32 个 case（26.9%）
+- 双因子：32 个 case（26.9%）
+- 三因子：19 个 case（16.0%）
 - 四因子：2 个 case（1.7%）
-- **多因子（≥2 个因子）：52 个 case（44.1%）**
+- **多因子（≥2 个因子）：53 个 case（44.5%）**
 
 
 ---
@@ -181,7 +182,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 | Coding & Software Dev      |  2 |  4 |  5 |  4 |           15 |
 | DevOps & Env Repair        |  0 |  2 |  0 |  0 |            2 |
 | Deep Research & Report     |  2 |  1 |  2 |  3 |            8 |
-| Health & Fitness           |  3 |  4 |  4 |  0 |           11 |
+| Health & Fitness           |  4 |  5 |  5 |  0 |           14 |
 | Social Media               |  6 |  3 |  6 |  0 |           15 |
 | Finance & Data Analytics   |  4 |  5 |  6 |  4 |                     19 |
 
@@ -190,7 +191,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 - **A1 分布最广**，横跨 8 个领域——跨服务协调是普遍的复杂度来源
 - **B1 出现在 7 个领域**，在 E-commerce、Social Media 与 Health & Fitness 中尤其密集
 - **Communication & Email 没有任何因子** ——这些 case 作为纯基准
-- **Health & Fitness 获得额外多因子覆盖** ——`sleep-trend-recovery1` 与跨环境的 `smarthome-sleep-quality` 进一步扩展了该领域的 A1/A2/B1 覆盖
+- **Health & Fitness 获得额外多因子覆盖** ——`sleep-trend-recovery1`、`sleep-trend-recovery2` 与跨环境的 `smarthome-sleep-quality` 进一步扩展了该领域的 A1/A2/B1 覆盖
 - **Social Media（9 个任务）以 15 个因子实例领跑** ——7 个新增任务覆盖 A1=6、A2=3、B1=6
 - **Finance & Data Analytics 获得 A2+B1 覆盖** — finance-dashboard-repair (A2+B2)、finance-expense-log (B1)、finance-anomaly-detect (A2+B1)、finance-budget-alert (A1+A2)、finance-tax-prepare (A1+B1+B2)、finance-analysis-generate (A1+B1+B2)、finance-depreciation-audit (A2+B1+B2) 共增加 19 个因子实例
 
@@ -223,17 +224,17 @@ LiveClawBench 包含 2 个经验证具有有效难度梯度的控制对。
 
 | 难度 | 数量 | 占比   | Case 列表 |
 |:----:|-----:|-------:|-----------|
-| 简单 |    35 |  29.7% | （详见 registry；35 个简单 case） |
-| 中等 |    48 |  40.7% | （详见 registry；48 个中等 case，含 10 个深度研究、2 个 workspace 任务和 sleep-trend-recovery1） |
-| 困难 |    35 |  29.7% | （详见 registry；35 个困难 case，含 8 个 SWE-Pro/开放世界编码任务和 smarthome-sleep-quality） |
+| 简单 |    35 |  29.4% | （详见 registry；35 个简单 case） |
+| 中等 |    49 |  41.2% | （详见 registry；49 个中等 case，含 10 个深度研究、2 个 workspace 任务、sleep-trend-recovery1 和 sleep-trend-recovery2） |
+| 困难 |    35 |  29.4% | （详见 registry；35 个困难 case，含 8 个 SWE-Pro/开放世界编码任务和 smarthome-sleep-quality） |
 
 因子数量与难度关系：
 
 | 难度 | 平均因子数 | 基准（0 因子） | 单因子 | 多因子 |
 |:----:|:----------:|:--------------:|:------:|:------:|
 | 简单 |       0.83 |             17 |       11 |       7 |
-| 中等 |       1.29 |             16 |       11 |       21 |
+| 中等 |       1.31 |             16 |       11 |       22 |
 | 困难 |       1.91 |              1 |       10 |       24 |
 
-当前分布以中等 case 为主（40.7%），这主要来自深度研究任务扩展和额外的多因子智能家居任务。简单与困难 case 现在都占 29.7%。
+当前分布以中等 case 为主（41.2%），这主要来自深度研究任务扩展和额外的多因子智能家居任务。简单与困难 case 现在都占 29.4%。
 困难 case 仍集中在需要约束失败处理、污染状态修复或开放世界编码环境的任务上。

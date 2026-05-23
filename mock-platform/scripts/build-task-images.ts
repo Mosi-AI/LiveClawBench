@@ -118,7 +118,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 118 benchmark task names (canonical source of truth)
+// All 119 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -181,8 +181,8 @@ const ALL_TASK_NAMES = new Set([
   "openlibrary-3rd-metadata-source",
   "teleport-gcp-cert-identity",
   "vuls-kernel-detection",
-  // Additional smart-home tasks (case_ids 117-118)
-  "smarthome-sleep-quality", "sleep-trend-recovery1",
+  // Additional smart-home tasks (case_ids 117-119)
+  "smarthome-sleep-quality", "sleep-trend-recovery1", "sleep-trend-recovery2",
 ]);
 
 interface AssetMapping {
@@ -530,6 +530,17 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("chown mock:mock /var/lib/mock-data/smarthome");
     lines.push("chmod 700 /var/lib/mock-data/smarthome");
     lines.push("ln -sf /var/lib/mock-data/smarthome/smarthome.db /tmp/mosi_smart_home.sqlite");
+    lines.push("");
+  }
+
+  // Health binary must use the shared DB path that startup_extra and verifiers
+  // reference, otherwise the service seeds one DB while task scripts mutate another.
+  if (binaries.includes("health")) {
+    lines.push("# Initialize shared health data directory and DB path");
+    lines.push("mkdir -p /var/lib/mock-data/health");
+    lines.push("chown mock:mock /var/lib/mock-data/health");
+    lines.push("chmod 700 /var/lib/mock-data/health");
+    lines.push("export HEALTH_DB_PATH=/var/lib/mock-data/health/health.db");
     lines.push("");
   }
 
