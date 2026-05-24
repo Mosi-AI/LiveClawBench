@@ -3,10 +3,12 @@
 Checks: food log entry exists with an alternative food item
 (the originally searched food was deleted by C1).
 """
+
 import sqlite3
 import sys
 
 DB_PATH = "/var/lib/mock-data/mint-diet/mint-diet.db"
+
 
 def main():
     score = 0.0
@@ -34,6 +36,7 @@ def main():
 
     print(f"Score: {score:.2f}/1.0")
     sys.exit(0 if score >= 0.5 else 1)
+
 
 if __name__ == "__main__":
     main()

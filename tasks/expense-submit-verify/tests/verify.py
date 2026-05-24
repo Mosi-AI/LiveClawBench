@@ -3,10 +3,12 @@
 Checks: expense_draft table has status = 'submitted' for the target draft
 (agent detected the silent submit failure and retried).
 """
+
 import sqlite3
 import sys
 
 DB_PATH = "/var/lib/mock-data/expense/expense.db"
+
 
 def main():
     score = 0.0
@@ -15,9 +17,7 @@ def main():
     except Exception:
         conn = sqlite3.connect("/workspace/expense.db")
 
-    drafts = conn.execute(
-        "SELECT id, status FROM expense_draft ORDER BY id"
-    ).fetchall()
+    drafts = conn.execute("SELECT id, status FROM expense_draft ORDER BY id").fetchall()
     conn.close()
 
     if not drafts:
@@ -40,6 +40,7 @@ def main():
 
     print(f"Score: {score:.2f}/1.0")
     sys.exit(0 if score >= 0.5 else 1)
+
 
 if __name__ == "__main__":
     main()

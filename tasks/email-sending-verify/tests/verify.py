@@ -3,10 +3,12 @@
 Checks: sent folder contains an email that was actually persisted
 (after the agent detected the silent send failure and retried).
 """
+
 import sqlite3
 import sys
 
 DB_PATH = "/var/lib/mock-data/email/email.db"
+
 
 def main():
     score = 0.0
@@ -33,6 +35,7 @@ def main():
 
     print(f"Score: {score:.2f}/1.0")
     sys.exit(0 if score >= 0.5 else 1)
+
 
 if __name__ == "__main__":
     main()

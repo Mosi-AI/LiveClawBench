@@ -2,10 +2,12 @@
 
 Checks: calendar event exists at a non-conflicting time.
 """
+
 import sqlite3
 import sys
 
 DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
+
 
 def main():
     score = 0.0
@@ -25,7 +27,10 @@ def main():
     # Detection (0.3): event exists at an alternative time
     # Recovery (0.7): event is properly formed with reasonable time
     for eid, title, start, end in events:
-        if "project sync" in (title or "").lower() or "reschedule" in (title or "").lower():
+        if (
+            "project sync" in (title or "").lower()
+            or "reschedule" in (title or "").lower()
+        ):
             score = max(score, 0.3)
             if start and end:
                 score = 1.0
@@ -39,6 +44,7 @@ def main():
 
     print(f"Score: {score:.2f}/1.0")
     sys.exit(0 if score >= 0.5 else 1)
+
 
 if __name__ == "__main__":
     main()

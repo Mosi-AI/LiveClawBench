@@ -3,10 +3,12 @@
 Checks: health record (allergen or medication) is actually persisted in DB
 (agent detected the silent insert failure and retried).
 """
+
 import sqlite3
 import sys
 
 DB_PATH = "/workspace/health.db"
+
 
 def main():
     score = 0.0
@@ -16,8 +18,12 @@ def main():
         # Try alternate path
         conn = sqlite3.connect("/var/lib/mock-data/health/health.db")
 
-    allergens = conn.execute("SELECT id FROM allergen ORDER BY id DESC LIMIT 5").fetchall()
-    medications = conn.execute("SELECT id FROM medication ORDER BY id DESC LIMIT 5").fetchall()
+    allergens = conn.execute(
+        "SELECT id FROM allergen ORDER BY id DESC LIMIT 5"
+    ).fetchall()
+    medications = conn.execute(
+        "SELECT id FROM medication ORDER BY id DESC LIMIT 5"
+    ).fetchall()
     conn.close()
 
     # Baseline has 3 allergens + 2 medications; new entries would have higher IDs
@@ -32,6 +38,7 @@ def main():
 
     print(f"Score: {score:.2f}/1.0")
     sys.exit(0 if score >= 0.5 else 1)
+
 
 if __name__ == "__main__":
     main()

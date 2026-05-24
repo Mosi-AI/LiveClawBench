@@ -5,6 +5,7 @@ Multi-dimensional scoring:
   c1_detection (0.30): detected re-broken build after C1 trigger
   build_success (0.40): final build succeeds
 """
+
 import json
 import subprocess
 import sys
@@ -47,6 +48,7 @@ def main():
     # Write reward.json
     try:
         import os
+
         os.makedirs("/logs/verifier", exist_ok=True)
         reward_json = {"reward": round(score, 2)}
         reward_json.update(dimensions)
@@ -57,6 +59,7 @@ def main():
 
     print(f"Score: {score:.2f}/1.0")
     sys.exit(0 if score >= 0.5 else 1)
+
 
 if __name__ == "__main__":
     main()

@@ -5,6 +5,7 @@ Multi-dimensional scoring:
   c1_detection (0.30): lowered budgets exist for non-violating departments
   alert_setup (0.50): budget alert correctly set up for Marketing at 80% of budget
 """
+
 import json
 import sqlite3
 import sys

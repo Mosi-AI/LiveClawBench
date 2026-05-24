@@ -3,10 +3,12 @@
 Checks: final sent email acknowledges the meeting cancellation.
 Uses LLM judge to evaluate response quality.
 """
+
 import sqlite3
 import sys
 
 DB_PATH = "/var/lib/mock-data/email/email.db"
+
 
 def check_sent_emails():
     conn = sqlite3.connect(DB_PATH)
@@ -15,6 +17,7 @@ def check_sent_emails():
     ).fetchall()
     conn.close()
     return rows
+
 
 def main():
     score = 0.0
@@ -27,16 +30,19 @@ def main():
 
     # Export for LLM judge
     import json
+
     emails_data = [{"subject": r[0], "body": r[1], "folder": r[2]} for r in sent_emails]
     with open("/workspace/output/sent_emails.json", "w") as f:
         json.dump(emails_data, f, indent=2)
 
     # If LLM judge env vars are available, use them; otherwise heuristic check
     import os
+
     judge_url = os.environ.get("JUDGE_BASE_URL")
     if judge_url:
         sys.path.insert(0, "/tests")
         from llm_judge_core import judge
+
         prompt = (
             "The agent was asked to reply to an email about a meeting, "
             "but the meeting was cancelled while they were drafting. "
@@ -50,7 +56,10 @@ def main():
         # Heuristic: check if any sent email mentions cancellation keywords
         for subj, body, _ in sent_emails:
             text = (subj + " " + body).lower()
-            if any(kw in text for kw in ["cancel", "cancelled", "postponed", "not happening"]):
+            if any(
+                kw in text
+                for kw in ["cancel", "cancelled", "postponed", "not happening"]
+            ):
                 score = max(score, 0.3)
                 if any(kw in text for kw in ["reschedule", "new date", "understand"]):
                     score = 1.0
@@ -58,6 +67,7 @@ def main():
 
     print(f"Score: {score:.2f}/1.0")
     sys.exit(0 if score >= 0.5 else 1)
+
 
 if __name__ == "__main__":
     main()

@@ -90,7 +90,11 @@ def load_framework_annotations(framework_path: Path = FRAMEWORK_MD) -> dict[str,
             b2 = "✓" in cols[6]
             c1 = "✓" in cols[7] if len(cols) > 7 else False
             c2 = "✓" in cols[8] if len(cols) > 8 else False
-            domain = cols[9].strip() if len(cols) > 9 else (cols[7].strip() if len(cols) > 7 else "")
+            domain = (
+                cols[9].strip()
+                if len(cols) > 9
+                else (cols[7].strip() if len(cols) > 7 else "")
+            )
             results[case_name] = {
                 "case_id": int(case_id_str),
                 "difficulty": DIFFICULTY_MAP.get(diff_code, diff_code),
