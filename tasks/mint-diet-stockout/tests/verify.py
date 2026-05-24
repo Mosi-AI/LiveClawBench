@@ -7,7 +7,7 @@ Checks: food log entry exists with a valid alternative food item
 import sqlite3
 import sys
 
-DB_PATH = "/var/lib/mock-data/mint-diet/mint-diet.db"
+DB_PATH = "/var/lib/mock-data/mint-diet/mint-diet.sqlite"
 
 
 def main():
