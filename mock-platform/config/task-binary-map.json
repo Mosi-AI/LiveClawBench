@@ -24,15 +24,19 @@
     "tasks": {
         "weather-aqi-report": {"binaries": ["weather"]},
         "watch-shop": {
-            "binaries": ["shop"],
+            "binaries": ["shop", "email"],
             "assets": [
                 {
                     "src": "mock-platform/static/shop/css/style.css",
                     "dest": "/opt/mock/static/shop/css/style.css"
                 },
                 {
-                    "src": "mock-platform/static/shop/sample_products.json",
+                    "src": "tasks/watch-shop/environment/products.json",
                     "dest": "/opt/mock/static/shop/products.json"
+                },
+                {
+                    "src": "tasks/watch-shop/environment/watch_options.csv",
+                    "dest": "/opt/mock/data/watch_options.csv"
                 }
             ]
         },
@@ -44,7 +48,7 @@
                     "dest": "/opt/mock/static/shop/css/style.css"
                 },
                 {
-                    "src": "mock-platform/static/shop/sample_products.json",
+                    "src": "tasks/washer-shop/environment/products.json",
                     "dest": "/opt/mock/static/shop/products.json"
                 }
             ]
