@@ -255,6 +255,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `morning-comfort-setup` | Health & Fitness | medium | verify.py |
 | `finance-portfolio-rebalancing` | Finance & Data Analytics | hard | verify.py |
 | `finance-monthly-close` | Finance & Data Analytics | medium | verify.py |
+| `multi-download-dashboard-merge` | Finance & Data Analytics | medium | verify.py |
 | `smarthome-test` | E-commerce & Daily Svcs | medium | verify.py |
 | `grocery-reorder` | E-commerce & Daily Svcs | medium | verify.py |
 | `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
@@ -473,8 +474,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-117 implemented tasks: A1=47, A2=38, B1=43, B2=26.
-Difficulty: Easy=35, Medium=48, Hard=34.
+118 implemented tasks: A1=48, A2=39, B1=43, B2=27.
+Difficulty: Easy=35, Medium=49, Hard=34.
 
 ## Known Issues
 

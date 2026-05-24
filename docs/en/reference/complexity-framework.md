@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 117-case annotation table (117 implemented),
+It covers factor definitions, the full 118-case annotation table (118 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -146,6 +146,7 @@ single, clean environment without structural complexity.
 |     115 | teleport-gcp-cert-identity        |     H      | ✓  |    |    | ✓  | Coding & Software Dev      |
 |     116 | vuls-kernel-detection             |     H      |    | ✓  |    | ✓  | Coding & Software Dev      |
 |     117 | ad-library-snapshot-capture       |     M      |    | ✓  | ✓  |    | Social Media & Operations  |
+|     118 | multi-download-dashboard-merge    |     M      | ✓  | ✓  |    | ✓  | Finance & Data Analytics   |
 
 ---
 
@@ -153,19 +154,19 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    47 |      40.5% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2     | Contaminated Initial State     |    38 |      32.5% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1     | Implicit Goal Resolution       |    43 |      36.8% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2     | Knowledge System Maintenance   |    26 |      22.4% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1     | Cross-Service Dependency       |    48 |      40.7% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2     | Contaminated Initial State     |    39 |      33.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1     | Implicit Goal Resolution       |    43 |      36.4% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| B2     | Knowledge System Maintenance   |    27 |      22.9% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> Percentages are relative to 117 implemented cases.
+> Percentages are relative to 118 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 34 cases (29.1%)
-- Single factor: 32 cases (27.4%)
-- Dual factor: 33 cases (28.2%)
-- Triple factor: 16 cases (13.7%)
+- No factors (baseline): 34 cases (28.8%)
+- Single factor: 32 cases (27.1%)
+- Dual factor: 33 cases (28.0%)
+- Triple factor: 17 cases (14.4%)
 - Quad factor: 2 cases (1.7%)
 - **Multi-factor (≥2 factors): 51 cases (43.6%)**
 
@@ -188,7 +189,7 @@ Factor occurrence frequency per primary domain:
 | Health & Fitness           |  2 |  3 |  3 |  0 |                      8 |
 | Social Media               |  6 |  3 |  6 |  0 |                     15 |
 | Social Media & Operations  |  0 |  1 |  1 |  0 |                      2 |
-| Finance & Data Analytics   |  4 |  5 |  6 |  4 |                     19 |
+| Finance & Data Analytics   |  5 |  6 |  6 |  5 |                     22 |
 
 Key observations:
 - **B2 is highly concentrated in Documents & Knowledge** (9/12), reflecting the nature of knowledge management tasks
@@ -197,7 +198,7 @@ Key observations:
 - **Communication & Email has no factors** — these cases serve as pure baselines
 - **Health & Fitness gains multi-factor coverage** through 3 new hard tasks with A1+A2+B1, plus morning-comfort-setup introduces A2+B1
 - **Social Media (9 tasks) leads total factor instances (15)** — the 7 new tasks span A1=6, A2=3, B1=6
-- **Finance & Data Analytics gains A2+B1 coverage** — finance-dashboard-repair (A2+B2), finance-expense-log (B1), finance-anomaly-detect (A2+B1), finance-budget-alert (A1+A2), finance-tax-prepare (A1+B1+B2), finance-analysis-generate (A1+B1+B2), finance-depreciation-audit (A2+B1+B2) add 19 factor instances
+- **Finance & Data Analytics gains multi-factor coverage** — finance-dashboard-repair (A2+B2), finance-expense-log (B1), finance-anomaly-detect (A2+B1), finance-budget-alert (A1+A2), finance-tax-prepare (A1+B1+B2), finance-analysis-generate (A1+B1+B2), finance-depreciation-audit (A2+B1+B2), multi-download-dashboard-merge (A1+A2+B2) add 22 factor instances
 
 ---
 
@@ -230,9 +231,9 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    35 |      30.2% | (see registry; 35 easy cases) |
-| Medium     |    48 |      41.0% | (see registry; 48 medium cases including 10 deep research and 2 workspace tasks) |
-| Hard       |    34 |      29.3% | (see registry; 34 hard cases including 8 SWE-Pro/open-world coding tasks) |
+| Easy       |    35 |      29.7% | (see registry; 35 easy cases) |
+| Medium     |    49 |      41.5% | (see registry; 49 medium cases including 10 deep research and 2 workspace tasks) |
+| Hard       |    34 |      28.8% | (see registry; 34 hard cases including 8 SWE-Pro/open-world coding tasks) |
 
 Factor count vs difficulty:
 

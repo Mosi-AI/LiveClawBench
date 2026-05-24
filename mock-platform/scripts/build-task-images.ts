@@ -182,6 +182,7 @@ const ALL_TASK_NAMES = new Set([
   "teleport-gcp-cert-identity",
   "vuls-kernel-detection",
   "ad-library-snapshot-capture",
+  "multi-download-dashboard-merge",
 ]);
 
 interface AssetMapping {

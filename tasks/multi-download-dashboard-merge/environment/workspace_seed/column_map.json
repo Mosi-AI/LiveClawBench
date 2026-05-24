@@ -1,0 +1,15 @@
+{
+  "date_columns": {
+    "Day": "date",
+    "Date": "date",
+    "report_date": "date"
+  },
+  "metric_columns": {
+    "Visits": "traffic_visits",
+    "Unique Visitors": "traffic_uniques",
+    "Leads": "conversion_leads",
+    "Signups": "conversion_signups",
+    "Ad Spend": "spend_amount",
+    "Clicks": "spend_clicks"
+  }
+}

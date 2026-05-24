@@ -953,6 +953,10 @@
     "ad-library-snapshot-capture": {
       "binaries": [],
       "startup_extra": "tasks/ad-library-snapshot-capture/environment/startup.sh"
+    },
+    "multi-download-dashboard-merge": {
+      "binaries": [],
+      "startup_extra": "tasks/multi-download-dashboard-merge/environment/startup.sh"
     }
   }
 }
