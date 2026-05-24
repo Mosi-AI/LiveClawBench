@@ -3,8 +3,8 @@
 Checks: sent folder contains an email that was actually persisted
 (after the agent detected the silent send failure and retried).
 """
-import sys
 import sqlite3
+import sys
 
 DB_PATH = "/var/lib/mock-data/email/email.db"
 

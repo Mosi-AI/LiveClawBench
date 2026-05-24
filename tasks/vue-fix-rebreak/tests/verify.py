@@ -9,6 +9,7 @@ import json
 import subprocess
 import sys
 
+
 def main():
     score = 0.0
     dimensions = {}

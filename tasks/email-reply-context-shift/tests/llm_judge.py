@@ -3,8 +3,8 @@
 Checks: final sent email acknowledges the meeting cancellation.
 Uses LLM judge to evaluate response quality.
 """
-import sys
 import sqlite3
+import sys
 
 DB_PATH = "/var/lib/mock-data/email/email.db"
 

@@ -68,7 +68,7 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
       if (watchItem) {
         setStock(watchItem.id, 0);
         return c.json(
-          err(`Product ${watchItem.id} is sold out`, "SOLD_OUT"),
+          err(`Product ${watchItem.id} is sold out`),
           409,
         );
       }
@@ -90,7 +90,7 @@ export function registerCheckoutRoutes(app: OpenAPIApp) {
         const stock = getStock(item.id);
         if (stock !== undefined && stock <= 0) {
           return c.json(
-            err(`Product ${item.id} is sold out`, "SOLD_OUT"),
+            err(`Product ${item.id} is sold out`),
             409,
           );
         }
