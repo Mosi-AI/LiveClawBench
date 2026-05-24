@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # C1 watcher for vue-fix-rebreak
 #
 # Monitors /workspace/vue-crm/node_modules/vue-tsc/ — once the agent has
