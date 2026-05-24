@@ -601,7 +601,7 @@ class SleepTrendRecovery2VerifierContractTests(unittest.TestCase):
             "to Recovery Yoga, downgraded the 17:30 Sprint Intervals to a walk, and replaced the 19:00 Boxing "
             "Conditioning session with easy cycling because the sleep drop suggests avoiding all high-intensity exercise. "
             "I left today's 07:00 coffee unchanged and delayed tomorrow's coffee from 07:00 to 08:30, which still gives "
-            "a 30-minute brew window before the 09:00 Morning Routine. The smart-home Wearable & Recovery page shows today's "
+            "a 30-minute brew window before the 09:00 Online Daily Sync. The smart-home Wearable & Recovery page shows today's "
             "date but all the values are 0, so it has not been synced with the health data yet and should not be trusted."
         )
         results = verify.score_state(smarthome_conn)

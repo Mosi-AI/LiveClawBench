@@ -236,10 +236,10 @@ def score_tomorrow_coffee(conn):
 
 def check_protected_calendar_state(conn):
     expected_calendar = [
-        (1, "Today Morning Routine", "2026-05-09T09:00:00Z", "routine", None),
+        (1, "Online Daily Sync", "2026-05-09T09:00:00Z", "work", None),
         (2, "Today Recovery Walk", "2026-05-09T18:30:00Z", "workout", "walking"),
         (4, "Team Meeting", "2026-05-10T14:00:00Z", "meeting", None),
-        (5, "Morning Routine", "2026-05-10T09:00:00Z", "routine", None),
+        (5, "Online Daily Sync", "2026-05-10T09:00:00Z", "work", None),
     ]
     actual_calendar = conn.execute(
         """
@@ -432,7 +432,7 @@ def score_response_hiit_reasoning(text):
 def score_response_coffee_reasoning(text):
     new_time = re.search(r"08:30|8:30", text)
     old_time = re.search(r"07:00|7:00", text)
-    event = re.search(r"09:00|9:00|morning\s+routine|earliest", text)
+    event = re.search(r"09:00|9:00|daily\s+sync|earliest", text)
     brew = re.search(r"30[- ]?minute|brew|finish", text)
     if new_time and old_time and event and brew:
         return 0.07

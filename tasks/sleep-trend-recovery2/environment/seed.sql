@@ -15,11 +15,11 @@ INSERT OR REPLACE INTO coffee_schedule (schedule_date, start_time, beans_grams, 
 ('2026-05-10', '07:00', 20, 0, '2026-05-09T06:00:00Z');
 
 INSERT OR REPLACE INTO calendar_event (id, title, start_time, event_type, workout_type, status, updated_at) VALUES
-(1, 'Today Morning Routine', '2026-05-09T09:00:00Z', 'routine', NULL, 'undone', '2026-05-08T20:00:00Z'),
+(1, 'Online Daily Sync', '2026-05-09T09:00:00Z', 'work', NULL, 'undone', '2026-05-08T20:00:00Z'),
 (2, 'Today Recovery Walk', '2026-05-09T18:30:00Z', 'workout', 'walking', 'undone', '2026-05-08T20:00:00Z'),
 (3, 'HIIT Workout', '2026-05-10T12:00:00Z', 'workout', 'hiit', 'undone', '2026-05-08T20:00:00Z'),
 (4, 'Team Meeting', '2026-05-10T14:00:00Z', 'meeting', NULL, 'undone', '2026-05-08T20:00:00Z'),
-(5, 'Morning Routine', '2026-05-10T09:00:00Z', 'routine', NULL, 'undone', '2026-05-08T20:00:00Z'),
+(5, 'Online Daily Sync', '2026-05-10T09:00:00Z', 'work', NULL, 'undone', '2026-05-08T20:00:00Z'),
 (6, 'Sprint Intervals', '2026-05-10T17:30:00Z', 'workout', 'hiit', 'undone', '2026-05-08T20:00:00Z'),
 (7, 'Boxing Conditioning', '2026-05-10T19:00:00Z', 'workout', 'strength', 'undone', '2026-05-08T20:00:00Z');
 
