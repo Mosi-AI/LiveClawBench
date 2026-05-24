@@ -9,7 +9,7 @@ import json
 import sqlite3
 import sys
 
-DB_PATH = "/var/lib/mock-data/finance/finance.db"
+DB_PATH = "/opt/mock/data/finance_app.sqlite"
 
 
 def main():

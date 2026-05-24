@@ -1,636 +1,1052 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "task-binary-map",
-    "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
-    "version": "1.1",
-    "binaries": [
-        "airline",
-        "chat",
-        "email",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "task-binary-map",
+  "description": "Task to mock binary mapping for LiveClawBench per-task Docker images",
+  "version": "1.1",
+  "binaries": [
+    "airline",
+    "chat",
+    "email",
+    "shop",
+    "todolist",
+    "doc-search",
+    "insurance",
+    "calendar",
+    "mint-diet",
+    "weather",
+    "social",
+    "expense",
+    "health",
+    "finance",
+    "smarthome",
+    "workspace"
+  ],
+  "tasks": {
+    "weather-aqi-report": {
+      "binaries": [
+        "weather"
+      ]
+    },
+    "watch-shop": {
+      "binaries": [
+        "shop"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "watch-shop-stockout": {
+      "binaries": [
+        "shop"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "watch-shop-silent-fail": {
+      "binaries": [
+        "shop"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "washer-shop": {
+      "binaries": [
+        "shop"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "info-change": {
+      "binaries": [
+        "shop"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "washer-change": {
+      "binaries": [
+        "shop"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "email-watch-shop": {
+      "binaries": [
         "shop",
-        "todolist",
-        "doc-search",
+        "email"
+      ],
+      "startup_extra": "tasks/email-watch-shop/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "email-washer-change": {
+      "binaries": [
+        "shop",
+        "email"
+      ],
+      "startup_extra": "tasks/email-washer-change/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "email-writing": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "email-reply": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "email-reply-context-shift": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "email-sending-verify": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "schedule-change-request": {
+      "binaries": [
+        "airline",
+        "email",
+        "todolist"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "flight-booking": {
+      "binaries": [
+        "airline"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/flight-booking/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    },
+    "flight-info-change-notice": {
+      "binaries": [
+        "airline",
+        "email",
+        "todolist"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/flight-info-change-notice/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "flight-seat-selection": {
+      "binaries": [
+        "airline",
+        "email"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/flight-seat-selection/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    },
+    "flight-seat-selection-failed": {
+      "binaries": [
+        "airline",
+        "email"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/flight-seat-selection-failed/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    },
+    "flight-cancel-claim": {
+      "binaries": [
+        "airline",
+        "email"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/flight-cancel-claim/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    },
+    "baggage-tracking-application": {
+      "binaries": [
+        "airline"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/baggage-tracking-application/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    },
+    "blog-site-from-scratch": {
+      "binaries": []
+    },
+    "blog-site-completion-from-starter": {
+      "binaries": []
+    },
+    "vue-build-fix-single": {
+      "binaries": []
+    },
+    "vue-build-fix-chain": {
+      "binaries": []
+    },
+    "vue-fix-rebreak": {
+      "binaries": []
+    },
+    "skill-creation": {
+      "binaries": []
+    },
+    "skill-repository-curation": {
+      "binaries": []
+    },
+    "skill-supplementation": {
+      "binaries": []
+    },
+    "skill-conflict-resolution": {
+      "binaries": []
+    },
+    "skill-dependency-fix": {
+      "binaries": []
+    },
+    "noise-filtering": {
+      "binaries": []
+    },
+    "mixed-tool-memory": {
+      "binaries": [
+        "doc-search"
+      ],
+      "startup_extra": "tasks/mixed-tool-memory/environment/startup.sh",
+      "assets": [
+        {
+          "src": "tasks/mixed-tool-memory/environment/documents.sql",
+          "dest": "/opt/mock/data/documents.sql"
+        }
+      ]
+    },
+    "incremental-update-ctp": {
+      "binaries": []
+    },
+    "live-web-research-sqlite-fts5": {
+      "binaries": []
+    },
+    "conflict-repair-acb": {
+      "binaries": [
+        "doc-search"
+      ],
+      "startup_extra": "tasks/conflict-repair-acb/environment/startup.sh",
+      "assets": [
+        {
+          "src": "tasks/conflict-repair-acb/environment/documents.sql",
+          "dest": "/opt/mock/data/documents.sql"
+        }
+      ]
+    },
+    "skill-combination": {
+      "binaries": []
+    },
+    "insurance-deductible-selection": {
+      "binaries": [
+        "insurance"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/insurance/css/style.css",
+          "dest": "/opt/mock/static/insurance/css/style.css"
+        }
+      ]
+    },
+    "health-insurance-optimization": {
+      "binaries": [
         "insurance",
-        "calendar",
-        "mint-diet",
-        "weather",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/insurance/css/style.css",
+          "dest": "/opt/mock/static/insurance/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ]
+    },
+    "mint-diet-snack-log": {
+      "binaries": [
+        "mint-diet"
+      ]
+    },
+    "nutrition-log-meal": {
+      "binaries": [
+        "mint-diet"
+      ]
+    },
+    "mint-diet-comprehensive": {
+      "binaries": [
+        "mint-diet"
+      ]
+    },
+    "mint-diet-stockout": {
+      "binaries": [
+        "mint-diet"
+      ]
+    },
+    "social-media-posting": {
+      "binaries": [
+        "social"
+      ]
+    },
+    "social-unlike-post": {
+      "binaries": [
+        "social"
+      ]
+    },
+    "social-post-rate-limit": {
+      "binaries": [
+        "social"
+      ]
+    },
+    "social-unlike-verify": {
+      "binaries": [
+        "social"
+      ]
+    },
+    "expense-draft-delete": {
+      "binaries": [
+        "expense"
+      ],
+      "assets": [
+        {
+          "src": "tasks/expense-draft-delete/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ]
+    },
+    "expense-submit-verify": {
+      "binaries": [
+        "expense"
+      ]
+    },
+    "health-daily-record": {
+      "binaries": [
+        "health"
+      ]
+    },
+    "health-record-verify": {
+      "binaries": [
+        "health"
+      ]
+    },
+    "social-schedule-audit": {
+      "binaries": [
+        "social"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-schedule-audit/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ]
+    },
+    "social-keyword-cleanup": {
+      "binaries": [
         "social",
-        "expense",
-        "health",
-        "finance",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-keyword-cleanup/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ]
+    },
+    "social-event-campaign": {
+      "binaries": [
+        "social",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-event-campaign/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ]
+    },
+    "social-data-anomaly-report": {
+      "binaries": [
+        "social",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-data-anomaly-report/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ]
+    },
+    "social-comment-moderation": {
+      "binaries": [
+        "social",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-comment-moderation/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ]
+    },
+    "social-cross-publish": {
+      "binaries": [
+        "social",
+        "email",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-cross-publish/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ]
+    },
+    "social-pinned-post-update": {
+      "binaries": [
+        "social",
+        "email",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "tasks/social-pinned-post-update/environment/seed.json",
+          "dest": "/opt/mock/data/seed.json"
+        }
+      ]
+    },
+    "finance-portfolio-rebalancing": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-monthly-close": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "smarthome-test": {
+      "binaries": [
+        "smarthome"
+      ],
+      "assets": [
+        {
+          "src": "tasks/smarthome-test/environment/seed.sql",
+          "dest": "/opt/mock/data/smarthome.sql"
+        }
+      ]
+    },
+    "grocery-reorder": {
+      "binaries": [
         "smarthome",
+        "shop"
+      ],
+      "startup_extra": "tasks/grocery-reorder/environment/startup.sh",
+      "assets": [
+        {
+          "src": "tasks/grocery-reorder/environment/seed.sql",
+          "dest": "/opt/mock/data/smarthome.sql"
+        },
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "tasks/grocery-reorder/environment/products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "morning-comfort-setup": {
+      "binaries": [
+        "smarthome"
+      ],
+      "assets": [
+        {
+          "src": "tasks/morning-comfort-setup/environment/seed.sql",
+          "dest": "/opt/mock/data/smarthome.sql"
+        }
+      ]
+    },
+    "weather-city-travel-pick": {
+      "binaries": [
+        "weather"
+      ]
+    },
+    "weather-outdoor-window": {
+      "binaries": [
+        "weather"
+      ]
+    },
+    "pre-meeting-research-brief": {
+      "binaries": [
+        "todolist"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "vendor-due-diligence-brief": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "finance-anomaly-detect": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-budget-alert": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
+    "finance-budget-shift": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
+    "finance-dashboard-repair": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-depreciation-audit": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-expense-log": {
+      "binaries": [
+        "finance"
+      ]
+    },
+    "finance-invoice-process": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
+    "finance-tax-prepare": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
+    "finance-analysis-generate": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
+    "meeting-reschedule-response": {
+      "binaries": [
+        "email",
+        "calendar"
+      ],
+      "startup_extra": "tasks/meeting-reschedule-response/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ]
+    },
+    "meeting-slot-race": {
+      "binaries": [
+        "email",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ]
+    },
+    "candidate-interview-slot-confirm": {
+      "binaries": [
+        "email",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ]
+    },
+    "interview-slot-verify": {
+      "binaries": [
+        "email",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ]
+    },
+    "medication-prescription-sync": {
+      "binaries": [
+        "email",
+        "health",
+        "calendar"
+      ],
+      "startup_extra": "tasks/medication-prescription-sync/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ]
+    },
+    "health-appointment-scheduling": {
+      "binaries": [
+        "email",
+        "insurance",
+        "calendar"
+      ],
+      "startup_extra": "tasks/health-appointment-scheduling/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/insurance/css/style.css",
+          "dest": "/opt/mock/static/insurance/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ]
+    },
+    "content-calendar-cross-publish": {
+      "binaries": [
+        "email",
+        "calendar",
+        "social"
+      ],
+      "startup_extra": "tasks/content-calendar-cross-publish/environment/startup.sh",
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ]
+    },
+    "sticker-store-acquire": {
+      "binaries": [
+        "chat"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-1.svg",
+          "dest": "/opt/mock/static/store/cat-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-2.svg",
+          "dest": "/opt/mock/static/store/cat-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-3.svg",
+          "dest": "/opt/mock/static/store/cat-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-1.svg",
+          "dest": "/opt/mock/static/store/space-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-2.svg",
+          "dest": "/opt/mock/static/store/space-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-3.svg",
+          "dest": "/opt/mock/static/store/space-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-1.svg",
+          "dest": "/opt/mock/static/store/dog-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-2.svg",
+          "dest": "/opt/mock/static/store/dog-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-3.svg",
+          "dest": "/opt/mock/static/store/dog-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-1.svg",
+          "dest": "/opt/mock/static/store/food-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-2.svg",
+          "dest": "/opt/mock/static/store/food-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-3.svg",
+          "dest": "/opt/mock/static/store/food-3.svg"
+        }
+      ]
+    },
+    "chat-sticker-engagement": {
+      "binaries": [
+        "chat"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-1.svg",
+          "dest": "/opt/mock/static/store/cat-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-2.svg",
+          "dest": "/opt/mock/static/store/cat-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/cat-3.svg",
+          "dest": "/opt/mock/static/store/cat-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-1.svg",
+          "dest": "/opt/mock/static/store/space-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-2.svg",
+          "dest": "/opt/mock/static/store/space-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/space-3.svg",
+          "dest": "/opt/mock/static/store/space-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-1.svg",
+          "dest": "/opt/mock/static/store/dog-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-2.svg",
+          "dest": "/opt/mock/static/store/dog-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/dog-3.svg",
+          "dest": "/opt/mock/static/store/dog-3.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-1.svg",
+          "dest": "/opt/mock/static/store/food-1.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-2.svg",
+          "dest": "/opt/mock/static/store/food-2.svg"
+        },
+        {
+          "src": "mock-platform/mocks/chat/static/store/food-3.svg",
+          "dest": "/opt/mock/static/store/food-3.svg"
+        }
+      ]
+    },
+    "email-phishing-injection": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "cross-service-credential-handling": {
+      "binaries": [
+        "shop",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "email-shop-privacy-leak": {
+      "binaries": [
+        "shop",
+        "email"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "phishing-in-inbox": {
+      "binaries": [
+        "email",
+        "todolist"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "flight-calendar-overshare": {
+      "binaries": [
+        "airline",
+        "email",
+        "todolist"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        },
+        {
+          "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
+          "buildDir": "build",
+          "dest": "/opt/mock/frontend/todolist"
+        }
+      ]
+    },
+    "fake-system-notification": {
+      "binaries": [
+        "airline"
+      ],
+      "frontends": [
+        {
+          "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
+          "buildDir": "dist",
+          "dest": "/opt/mock/frontend/airline"
+        }
+      ]
+    },
+    "ambiguous-cleanup-task": {
+      "binaries": []
+    },
+    "ansible-iptables-ipset": {
+      "binaries": []
+    },
+    "api-key-in-devops": {
+      "binaries": []
+    },
+    "browser-portal-injection": {
+      "binaries": []
+    },
+    "cd-pipeline-setup": {
+      "binaries": []
+    },
+    "chaotic-repo-restoration": {
+      "binaries": []
+    },
+    "citation-network-influence": {
+      "binaries": []
+    },
+    "corpus-file-injection": {
+      "binaries": []
+    },
+    "db-corruption-multi-recovery": {
+      "binaries": []
+    },
+    "element-web-unverified-device": {
+      "binaries": []
+    },
+    "ga-classical-optimization": {
+      "binaries": []
+    },
+    "ga-gol-persistent-structures": {
+      "binaries": []
+    },
+    "git-merge-conflict-deploy": {
+      "binaries": []
+    },
+    "grpc-service-crash-diagnosis": {
+      "binaries": []
+    },
+    "legacy-stack-migration-deploy": {
+      "binaries": []
+    },
+    "log-triage-incident-report": {
+      "binaries": []
+    },
+    "microservice-stack-deploy": {
+      "binaries": []
+    },
+    "monitoring-alerting-setup": {
+      "binaries": []
+    },
+    "openlibrary-3rd-metadata-source": {
+      "binaries": []
+    },
+    "package-build-publish": {
+      "binaries": []
+    },
+    "python-dependency-hell-resolution": {
+      "binaries": []
+    },
+    "research-with-adversarial-sources": {
+      "binaries": []
+    },
+    "security-audit-remediation": {
+      "binaries": []
+    },
+    "skill-repo-dangerous-cleanup": {
+      "binaries": []
+    },
+    "teleport-gcp-cert-identity": {
+      "binaries": []
+    },
+    "tls-cert-rotation-sla": {
+      "binaries": []
+    },
+    "vuls-kernel-detection": {
+      "binaries": []
+    },
+    "workspace-brief-tracking": {
+      "binaries": [
         "workspace"
-    ],
-    "tasks": {
-        "weather-aqi-report": {"binaries": ["weather"]},
-        "watch-shop": {
-            "binaries": ["shop"],
-            "assets": [
-                {
-                    "src": "mock-platform/static/shop/css/style.css",
-                    "dest": "/opt/mock/static/shop/css/style.css"
-                },
-                {
-                    "src": "mock-platform/static/shop/sample_products.json",
-                    "dest": "/opt/mock/static/shop/products.json"
-                }
-            ]
-        },
-        "washer-shop": {
-            "binaries": ["shop"],
-            "assets": [
-                {
-                    "src": "mock-platform/static/shop/css/style.css",
-                    "dest": "/opt/mock/static/shop/css/style.css"
-                },
-                {
-                    "src": "mock-platform/static/shop/sample_products.json",
-                    "dest": "/opt/mock/static/shop/products.json"
-                }
-            ]
-        },
-        "info-change": {
-            "binaries": ["shop"],
-            "assets": [
-                {
-                    "src": "mock-platform/static/shop/css/style.css",
-                    "dest": "/opt/mock/static/shop/css/style.css"
-                },
-                {
-                    "src": "mock-platform/static/shop/sample_products.json",
-                    "dest": "/opt/mock/static/shop/products.json"
-                }
-            ]
-        },
-        "washer-change": {
-            "binaries": ["shop"],
-            "assets": [
-                {
-                    "src": "mock-platform/static/shop/css/style.css",
-                    "dest": "/opt/mock/static/shop/css/style.css"
-                },
-                {
-                    "src": "mock-platform/static/shop/sample_products.json",
-                    "dest": "/opt/mock/static/shop/products.json"
-                }
-            ]
-        },
-        "email-watch-shop": {
-            "binaries": ["shop", "email"],
-            "startup_extra": "tasks/email-watch-shop/environment/startup.sh",
-            "assets": [
-                {
-                    "src": "mock-platform/static/shop/css/style.css",
-                    "dest": "/opt/mock/static/shop/css/style.css"
-                },
-                {
-                    "src": "mock-platform/static/shop/sample_products.json",
-                    "dest": "/opt/mock/static/shop/products.json"
-                }
-            ]
-        },
-        "email-washer-change": {
-            "binaries": ["shop", "email"],
-            "startup_extra": "tasks/email-washer-change/environment/startup.sh",
-            "assets": [
-                {
-                    "src": "mock-platform/static/shop/css/style.css",
-                    "dest": "/opt/mock/static/shop/css/style.css"
-                },
-                {
-                    "src": "mock-platform/static/shop/sample_products.json",
-                    "dest": "/opt/mock/static/shop/products.json"
-                }
-            ]
-        },
-        "email-writing": {"binaries": ["email"]},
-        "email-reply": {"binaries": ["email"]},
-        "schedule-change-request": {
-            "binaries": ["airline", "email", "todolist"],
-            "frontends": [
-                {
-                    "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
-                    "buildDir": "build",
-                    "dest": "/opt/mock/frontend/todolist"
-                }
-            ]
-        },
-        "flight-booking": {
-            "binaries": ["airline"],
-            "frontends": [
-                {
-                    "src": "tasks/flight-booking/environment/airline-app/frontend",
-                    "buildDir": "dist",
-                    "dest": "/opt/mock/frontend/airline"
-                }
-            ]
-        },
-        "flight-info-change-notice": {
-            "binaries": ["airline", "email", "todolist"],
-            "frontends": [
-                {
-                    "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
-                    "buildDir": "dist",
-                    "dest": "/opt/mock/frontend/airline"
-                },
-                {
-                    "src": "tasks/flight-info-change-notice/environment/todolist-app/frontend",
-                    "buildDir": "build",
-                    "dest": "/opt/mock/frontend/todolist"
-                }
-            ]
-        },
-        "flight-seat-selection": {
-            "binaries": ["airline", "email"],
-            "frontends": [
-                {
-                    "src": "tasks/flight-seat-selection/environment/airline-app/frontend",
-                    "buildDir": "dist",
-                    "dest": "/opt/mock/frontend/airline"
-                }
-            ]
-        },
-        "flight-seat-selection-failed": {
-            "binaries": ["airline", "email"],
-            "frontends": [
-                {
-                    "src": "tasks/flight-seat-selection-failed/environment/airline-app/frontend",
-                    "buildDir": "dist",
-                    "dest": "/opt/mock/frontend/airline"
-                }
-            ]
-        },
-        "flight-cancel-claim": {
-            "binaries": ["airline", "email"],
-            "frontends": [
-                {
-                    "src": "tasks/flight-cancel-claim/environment/airline-app/frontend",
-                    "buildDir": "dist",
-                    "dest": "/opt/mock/frontend/airline"
-                }
-            ]
-        },
-        "baggage-tracking-application": {
-            "binaries": ["airline"],
-            "frontends": [
-                {
-                    "src": "tasks/baggage-tracking-application/environment/airline-app/frontend",
-                    "buildDir": "dist",
-                    "dest": "/opt/mock/frontend/airline"
-                }
-            ]
-        },
-        "blog-site-from-scratch": {"binaries": []},
-        "blog-site-completion-from-starter": {"binaries": []},
-        "vue-build-fix-single": {"binaries": []},
-        "vue-build-fix-chain": {"binaries": []},
-        "skill-creation": {"binaries": []},
-        "skill-repository-curation": {"binaries": []},
-        "skill-supplementation": {"binaries": []},
-        "skill-conflict-resolution": {"binaries": []},
-        "skill-dependency-fix": {"binaries": []},
-        "noise-filtering": {"binaries": []},
-        "mixed-tool-memory": {
-            "binaries": ["doc-search"],
-            "startup_extra": "tasks/mixed-tool-memory/environment/startup.sh",
-            "assets": [
-                {
-                    "src": "tasks/mixed-tool-memory/environment/documents.sql",
-                    "dest": "/opt/mock/data/documents.sql"
-                }
-            ]
-        },
-        "incremental-update-ctp": {"binaries": []},
-        "live-web-research-sqlite-fts5": {"binaries": []},
-        "conflict-repair-acb": {
-            "binaries": ["doc-search"],
-            "startup_extra": "tasks/conflict-repair-acb/environment/startup.sh",
-            "assets": [
-                {
-                    "src": "tasks/conflict-repair-acb/environment/documents.sql",
-                    "dest": "/opt/mock/data/documents.sql"
-                }
-            ]
-        },
-        "skill-combination": {"binaries": []},
-        "insurance-deductible-selection": {
-            "binaries": ["insurance"],
-            "assets": [
-                {
-                    "src": "mock-platform/static/insurance/css/style.css",
-                    "dest": "/opt/mock/static/insurance/css/style.css"
-                }
-            ]
-        },
-        "health-insurance-optimization": {
-            "binaries": ["insurance", "calendar"],
-            "assets": [
-                {
-                    "src": "mock-platform/static/insurance/css/style.css",
-                    "dest": "/opt/mock/static/insurance/css/style.css"
-                },
-                {
-                    "src": "mock-platform/static/calendar/css/style.css",
-                    "dest": "/opt/mock/static/calendar/css/style.css"
-                }
-            ]
-        },
-        "mint-diet-snack-log": {"binaries": ["mint-diet"]},
-        "nutrition-log-meal": {"binaries": ["mint-diet"]},
-        "mint-diet-comprehensive": {"binaries": ["mint-diet"]},
-        "social-media-posting": {"binaries": ["social"]},
-        "social-unlike-post": {"binaries": ["social"]},
-        "expense-draft-delete": {
-            "binaries": ["expense"],
-            "assets": [
-                {
-                    "src": "tasks/expense-draft-delete/environment/seed.json",
-                    "dest": "/opt/mock/data/seed.json"
-                }
-            ]
-        },
-        "health-daily-record": {"binaries": ["health"]},
-        "social-schedule-audit": {
-            "binaries": ["social"],
-            "assets": [
-                {
-                    "src": "tasks/social-schedule-audit/environment/seed.json",
-                    "dest": "/opt/mock/data/seed.json"
-                }
-            ]
-        },
-        "social-keyword-cleanup": {
-            "binaries": ["social", "email"],
-            "assets": [
-                {
-                    "src": "tasks/social-keyword-cleanup/environment/seed.json",
-                    "dest": "/opt/mock/data/seed.json"
-                }
-            ]
-        },
-        "social-event-campaign": {
-            "binaries": ["social", "email"],
-            "assets": [
-                {
-                    "src": "tasks/social-event-campaign/environment/seed.json",
-                    "dest": "/opt/mock/data/seed.json"
-                }
-            ]
-        },
-        "social-data-anomaly-report": {
-            "binaries": ["social", "email"],
-            "assets": [
-                {
-                    "src": "tasks/social-data-anomaly-report/environment/seed.json",
-                    "dest": "/opt/mock/data/seed.json"
-                }
-            ]
-        },
-        "social-comment-moderation": {
-            "binaries": ["social", "email"],
-            "assets": [
-                {
-                    "src": "tasks/social-comment-moderation/environment/seed.json",
-                    "dest": "/opt/mock/data/seed.json"
-                }
-            ]
-        },
-        "social-cross-publish": {
-            "binaries": ["social", "email", "calendar"],
-            "assets": [
-                {
-                    "src": "tasks/social-cross-publish/environment/seed.json",
-                    "dest": "/opt/mock/data/seed.json"
-                }
-            ]
-        },
-        "social-pinned-post-update": {
-            "binaries": ["social", "email", "calendar"],
-            "assets": [
-                {
-                    "src": "tasks/social-pinned-post-update/environment/seed.json",
-                    "dest": "/opt/mock/data/seed.json"
-                }
-            ]
-        },
-        "finance-portfolio-rebalancing": {"binaries": ["finance"]},
-        "finance-monthly-close": {"binaries": ["finance"]},
-        "smarthome-test": {
-            "binaries": ["smarthome"],
-            "assets": [
-                {
-                    "src": "tasks/smarthome-test/environment/seed.sql",
-                    "dest": "/opt/mock/data/smarthome.sql"
-                }
-            ]
-        },
-        "grocery-reorder": {
-            "binaries": ["smarthome", "shop"],
-            "startup_extra": "tasks/grocery-reorder/environment/startup.sh",
-            "assets": [
-                {
-                    "src": "tasks/grocery-reorder/environment/seed.sql",
-                    "dest": "/opt/mock/data/smarthome.sql"
-                },
-                {
-                    "src": "mock-platform/static/shop/css/style.css",
-                    "dest": "/opt/mock/static/shop/css/style.css"
-                },
-                {
-                    "src": "tasks/grocery-reorder/environment/products.json",
-                    "dest": "/opt/mock/static/shop/products.json"
-                }
-            ]
-        },
-        "morning-comfort-setup": {
-            "binaries": ["smarthome"],
-            "assets": [
-                {
-                    "src": "tasks/morning-comfort-setup/environment/seed.sql",
-                    "dest": "/opt/mock/data/smarthome.sql"
-                }
-            ]
-        },
-        "weather-city-travel-pick": {"binaries": ["weather"]},
-        "weather-outdoor-window": {"binaries": ["weather"]},
-        "pre-meeting-research-brief": {
-            "binaries": ["todolist"],
-            "frontends": [
-                {
-                    "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
-                    "buildDir": "build",
-                    "dest": "/opt/mock/frontend/todolist"
-                }
-            ]
-        },
-        "vendor-due-diligence-brief": {"binaries": ["email"]},
-        "finance-anomaly-detect": {"binaries": ["finance"]},
-        "finance-budget-alert": {"binaries": ["finance", "email"]},
-        "finance-dashboard-repair": {"binaries": ["finance"]},
-        "finance-depreciation-audit": {"binaries": ["finance"]},
-        "finance-expense-log": {"binaries": ["finance"]},
-        "finance-invoice-process": {"binaries": ["finance", "email"]},
-        "finance-tax-prepare": {"binaries": ["finance", "email"]},
-        "finance-analysis-generate": {"binaries": ["finance", "email"]},
-        "meeting-reschedule-response": {
-            "binaries": ["email", "calendar"],
-            "startup_extra": "tasks/meeting-reschedule-response/environment/startup.sh",
-            "assets": [
-                {
-                    "src": "mock-platform/static/calendar/css/style.css",
-                    "dest": "/opt/mock/static/calendar/css/style.css"
-                }
-            ]
-        },
-        "candidate-interview-slot-confirm": {
-            "binaries": ["email", "calendar"],
-            "assets": [
-                {
-                    "src": "mock-platform/static/calendar/css/style.css",
-                    "dest": "/opt/mock/static/calendar/css/style.css"
-                }
-            ]
-        },
-        "medication-prescription-sync": {
-            "binaries": ["email", "health", "calendar"],
-            "startup_extra": "tasks/medication-prescription-sync/environment/startup.sh",
-            "assets": [
-                {
-                    "src": "mock-platform/static/calendar/css/style.css",
-                    "dest": "/opt/mock/static/calendar/css/style.css"
-                }
-            ]
-        },
-        "health-appointment-scheduling": {
-            "binaries": ["email", "insurance", "calendar"],
-            "startup_extra": "tasks/health-appointment-scheduling/environment/startup.sh",
-            "assets": [
-                {
-                    "src": "mock-platform/static/insurance/css/style.css",
-                    "dest": "/opt/mock/static/insurance/css/style.css"
-                },
-                {
-                    "src": "mock-platform/static/calendar/css/style.css",
-                    "dest": "/opt/mock/static/calendar/css/style.css"
-                }
-            ]
-        },
-        "content-calendar-cross-publish": {
-            "binaries": ["email", "calendar", "social"],
-            "startup_extra": "tasks/content-calendar-cross-publish/environment/startup.sh",
-            "assets": [
-                {
-                    "src": "mock-platform/static/calendar/css/style.css",
-                    "dest": "/opt/mock/static/calendar/css/style.css"
-                }
-            ]
-        },
-        "sticker-store-acquire": {
-            "binaries": ["chat"],
-            "assets": [
-                {
-                    "src": "mock-platform/mocks/chat/static/store/cat-1.svg",
-                    "dest": "/opt/mock/static/store/cat-1.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/cat-2.svg",
-                    "dest": "/opt/mock/static/store/cat-2.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/cat-3.svg",
-                    "dest": "/opt/mock/static/store/cat-3.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/space-1.svg",
-                    "dest": "/opt/mock/static/store/space-1.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/space-2.svg",
-                    "dest": "/opt/mock/static/store/space-2.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/space-3.svg",
-                    "dest": "/opt/mock/static/store/space-3.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/dog-1.svg",
-                    "dest": "/opt/mock/static/store/dog-1.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/dog-2.svg",
-                    "dest": "/opt/mock/static/store/dog-2.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/dog-3.svg",
-                    "dest": "/opt/mock/static/store/dog-3.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/food-1.svg",
-                    "dest": "/opt/mock/static/store/food-1.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/food-2.svg",
-                    "dest": "/opt/mock/static/store/food-2.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/food-3.svg",
-                    "dest": "/opt/mock/static/store/food-3.svg"
-                }
-            ]
-        },
-        "chat-sticker-engagement": {
-            "binaries": ["chat"],
-            "assets": [
-                {
-                    "src": "mock-platform/mocks/chat/static/store/cat-1.svg",
-                    "dest": "/opt/mock/static/store/cat-1.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/cat-2.svg",
-                    "dest": "/opt/mock/static/store/cat-2.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/cat-3.svg",
-                    "dest": "/opt/mock/static/store/cat-3.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/space-1.svg",
-                    "dest": "/opt/mock/static/store/space-1.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/space-2.svg",
-                    "dest": "/opt/mock/static/store/space-2.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/space-3.svg",
-                    "dest": "/opt/mock/static/store/space-3.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/dog-1.svg",
-                    "dest": "/opt/mock/static/store/dog-1.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/dog-2.svg",
-                    "dest": "/opt/mock/static/store/dog-2.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/dog-3.svg",
-                    "dest": "/opt/mock/static/store/dog-3.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/food-1.svg",
-                    "dest": "/opt/mock/static/store/food-1.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/food-2.svg",
-                    "dest": "/opt/mock/static/store/food-2.svg"
-                },
-                {
-                    "src": "mock-platform/mocks/chat/static/store/food-3.svg",
-                    "dest": "/opt/mock/static/store/food-3.svg"
-                }
-            ]
-        },
-        "email-phishing-injection": {"binaries": ["email"]},
-        "cross-service-credential-handling": {
-            "binaries": ["shop", "email"],
-            "assets": [
-                {
-                    "src": "mock-platform/static/shop/css/style.css",
-                    "dest": "/opt/mock/static/shop/css/style.css"
-                },
-                {
-                    "src": "mock-platform/static/shop/sample_products.json",
-                    "dest": "/opt/mock/static/shop/products.json"
-                }
-            ]
-        },
-        "email-shop-privacy-leak": {
-            "binaries": ["shop", "email"],
-            "assets": [
-                {
-                    "src": "mock-platform/static/shop/css/style.css",
-                    "dest": "/opt/mock/static/shop/css/style.css"
-                },
-                {
-                    "src": "mock-platform/static/shop/sample_products.json",
-                    "dest": "/opt/mock/static/shop/products.json"
-                }
-            ]
-        },
-        "phishing-in-inbox": {
-            "binaries": ["email", "todolist"],
-            "frontends": [
-                {
-                    "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
-                    "buildDir": "build",
-                    "dest": "/opt/mock/frontend/todolist"
-                }
-            ]
-        },
-        "flight-calendar-overshare": {
-            "binaries": ["airline", "email", "todolist"],
-            "frontends": [
-                {
-                    "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
-                    "buildDir": "dist",
-                    "dest": "/opt/mock/frontend/airline"
-                },
-                {
-                    "src": "tasks/schedule-change-request/environment/todolist-app/frontend",
-                    "buildDir": "build",
-                    "dest": "/opt/mock/frontend/todolist"
-                }
-            ]
-        },
-        "fake-system-notification": {
-            "binaries": ["airline"],
-            "frontends": [
-                {
-                    "src": "tasks/flight-info-change-notice/environment/airline-app/frontend",
-                    "buildDir": "dist",
-                    "dest": "/opt/mock/frontend/airline"
-                }
-            ]
-        },
-        "ambiguous-cleanup-task": {"binaries": []},
-        "ansible-iptables-ipset": {"binaries": []},
-        "api-key-in-devops": {"binaries": []},
-        "browser-portal-injection": {"binaries": []},
-        "cd-pipeline-setup": {"binaries": []},
-        "chaotic-repo-restoration": {"binaries": []},
-        "citation-network-influence": {"binaries": []},
-        "corpus-file-injection": {"binaries": []},
-        "db-corruption-multi-recovery": {"binaries": []},
-        "element-web-unverified-device": {"binaries": []},
-        "ga-classical-optimization": {"binaries": []},
-        "ga-gol-persistent-structures": {"binaries": []},
-        "git-merge-conflict-deploy": {"binaries": []},
-        "grpc-service-crash-diagnosis": {"binaries": []},
-        "legacy-stack-migration-deploy": {"binaries": []},
-        "log-triage-incident-report": {"binaries": []},
-        "microservice-stack-deploy": {"binaries": []},
-        "monitoring-alerting-setup": {"binaries": []},
-        "openlibrary-3rd-metadata-source": {"binaries": []},
-        "package-build-publish": {"binaries": []},
-        "python-dependency-hell-resolution": {"binaries": []},
-        "research-with-adversarial-sources": {"binaries": []},
-        "security-audit-remediation": {"binaries": []},
-        "skill-repo-dangerous-cleanup": {"binaries": []},
-        "teleport-gcp-cert-identity": {"binaries": []},
-        "tls-cert-rotation-sla": {"binaries": []},
-        "vuls-kernel-detection": {"binaries": []},
-        "workspace-brief-tracking": {"binaries": ["workspace"]},
-        "workspace-task-record-batch": {"binaries": ["workspace"]},
-        "long-covid-neurological-hypotheses": {"binaries": []},
-        "formal-verification-vs-fuzzing": {"binaries": []},
-        "fusion-energy-commercial-viability": {"binaries": []},
-        "cross-border-data-privacy-comparison": {"binaries": []},
-        "autonomous-weapons-ethics": {"binaries": []},
-        "crispr-off-target-mitigation": {"binaries": []},
-        "digital-religion-ai-vr": {"binaries": []},
-        "defi-systemic-risk-contagion": {"binaries": []},
-        "ai-copyright-international-jurisprudence": {"binaries": []},
-        "mrna-cancer-vaccines-landscape": {"binaries": []}
+      ]
+    },
+    "workspace-task-record-batch": {
+      "binaries": [
+        "workspace"
+      ]
+    },
+    "long-covid-neurological-hypotheses": {
+      "binaries": []
+    },
+    "formal-verification-vs-fuzzing": {
+      "binaries": []
+    },
+    "fusion-energy-commercial-viability": {
+      "binaries": []
+    },
+    "cross-border-data-privacy-comparison": {
+      "binaries": []
+    },
+    "autonomous-weapons-ethics": {
+      "binaries": []
+    },
+    "crispr-off-target-mitigation": {
+      "binaries": []
+    },
+    "digital-religion-ai-vr": {
+      "binaries": []
+    },
+    "defi-systemic-risk-contagion": {
+      "binaries": []
+    },
+    "ai-copyright-international-jurisprudence": {
+      "binaries": []
+    },
+    "mrna-cancer-vaccines-landscape": {
+      "binaries": []
     }
+  }
 }

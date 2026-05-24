@@ -13,7 +13,7 @@ def main():
     conn = sqlite3.connect(DB_PATH)
 
     entries = conn.execute(
-        "SELECT id, food_id, food_name FROM food_log_entry ORDER BY id DESC LIMIT 5"
+        "SELECT id, food_id, food_name FROM food_entry ORDER BY id DESC LIMIT 5"
     ).fetchall()
     conn.close()
 

@@ -16,7 +16,7 @@ def main():
     max_seed_id = 10
 
     posts = conn.execute(
-        f"SELECT id, content, created_at FROM posts WHERE id > {max_seed_id} ORDER BY created_at ASC"
+        f"SELECT id, content, created_at FROM post WHERE id > {max_seed_id} ORDER BY created_at ASC"
     ).fetchall()
     conn.close()
 

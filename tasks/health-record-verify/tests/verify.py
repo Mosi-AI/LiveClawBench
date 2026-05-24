@@ -16,8 +16,8 @@ def main():
         # Try alternate path
         conn = sqlite3.connect("/var/lib/mock-data/health/health.db")
 
-    allergens = conn.execute("SELECT id FROM allergens ORDER BY id DESC LIMIT 5").fetchall()
-    medications = conn.execute("SELECT id FROM medications ORDER BY id DESC LIMIT 5").fetchall()
+    allergens = conn.execute("SELECT id FROM allergen ORDER BY id DESC LIMIT 5").fetchall()
+    medications = conn.execute("SELECT id FROM medication ORDER BY id DESC LIMIT 5").fetchall()
     conn.close()
 
     # Baseline has 3 allergens + 2 medications; new entries would have higher IDs

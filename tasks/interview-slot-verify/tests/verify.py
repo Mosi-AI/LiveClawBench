@@ -17,7 +17,7 @@ def main():
     conn = sqlite3.connect(DB_PATH)
 
     events = conn.execute(
-        "SELECT id, title, start_time, end_time FROM events ORDER BY id DESC"
+        "SELECT id, title, start_time, end_time FROM calendar_event ORDER BY id DESC"
     ).fetchall()
     conn.close()
 
