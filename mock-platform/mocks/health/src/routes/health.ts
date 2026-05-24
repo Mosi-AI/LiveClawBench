@@ -27,6 +27,45 @@ const CATEGORIES = [
   { name: "Energy", icon: "energy", metrics: ["active_energy_kcal"] },
 ];
 
+type TrendResponse = {
+  metric_type: string;
+  days: number;
+  statistics: {
+    mean: number | null;
+    median: number | null;
+    std_dev: number | null;
+    min: number | null;
+    max: number | null;
+  };
+  comparison: {
+    previous_period_mean: number | null;
+    change_percent: number | null;
+    trend: "rising" | "falling" | "stable";
+  };
+  insight: string;
+};
+
+type TrendOverrideRow = {
+  mean: number | null;
+  median: number | null;
+  std_dev: number | null;
+  min: number | null;
+  max: number | null;
+  previous_period_mean: number | null;
+  change_percent: number | null;
+  trend: "rising" | "falling" | "stable" | null;
+  insight: string | null;
+  has_mean: number;
+  has_median: number;
+  has_std_dev: number;
+  has_min: number;
+  has_max: number;
+  has_previous_period_mean: number;
+  has_change_percent: number;
+  has_trend: number;
+  has_insight: number;
+} | null;
+
 function validateDateRange(startDate: string, endDate: string): string | null {
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -36,6 +75,104 @@ function validateDateRange(startDate: string, endDate: string): string | null {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
   if (diffDays > 90) return "Date range must be between 1 and 90 days";
   return null;
+}
+
+function computeTrendResponse(metricType: string, days: number): TrendResponse {
+  const db = initDb();
+  const today = getToday();
+  const rows = db.query(
+    `SELECT value FROM health_metric_series
+     WHERE user_id = 1 AND metric_type = ?
+       AND date >= date(?, '-' || ? || ' days')
+       AND date <= date(?)
+     ORDER BY date`
+  ).all(metricType, today, days, today) as { value: number }[];
+
+  if (rows.length === 0) {
+    return {
+      metric_type: metricType,
+      days,
+      statistics: { mean: null, median: null, std_dev: null, min: null, max: null },
+      comparison: { previous_period_mean: null, change_percent: null, trend: "stable" },
+      insight: "Insufficient data for insights",
+    };
+  }
+
+  const values = rows.map(r => r.value);
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const sorted = [...values].sort((a, b) => a - b);
+  const median = sorted.length % 2 === 0
+    ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+    : sorted[Math.floor(sorted.length / 2)];
+  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
+  const std_dev = Math.sqrt(variance);
+  const min = sorted[0];
+  const max = sorted[sorted.length - 1];
+
+  const prevRows = db.query(
+    `SELECT value FROM health_metric_series
+     WHERE user_id = 1 AND metric_type = ?
+       AND date >= date(?, '-' || ? || ' days')
+       AND date < date(?, '-' || ? || ' days')
+     ORDER BY date`
+  ).all(metricType, today, days * 2, today, days) as { value: number }[];
+
+  let previous_period_mean: number | null = null;
+  let change_percent: number | null = null;
+  let trend: "rising" | "falling" | "stable" = "stable";
+
+  if (prevRows.length > 0) {
+    const prevValues = prevRows.map(r => r.value);
+    previous_period_mean = prevValues.reduce((a, b) => a + b, 0) / prevValues.length;
+    if (previous_period_mean !== 0) {
+      change_percent = +((mean - previous_period_mean) / previous_period_mean * 100).toFixed(1);
+      trend = change_percent > 5 ? "rising" : change_percent < -5 ? "falling" : "stable";
+    }
+  }
+
+  const insight = trend === "rising"
+    ? `${metricType} has been rising over the past ${days} days`
+    : trend === "falling"
+      ? `${metricType} has been falling over the past ${days} days`
+      : `${metricType} has been stable over the past ${days} days`;
+
+  return {
+    metric_type: metricType,
+    days,
+    statistics: {
+      mean: +mean.toFixed(2),
+      median: +median.toFixed(2),
+      std_dev: +std_dev.toFixed(2),
+      min: +min.toFixed(2),
+      max: +max.toFixed(2),
+    },
+    comparison: {
+      previous_period_mean: previous_period_mean != null ? +previous_period_mean.toFixed(2) : null,
+      change_percent,
+      trend,
+    },
+    insight,
+  };
+}
+
+function applyTrendOverride(base: TrendResponse, override: TrendOverrideRow): TrendResponse {
+  if (!override) return base;
+  return {
+    ...base,
+    statistics: {
+      mean: override.has_mean ? override.mean : base.statistics.mean,
+      median: override.has_median ? override.median : base.statistics.median,
+      std_dev: override.has_std_dev ? override.std_dev : base.statistics.std_dev,
+      min: override.has_min ? override.min : base.statistics.min,
+      max: override.has_max ? override.max : base.statistics.max,
+    },
+    comparison: {
+      previous_period_mean: override.has_previous_period_mean ? override.previous_period_mean : base.comparison.previous_period_mean,
+      change_percent: override.has_change_percent ? override.change_percent : base.comparison.change_percent,
+      trend: override.has_trend && override.trend ? override.trend : base.comparison.trend,
+    },
+    insight: override.has_insight ? override.insight ?? base.insight : base.insight,
+  };
 }
 
 export function registerHealthRoutes(app: OpenAPIApp) {
@@ -176,70 +313,14 @@ export function registerHealthRoutes(app: OpenAPIApp) {
   app.openApiRoute(trendsRoute, (c) => {
     const { metric_type, days } = c.req.valid("query");
     const db = initDb();
-    const rows = db.query(
-      `SELECT value FROM health_metric_series
-       WHERE user_id = 1 AND metric_type = ? AND date >= date('now', '-' || ? || ' days')
-       ORDER BY date`
-    ).all(metric_type, days) as { value: number }[];
-
-    if (rows.length === 0) {
-      return c.json({
-        metric_type,
-        days,
-        statistics: { mean: null, median: null, std_dev: null, min: null, max: null },
-        comparison: { previous_period_mean: null, change_percent: null, trend: "stable" as const },
-        insight: "Insufficient data for insights",
-      });
-    }
-
-    const values = rows.map(r => r.value);
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const sorted = [...values].sort((a, b) => a - b);
-    const median = sorted.length % 2 === 0
-      ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
-      : sorted[Math.floor(sorted.length / 2)];
-    const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
-    const std_dev = Math.sqrt(variance);
-    const min = sorted[0];
-    const max = sorted[sorted.length - 1];
-
-    const prevRows = db.query(
-      `SELECT value FROM health_metric_series
-       WHERE user_id = 1 AND metric_type = ? AND date >= date('now', '-' || ? || ' days') AND date < date('now', '-' || ? || ' days')
-       ORDER BY date`
-    ).all(metric_type, days * 2, days) as { value: number }[];
-
-    let previous_period_mean: number | null = null;
-    let change_percent: number | null = null;
-    let trend: "rising" | "falling" | "stable" = "stable";
-
-    if (prevRows.length > 0) {
-      const prevValues = prevRows.map(r => r.value);
-      previous_period_mean = prevValues.reduce((a, b) => a + b, 0) / prevValues.length;
-      if (previous_period_mean !== 0) {
-        change_percent = +((mean - previous_period_mean) / previous_period_mean * 100).toFixed(1);
-        trend = change_percent > 5 ? "rising" : change_percent < -5 ? "falling" : "stable";
-      }
-    }
-
-    const insight = trend === "rising"
-      ? `${metric_type} has been rising over the past ${days} days`
-      : trend === "falling"
-        ? `${metric_type} has been falling over the past ${days} days`
-        : `${metric_type} has been stable over the past ${days} days`;
-
-    return c.json({
-      metric_type,
-      days,
-      statistics: {
-        mean: +mean.toFixed(2),
-        median: +median.toFixed(2),
-        std_dev: +std_dev.toFixed(2),
-        min: +min.toFixed(2),
-        max: +max.toFixed(2),
-      },
-      comparison: { previous_period_mean: previous_period_mean ? +previous_period_mean.toFixed(2) : null, change_percent, trend },
-      insight,
-    });
+    const override = db.query(
+      `SELECT mean, median, std_dev, min, max, previous_period_mean, change_percent, trend, insight,
+              has_mean, has_median, has_std_dev, has_min, has_max,
+              has_previous_period_mean, has_change_percent, has_trend, has_insight
+       FROM health_trend_override
+       WHERE user_id = 1 AND metric_type = ? AND days = ?`
+    ).get(metric_type, days) as TrendOverrideRow;
+    const base = computeTrendResponse(metric_type, days);
+    return c.json(applyTrendOverride(base, override));
   });
 }

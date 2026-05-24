@@ -163,6 +163,18 @@ describe("Health Snapshot & Metrics API", () => {
     expect(body.statistics).toHaveProperty("median");
   });
 
+  test("GET /api/health/trends anchors the window to configured current_date", async () => {
+    const db = initDb();
+    db.query("UPDATE system_config SET value = ? WHERE key = 'current_date'").run("2025-01-17");
+
+    const res = await app.request("/api/health/trends?metric_type=steps&days=7");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.statistics.mean).toBe(8000);
+    expect(body.statistics.min).toBe(6000);
+    expect(body.statistics.max).toBe(10000);
+  });
+
   test("GET /api/health/trends returns null stats when no data", async () => {
     const res = await app.request("/api/health/trends?metric_type=blood_oxygen_percent&days=1");
     // This might have data or not depending on date('now') vs seeded dates
@@ -176,6 +188,76 @@ describe("Health Snapshot & Metrics API", () => {
   test("GET /api/health/trends returns 400 for invalid metric type", async () => {
     const res = await app.request("/api/health/trends?metric_type=fake_metric&days=7");
     expect(res.status).toBe(400);
+  });
+
+  test("GET /api/health/trends returns manual override statistics when configured", async () => {
+    const importRes = await jsonRequest(app, "/api/admin/health/trends/overrides/batch", {
+      overrides: [
+        {
+          metric_type: "steps",
+          days: 7,
+          statistics: {
+            mean: 9100,
+            median: 9000,
+            std_dev: 320.25,
+            min: 8600,
+            max: 9500,
+          },
+          comparison: {
+            previous_period_mean: 7800,
+            change_percent: 16.7,
+            trend: "rising",
+          },
+          insight: "Scenario override",
+        },
+      ],
+    });
+    expect(importRes.status).toBe(200);
+
+    const res = await app.request("/api/health/trends?metric_type=steps&days=7");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.statistics).toEqual({
+      mean: 9100,
+      median: 9000,
+      std_dev: 320.25,
+      min: 8600,
+      max: 9500,
+    });
+    expect(body.comparison).toEqual({
+      previous_period_mean: 7800,
+      change_percent: 16.7,
+      trend: "rising",
+    });
+    expect(body.insight).toBe("Scenario override");
+  });
+
+  test("GET /api/health/trends allows explicit null manual override fields", async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const db = initDb();
+    db.query("UPDATE system_config SET value = ? WHERE key = 'current_date'").run(today);
+    db.query(
+      "INSERT OR REPLACE INTO health_metric_series (user_id, metric_type, date, value) VALUES (1, 'steps', ?, 1234)"
+    ).run(today);
+
+    const importRes = await jsonRequest(app, "/api/admin/health/trends/overrides/batch", {
+      overrides: [
+        {
+          metric_type: "steps",
+          days: 1,
+          statistics: {
+            mean: null,
+          },
+        },
+      ],
+    });
+    expect(importRes.status).toBe(200);
+
+    const res = await app.request("/api/health/trends?metric_type=steps&days=1");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.statistics.mean).toBeNull();
+    expect(body.statistics.median).toBe(1234);
   });
 });
 

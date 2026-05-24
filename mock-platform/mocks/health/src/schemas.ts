@@ -119,6 +119,14 @@ const TrendsComparisonSchema = z.object({
   trend: z.enum(["rising", "falling", "stable"]),
 });
 
+const TrendsStatisticsOverrideSchema = TrendsStatisticsSchema.partial();
+
+const TrendsComparisonOverrideSchema = z.object({
+  previous_period_mean: z.number().nullable().optional(),
+  change_percent: z.number().nullable().optional(),
+  trend: z.enum(["rising", "falling", "stable"]).optional(),
+});
+
 const TrendsResponseSchema = z.object({
   metric_type: z.string(),
   days: z.number(),
@@ -278,6 +286,16 @@ const BatchSnapshotsBodySchema = z.object({
   })).min(1, "snapshots array must not be empty"),
 });
 
+const BatchTrendOverridesBodySchema = z.object({
+  overrides: z.array(z.object({
+    metric_type: MetricTypeSchema,
+    days: z.coerce.number().int().min(1).max(90),
+    statistics: TrendsStatisticsOverrideSchema.optional(),
+    comparison: TrendsComparisonOverrideSchema.optional(),
+    insight: z.string().nullable().optional(),
+  })).min(1, "overrides array must not be empty"),
+});
+
 const BatchMedicationsBodySchema = z.object({
   medications: z.array(CreateMedicationBodySchema).min(1, "medications array must not be empty"),
 });
@@ -300,7 +318,9 @@ export {
   CategorySchema,
   TrendsQuerySchema,
   TrendsStatisticsSchema,
+  TrendsStatisticsOverrideSchema,
   TrendsComparisonSchema,
+  TrendsComparisonOverrideSchema,
   TrendsResponseSchema,
   SeveritySchema,
   AllergenSchema,
@@ -322,5 +342,6 @@ export {
   UpdateDoseLogBodySchema,
   DoseLogHistoryQuerySchema,
   BatchSnapshotsBodySchema,
+  BatchTrendOverridesBodySchema,
   BatchMedicationsBodySchema,
 };
