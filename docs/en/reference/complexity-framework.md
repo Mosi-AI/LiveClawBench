@@ -78,13 +78,13 @@ single, clean environment without structural complexity.
 |      47 | weather-outdoor-window            |     H      |    |    |    |    | Health & Fitness           |
 |      48 | pre-meeting-research-brief        |     M      |    |    | ✓  | ✓  | Deep Research & Report     |
 |      49 | vendor-due-diligence-brief        |     M      | ✓  |    | ✓  |    | Deep Research & Report     |
-|      50 | social-schedule-audit             |     M      |    | ✓  |    |    | Social Media               |
+|      50 | social-schedule-audit             |     E      |    | ✓  |    |    | Social Media               |
 |      51 | social-keyword-cleanup            |     M      | ✓  |    | ✓  |    | Social Media               |
-|      52 | social-event-campaign             |     M      | ✓  |    | ✓  |    | Social Media               |
-|      53 | social-data-anomaly-report        |     H      | ✓  | ✓  | ✓  |    | Social Media               |
+|      52 | social-event-campaign             |     E      | ✓  |    | ✓  |    | Social Media               |
+|      53 | social-data-anomaly-report        |     M      | ✓  | ✓  | ✓  |    | Social Media               |
 |      54 | social-comment-moderation         |     M      | ✓  |    | ✓  |    | Social Media               |
-|      55 | social-cross-publish              |     H      | ✓  |    | ✓  |    | Social Media               |
-|      56 | social-pinned-post-update         |     H      | ✓  | ✓  | ✓  |    | Social Media               |
+|      55 | social-cross-publish              |     M      | ✓  |    | ✓  |    | Social Media               |
+|      56 | social-pinned-post-update         |     M      | ✓  | ✓  | ✓  |    | Social Media               |
 |      57 | meeting-reschedule-response       |     E      | ✓  |    |    |    | Calendar & Task Mgmt       |
 |      58 | candidate-interview-slot-confirm  |     E      | ✓  |    |    |    | Calendar & Task Mgmt       |
 |      59 | medication-prescription-sync      |     H      | ✓  | ✓  | ✓  |    | Health & Fitness           |
