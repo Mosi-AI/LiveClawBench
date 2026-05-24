@@ -43,6 +43,7 @@ const FOOD_CATALOG: SeedFood[] = [
   { name: "peanut butter", serving_size_value: 32, serving_size_unit: "g", calories_kcal: 191, protein_g: 7.1, carbs_g: 6.3, fat_g: 16.4 },
   { name: "spinach", serving_size_value: 50, serving_size_unit: "g", calories_kcal: 12, protein_g: 1.7, carbs_g: 1.0, fat_g: 0.2 },
   { name: "broccoli", serving_size_value: 100, serving_size_unit: "g", calories_kcal: 34, protein_g: 2.8, carbs_g: 6.6, fat_g: 0.4 },
+  { name: "potato chips", serving_size_value: 28, serving_size_unit: "g", calories_kcal: 152, protein_g: 2.0, carbs_g: 15.0, fat_g: 9.5 },
 ];
 
 export function seedFoodCatalog(db: Database): void {
