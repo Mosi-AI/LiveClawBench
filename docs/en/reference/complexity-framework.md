@@ -1,7 +1,7 @@
 # LiveClawBench Complexity Framework
 
 This document is the single reference for task complexity annotations in LiveClawBench.
-It covers factor definitions, the full 118-case annotation table (118 implemented),
+It covers factor definitions, the full 119-case annotation table (119 implemented),
 summary statistics, domain coverage, and controlled pairs.
 
 ## Complexity Factor Definitions
@@ -147,6 +147,7 @@ single, clean environment without structural complexity.
 |     116 | vuls-kernel-detection             |     H      |    | ✓  |    | ✓  | Coding & Software Dev      |
 |     117 | ad-library-snapshot-capture       |     M      |    | ✓  | ✓  |    | Social Media & Operations  |
 |     118 | multi-download-dashboard-merge    |     M      | ✓  | ✓  |    | ✓  | Finance & Data Analytics   |
+|     119 | consent-flow-form-visibility-check |     M      |    | ✓  | ✓  |    | Security & Privacy         |
 
 ---
 
@@ -154,21 +155,21 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    48 |      40.7% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2     | Contaminated Initial State     |    39 |      33.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1     | Implicit Goal Resolution       |    43 |      36.4% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2     | Knowledge System Maintenance   |    27 |      22.9% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1     | Cross-Service Dependency       |    48 |      40.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2     | Contaminated Initial State     |    40 |      33.6% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1     | Implicit Goal Resolution       |    44 |      37.0% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| B2     | Knowledge System Maintenance   |    27 |      22.7% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 
-> Percentages are relative to 118 implemented cases.
+> Percentages are relative to 119 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 34 cases (28.8%)
-- Single factor: 32 cases (27.1%)
-- Dual factor: 33 cases (28.0%)
-- Triple factor: 17 cases (14.4%)
+- No factors (baseline): 34 cases (28.6%)
+- Single factor: 32 cases (26.9%)
+- Dual factor: 34 cases (28.6%)
+- Triple factor: 17 cases (14.3%)
 - Quad factor: 2 cases (1.7%)
-- **Multi-factor (≥2 factors): 51 cases (43.6%)**
+- **Multi-factor (≥2 factors): 53 cases (44.5%)**
 
 
 ---
@@ -190,6 +191,7 @@ Factor occurrence frequency per primary domain:
 | Social Media               |  6 |  3 |  6 |  0 |                     15 |
 | Social Media & Operations  |  0 |  1 |  1 |  0 |                      2 |
 | Finance & Data Analytics   |  5 |  6 |  6 |  5 |                     22 |
+| Security & Privacy         |  0 |  1 |  1 |  0 |                      2 |
 
 Key observations:
 - **B2 is highly concentrated in Documents & Knowledge** (9/12), reflecting the nature of knowledge management tasks
@@ -231,16 +233,16 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    35 |      29.7% | (see registry; 35 easy cases) |
-| Medium     |    49 |      41.5% | (see registry; 49 medium cases including 10 deep research and 2 workspace tasks) |
-| Hard       |    34 |      28.8% | (see registry; 34 hard cases including 8 SWE-Pro/open-world coding tasks) |
+| Easy       |    35 |      29.4% | (see registry; 35 easy cases) |
+| Medium     |    50 |      42.0% | (see registry; 50 medium cases including 10 deep research and 2 workspace tasks) |
+| Hard       |    34 |      28.6% | (see registry; 34 hard cases including 8 SWE-Pro/open-world coding tasks) |
 
 Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
 | Easy       |             0.83 |          17 |       11 |       7 |
-| Medium     |             1.26 |          16 |       11 |       20 |
+| Medium     |             1.27 |          16 |       11 |       21 |
 | Hard       |             1.88 |           1 |       10 |       23 |
 
 The empirical reclassification (based on average solve rates across models) shows that Easy

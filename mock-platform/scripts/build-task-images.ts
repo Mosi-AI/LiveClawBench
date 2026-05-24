@@ -183,6 +183,7 @@ const ALL_TASK_NAMES = new Set([
   "vuls-kernel-detection",
   "ad-library-snapshot-capture",
   "multi-download-dashboard-merge",
+  "consent-flow-form-visibility-check",
 ]);
 
 interface AssetMapping {

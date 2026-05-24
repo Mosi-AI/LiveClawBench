@@ -63,3 +63,7 @@ slug = "social_media_operations"
 [[domain]]
 name = "Content Creation & Multimedia"
 slug = "content_creation_multimedia"
+
+[[domain]]
+name = "Security & Privacy"
+slug = "security_privacy"

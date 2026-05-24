@@ -957,6 +957,10 @@
     "multi-download-dashboard-merge": {
       "binaries": [],
       "startup_extra": "tasks/multi-download-dashboard-merge/environment/startup.sh"
+    },
+    "consent-flow-form-visibility-check": {
+      "binaries": [],
+      "startup_extra": "tasks/consent-flow-form-visibility-check/environment/startup.sh"
     }
   }
 }
