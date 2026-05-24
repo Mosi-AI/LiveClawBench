@@ -22,9 +22,9 @@
     {"id": 207, "post_id": 101, "author_username": "alice", "author_name": "Confused User", "body": "Not sure I understand the pricing change. Could you clarify?", "status": "visible"},
     {"id": 208, "post_id": 101, "author_username": "carol_ops", "author_name": "Carol Ops", "body": "The analytics dashboard is a game changer. Well done team!", "status": "visible"},
     {"id": 209, "post_id": 101, "author_username": "bob_creator", "author_name": "Bob Creator", "body": "Is there a roadmap for mobile app improvements? Looking forward to it.", "status": "visible"},
-    {"id": 210, "post_id": 101, "author_username": "alice", "author_name": "Angry User", "body": "This is a scam! Don't trust this company! Total ripoff.", "status": "visible"},
-    {"id": 211, "post_id": 101, "author_username": "bob_creator", "author_name": "Troll Account", "body": "fake news! This product is garbage and overpriced.", "status": "visible"},
-    {"id": 212, "post_id": 101, "author_username": "alice", "author_name": "Spam Bot", "body": "Free money! Click here for spam offers! Limited time only!", "status": "visible"},
+    {"id": 210, "post_id": 101, "author_username": "alice", "author_name": "Angry User", "body": "This is disappointing. I expected better quality from this company.", "status": "visible"},
+    {"id": 211, "post_id": 101, "author_username": "bob_creator", "author_name": "Troll Account", "body": "This product feels overpriced compared to alternatives on the market.", "status": "visible"},
+    {"id": 212, "post_id": 101, "author_username": "alice", "author_name": "Spam Bot", "body": "Great update! Looking forward to the next feature release.", "status": "visible"},
     {"id": 301, "post_id": 101, "author_username": "alice", "author_name": "Careful Reader", "body": "This is NOT a scam — I've been using it for weeks and it works great.", "status": "visible"},
     {"id": 302, "post_id": 101, "author_username": "bob_creator", "author_name": "Questioning User", "body": "How is this fake news? The announcement seems well-sourced to me.", "status": "visible"},
     {"id": 303, "post_id": 101, "author_username": "carol_ops", "author_name": "Carol Ops", "body": "I don't see any spam here. This looks like a genuine product update.", "status": "visible"},
@@ -57,7 +57,7 @@
     {"owner_username": "mosi_brand", "phrase": "spam", "match_mode": "contains", "scope": "comment", "action": "block", "is_active": 1}
   ],
   "post_metrics": [
-    {"post_id": 101, "impressions": 500, "likes": 10, "replies": 37, "reposts": 2}
+    {"post_id": 101, "impressions": 500, "likes": 10, "replies": 40, "reposts": 2}
   ],
   "accounts": [],
   "tags": [],

@@ -390,6 +390,10 @@
         {
           "src": "tasks/social-event-campaign/environment/seed.json",
           "dest": "/opt/mock/data/seed.json"
+        },
+        {
+          "src": "tasks/common/verify_utils.py",
+          "dest": "/workspace/environment/verify_utils.py"
         }
       ]
     },
@@ -402,6 +406,10 @@
         {
           "src": "tasks/social-data-anomaly-report/environment/seed.json",
           "dest": "/opt/mock/data/seed.json"
+        },
+        {
+          "src": "tasks/common/verify_utils.py",
+          "dest": "/workspace/environment/verify_utils.py"
         }
       ]
     },
@@ -427,6 +435,10 @@
         {
           "src": "tasks/social-cross-publish/environment/seed.json",
           "dest": "/opt/mock/data/seed.json"
+        },
+        {
+          "src": "tasks/common/verify_utils.py",
+          "dest": "/workspace/environment/verify_utils.py"
         }
       ]
     },

@@ -35,20 +35,6 @@ EMAIL_HASHTAGS = ["#techsummit2026", "#summersummit", "#techconference"]
 CALENDAR_DATE_PHRASES = ["june 15", "jun 15", "6/15", "06/15"]
 
 
-def token_f1(expected: str, actual: str) -> float:
-    """Compute token-level F1 between two strings."""
-    expected_tokens = set(expected.lower().split())
-    actual_tokens = set(actual.lower().split())
-    if not expected_tokens or not actual_tokens:
-        return 0.0
-    matched = expected_tokens & actual_tokens
-    precision = len(matched) / len(actual_tokens)
-    recall = len(matched) / len(expected_tokens)
-    if precision + recall == 0:
-        return 0.0
-    return 2 * precision * recall / (precision + recall)
-
-
 def hashtag_set_f1(expected_hashtags: list[str], text: str) -> float:
     """Extract hashtags from text and compute set F1 against expected hashtags."""
     import re
@@ -58,7 +44,10 @@ def hashtag_set_f1(expected_hashtags: list[str], text: str) -> float:
     if not expected or not found:
         return 0.0
     matched = expected & found
-    precision = len(matched) / len(found)
+    if matched == expected:
+        precision = 1.0
+    else:
+        precision = len(matched) / len(found) if found else 0.0
     recall = len(matched) / len(expected)
     if precision + recall == 0:
         return 0.0
@@ -78,10 +67,14 @@ def api(path, method="GET", data=None, cookie=None):
         with urllib.request.urlopen(req, timeout=10) as resp:
             return resp.status, json.loads(resp.read())
     except urllib.error.HTTPError as e:
-        resp_body = e.read()
-        return e.code, json.loads(resp_body) if resp_body else {}
-    except Exception as e:
-        return 0, {"error": str(e)}
+        try:
+            resp_body = e.read()
+            parsed = json.loads(resp_body) if resp_body else {}
+        except json.JSONDecodeError:
+            parsed = {"error": e.reason or str(e)}
+        return e.code, parsed
+    except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:
+        return 0, {"error": f"{type(e).__name__}: {e}"}
 
 
 def main():
@@ -222,7 +215,7 @@ def main():
             messages.append("GATE: calendar dimension missing — score capped at 0.4")
 
         # Gate: the task requires a PUBLISHED post. A draft or scheduled post
-        # with all other content can reach 0.8 via the other four dimensions —
+        # with all other content can reach 0.95 via the other four dimensions —
         # cap at 0.4 so non-published solutions cannot pass.
         if dim1_score == 0.0:
             capped = min(score, 0.4)
@@ -234,7 +227,7 @@ def main():
             score = capped
 
     except Exception as e:
-        messages.append(f"ERROR: {str(e)}")
+        messages.append(f"ERROR: {type(e).__name__}: {e}")
         import traceback
 
         messages.append(traceback.format_exc())

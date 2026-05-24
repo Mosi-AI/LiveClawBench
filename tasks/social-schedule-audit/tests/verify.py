@@ -3,7 +3,7 @@
 Verifier for social-schedule-audit task (case_id=50).
 
 Checks that the agent fixed 5 scheduling anomalies seeded into the social DB.
-Each anomaly is worth 0.2 points, total 1.0.
+Weighted scoring: 0.1 / 0.1 / 0.3 / 0.2 / 0.3, total 1.0.
 
 Anomalies:
   1. Post 101: status=published but published_at=NULL -> fixed if published_at set OR status changed
@@ -64,8 +64,8 @@ def main():
     try:
         db = sqlite3.connect(DB_PATH)
         db.execute("PRAGMA journal_mode = WAL")
-    except Exception as e:
-        messages.append(f"FATAL: Cannot open database: {e}")
+    except sqlite3.Error as e:
+        messages.append(f"FATAL: Cannot open database: {type(e).__name__}: {e}")
         print(f"Score: {score}/1.0")
         for msg in messages:
             print(f"  {msg}")

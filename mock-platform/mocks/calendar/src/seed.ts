@@ -41,7 +41,7 @@ function seedTaskData(db: Database, userId: number, taskName: string): void {
   switch (taskName) {
     case "social-cross-publish":
       db.run(
-        `INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
+        `INSERT OR IGNORE INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
           userId,
@@ -53,7 +53,7 @@ function seedTaskData(db: Database, userId: number, taskName: string): void {
         ],
       );
       db.run(
-        `INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
+        `INSERT OR IGNORE INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
           userId,
@@ -65,7 +65,7 @@ function seedTaskData(db: Database, userId: number, taskName: string): void {
         ],
       );
       db.run(
-        `INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
+        `INSERT OR IGNORE INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
           userId,
@@ -77,7 +77,7 @@ function seedTaskData(db: Database, userId: number, taskName: string): void {
         ],
       );
       db.run(
-        `INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
+        `INSERT OR IGNORE INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
           userId,
@@ -93,7 +93,7 @@ function seedTaskData(db: Database, userId: number, taskName: string): void {
 
     case "social-pinned-post-update":
       db.run(
-        `INSERT INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
+        `INSERT OR IGNORE INTO calendar_event (user_id, title, start_time, end_time, source, source_ref)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
           userId,

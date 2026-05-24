@@ -45,10 +45,14 @@ def api(path, method="GET", data=None, cookie=None):
         with urllib.request.urlopen(req, timeout=10) as resp:
             return resp.status, json.loads(resp.read())
     except urllib.error.HTTPError as e:
-        body_text = e.read()
-        return e.code, json.loads(body_text) if body_text else {}
-    except Exception as e:
-        return 0, {"error": str(e)}
+        try:
+            body_text = e.read()
+            parsed = json.loads(body_text) if body_text else {}
+        except json.JSONDecodeError:
+            parsed = {"error": e.reason or str(e)}
+        return e.code, parsed
+    except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:
+        return 0, {"error": f"{type(e).__name__}: {e}"}
 
 
 # --- Check 1-3: Violating comments should be deleted or hidden ---
@@ -143,7 +147,7 @@ else:
 
 # Completion gate: the reply-to-comment-102 workflow is the required artifact.
 # Moderation-only solutions (hiding the three violating comments without replying)
-# accumulate 0.6 from the hide checks alone — cap at 0.4 so they cannot cross
+# accumulate 0.25 from the hide checks alone — cap at 0.4 so they cannot cross
 # the 0.5 success threshold without completing the required reply step.
 if not reply_found:
     capped = min(SCORE, 0.4)

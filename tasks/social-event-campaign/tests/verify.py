@@ -9,8 +9,8 @@ The agent must:
   4. Send a confirmation email to events@mosi.inc with subject "Event Campaign Published"
 
 Scoring:
-  - Dimension 1 (0.5): Post 101 is now "published" (was "draft")
-  - Dimension 2 (0.5): Confirmation email sent to events@mosi.inc with correct subject
+  - Dimension 1 (0.3): Post 101 is now "published" (was "draft")
+  - Dimension 2 (0.7): Confirmation email sent to events@mosi.inc with correct subject
 
 Completion gate: when either dimension is 0.0 (post-only or email-only solutions),
 the final score is capped at 0.4 — below the 0.5 success threshold. The task
@@ -24,6 +24,9 @@ import sys
 import urllib.error
 import urllib.request
 
+sys.path.insert(0, "/workspace/environment")
+from verify_utils import token_f1
+
 SOCIAL_URL = "http://127.0.0.1:5008"
 EMAIL_DB_PATH = "/var/lib/mock-data/email/email.db"
 
@@ -33,20 +36,6 @@ SOCIAL_PASSWORD = "demo123"
 TARGET_POST_ID = 101
 TARGET_EMAIL_RECIPIENT = "events@mosi.inc"
 TARGET_SUBJECT = "Event Campaign Published"
-
-
-def token_f1(expected: str, actual: str) -> float:
-    """Compute token-level F1 between two strings."""
-    expected_tokens = set(expected.lower().split())
-    actual_tokens = set(actual.lower().split())
-    if not expected_tokens or not actual_tokens:
-        return 0.0
-    matched = expected_tokens & actual_tokens
-    precision = len(matched) / len(actual_tokens)
-    recall = len(matched) / len(expected_tokens)
-    if precision + recall == 0:
-        return 0.0
-    return 2 * precision * recall / (precision + recall)
 
 
 def api(
@@ -68,11 +57,11 @@ def api(
         error_body = e.read().decode("utf-8") if e.fp else ""
         try:
             parsed = json.loads(error_body)
-        except Exception:
+        except json.JSONDecodeError:
             parsed = {"error": error_body}
         return e.code, parsed
-    except Exception as e:
-        return 0, {"error": str(e)}
+    except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:
+        return 0, {"error": f"{type(e).__name__}: {e}"}
 
 
 def check_email_sent() -> tuple[bool, float]:
@@ -94,8 +83,8 @@ def check_email_sent() -> tuple[bool, float]:
         subject = row[0] or ""
         f1 = token_f1(TARGET_SUBJECT, subject)
         return True, f1
-    except Exception as e:
-        print(f"  WARNING: Email DB check failed: {e}")
+    except sqlite3.Error as e:
+        print(f"  WARNING: Email DB check failed: {type(e).__name__}: {e}")
         return False, 0.0
 
 
@@ -136,7 +125,7 @@ def main() -> tuple[float, dict]:
             )
 
     except Exception as e:
-        details["messages"].append(f"ERROR (social check): {e}")
+        details["messages"].append(f"ERROR (social check): {type(e).__name__}: {e}")
 
     # --- Dimension 2: Confirmation email sent (0.7 pts) ---
     dim2_score = 0.0
@@ -158,8 +147,8 @@ def main() -> tuple[float, dict]:
             details["messages"].append(
                 f"FAIL: No sent email found to {TARGET_EMAIL_RECIPIENT}"
             )
-    except Exception as e:
-        details["messages"].append(f"ERROR (email check): {e}")
+    except sqlite3.Error as e:
+        details["messages"].append(f"ERROR (email check): {type(e).__name__}: {e}")
 
     score = dim1_score + dim2_score
     details["dimension_scores"] = {
