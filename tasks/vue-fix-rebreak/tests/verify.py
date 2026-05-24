@@ -22,7 +22,7 @@ def main():
             capture_output=True,
             text=True,
             timeout=120,
-            cwd="/workspace",
+            cwd="/workspace/vue-crm",
         )
         build_ok = result.returncode == 0
     except Exception:
@@ -38,7 +38,7 @@ def main():
         # Partial: check if initial fix was attempted
         # (build might fail for a different reason than the original A2)
         try:
-            with open("/workspace/src/components/FixedComponent.vue") as f:
+            with open("/workspace/vue-crm/src/components/FixedComponent.vue") as f:
                 content = f.read()
             has_fix_marker = "fix_marker" in content
             has_fix_pattern = any(
