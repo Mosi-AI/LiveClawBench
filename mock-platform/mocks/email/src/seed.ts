@@ -1153,7 +1153,8 @@ function makeSeedConfig(taskName: string): SeedConfig {
       };
     }
 
-    case "candidate-interview-slot-confirm": {
+    case "candidate-interview-slot-confirm":
+    case "interview-slot-verify": {
       const senders = [...BASELINE_SENDERS, SENDER_HR];
       return {
         senders,

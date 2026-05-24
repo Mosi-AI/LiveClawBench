@@ -39,15 +39,7 @@ def main():
     except Exception:
         alerts = []
 
-    conn.close()
-
     records_by_dept = {r[0]: {"budget": r[1], "actual": r[2]} for r in records}
-
-    # A2 fix (0.20): Sales actual_expense must no longer be negative
-    sales = records_by_dept.get("Sales")
-    if sales and sales["actual"] >= 0:
-        dimensions["a2_fix"] = 0.20
-        score += 0.20
 
     # C1 detection (0.30): non-violating departments have lowered budgets
     # Compare against baseline month (2026-01) to avoid hard-coding mock values
@@ -55,6 +47,14 @@ def main():
         "SELECT department_name, budget_amount FROM department_financial_record WHERE month = '2026-01'"
     ).fetchall()
     baseline_by_dept = {r[0]: r[1] for r in baseline_records}
+
+    conn.close()
+
+    # A2 fix (0.20): Sales actual_expense must no longer be negative
+    sales = records_by_dept.get("Sales")
+    if sales and sales["actual"] >= 0:
+        dimensions["a2_fix"] = 0.20
+        score += 0.20
 
     lowered_depts = {"HR", "Finance", "Operations"}
     c1_ok = True
@@ -69,10 +69,11 @@ def main():
         score += 0.30
 
     # Alert setup (0.50): Marketing alert for March 2026 at threshold = 80% of budget
+    # records tuple: (department_name, budget_amount, actual_expense_amount)
     marketing_budget = None
     for rec in records:
-        if rec[0] == "Marketing" and rec[1] == "2026-03":
-            marketing_budget = rec[2]
+        if rec[0] == "Marketing":
+            marketing_budget = rec[1]
             break
 
     marketing_alert = None

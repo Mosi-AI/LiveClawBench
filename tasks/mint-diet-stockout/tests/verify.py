@@ -15,7 +15,7 @@ def main():
     conn = sqlite3.connect(DB_PATH)
 
     entries = conn.execute(
-        "SELECT id, food_id, food_name FROM food_entry ORDER BY id DESC LIMIT 5"
+        "SELECT id, food_catalog_id, food_name FROM food_entry ORDER BY id DESC LIMIT 5"
     ).fetchall()
     conn.close()
 
@@ -26,8 +26,8 @@ def main():
 
     # Detection (0.3): alternative food logged (not the deleted chips)
     # Recovery (0.7): log entry has valid food reference
-    for eid, food_id, food_name in entries:
-        if food_name and food_id:
+    for eid, food_catalog_id, food_name in entries:
+        if food_name and food_catalog_id:
             # Any logged entry counts as adaptation evidence
             score = max(score, 0.3)
             # If food_name exists in catalog, it's a valid entry
