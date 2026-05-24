@@ -19,14 +19,28 @@ Full solution: 1.0
 """
 
 import json
+import re
 import sys
 import urllib.error
 import urllib.request
 
-sys.path.insert(0, "/workspace/environment")
-from verify_utils import hashtag_set_f1
-
 BASE_URL = "http://127.0.0.1:5008"
+
+
+def hashtag_set_f1(expected_hashtags: list[str], text: str) -> float:
+    """Extract hashtags from text and compute set F1 against expected hashtags."""
+    found = set(re.findall(r"#\w+", text.lower()))
+    expected = set(h.lower() for h in expected_hashtags)
+    if not expected or not found:
+        return 0.0
+    matched = expected & found
+    precision = len(matched) / len(found) if found else 0.0
+    recall = len(matched) / len(expected)
+    if precision + recall == 0:
+        return 0.0
+    return 2 * precision * recall / (precision + recall)
+
+
 USERNAME = "mosi_brand"
 PASSWORD = "demo123"
 
