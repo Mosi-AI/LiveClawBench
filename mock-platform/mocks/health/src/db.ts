@@ -1,5 +1,7 @@
 import { getDb } from "mock-lib";
 import type { Database } from "bun:sqlite";
+import { mkdirSync, existsSync } from "node:fs";
+import { dirname } from "node:path";
 
 export function runMigrations(db: Database): void {
   db.exec(`
@@ -131,6 +133,8 @@ export function initDb(): Database {
   const dbPath = process.env.MOCK_DATA_DIR
     ? `${process.env.MOCK_DATA_DIR}/health/health.db`
     : "health.db";
+  const dir = dirname(dbPath);
+  if (dir && !existsSync(dir)) mkdirSync(dir, { recursive: true });
   const db = getDb({ path: dbPath, autoMigrate: true });
   if (db !== _lastDb) {
     runMigrations(db);
