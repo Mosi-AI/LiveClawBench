@@ -7,16 +7,12 @@ Checks: health record (allergen or medication) is actually persisted in DB
 import sqlite3
 import sys
 
-DB_PATH = "/workspace/health.db"
+DB_PATH = "/var/lib/mock-data/health/health.db"
 
 
 def main():
     score = 0.0
-    try:
-        conn = sqlite3.connect(DB_PATH)
-    except Exception:
-        # Try alternate path
-        conn = sqlite3.connect("/var/lib/mock-data/health/health.db")
+    conn = sqlite3.connect(DB_PATH)
 
     allergens = conn.execute(
         "SELECT id FROM allergen ORDER BY id DESC LIMIT 5"

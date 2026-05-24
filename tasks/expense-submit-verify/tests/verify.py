@@ -12,10 +12,7 @@ DB_PATH = "/var/lib/mock-data/expense/expense.db"
 
 def main():
     score = 0.0
-    try:
-        conn = sqlite3.connect(DB_PATH)
-    except Exception:
-        conn = sqlite3.connect("/workspace/expense.db")
+    conn = sqlite3.connect(DB_PATH)
 
     drafts = conn.execute("SELECT id, status FROM expense_draft ORDER BY id").fetchall()
     conn.close()

@@ -22,6 +22,7 @@ def main():
             capture_output=True,
             text=True,
             timeout=120,
+            cwd="/workspace",
         )
         build_ok = result.returncode == 0
     except Exception:
@@ -37,9 +38,14 @@ def main():
         # Partial: check if initial fix was attempted
         # (build might fail for a different reason than the original A2)
         try:
-            with open("src/components/FixedComponent.vue") as f:
+            with open("/workspace/src/components/FixedComponent.vue") as f:
                 content = f.read()
-            if "fix_marker" in content or "fixed" in content.lower():
+            has_fix_marker = "fix_marker" in content
+            has_fix_pattern = any(
+                p in content.lower()
+                for p in ["is_fixed", "isfixed", ":fixed", "fixed="]
+            )
+            if has_fix_marker or has_fix_pattern:
                 dimensions["a2_fix"] = 0.30
                 score += 0.30
         except Exception:

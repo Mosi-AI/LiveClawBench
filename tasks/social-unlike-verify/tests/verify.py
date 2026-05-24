@@ -14,8 +14,10 @@ def main():
     score = 0.0
     conn = sqlite3.connect(DB_PATH)
 
-    # Check if post 1 still has a like from the agent's account
-    likes = conn.execute("SELECT id FROM post_like WHERE post_id = 1").fetchall()
+    # Check if post 1 still has a like from alice's account (account_id = 2)
+    likes = conn.execute(
+        "SELECT id FROM post_like WHERE post_id = 1 AND account_id = 2"
+    ).fetchall()
     conn.close()
 
     if not likes:

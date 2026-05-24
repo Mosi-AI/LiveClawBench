@@ -49,26 +49,44 @@ def main():
         dimensions["a2_fix"] = 0.20
         score += 0.20
 
-    # C1 detection (0.30): non-violating departments were lowered to 100000
+    # C1 detection (0.30): non-violating departments have lowered budgets
+    # Compare against baseline month (2026-01) to avoid hard-coding mock values
+    baseline_records = conn.execute(
+        "SELECT department_name, budget_amount FROM department_financial_record WHERE month = '2026-01'"
+    ).fetchall()
+    baseline_by_dept = {r[0]: r[1] for r in baseline_records}
+
     lowered_depts = {"HR", "Finance", "Operations"}
     c1_ok = True
     for dept in lowered_depts:
-        dept_rec = records_by_dept.get(dept)
-        if not dept_rec or dept_rec["budget"] != 100000.0:
+        current = records_by_dept.get(dept)
+        original = baseline_by_dept.get(dept)
+        if not current or not original or current["budget"] >= original:
             c1_ok = False
             break
     if c1_ok and len(records_by_dept) >= 6:
         dimensions["c1_detection"] = 0.30
         score += 0.30
 
-    # Alert setup (0.50): Marketing alert for March 2026 at threshold = 120000
+    # Alert setup (0.50): Marketing alert for March 2026 at threshold = 80% of budget
+    marketing_budget = None
+    for rec in records:
+        if rec[0] == "Marketing" and rec[1] == "2026-03":
+            marketing_budget = rec[2]
+            break
+
     marketing_alert = None
     for a in alerts:
         if a[0] == "Marketing" and a[2] == "2026-03":
             marketing_alert = a
             break
 
-    if marketing_alert and marketing_alert[1] == 120000.0:
+    expected_threshold = marketing_budget * 0.8 if marketing_budget else None
+    if (
+        marketing_alert
+        and expected_threshold
+        and abs(marketing_alert[1] - expected_threshold) < 0.01
+    ):
         dimensions["alert_setup"] = 0.50
         score += 0.50
 

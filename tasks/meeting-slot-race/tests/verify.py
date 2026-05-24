@@ -36,12 +36,6 @@ def main():
                 score = 1.0
                 break
 
-    # Fallback: any non-seed event counts
-    if score == 0.0 and len(events) > 2:
-        score = 0.3
-        if len(events) > 3:
-            score = 1.0
-
     print(f"Score: {score:.2f}/1.0")
     sys.exit(0 if score >= 0.5 else 1)
 

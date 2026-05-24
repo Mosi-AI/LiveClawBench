@@ -16,4 +16,6 @@ COPY . /workspace/
 
 # Extract Vue CRM project
 RUN cd /workspace && \
-    unzip -q vue-crm-example.zip -d /workspace 
+    unzip -q vue-crm-example.zip -d /workspace
+
+CMD ["sh", "-c", "sleep infinity"] 
