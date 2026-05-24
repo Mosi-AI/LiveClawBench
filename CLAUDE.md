@@ -12,7 +12,7 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 
 | Repository | Role | URL |
 |---|---|---|
-| **LiveClawBench** (this repo) | Task corpus — 116 harbor-format benchmark tasks | — |
+| **LiveClawBench** (this repo) | Task corpus — 129 harbor-format benchmark tasks | — |
 | **claw-harbor** | Evaluation framework (fork of harbor with OpenClaw support) | https://github.com/Mosi-AI/claw-harbor |
 | **OpenClaw** | Agent platform running inside task containers | https://github.com/openclaw/openclaw |
 
@@ -433,7 +433,9 @@ factor annotation table and controlled pair definitions.
 - **A2 — Contaminated Initial State**: Environment starts in a broken/corrupt state
 - **B1 — Implicit Goal Resolution**: Goal is not explicit; agent must infer constraints
 - **B2 — Knowledge System Maintenance**: Task involves managing a persistent skill/knowledge repo
-- A3 / A4 / B3 / C1 / C2 — expansion roadmap; see [docs/en/roadmap/future_factors.md](docs/en/roadmap/future_factors.md)
+- **C1 — Environmental State Invalidation**: Environment changes mid-task (one-shot fault injection)
+- **C2 — Outcome Verification under Altered State**: Agent must verify its action succeeded despite silent failure
+- A3 / A4 / B3 — expansion roadmap; see [docs/en/roadmap/future_factors.md](docs/en/roadmap/future_factors.md)
 
 Each `task.toml` encodes which factors apply (`factor_a1 = 1`, etc.).
 
