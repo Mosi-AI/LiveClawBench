@@ -1,7 +1,7 @@
 version = "1.0"
 
 [metadata]
-difficulty = "hard"
+difficulty = "medium"
 category = "open-world"
 tags = ["social_media", "communication_email", "calendar_task_mgmt"]
 

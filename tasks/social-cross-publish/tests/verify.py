@@ -14,7 +14,7 @@ Scoring:
 Gate: if calendar dimension is 0, total score is capped at 0.4 (below pass threshold).
 
 On untouched seed: no new posts → 0.0
-Email-only (no calendar): max 0.8 but gated to 0.4 → fails
+Email-only (no calendar): max 0.7 but gated to 0.4 → fails
 Full solution: 1.0
 """
 
@@ -22,6 +22,9 @@ import json
 import sys
 import urllib.error
 import urllib.request
+
+sys.path.insert(0, "/workspace/environment")
+from verify_utils import hashtag_set_f1
 
 BASE_URL = "http://127.0.0.1:5008"
 USERNAME = "mosi_brand"
@@ -33,25 +36,6 @@ EMAIL_PHRASES = ["early bird", "june 30", "save 30", "50+ speaker"]
 EMAIL_HASHTAGS = ["#techsummit2026", "#summersummit", "#techconference"]
 
 CALENDAR_DATE_PHRASES = ["june 15", "jun 15", "6/15", "06/15"]
-
-
-def hashtag_set_f1(expected_hashtags: list[str], text: str) -> float:
-    """Extract hashtags from text and compute set F1 against expected hashtags."""
-    import re
-
-    found = set(re.findall(r"#\w+", text.lower()))
-    expected = set(h.lower() for h in expected_hashtags)
-    if not expected or not found:
-        return 0.0
-    matched = expected & found
-    if matched == expected:
-        precision = 1.0
-    else:
-        precision = len(matched) / len(found) if found else 0.0
-    recall = len(matched) / len(expected)
-    if precision + recall == 0:
-        return 0.0
-    return 2 * precision * recall / (precision + recall)
 
 
 def api(path, method="GET", data=None, cookie=None):
@@ -151,7 +135,8 @@ def main():
             )
         else:
             messages.append(
-                f"FAIL: topic match but status='{target_post.get('status')}', expected 'published'"
+                f"FAIL: topic match but status="
+                f"'{target_post.get('status')}', expected 'published'"
             )
 
         # Dimension 2: Correct author (0.05)

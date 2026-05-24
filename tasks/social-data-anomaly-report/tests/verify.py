@@ -138,7 +138,8 @@ def main():
         messages.append(f"PASS: Email sent to correct recipient ({recipient_email})")
     else:
         messages.append(
-            f"FAIL: Wrong recipient (got '{recipient_email}', expected '{EXPECTED_RECIPIENT}')"
+            f"FAIL: Wrong recipient (got '{recipient_email}', "
+            f"expected '{EXPECTED_RECIPIENT}')"
         )
 
     # --- Step 3: Score subject (F1-based) ---
@@ -148,7 +149,8 @@ def main():
         messages.append(f"PASS: Correct subject ('{subject}', F1={subject_f1:.2f})")
     else:
         messages.append(
-            f"FAIL: Wrong subject (got '{subject}', F1={subject_f1:.2f} against '{EXPECTED_SUBJECT}')"
+            f"FAIL: Wrong subject (got '{subject}', "
+            f"F1={subject_f1:.2f} against '{EXPECTED_SUBJECT}')"
         )
 
     # --- Step 4: Score anomaly mentions ---
@@ -165,12 +167,8 @@ def main():
     if anomalies_found >= 2:
         score += 0.5
         messages.append(
-            f"PASS: Found {anomalies_found}/3 anomalies in body ({', '.join(anomaly_details)})"
-        )
-    elif anomalies_found == 1:
-        score += 0.25
-        messages.append(
-            f"PARTIAL: Found only {anomalies_found}/3 anomalies in body ({', '.join(anomaly_details)})"
+            f"PASS: Found {anomalies_found}/3 anomalies in body "
+            f"({', '.join(anomaly_details)})"
         )
     else:
         messages.append("FAIL: No anomalies mentioned in email body")

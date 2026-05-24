@@ -446,6 +446,8 @@ Marketing wants to push the Summer Tech Summit on social. I attached the talking
 
 Talking points: industry leaders, 50+ sessions, workshops, startup pitches, networking, early bird ends June 30, save 30%.
 
+Hashtags to include: #TechSummit2026 #SummerSummit #TechConference
+
 Best regards,
 Marketing Team (social.team@mosi.inc)`,
   days_ago: 0,
