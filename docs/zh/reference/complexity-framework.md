@@ -76,7 +76,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |      51 | social-keyword-cleanup            |  M   | ✓  |    | ✓  |    | Social Media               |
 |      52 | social-event-campaign             |  M   | ✓  |    | ✓  |    | Social Media               |
 |      53 | social-data-anomaly-report        |  H   | ✓  | ✓  | ✓  |    | Social Media               |
-|      54 | social-comment-moderation         |  H   | ✓  |    | ✓  |    | Social Media               |
+|      54 | social-comment-moderation         |  M   | ✓  |    | ✓  |    | Social Media               |
 |      55 | social-cross-publish              |  H   | ✓  |    | ✓  |    | Social Media               |
 |      56 | social-pinned-post-update         |  H   | ✓  | ✓  | ✓  |    | Social Media               |
 |      57 | meeting-reschedule-response       |  E   | ✓  |    |    |    | Calendar & Task Mgmt       |

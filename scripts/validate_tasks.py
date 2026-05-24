@@ -211,7 +211,9 @@ def main() -> int:
         print(f"ERROR: tasks directory not found: {TASKS_DIR}", file=sys.stderr)
         return 1
 
-    task_dirs = sorted(p for p in TASKS_DIR.iterdir() if p.is_dir() and p.name != "common")
+    task_dirs = sorted(
+        p for p in TASKS_DIR.iterdir() if p.is_dir() and p.name != "common"
+    )
     if not task_dirs:
         print("ERROR: no task directories found", file=sys.stderr)
         return 1
