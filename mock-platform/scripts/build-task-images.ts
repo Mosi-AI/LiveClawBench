@@ -184,6 +184,7 @@ const ALL_TASK_NAMES = new Set([
   "ad-library-snapshot-capture",
   "multi-download-dashboard-merge",
   "consent-flow-form-visibility-check",
+  "public-archive-timeline-rebuild",
 ]);
 
 interface AssetMapping {

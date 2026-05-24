@@ -961,6 +961,10 @@
     "consent-flow-form-visibility-check": {
       "binaries": [],
       "startup_extra": "tasks/consent-flow-form-visibility-check/environment/startup.sh"
+    },
+    "public-archive-timeline-rebuild": {
+      "binaries": [],
+      "startup_extra": "tasks/public-archive-timeline-rebuild/environment/startup.sh"
     }
   }
 }

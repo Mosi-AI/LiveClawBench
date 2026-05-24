@@ -322,6 +322,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `sticker-store-acquire` | E-commerce & Daily Svcs | medium | verify.py |
 | `ad-library-snapshot-capture` | Social Media & Operations | medium | verify.py |
 | `consent-flow-form-visibility-check` | Security & Privacy | medium | verify.py |
+| `public-archive-timeline-rebuild` | Documents & Knowledge | medium | verify.py |
 
 ## Docker Image Architecture
 
@@ -475,8 +476,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-119 implemented tasks: A1=48, A2=40, B1=44, B2=27.
-Difficulty: Easy=35, Medium=50, Hard=34.
+120 implemented tasks: A1=48, A2=41, B1=45, B2=27.
+Difficulty: Easy=35, Medium=51, Hard=34.
 
 ## Known Issues
 
