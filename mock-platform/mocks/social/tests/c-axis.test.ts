@@ -14,6 +14,10 @@ describe("social C-axis fault injection", () => {
     dataDir = mkdtempSync(join(tmpdir(), "social-c-test-"));
     process.env.MOCK_DATA_DIR = dataDir;
 
+    // Reset the DB singleton so getDb() opens a fresh DB in our temp dir
+    const { resetDb } = await import("../src/db.ts");
+    resetDb();
+
     const { createSocialApp } = await import("../src/index.tsx");
     const { getDb } = await import("../src/db.ts");
     const social = createSocialApp();
