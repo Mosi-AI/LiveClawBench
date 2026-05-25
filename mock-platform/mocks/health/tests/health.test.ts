@@ -259,6 +259,25 @@ describe("Health Snapshot & Metrics API", () => {
     expect(body.statistics.mean).toBeNull();
     expect(body.statistics.median).toBe(1234);
   });
+
+  test("health metric detail page applies manual trend overrides to displayed stats", async () => {
+    const db = initDb();
+    db.query("UPDATE system_config SET value = ? WHERE key = 'current_date'").run("2025-01-17");
+    db.query(`
+      INSERT INTO health_trend_override (
+        user_id, metric_type, days, mean, max, has_mean, has_max
+      ) VALUES (1, 'steps', 7, 9100, 9500, 1, 1)
+    `).run();
+
+    const res = await app.request("/health/steps?days=7");
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    const statsHtml = html.match(/<div class="stats-grid">[\s\S]*?<div class="section">/)?.[0] ?? "";
+    expect(statsHtml).toContain("9100");
+    expect(statsHtml).toContain("9500");
+    expect(statsHtml).not.toContain(">8000<");
+    expect(statsHtml).not.toContain(">10000<");
+  });
 });
 
 describe("Health DB path configuration", () => {

@@ -142,6 +142,7 @@ LiveClawBench 定义了四个正交复杂度因子，用于描述超出基础任
 |     117 | smarthome-sleep-quality           |  H   | ✓  | ✓  | ✓  |    | E-commerce & Daily Svcs    |
 |     118 | sleep-trend-recovery1             |  M   | ✓  | ✓  | ✓  |    | Health & Fitness           |
 |     119 | sleep-trend-recovery2             |  M   | ✓  | ✓  | ✓  |    | Health & Fitness           |
+|     120 | sleep-trend-recovery3             |  H   | ✓  | ✓  | ✓  |    | Health & Fitness           |
 
 
 ---

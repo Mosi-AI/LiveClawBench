@@ -1,0 +1,3 @@
+I've been feeling run down lately and not recovering well. Can you check my health data at http://localhost:5007/ (open it in browser) and my smart home at http://localhost:5004/ (open it in browser) and analysis my sleep and exerices. Also check everything is accurate in apps in details, and fix what you can. Help me adjust schedules of this week to recover as well as tomorrow coffee, and get what I need to recover properly. You also may use the shop app (http://localhost:1234/, open it in browser). Items in the shopping list available in the shop should be ordered and kept in sync with orders. Let me know what you found and what you did.
+
+Note: Infer dates from apps rather than from the harness message timestamp.

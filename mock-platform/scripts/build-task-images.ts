@@ -118,7 +118,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 119 benchmark task names (canonical source of truth)
+// All 120 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -182,7 +182,7 @@ const ALL_TASK_NAMES = new Set([
   "teleport-gcp-cert-identity",
   "vuls-kernel-detection",
   // Additional smart-home tasks (case_ids 117-119)
-  "smarthome-sleep-quality", "sleep-trend-recovery1", "sleep-trend-recovery2",
+  "smarthome-sleep-quality", "sleep-trend-recovery1", "sleep-trend-recovery2", "sleep-trend-recovery3",
 ]);
 
 interface AssetMapping {

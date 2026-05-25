@@ -1,0 +1,95 @@
+[
+  {
+    "id": "prod_coq10_30",
+    "title": "CoQ10 30 Capsules",
+    "price": 18.99,
+    "rating": 4.7,
+    "rating_count": "1,248",
+    "image_url": "https://example.com/coq10.jpg",
+    "best_seller": true,
+    "stock_quantity": 20
+  },
+  {
+    "id": "prod_omega3_60",
+    "title": "Omega-3 60 Softgels",
+    "price": 16.49,
+    "rating": 4.6,
+    "rating_count": "2,041",
+    "image_url": "https://example.com/omega3.jpg",
+    "overall_pick": true,
+    "stock_quantity": 18
+  },
+  {
+    "id": "prod_magnesium_60",
+    "title": "Magnesium 60 Tablets",
+    "price": 12.99,
+    "rating": 4.8,
+    "rating_count": "3,110",
+    "image_url": "https://example.com/magnesium.jpg",
+    "best_seller": true,
+    "stock_quantity": 25
+  },
+  {
+    "id": "prod_valerian_60",
+    "title": "Valerian Root 60 Capsules",
+    "price": 14.25,
+    "rating": 4.5,
+    "rating_count": "864",
+    "image_url": "https://example.com/valerian.jpg",
+    "stock_quantity": 12
+  },
+  {
+    "id": "prod_juice_2",
+    "title": "Fresh Orange Juice 2 Bottles",
+    "price": 7.99,
+    "rating": 4.4,
+    "rating_count": "312",
+    "image_url": "https://example.com/juice.jpg",
+    "stock_quantity": 30
+  },
+  {
+    "id": "prod_milk_1",
+    "title": "Organic Whole Milk 1 Gallon",
+    "price": 5.49,
+    "rating": 4.5,
+    "rating_count": "540",
+    "image_url": "https://example.com/milk.jpg",
+    "stock_quantity": 45
+  },
+  {
+    "id": "prod_butter_1",
+    "title": "Salted Butter 1 lb",
+    "price": 4.29,
+    "rating": 4.6,
+    "rating_count": "390",
+    "image_url": "https://example.com/butter.jpg",
+    "stock_quantity": 35
+  },
+  {
+    "id": "prod_magnesium_powder",
+    "title": "Magnesium Powder 8 oz",
+    "price": 15.99,
+    "rating": 4.2,
+    "rating_count": "287",
+    "image_url": "https://example.com/magnesium-powder.jpg",
+    "stock_quantity": 10
+  },
+  {
+    "id": "prod_valerian_tea",
+    "title": "Valerian Sleep Tea 20 Bags",
+    "price": 8.99,
+    "rating": 4.1,
+    "rating_count": "456",
+    "image_url": "https://example.com/valerian-tea.jpg",
+    "stock_quantity": 14
+  },
+  {
+    "id": "prod_omega_gummies",
+    "title": "Omega-3 Gummies 90 Count",
+    "price": 19.99,
+    "rating": 4.3,
+    "rating_count": "733",
+    "image_url": "https://example.com/omega-gummies.jpg",
+    "stock_quantity": 16
+  }
+]
