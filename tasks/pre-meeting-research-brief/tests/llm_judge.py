@@ -160,12 +160,12 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
             if 400 <= exc.code < 500:
                 raise
             if attempt < 2:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
                 continue
             raise
         except (urllib.error.URLError, TimeoutError, ConnectionError):
             if attempt < 2:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
                 continue
             raise
 
