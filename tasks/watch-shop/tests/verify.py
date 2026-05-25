@@ -49,14 +49,6 @@ def compute_score() -> float:
     csv_ids = load_csv_ids(CSV_PATH)
     products = load_products(PRODUCTS_PATH)
 
-    # Find all constraint-satisfying products
-    satisfying = {pid: p for pid, p in products.items() if satisfies_constraints(p)}
-
-    # Determine optimal (cheapest satisfying)
-    optimal_id = None
-    if satisfying:
-        optimal_id = min(satisfying, key=lambda pid: satisfying[pid]["price"])
-
     score = 0.0
     purchased_id = None
     purchased_price = 0.0

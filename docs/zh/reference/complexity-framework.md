@@ -41,8 +41,8 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 |     14 | schedule-change-request           |  M   | ✓  |    |    |    |    |    | Calendar & Task Mgmt       |
 |     15 | blog-site-from-scratch            |  E   |    |    |    |    |    |    | Coding & Software Dev      |
 |     16 | blog-site-completion-from-starter |  E   |    | ✓  |    |    |    |    | Coding & Software Dev      |
-|     17 | washer-shop                       |  E   |    |    |    |    |    |    | E-commerce & Daily Svcs    |
-|     18 | watch-shop                        |  E   |    |    |    |    |    |    | E-commerce & Daily Svcs    |
+|     17 | washer-shop                       |  H   |    |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
+|     18 | watch-shop                        |  H   | ✓  |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |     19 | washer-change                     |  E   |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     20 | info-change                       |  E   |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     21 | email-watch-shop                  |  H   | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
@@ -162,9 +162,9 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |    49 |  38.0% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A1   | 跨服务依赖               |    50 |  38.8% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
 | A2   | 初始状态污染             |    39 |  30.2% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1   | 隐式目标解析             |    42 |  32.6% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| B1   | 隐式目标解析             |    44 |  34.1% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
 | B2   | 知识系统维护             |    26 |  20.2% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 | C1   | 环境状态失效             |     7 |   5.4% | email-reply-context-shift, watch-shop-stockout, meeting-slot-race, social-post-rate-limit, vue-fix-rebreak |
 | C2   | 变更状态下结果验证       |     6 |   4.7% | email-sending-verify, watch-shop-silent-fail, interview-slot-verify, health-record-verify, expense-submit-verify |
@@ -192,7 +192,7 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 |----------------------------|----|----|----|----|----|----|:------------:|
 | Documents & Knowledge      |  2 |  2 |  0 |  9 |  0 |  0 |           13 |
 | Communication & Email      |  0 |  0 |  0 |  0 |  1 |  1 |            2 |
-| E-commerce & Daily Svcs    |  7 |  0 |  6 |  0 |  1 |  1 |           15 |
+| E-commerce & Daily Svcs    |  8 |  0 |  7 |  0 |  1 |  1 |           17 |
 | Calendar & Task Mgmt       |  7 |  1 |  2 |  0 |  1 |  1 |           12 |
 | Coding & Software Dev      |  2 |  4 |  5 |  4 |  0 |  0 |           15 |
 | DevOps & Env Repair        |  0 |  3 |  0 |  0 |  1 |  0 |            4 |
@@ -239,9 +239,9 @@ LiveClawBench 包含 2 个经验证具有有效难度梯度的控制对。
 
 | 难度 | 数量 | 占比   | Case 列表 |
 |:----:|-----:|-------:|-----------|
-| 简单 |    35 |  27.1% | （详见 registry；35 个简单 case） |
+| 简单 |    33 |  25.6% | （详见 registry；33 个简单 case） |
 | 中等 |    58 |  45.0% | （详见 registry；58 个中等 case，含 10 个深度研究、2 个 workspace 和 11 个 C 轴任务） |
-| 困难 |    36 |  27.9% | （详见 registry；36 个困难 case，含 8 个 SWE-Pro/开放世界编码任务和 2 个 C 轴任务） |
+| 困难 |    38 |  29.5% | （详见 registry；38 个困难 case，含 8 个 SWE-Pro/开放世界编码任务和 2 个 C 轴任务） |
 
 因子数量与难度关系：
 
