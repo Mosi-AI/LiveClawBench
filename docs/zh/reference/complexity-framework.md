@@ -167,10 +167,10 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |    49 |  38.0% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2   | 初始状态污染             |    39 |  30.2% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1   | 隐式目标解析             |    42 |  32.6% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2   | 知识系统维护             |    26 |  20.2% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1   | 跨服务依赖               |    54 |  40.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2   | 初始状态污染             |    39 |  29.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1   | 隐式目标解析             |    47 |  35.1% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| B2   | 知识系统维护             |    28 |  20.9% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 | C1   | 环境状态失效             |     7 |   5.4% | email-reply-context-shift, watch-shop-stockout, meeting-slot-race, social-post-rate-limit, vue-fix-rebreak |
 | C2   | 变更状态下结果验证       |     6 |   4.7% | email-sending-verify, watch-shop-silent-fail, interview-slot-verify, health-record-verify, expense-submit-verify |
 
@@ -178,13 +178,12 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 
 因子组合分布：
 
-- 无因子（基准）：34 个 case（26.4%）
-- 单因子：38 个 case（29.5%）
-- 双因子：34 个 case（26.4%）
-- 三因子：19 个 case（14.7%）
-- 四因子：2 个 case（1.6%）
-- 五因子：2 个 case（1.6%）
-- **多因子（≥2 个因子）：57 个 case（44.2%）**
+- 无因子（基准）：34 个 case（25.4%）
+- 单因子：42 个 case（31.3%）
+- 双因子：37 个 case（27.6%）
+- 三因子：19 个 case（14.2%）
+- 四因子：2 个 case（1.5%）
+- **多因子（≥2 个因子）：58 个 case（43.3%）**
 
 
 ---

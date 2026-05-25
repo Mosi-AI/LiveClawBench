@@ -20,7 +20,7 @@ LiveClawBench：在复杂真实助手任务上评测 LLM Agent。
 
 | 参考文档 | 描述 |
 |---------|------|
-| [复杂度框架](reference/complexity-framework.md) | 因子定义、42 个 case 标注表、领域热力图、控制对 |
+| [复杂度框架](reference/complexity-framework.md) | 因子定义、134 个 case 标注表、领域热力图、控制对 |
 | [任务格式](reference/task-format.md) | Harbor 任务目录结构、`task.toml` 字段、评估规则 |
 | [任务输出](reference/jobs-output.md) | `harbor run -o jobs` 目录结构、文件生命周期、关键字段、问题排查 |
 

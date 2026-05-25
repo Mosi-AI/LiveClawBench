@@ -178,10 +178,10 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    49 |      38.0% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2     | Contaminated Initial State     |    39 |      30.2% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1     | Implicit Goal Resolution       |    42 |      32.6% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2     | Knowledge System Maintenance   |    26 |      20.2% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
+| A1     | Cross-Service Dependency       |    54 |      40.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2     | Contaminated Initial State     |    39 |      29.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1     | Implicit Goal Resolution       |    47 |      35.1% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| B2     | Knowledge System Maintenance   |    28 |      20.9% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 | C1     | Environmental State Invalidation |  7 |       5.4% | email-reply-context-shift, watch-shop-stockout, meeting-slot-race, social-post-rate-limit, vue-fix-rebreak |
 | C2     | Outcome Verification under Altered State | 6 | 4.7% | email-sending-verify, watch-shop-silent-fail, interview-slot-verify, health-record-verify, expense-submit-verify |
 
@@ -189,13 +189,12 @@ single, clean environment without structural complexity.
 
 Factor combination distribution:
 
-- No factors (baseline): 34 cases (26.4%)
-- Single factor: 38 cases (29.5%)
-- Dual factor: 34 cases (26.4%)
-- Triple factor: 19 cases (14.7%)
-- Quad factor: 2 cases (1.6%)
-- Five factors: 2 cases (1.6%)
-- **Multi-factor (≥2 factors): 57 cases (44.2%)**
+- No factors (baseline): 34 cases (25.4%)
+- Single factor: 42 cases (31.3%)
+- Dual factor: 37 cases (27.6%)
+- Triple factor: 19 cases (14.2%)
+- Quad factor: 2 cases (1.5%)
+- **Multi-factor (≥2 factors): 58 cases (43.3%)**
 
 
 ---
