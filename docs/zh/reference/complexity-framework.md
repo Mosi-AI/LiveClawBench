@@ -194,25 +194,24 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 
 | 主要领域                   | A1 | A2 | B1 | B2 | C1 | C2 | 因子实例总数 |
 |----------------------------|----|----|----|----|----|----|:------------:|
-| Documents & Knowledge      |  2 |  2 |  0 |  9 |  0 |  0 |           13 |
-| Communication & Email      |  0 |  0 |  0 |  0 |  1 |  1 |            2 |
-| E-commerce & Daily Svcs    |  7 |  0 |  6 |  0 |  1 |  1 |           15 |
-| Calendar & Task Mgmt       |  7 |  1 |  2 |  0 |  1 |  1 |           12 |
+| Documents & Knowledge      |  3 |  3 |  0 | 11 |  0 |  0 |           17 |
+| Communication & Email      |  4 |  0 |  5 |  2 |  1 |  1 |           13 |
+| E-commerce & Daily Svcs    |  9 |  0 |  6 |  0 |  1 |  1 |           17 |
+| Calendar & Task Mgmt       |  9 |  1 |  3 |  0 |  1 |  1 |           15 |
 | Coding & Software Dev      |  2 |  4 |  5 |  4 |  0 |  0 |           15 |
-| DevOps & Env Repair        |  0 |  3 |  0 |  0 |  1 |  0 |            4 |
-| Deep Research & Report     |  2 |  1 |  2 |  3 |  0 |  0 |            8 |
+| DevOps & Env Repair        | 11 | 17 | 11 |  2 |  1 |  0 |           42 |
+| Deep Research & Report     |  3 |  2 |  2 |  5 |  0 |  0 |           12 |
 | Health & Fitness           |  2 |  3 |  3 |  0 |  1 |  1 |           10 |
 | Social Media               |  6 |  3 |  6 |  0 |  1 |  1 |           17 |
 | Finance & Data Analytics   |  5 |  6 |  6 |  4 |  1 |  1 |           23 |
 
 关键观察：
-- **B2 高度集中在 Documents & Knowledge**（9/12），反映了知识管理任务的本质
-- **A1 分布最广**，横跨 6 个领域——跨服务协调是普遍的复杂度来源
-- **B1 出现在 E-commerce、Calendar、Deep Research、Health & Fitness 和 Social Media** ——这些领域最自然地产生隐式目标
-- **Communication & Email 没有任何因子** ——这些 case 作为纯基准
-- **Health & Fitness 通过 3 个困难任务获得多因子覆盖** ——加上 morning-comfort-setup 引入 A2+B1
-- **Social Media（9 个任务）以 15 个因子实例领跑** ——7 个新增任务覆盖 A1=6、A2=3、B1=6
-- **Finance & Data Analytics 获得 A2+B1 覆盖** — finance-dashboard-repair (A2+B2)、finance-expense-log (B1)、finance-anomaly-detect (A2+B1)、finance-budget-alert (A1+A2)、finance-tax-prepare (A1+B1+B2)、finance-analysis-generate (A1+B1+B2)、finance-depreciation-audit (A2+B1+B2) 共增加 19 个因子实例
+- **B2 高度集中在 Documents & Knowledge**（11/17），反映了知识管理任务的本质
+- **A1 分布最广**，横跨 8 个领域——跨服务协调是普遍的复杂度来源
+- **B1 出现在除 Documents & Knowledge 外的所有领域** ——隐式目标解析是跨领域的基础复杂度
+- **Communication & Email 不再是纯零因子领域** ——通过 email-reply-context-shift、email-sending-verify 等任务获得 C1/C2 覆盖，同时 vendor-requirement-followup 和 invoice-to-expense-draft 引入 A1+B1
+- **DevOps & Env Repair 是因子密度最高的领域**（42 个实例）——A2 和 B1 负载极重，反映了环境修复任务的诊断-执行双重难度
+- **Social Media（11 个任务）与 E-commerce（22 个任务）并列因子实例数第三**（各 17 个）——Social Media 覆盖 A1=6、A2=3、B1=6，E-commerce 覆盖 A1=9、B1=6
 
 ---
 

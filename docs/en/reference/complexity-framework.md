@@ -205,24 +205,24 @@ Factor occurrence frequency per primary domain:
 
 | Primary Domain             | A1 | A2 | B1 | B2 | C1 | C2 | Total Factor Instances |
 |----------------------------|----|----|----|----|----|----|-----------------------:|
-| Documents & Knowledge      |  2 |  2 |  0 |  9 |  0 |  0 |                     13 |
-| Communication & Email      |  0 |  0 |  0 |  0 |  1 |  1 |                      2 |
-| E-commerce & Daily Svcs    |  7 |  0 |  6 |  0 |  1 |  1 |                     15 |
-| Calendar & Task Mgmt       |  7 |  1 |  2 |  0 |  1 |  1 |                     12 |
+| Documents & Knowledge      |  3 |  3 |  0 | 11 |  0 |  0 |                     17 |
+| Communication & Email      |  4 |  0 |  5 |  2 |  1 |  1 |                     13 |
+| E-commerce & Daily Svcs    |  9 |  0 |  6 |  0 |  1 |  1 |                     17 |
+| Calendar & Task Mgmt       |  9 |  1 |  3 |  0 |  1 |  1 |                     15 |
 | Coding & Software Dev      |  2 |  4 |  5 |  4 |  0 |  0 |                     15 |
-| DevOps & Env Repair        |  0 |  3 |  0 |  0 |  1 |  0 |                      4 |
-| Deep Research & Report     |  2 |  1 |  2 |  3 |  0 |  0 |                      8 |
+| DevOps & Env Repair        | 11 | 17 | 11 |  2 |  1 |  0 |                     42 |
+| Deep Research & Report     |  3 |  2 |  2 |  5 |  0 |  0 |                     12 |
 | Health & Fitness           |  2 |  3 |  3 |  0 |  1 |  1 |                     10 |
 | Social Media               |  6 |  3 |  6 |  0 |  1 |  1 |                     17 |
 | Finance & Data Analytics   |  5 |  6 |  6 |  4 |  1 |  1 |                     23 |
 
 Key observations:
-- **B2 is highly concentrated in Documents & Knowledge** (9/12), reflecting the nature of knowledge management tasks
-- **A1 is the most broadly distributed**, spanning 7 domains — cross-service coordination is a universal complexity source
-- **C1 and C2 are distributed across 7 domains**, reflecting the cross-cutting nature of runtime adaptability
-- **Communication & Email gains C1/C2 coverage** through 2 new tasks — no longer a pure zero-factor domain
-- **Finance & Data Analytics gains C1 coverage** via finance-budget-shift (A1+A2+C1), adding to its already high factor density
-- **DevOps & Env Repair gains C1** via vue-fix-rebreak (A2+C1), introducing cascading failure testing
+- **B2 is highly concentrated in Documents & Knowledge** (11/17), reflecting the nature of knowledge management tasks
+- **A1 is the most broadly distributed**, spanning 8 domains — cross-service coordination is a universal complexity source
+- **C1 and C2 are distributed across 8 domains**, reflecting the cross-cutting nature of runtime adaptability
+- **Communication & Email is no longer a pure zero-factor domain** — it now carries B1, B2, C1, and C2 coverage via 10 tasks spanning email, calendar, and procurement workflows
+- **Finance & Data Analytics gains C1/C2 coverage** via finance-budget-shift and finance-anomaly-detect, adding to its already high factor density
+- **DevOps & Env Repair is the most factor-dense domain** (42 total instances) with heavy A2 and B1 load from environment repair tasks
 
 ---
 
