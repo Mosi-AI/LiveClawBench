@@ -4,7 +4,7 @@
 
 [![Paper](https://img.shields.io/badge/Paper-Preprint-orange)](https://github.com/Mosi-AI/LiveClawBench/releases/download/v0.1-preprint/LiveClawBench.pdf)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Tasks](https://img.shields.io/badge/Tasks-116-green)](tasks/)
+[![Tasks](https://img.shields.io/badge/Tasks-134-green)](tasks/)
 [![Dataset](https://img.shields.io/badge/HuggingFace-630_Trajectories-yellow)](https://huggingface.co/datasets/Mosi-AI/LiveClawBench)
 
 LiveClawBench evaluates LLM agents on realistic, multi-step assistant tasks using the [Harbor](https://github.com/Mosi-AI/claw-harbor) framework and the [OpenClaw](https://github.com/openclaw/openclaw) agent platform.
@@ -19,7 +19,7 @@ by introducing a **Triple-Axis Complexity Framework** derived from empirical ana
 production OpenClaw usage data, and building a pilot benchmark with explicit factor
 annotations, controlled pairs, deterministic mock environments, and outcome-driven evaluation.
 
-> **Status** (updated May 2026): 116 tasks validated across 10 domains, automated evaluation harness complete.
+> **Status** (updated May 2026): 134 tasks validated across 10 domains, automated evaluation harness complete.
 > Leaderboard and 630 agent trajectories (7 models, ATIF-v1.2, v0.1.0 pilot) published on
 > [HuggingFace](https://huggingface.co/datasets/Mosi-AI/LiveClawBench).
 
@@ -60,7 +60,7 @@ harbor run -p tasks/watch-shop -a openclaw -m moonshot/<YOUR_MODEL_ID> \
   --ae CUSTOM_API_KEY="<YOUR_API_KEY>"
 ```
 
-To run all 116 tasks:
+To run all 134 tasks:
 
 ```bash
 harbor run --dataset liveclawbench@0.1.0 -a openclaw \
@@ -92,32 +92,32 @@ See [docs/en/guide/getting-started.md](docs/en/guide/getting-started.md) for ful
 | [Getting Started](docs/en/guide/getting-started.md) | Prerequisites, setup, first run |
 | [Running Tasks](docs/en/guide/running-tasks.md) | Harbor CLI flags, results, full dataset runs |
 | [Adding Tasks](docs/en/guide/adding-tasks.md) | Task format, scoring contract, submission |
-| [Complexity Framework](docs/en/reference/complexity-framework.md) | Factor definitions, 116-case annotation table |
+| [Complexity Framework](docs/en/reference/complexity-framework.md) | Factor definitions, 134-case annotation table |
 | [Task Format](docs/en/reference/task-format.md) | task.toml fields, evaluation rubric |
 
-## Tasks (116 validated)
+## Tasks (134 validated)
 
 | Domain | Easy | Medium | Hard | Total |
 |--------|------|--------|------|-------|
-| E-commerce & Daily Svcs | 8 | 7 | 5 | 20 |
+| E-commerce & Daily Svcs | 8 | 9 | 5 | 22 |
 | Documents & Knowledge | 7 | 5 | — | 12 |
 | Deep Research & Report | 1 | 15 | 1 | 17 |
-| DevOps & Env Repair | 2 | 9 | 6 | 17 |
-| Finance & Data Analytics | 3 | 3 | 5 | 11 |
+| DevOps & Env Repair | 2 | 9 | 7 | 18 |
+| Finance & Data Analytics | 3 | 4 | 6 | 13 |
 | Coding & Software Dev | 2 | — | 8 | 10 |
-| Health & Fitness | 4 | 2 | 3 | 9 |
-| Social Media | 2 | 3 | 4 | 9 |
-| Calendar & Task Mgmt | 3 | 3 | 2 | 8 |
-| Communication & Email | 3 | — | — | 3 |
-| **Total** | **35** | **47** | **34** | **116** |
+| Health & Fitness | 4 | 4 | 3 | 11 |
+| Social Media | 4 | 7 | — | 11 |
+| Calendar & Task Mgmt | 3 | 5 | 2 | 10 |
+| Communication & Email | 3 | 5 | 2 | 10 |
+| **Total** | **37** | **63** | **34** | **134** |
 
-Complexity factors: A1 Cross-Service Dependency (47), A2 Contaminated State (37), B1 Implicit Goals (42), B2 Knowledge Maintenance (26).
+Complexity factors: A1 Cross-Service Dependency (54), A2 Contaminated State (39), B1 Implicit Goals (47), B2 Knowledge Maintenance (28), C1 Environmental State Invalidation (7), C2 Outcome Verification under Altered State (6).
 
 ## Leaderboard
 
 Scores are Avg@3: mean of 3 independent runs per task, averaged across 30 pilot tasks (v0.1.0), rescaled to [0, 100].
 Evaluated with claw-harbor `v0.1.0` and OpenClaw `2026.3.11`.
-Updated 116-task leaderboard coming soon.
+Updated 134-task leaderboard coming soon.
 
 | Model | Avg@3 (0–100) |
 |-------|---------------|
@@ -158,7 +158,7 @@ LiveClawBench is a living benchmark designed to evolve alongside the OpenClaw ec
 - [x] 30-task pilot benchmark with manual validation (March 2026)
 - [x] Automated evaluation harness for all 30 tasks (March 2026)
 - [x] Public leaderboard with agent trajectories on HuggingFace (April 2026)
-- [x] Expand to 116 tasks across 10 domains (May 2026)
+- [x] Expand to 134 tasks across 10 domains (May 2026)
 - [ ] Community task submission pipeline
 
 ### Future Expansion
