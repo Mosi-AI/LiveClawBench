@@ -1,0 +1,1 @@
+Please log a snack entry in the health tracking app at http://localhost:5003/. Search for "chips" in the food catalog and log one serving of the first result to today's date. After logging, verify the entry appears in your food log.

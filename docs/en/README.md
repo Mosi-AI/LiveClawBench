@@ -29,7 +29,7 @@ Technical reference for task format and complexity annotations:
 | Document | Description |
 |----------|-------------|
 | [What Makes Real Assistant Tasks Hard?](background/assistant_task_complexity.md) | Factor stacking effect, benchmark comparison, why this framework matters |
-| [Future Factors](roadmap/future_factors.md) | A3/A4/B3/C-axis expansion roadmap with priority order |
+| [Future Factors](roadmap/future_factors.md) | A3/A4/B3/C3/C4 expansion roadmap; C1/C2 are implemented (see Complexity Framework) |
 
 ## Metadata
 

@@ -10,6 +10,8 @@ factor_a1 = 0
 factor_a2 = 1   # Contaminated Initial State (6 stacked dependency bugs + decoys)
 factor_b1 = 1   # Implicit Goal Resolution (CI is red — agent must triage 6 root causes)
 factor_b2 = 0
+factor_c1 = 0
+factor_c2 = 0
 case_id = 84
 
 [verifier]

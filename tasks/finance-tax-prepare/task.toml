@@ -10,6 +10,8 @@ factor_a1 = 1
 factor_a2 = 0
 factor_b1 = 1
 factor_b2 = 1
+factor_c1 = 0
+factor_c2 = 0
 case_id = 62
 
 [verifier]

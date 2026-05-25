@@ -13,6 +13,8 @@ factor_a1 = 0   # A1: Cross-Service Dependency
 factor_a2 = 1   # A2: Contaminated Initial State (bug exists at base_commit; 3-of-4 transition paths fail)
 factor_b1 = 1   # B1: Implicit Goal Resolution (issue is a user-symptom; cross-cutting "every transition" invariant is implicit)
 factor_b2 = 0   # B2: Knowledge System Maintenance
+factor_c1 = 0
+factor_c2 = 0
 
 case_id = 111
 

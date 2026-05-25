@@ -45,11 +45,12 @@ describe("migration and seed", () => {
       "dashboard_config",
       "portfolio_holding",
       "portfolio_order",
+      "budget_alert",
     ];
     for (const t of expected) {
       expect(rows.map((r) => r.name)).toContain(t);
     }
-    expect(rows.length).toBe(15);
+    expect(rows.length).toBe(16);
   });
 
   it("Phase 1 DB upgrade applies only finance_v2", () => {

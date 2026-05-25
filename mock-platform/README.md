@@ -182,6 +182,52 @@ BROWSER_MOCK_DATA_DIR=tasks/mixed-tool-memory/environment \
 - Doc-search seeds its SQLite FTS5 index from `documents.sql` on first startup; subsequent restarts reuse the existing database unless the file is deleted.
 - All mocks expose `GET /health` and `GET /__mock_sentinel__/<name>` for orchestration health checks.
 
+## C-Axis Fault Injection (Runtime Adaptability)
+
+Mocks support deterministic fault injection for **C1 (Environmental State Invalidation)** and **C2 (Outcome Verification under Altered State)** tasks. Faults are gated by `process.env.TASK_NAME` and triggered via `shouldInject()` from `mock-lib`.
+
+### How it works
+
+1. **TASK_NAME gating**: Each fault is wrapped in `if (process.env.TASK_NAME === "<task-name>")` so non-C tasks are unaffected.
+2. **One-shot via `shouldInject()`**: `shouldInject(taskName, service, route, faultId)` returns `true` on the first call for a given key, then `false`. This makes faults deterministic and reproducible.
+3. **C1 — State Invalidation**: After the agent's first action, the mock mutates internal state (e.g., lowers stock, deletes catalog rows, changes budget thresholds). The agent must detect the change and replan.
+4. **C2 — Silent Failure**: The first API call returns HTTP 200 with a success message but skips persistence (e.g., order not saved, like not removed). The agent must verify state and retry.
+
+### Implemented C-axis tasks
+
+| Task | Service | Fault Type | Trigger |
+|------|---------|-----------|---------|
+| `watch-shop-stockout` | shop | C1 | 1st checkout with watch → 409 SOLD_OUT, stock set to 0 |
+| `watch-shop-silent-fail` | shop | C2 | 1st checkout → 200 fake order, no persistence |
+| `mint-diet-stockout` | mint-diet | C1 | 1st search → deletes matching food rows |
+| `social-post-rate-limit` | social | C1 | 3rd POST /posts → 429 RATE_LIMITED |
+| `social-unlike-verify` | social | C2 | 1st unlike → 200 but DB delete skipped |
+| `expense-submit-verify` | expense | C2 | 1st submit → 200 but status stays "draft" |
+| `finance-budget-shift` | finance | C1 | 1st budget-alert POST → lowers non-violating dept budgets |
+| `email-reply-context-shift` | email | C1 | New cancellation email injected mid-session |
+| `email-sending-verify` | email | C2 | 1st send → 200 but email not persisted |
+| `health-record-verify` | health | C2 | 1st allergen add → 200 but not persisted |
+| `interview-slot-verify` | calendar | C2 | 1st event create → time silently wrong |
+| `meeting-slot-race` | calendar | C1 | 1st event create → 409 slot taken |
+| `vue-fix-rebreak` | n/a | C1 | Build fixes trigger secondary config break |
+
+### Adding new fault injection
+
+```typescript
+import { shouldInject } from "mock-lib";
+
+if (
+  process.env.TASK_NAME === "my-new-c1-task" &&
+  shouldInject("my-new-c1-task", "shop", "POST /api/checkout", "c1-my-fault")
+) {
+  // Mutate state
+  setStock(productId, 0);
+  return c.json(err("Sold out", "SOLD_OUT"), 409);
+}
+```
+
+Per-mock C-axis tests live in `mocks/<service>/tests/c-axis.test.ts`. See existing suites (shop, social, expense, finance, mint-diet) for patterns.
+
 ## Negative-Path Testing
 
 The Layer 2 test specification in `docs/tests/negative-paths-reference.md` documents 16 targeted fail-fast checks against shop and doc-search. Layer 1 `bun:test` suites already provide executable negative-path coverage: shop has 39 tests in `mocks/shop/src/index.test.ts` and doc-search has 18 tests in `mocks/doc-search/src/index.test.ts`. Run them with `bun test`.

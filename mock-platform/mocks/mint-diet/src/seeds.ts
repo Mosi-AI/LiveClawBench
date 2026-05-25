@@ -43,9 +43,12 @@ const FOOD_CATALOG: SeedFood[] = [
   { name: "peanut butter", serving_size_value: 32, serving_size_unit: "g", calories_kcal: 191, protein_g: 7.1, carbs_g: 6.3, fat_g: 16.4 },
   { name: "spinach", serving_size_value: 50, serving_size_unit: "g", calories_kcal: 12, protein_g: 1.7, carbs_g: 1.0, fat_g: 0.2 },
   { name: "broccoli", serving_size_value: 100, serving_size_unit: "g", calories_kcal: 34, protein_g: 2.8, carbs_g: 6.6, fat_g: 0.4 },
+  { name: "potato chips", serving_size_value: 28, serving_size_unit: "g", calories_kcal: 152, protein_g: 2.0, carbs_g: 15.0, fat_g: 9.5 },
 ];
 
 export function seedFoodCatalog(db: Database): void {
+  const taskName = process.env.TASK_NAME ?? "";
+
   const count = (db.query("SELECT COUNT(*) AS cnt FROM food_catalog").get() as { cnt: number }).cnt;
   if (count > 0) {
     console.log(`Food catalog already seeded with ${count} items`);
@@ -57,9 +60,12 @@ export function seedFoodCatalog(db: Database): void {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
-  console.log(`Seeding food catalog with ${FOOD_CATALOG.length} items`);
+  // mint-diet-stockout uses the same seed as mint-diet-snack-log (base pair)
+  const catalog = FOOD_CATALOG;
+
+  console.log(`Seeding food catalog with ${catalog.length} items`);
   db.transaction(() => {
-    for (const food of FOOD_CATALOG) {
+    for (const food of catalog) {
       insert.run(food.name, food.serving_size_value, food.serving_size_unit, food.calories_kcal, food.protein_g, food.carbs_g, food.fat_g);
     }
   })();

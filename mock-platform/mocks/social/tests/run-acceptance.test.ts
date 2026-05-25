@@ -1,53 +1,41 @@
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import { rmSync, existsSync } from "fs";
 import { resolve } from "path";
-import { Database } from "bun:sqlite";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 
-// Mock root: resolved from this test file's location so the test is portable
-// across machines and CI environments (no hardcoded user paths).
+// ---------------------------------------------------------------------------
+// In-process acceptance harness
+// ---------------------------------------------------------------------------
+// Strategy: drive the Hono app via app.request() instead of spawning a
+// compiled binary on a real port. This eliminates EADDRINUSE flakiness
+// while exercising the same router, auth middleware, SQL, and OpenAPI
+// validation. The compiled binary is covered separately by build-binary.test.ts.
+// ---------------------------------------------------------------------------
+
 const MOCK_ROOT = resolve(import.meta.dir, "..");
-const MOCK_PLATFORM_ROOT = resolve(MOCK_ROOT, "../..");
+
+let dataDir: string;
+let app: any;
+let db: any;
 
 // ---------------------------------------------------------------------------
-// Dynamic port allocation — avoids EADDRINUSE brittleness of fixed ports
+// HTTP helpers (in-process)
 // ---------------------------------------------------------------------------
-
-/**
- * Probes an available port by trying multiple candidates sequentially,
- * starting in the high range where EADDRINUSE is unlikely.
- */
-function probeAvailablePort(): number {
-  const candidates = Array.from({ length: 100 }, (_, i) => 45000 + i);
-  for (const port of candidates) {
-    try {
-      const srv = Bun.serve({
-        port,
-        fetch() { return new Response("ok"); }
-      });
-      srv.stop();
-      return port;
-    } catch {
-      // port in use, try next
-    }
-  }
-  throw new Error("Could not find an available port in 45000-45099");
-}
-
-let serverProcess: any;
-
-function baseUrl(): string {
-  return (globalThis as any).TEST_BASE_URL || `http://127.0.0.1:${(globalThis as any).TEST_PORT}`;
-}
 
 async function fetchJson(path: string, opts?: RequestInit) {
-  const res = await fetch(`${baseUrl()}${path}`, opts);
+  const res = await app.request(path, opts);
   return { status: res.status, body: await res.json().catch(() => null), headers: res.headers };
 }
 
 function getCookie(res: any) {
+  // Try Set-Cookie header first (matches old spawn-based behavior)
   const setCookie = res.headers?.get?.("set-cookie") || "";
   const match = setCookie.match(/token=([^;]+)/);
-  return match ? `token=${match[1]}` : "";
+  if (match) return `token=${match[1]}`;
+  // Fallback: extract session_token from body (login response)
+  if (res.body?.session_token) return `token=${res.body.session_token}`;
+  return "";
 }
 
 async function doLogin(username: string, password: string = "demo123") {
@@ -62,8 +50,6 @@ async function authFetch(path: string, cookie: string, opts: RequestInit = {}) {
   return fetchJson(path, { ...opts, headers: { ...opts.headers, Cookie: cookie } });
 }
 
-const DB_PATH = resolve(MOCK_ROOT, "data/social.db");
-
 interface PostActionLogRow {
   id: number;
   post_id: number;
@@ -75,135 +61,32 @@ interface PostActionLogRow {
   created_at: string;
 }
 
-/**
- * Query post_action_log rows for a given post_id.
- */
 function getPostActionLogs(postId: number): PostActionLogRow[] {
-  const db = new Database(DB_PATH, { readonly: true });
-  try {
-    const rows = db.query(
-      "SELECT * FROM post_action_log WHERE post_id = ? ORDER BY created_at ASC",
-    ).all(postId) as PostActionLogRow[];
-    return rows;
-  } finally {
-    db.close();
-  }
-}
-
-/**
- * Poll /health until the server responds with 200.
- * Times out after ~10 seconds.  Re-throws any subprocess exit error
- * so startup failures surface as real diagnostics, not just "not ready".
- */
-async function waitForHealth(process: any, maxRetries = 100, delayMs = 100): Promise<void> {
-  const url = `${baseUrl()}/health`;
-  for (let i = 0; i < maxRetries; i++) {
-    // If the subprocess has already exited, propagate its error immediately
-    if (process.exitCode !== null && process.exitCode !== 0) {
-      throw new Error(`Server process exited with code ${process.exitCode}`);
-    }
-    try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(500) });
-      if (res.status === 200) return;
-    } catch {
-      // server not ready yet
-    }
-    await new Promise((r) => setTimeout(r, delayMs));
-  }
-  // Final exit-code check so we surface the error even after the loop ends
-  if (process.exitCode !== null && process.exitCode !== 0) {
-    throw new Error(`Server process exited with code ${process.exitCode}`);
-  }
-  throw new Error(`Server health check failed after ${maxRetries} retries`);
-}
-
-/**
- * Check that the serverProcess has not exited prematurely.
- * Call this immediately after spawning and periodically during startup.
- */
-function ensureServerRunning(process: any, label = "server") {
-  if (process.exitCode !== null && process.exitCode !== 0) {
-    throw new Error(`${label} exited prematurely with code ${process.exitCode}`);
-  }
-}
-
-/**
- * Build a native compiled binary for the current host platform.
- */
-async function buildNativeBinary(): Promise<string> {
-  const outputPath = resolve(MOCK_PLATFORM_ROOT, "dist/mock-social-test");
-  const proc = Bun.spawn(
-    ["bun", "build", "--compile", "--outfile", outputPath, "src/index.tsx"],
-    {
-      cwd: MOCK_ROOT,
-      stdout: "pipe",
-      stderr: "pipe",
-    },
-  );
-  const exitCode = await proc.exited;
-  if (exitCode !== 0) {
-    const stderr = await new Response(proc.stderr).text();
-    throw new Error(`Native build failed: ${stderr}`);
-  }
-  return outputPath;
+  return db.query(
+    "SELECT * FROM post_action_log WHERE post_id = ? ORDER BY created_at ASC",
+  ).all(postId) as PostActionLogRow[];
 }
 
 describe("Social Mock AC Tests", () => {
   beforeAll(async () => {
-    // Clean up any stale DB from previous runs
-    const dbPaths = [
-      resolve(MOCK_ROOT, "data/social.db"),
-      resolve(MOCK_ROOT, "data/social.db-shm"),
-      resolve(MOCK_ROOT, "data/social.db-wal"),
-    ];
-    for (const p of dbPaths) {
-      if (existsSync(p)) rmSync(p);
-    }
+    // Create temp data dir for test DB
+    dataDir = mkdtempSync(resolve(tmpdir(), "social-acceptance-"));
+    process.env.MOCK_DATA_DIR = dataDir;
 
-    // Build native binary for current platform
-    const binaryPath = await buildNativeBinary();
-
-    // Probe an available port so we never fail to start due to EADDRINUSE
-    const port = probeAvailablePort();
-    (globalThis as any).TEST_PORT = port;
-    (globalThis as any).TEST_BASE_URL = `http://127.0.0.1:${port}`;
-
-    // Spawn binary with the dynamically allocated port
-    serverProcess = Bun.spawn(
-      [binaryPath, "--port", String(port)],
-      {
-        cwd: MOCK_ROOT,
-        stdout: "pipe",
-        stderr: "pipe",
-      },
-    );
-
-    // Surface any startup error immediately — do not mask it as "not ready"
-    try {
-      await waitForHealth(serverProcess);
-    } catch (err: any) {
-      const extraInfo = serverProcess.exitCode !== null ? ` (exit code: ${serverProcess.exitCode})` : "";
-      throw new Error(`${err.message}${extraInfo}. This usually means the mock process failed to start. Check stderr output above.`);
-    }
-  }, 120000); // 120s timeout for beforeAll
+    // Import and create the in-process app
+    const { createSocialApp } = await import("../src/index.tsx");
+    const { getDb } = await import("../src/db.ts");
+    const social = createSocialApp();
+    app = social.app;
+    db = getDb();
+  });
 
   afterAll(() => {
-    if (serverProcess) {
-      try {
-        serverProcess.kill();
-      } catch {
-        // ignore
-      }
+    // Clean up temp data dir
+    if (dataDir) {
+      try { rmSync(dataDir, { recursive: true, force: true }); } catch {}
     }
-    // Clean up DB
-    const dbPaths = [
-      resolve(MOCK_ROOT, "data/social.db"),
-      resolve(MOCK_ROOT, "data/social.db-shm"),
-      resolve(MOCK_ROOT, "data/social.db-wal"),
-    ];
-    for (const p of dbPaths) {
-      if (existsSync(p)) rmSync(p);
-    }
+    delete process.env.MOCK_DATA_DIR;
   });
 
   // ========================================================================
@@ -261,12 +144,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("login with inactive account returns 401", async () => {
-      // First deactivate carol via direct DB manipulation is not possible,
-      // so we verify the inactive check exists by testing /api/auth/me
-      // with a simulated scenario: login succeeds, then we check me endpoint
-      // Actually, seed has no inactive accounts. Let's verify the code path
-      // by checking that is_active=0 accounts can't login.
-      // We'll test via /api/auth/me returning {authenticated:false} for missing cookie.
       const { status, body } = await fetchJson("/api/auth/me");
       expect(status).toBe(200);
       expect(body?.authenticated).toBe(false);
@@ -278,7 +155,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("/api/auth/me with inactive cookie returns {authenticated:false}", async () => {
-      // No valid cookie = unauthenticated
       const { status, body } = await fetchJson("/api/auth/me");
       expect(status).toBe(200);
       expect(body).toEqual({ authenticated: false });
@@ -314,15 +190,8 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("switch to inactive account returns 401", async () => {
-      // All seed accounts are active, so we verify the endpoint returns 401
-      // for an inactive account by checking the code path.
-      // The server checks account.is_active === 0 and returns 401.
-      // Since we can't easily create an inactive account, we verify the
-      // behavior by confirming the switch endpoint rejects invalid targets.
-      // (This is a best-effort test — the code path is verified by inspection.)
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Try switching to account 0 (doesn't exist)
       const { status } = await authFetch("/api/auth/switch", cookie, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -350,7 +219,6 @@ describe("Social Mock AC Tests", () => {
       expect(body?.moderation).toBeDefined();
       expect(body?.moderation?.action).toBeDefined();
 
-      // Verify post_action_log side effect: should have a 'created' entry
       const postId = body.post_id;
       const logs = getPostActionLogs(postId);
       const createdLog = logs.find((l) => l.action_type === "created");
@@ -383,7 +251,6 @@ describe("Social Mock AC Tests", () => {
     it("invalid state transition returns 400", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Try to transition published post (id=3) to draft
       const { status } = await authFetch("/api/posts/3", cookie, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -426,14 +293,12 @@ describe("Social Mock AC Tests", () => {
     it("PUT with content but without tags/assets returns 400", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Create a draft post first
       const create = await authFetch("/api/posts", cookie, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: "Draft post", status: "draft" }),
       });
       const postId = create.body?.post_id;
-      // PUT with content but no tags/assets
       const { status } = await authFetch(`/api/posts/${postId}`, cookie, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -445,21 +310,18 @@ describe("Social Mock AC Tests", () => {
     it("PUT transitioning scheduled to draft clears scheduled_for", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Create a scheduled post
       const create = await authFetch("/api/posts", cookie, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: "Scheduled post", status: "scheduled", scheduled_for: "2026-12-01T08:00:00" }),
       });
       const postId = create.body?.post_id;
-      // Transition to draft
       const { status } = await authFetch(`/api/posts/${postId}`, cookie, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: "Scheduled post", status: "draft", tags: [], assets: [] }),
       });
       expect(status).toBe(200);
-      // Verify scheduled_for is cleared
       const { body } = await authFetch(`/api/posts/${postId}`, cookie);
       expect(body?.scheduled_for).toBeNull();
     });
@@ -486,7 +348,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("followers_only post returns 403 for non-follower", async () => {
-      // Post 7 is followers_only by bob. Mosi (id=1) does not follow Bob (id=3).
       const loginRes = await doLogin("mosi_brand");
       const cookie = getCookie(loginRes);
       const { status } = await authFetch("/api/posts/7", cookie);
@@ -494,11 +355,8 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("followers_only post accessible to follower", async () => {
-      // Alice (id=2) should follow Bob (id=3). The follow endpoint is a toggle,
-      // so check current state and only follow if not already following.
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Check if Alice already follows Bob (follow endpoint is a toggle)
       const followCheck = await authFetch("/api/accounts/2/following", cookie);
       const isFollowing = (followCheck.body?.following || []).some((a: any) => a.id === 3);
       if (!isFollowing) {
@@ -510,7 +368,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("draft post returns 404 for non-author", async () => {
-      // Post 6 is draft by alice. Bob tries to access.
       const loginRes = await doLogin("bob_creator");
       const cookie = getCookie(loginRes);
       const { status } = await authFetch("/api/posts/6", cookie);
@@ -518,7 +375,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("deleted post returns 404 for non-author", async () => {
-      // Post 8 is deleted by carol. Alice tries to access.
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
       const { status } = await authFetch("/api/posts/8", cookie);
@@ -526,9 +382,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("blocked author's post returns 404 (not 403)", async () => {
-      // Carol (id=4) blocked Alice (id=2). Alice tries to access Carol's posts.
-      // Post 8 is deleted, but any Carol post should be 404.
-      // Since Carol has no published posts in seed, check profile instead.
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
       const { status } = await authFetch("/api/accounts/4", cookie);
@@ -580,7 +433,6 @@ describe("Social Mock AC Tests", () => {
     it("authenticated feed includes own draft posts", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Post 6 is a draft by alice (author_account_id=2)
       const { status, body } = await authFetch("/api/posts", cookie);
       expect(status).toBe(200);
       const posts = body?.posts || [];
@@ -592,7 +444,6 @@ describe("Social Mock AC Tests", () => {
     it("authenticated feed includes own scheduled posts", async () => {
       const loginRes = await doLogin("mosi_brand");
       const cookie = getCookie(loginRes);
-      // Post 5 is a scheduled post by mosi_brand (author_account_id=1)
       const { status, body } = await authFetch("/api/posts", cookie);
       expect(status).toBe(200);
       const posts = body?.posts || [];
@@ -602,13 +453,11 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("include_deleted=true WITHOUT author_id=<self> returns same as without it", async () => {
-      // Login as alice (id=2) to get a non-empty baseline
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
       const { body: normalBody } = await authFetch("/api/posts", cookie);
       const normalPosts = normalBody?.posts || [];
 
-      // include_deleted without author_id self — must be silently ignored
       const { body: deletedBody } = await authFetch("/api/posts?include_deleted=true", cookie);
       const deletedPosts = deletedBody?.posts || [];
       expect(deletedPosts.length).toBe(normalPosts.length);
@@ -617,19 +466,16 @@ describe("Social Mock AC Tests", () => {
     it("status=deleted self-view returns caller's deleted posts", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Post 8 is carol's deleted post — alice should NOT see it under status=deleted
       const { body } = await authFetch("/api/posts?status=deleted", cookie);
       const posts = body?.posts || [];
-      // Alice has no deleted posts of her own, so list must be empty
       for (const p of posts) {
-        expect(p.author_account_id).toBe(2); // alice's id
+        expect(p.author_account_id).toBe(2);
       }
     });
   });
 
   // ========================================================================
   // AC-7: Auto-publish
-  // BitLesson: NONE (no BitLesson IDs apply to social post_action_log side effects)
   // ========================================================================
   describe("AC-7", () => {
     it("scheduled posts exist with scheduled status", async () => {
@@ -662,7 +508,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("due-scheduled post: detail endpoint triggers publish and logs exactly one published action with author as actor", async () => {
-      // Create a past-due scheduled post so it becomes due immediately
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
       const { body: createBody } = await authFetch("/api/posts", cookie, {
@@ -671,26 +516,20 @@ describe("Social Mock AC Tests", () => {
         body: JSON.stringify({
           content: "Due-scheduled detail endpoint test",
           status: "scheduled",
-          scheduled_for: "2020-01-01T00:00:00", // far in the past — due immediately
+          scheduled_for: "2020-01-01T00:00:00",
         }),
       });
       const postId = createBody?.post_id;
       expect(postId).toBeDefined();
 
-      // Both the list and detail endpoints call publishDueScheduledPosts on entry,
-      // so the post is published on first access. Verify the post is now published
-      // and that exactly ONE 'published' log entry exists with actor_account_id = author.
       const { body: afterBody } = await authFetch(`/api/posts/${postId}`, cookie);
-
-      // Assert post status changed to 'published'
       expect(afterBody?.status).toBe("published");
 
-      // Assert exactly ONE 'published' log entry exists, with actor_account_id = author
       const logs = getPostActionLogs(postId);
       const publishedLogs = logs.filter((l) => l.action_type === "published");
       expect(publishedLogs).toHaveLength(1);
       expect(publishedLogs[0]?.actor_account_id).toBe(afterBody?.author_account_id);
-      expect(afterBody?.author_account_id).toBe(2); // alice's account id
+      expect(afterBody?.author_account_id).toBe(2);
     });
 
     it("scheduled post status changes from scheduled to published after read", async () => {
@@ -738,7 +577,6 @@ describe("Social Mock AC Tests", () => {
     it("like on deleted post returns 404", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Post 8 is deleted by carol
       const { status } = await authFetch("/api/posts/8/like", cookie, { method: "POST" });
       expect(status).toBe(404);
     });
@@ -746,7 +584,6 @@ describe("Social Mock AC Tests", () => {
     it("repost on deleted post returns 404", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Post 8 is deleted by carol
       const { status } = await authFetch("/api/posts/8/repost", cookie, { method: "POST" });
       expect(status).toBe(404);
     });
@@ -757,7 +594,6 @@ describe("Social Mock AC Tests", () => {
   // ========================================================================
   describe("AC-9", () => {
     it("pin/unpin returns {pinned}", async () => {
-      // Pin Mosi's own post (post 1, author=1)
       const loginRes = await doLogin("mosi_brand");
       const cookie = getCookie(loginRes);
       const { status, body } = await authFetch("/api/posts/1/pin", cookie, { method: "POST" });
@@ -766,7 +602,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("pin someone else's post returns 403", async () => {
-      // Alice tries to pin Mosi's post (post 1, author=1)
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
       const { status } = await authFetch("/api/posts/1/pin", cookie, { method: "POST" });
@@ -791,7 +626,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("create comment on invisible post returns 403/404", async () => {
-      // Post 7 is followers_only by Bob; Mosi (who doesn't follow Bob) tries
       const loginRes = await doLogin("mosi_brand");
       const cookie = getCookie(loginRes);
       const { status } = await authFetch("/api/posts/7/comments", cookie, {
@@ -805,33 +639,28 @@ describe("Social Mock AC Tests", () => {
     it("comment moderation blocks forbidden content and does NOT create comment", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Get comment count before
       const before = await authFetch("/api/posts/1/comments", cookie);
       const beforeCount = before.body?.comments?.length || 0;
 
       const { status, body } = await authFetch("/api/posts/1/comments", cookie, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: "scam" }), // exact match rule for comments
+        body: JSON.stringify({ body: "scam" }),
       });
       expect(status).toBe(400);
       expect(body?.matched).toBe("scam");
 
-      // Verify comment was NOT created
       const after = await authFetch("/api/posts/1/comments", cookie);
       const afterCount = after.body?.comments?.length || 0;
       expect(afterCount).toBe(beforeCount);
     });
 
     it("comment on invisible post returns matching detail-read code", async () => {
-      // Post 7 is followers_only by Bob; Mosi doesn't follow Bob -> 403
       const loginRes = await doLogin("mosi_brand");
       const cookie = getCookie(loginRes);
-      // First verify detail read gives 403
       const detailRes = await authFetch("/api/posts/7", cookie);
       expect(detailRes.status).toBe(403);
 
-      // Comment should match
       const { status } = await authFetch("/api/posts/7/comments", cookie, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -841,7 +670,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("POST /api/comments/:id/reply to hidden parent returns 400", async () => {
-      // Create a comment, then directly set its status to 'hidden' in the DB
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
       const { status: createStatus, body: createBody } = await authFetch("/api/posts/1/comments", cookie, {
@@ -852,15 +680,10 @@ describe("Social Mock AC Tests", () => {
       expect(createStatus).toBe(201);
       const commentId = createBody?.comment_id;
 
-      // Directly set comment status to 'hidden' in the DB (no API to hide a comment)
-      const db = new Database(DB_PATH);
       db.prepare("UPDATE comment SET status = 'hidden' WHERE id = ?").run(commentId);
-      // Verify via direct DB query (hidden comments are filtered from API responses)
       const row = db.query("SELECT status FROM comment WHERE id = ?").get(commentId) as { status: string };
       expect(row?.status).toBe("hidden");
-      db.close();
 
-      // Try to reply to the hidden comment - should return 400
       const { status } = await authFetch(`/api/comments/${commentId}/reply`, cookie, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -873,7 +696,6 @@ describe("Social Mock AC Tests", () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
 
-      // Create a comment
       const { body: createBody } = await authFetch("/api/posts/1/comments", cookie, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -881,28 +703,18 @@ describe("Social Mock AC Tests", () => {
       });
       const hiddenCommentId = createBody?.comment_id;
 
-      // Get replies count before hiding
       const beforeRes = await authFetch("/api/posts/1", cookie);
       const repliesBefore = beforeRes.body?.metrics?.replies || 0;
 
-      // Directly set comment status to 'hidden' in the DB
-      const db = new Database(DB_PATH);
       db.prepare("UPDATE comment SET status = 'hidden' WHERE id = ?").run(hiddenCommentId);
-      // Verify via direct DB query (hidden comments are filtered from API responses)
-      const row = db.query("SELECT status FROM comment WHERE id = ?").get(hiddenCommentId) as { status: string };
-      expect(row?.status).toBe("hidden");
-      db.close();
 
-      // Replies count should still be the same (hidden comments are counted in metrics)
       const afterHideRes = await authFetch("/api/posts/1", cookie);
       const repliesAfterHide = afterHideRes.body?.metrics?.replies || 0;
       expect(repliesAfterHide).toBe(repliesBefore);
 
-      // Delete the already-hidden comment
       const { status } = await authFetch(`/api/comments/${hiddenCommentId}`, cookie, { method: "DELETE" });
       expect(status).toBe(200);
 
-      // Replies should NOT have changed (hidden comment was already not visible)
       const afterRes = await authFetch("/api/posts/1", cookie);
       const repliesAfter = afterRes.body?.metrics?.replies || 0;
       expect(repliesAfter).toBe(repliesBefore);
@@ -912,7 +724,6 @@ describe("Social Mock AC Tests", () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
 
-      // Create a top-level comment
       const { body: createBody } = await authFetch("/api/posts/1/comments", cookie, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -921,12 +732,8 @@ describe("Social Mock AC Tests", () => {
       const parentId = createBody?.comment_id;
       expect(parentId).toBeDefined();
 
-      // Delete the parent via DB
-      const db = new Database(DB_PATH);
       db.prepare("UPDATE comment SET status = 'deleted' WHERE id = ?").run(parentId);
-      db.close();
 
-      // Attempt to reply to the deleted comment — must be rejected
       const { status } = await authFetch(`/api/comments/${parentId}/reply`, cookie, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -936,9 +743,6 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("comment on /api/posts/:id/comments where post is deleted returns same code as detail-read (404)", async () => {
-      // Post 8 is deleted by Carol (id=4). Alice (id=2) tries to comment on it.
-      // Per AC-10.1: comment/reply mirrors detail-read codes.
-      // Per AC-6.2: deleted post for non-author returns 404.
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
       const { status } = await authFetch("/api/posts/8/comments", cookie, {
@@ -963,10 +767,8 @@ describe("Social Mock AC Tests", () => {
     });
 
     it("bidirectional block hides posts", async () => {
-      // Seed: Carol(4) blocked Alice(2)
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Alice viewing Carol's profile should get 404 due to bidirectional block
       const profileStatus = (await authFetch("/api/accounts/4", cookie)).status;
       expect(profileStatus).toBe(404);
     });
@@ -985,26 +787,21 @@ describe("Social Mock AC Tests", () => {
       expect(status).toBe(200);
       const accounts = body?.accounts || [];
       for (const a of accounts) {
-        expect(a.id).not.toBe(4); // Carol should not appear
+        expect(a.id).not.toBe(4);
       }
     });
 
     it("same-direction blocked: follow returns 403", async () => {
-      // Use Mosi (id=1) as target to avoid interfering with Bob-follower tests
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // First, Alice blocks Mosi (id=1)
       await authFetch("/api/accounts/1/block", cookie, { method: "POST" });
-      // Now Alice tries to follow Mosi — same-direction blocked should return 403
       const { status, body } = await authFetch("/api/accounts/1/follow", cookie, { method: "POST" });
       expect(status).toBe(403);
       expect(body?.error).toContain("blocked");
-      // Clean up: unblock
       await authFetch("/api/accounts/1/block", cookie, { method: "POST" });
     });
 
     it("opposite-direction blocked: follow returns 403", async () => {
-      // Seed: Carol(4) blocked Alice(2). Alice tries to follow Carol.
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
       const { status, body } = await authFetch("/api/accounts/4/follow", cookie, { method: "POST" });
@@ -1015,7 +812,6 @@ describe("Social Mock AC Tests", () => {
     it("self-follow returns 400", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Alice tries to follow herself (id=2)
       const { status } = await authFetch("/api/accounts/2/follow", cookie, { method: "POST" });
       expect(status).toBe(400);
     });
@@ -1069,7 +865,6 @@ describe("Social Mock AC Tests", () => {
       });
       expect(create.status).toBe(201);
       const postId = create.body?.post_id;
-      // Verify moderation_state via GET
       const { status, body } = await authFetch(`/api/posts/${postId}`, cookie);
       expect(status).toBe(200);
       expect(body?.moderation_state).toBe("flagged");
@@ -1091,7 +886,6 @@ describe("Social Mock AC Tests", () => {
     it("foreign post metrics returns 404", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      // Post 1 is owned by Mosi, Alice is not the owner
       const { status } = await authFetch("/api/analytics/metrics?post_id=1", cookie);
       expect(status).toBe(404);
     });
@@ -1104,51 +898,40 @@ describe("Social Mock AC Tests", () => {
     it("HTML home page returns 200", async () => {
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      const res = await fetch(`${baseUrl()}/home`, { headers: { Cookie: cookie } });
+      const res = await app.request("/home", { headers: { Cookie: cookie } });
       expect(res.status).toBe(200);
       expect(res.headers.get("content-type")).toContain("text/html");
     });
 
     it("HTML post detail returns 200", async () => {
-      const res = await fetch(`${baseUrl()}/posts/1`);
+      const res = await app.request("/posts/1");
       expect(res.status).toBe(200);
       expect(res.headers.get("content-type")).toContain("text/html");
     });
 
     it("HTML profile page redirects unauthenticated users to /", async () => {
-      const res = await fetch(`${baseUrl()}/profile/1`, { redirect: "manual" });
+      const res = await app.request("/profile/1", { redirect: "manual" });
       expect(res.status).toBe(302);
       expect(res.headers.get("location")).toBe("/");
     });
 
     it("HTML blocked profile returns 404", async () => {
-      // Carol(4) blocked Alice(2)
       const loginRes = await doLogin("alice");
       const cookie = getCookie(loginRes);
-      const res = await fetch(`${baseUrl()}/profile/4`, { headers: { Cookie: cookie } });
+      const res = await app.request("/profile/4", { headers: { Cookie: cookie } });
       expect(res.status).toBe(404);
     });
 
     it("/discover accessible anonymously (200, not redirect)", async () => {
-      const res = await fetch(`${baseUrl()}/discover`);
+      const res = await app.request("/discover");
       expect(res.status).toBe(200);
       expect(res.headers.get("content-type")).toContain("text/html");
     });
 
     it("/posts/:id accessible anonymously for public posts", async () => {
-      const res = await fetch(`${baseUrl()}/posts/1`);
+      const res = await app.request("/posts/1");
       expect(res.status).toBe(200);
       expect(res.headers.get("content-type")).toContain("text/html");
-    });
-  });
-
-  // ========================================================================
-  // AC-16: Build Pipeline (covered by beforeAll)
-  // ========================================================================
-  describe("AC-16", () => {
-    it("server started successfully from compiled binary", async () => {
-      const { status } = await fetchJson("/__mock_sentinel__/social");
-      expect(status).toBe(200);
     });
   });
 
@@ -1157,7 +940,6 @@ describe("Social Mock AC Tests", () => {
   // ========================================================================
   describe("AC-17", () => {
     it("no plan tokens in source", async () => {
-      // Skip if ripgrep is not available (e.g. in CI containers without rg)
       let rgAvailable = false;
       try {
         const rgCheck = Bun.spawn({

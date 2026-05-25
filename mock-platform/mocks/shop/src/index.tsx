@@ -24,7 +24,7 @@ import {
 } from "./schemas.js";
 import type { Product } from "./types.js";
 import { loadProducts, seedUser, seedOrders } from "./data/seed.js";
-import { loadCart, loadUser, loadOrders, resetStore } from "./data/store.js";
+import { loadCart, loadUser, loadOrders, resetStore, initStockFromProducts, getStock } from "./data/store.js";
 import { HomePage } from "./components/home-page.js";
 import { ResultsPage } from "./components/results-page.js";
 import { CartPage } from "./components/cart-page.js";
@@ -73,7 +73,23 @@ export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
     });
   }
 
-  const getActiveProducts = () => applyDynamicPricing(allProducts);
+  // Stock-aware product accessor — for C-tasks, reflects mutable stock state.
+  function applyStockAwareness(products: Product[]): Product[] {
+    if (TASK_NAME === "watch-shop-stockout") {
+      return products.map((p) => {
+        const stock = getStock(p.id);
+        return stock !== undefined
+          ? { ...p, stock_quantity: stock, low_stock: stock <= 5 }
+          : p;
+      });
+    }
+    return products;
+  }
+
+  // Unified active-products pipeline: dynamic pricing → stock awareness
+  const getActiveProducts = (): Product[] => {
+    return applyStockAwareness(applyDynamicPricing(allProducts));
+  };
 
   const mockApp = createMockApp({
     name: "shop-mosi-backend",
@@ -188,6 +204,7 @@ export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
     ...mockApp,
     seed: async () => {
       allProducts = await loadProducts(options?.productsPath);
+      initStockFromProducts(allProducts);
       seedUser();
       seedOrders(allProducts);
     },

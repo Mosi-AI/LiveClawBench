@@ -13,6 +13,8 @@ factor_a1 = 0   # A1: Cross-Service Dependency
 factor_a2 = 1   # A2: Contaminated Initial State (module missing the match_set surface area)
 factor_b1 = 1   # B1: Implicit Goal Resolution (idempotency under iptables-save round-trip is implicit, never in the issue)
 factor_b2 = 0   # B2: Knowledge System Maintenance
+factor_c1 = 0
+factor_c2 = 0
 
 case_id = 109
 

@@ -131,7 +131,7 @@ const ALL_TASK_NAMES = new Set([
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
   "mint-diet-snack-log", "mint-diet-comprehensive", "nutrition-log-meal", "weather-aqi-report",
-  "social-media-posting", "social-unlike-post", "expense-draft-delete",
+  "social-media-posting", "social-unlike-post", "expense-draft-delete", "expense-submit-verify",
   "health-daily-record",
   "finance-portfolio-rebalancing", "finance-monthly-close",
   "finance-expense-log", "finance-anomaly-detect", "finance-budget-alert",
@@ -181,6 +181,13 @@ const ALL_TASK_NAMES = new Set([
   "openlibrary-3rd-metadata-source",
   "teleport-gcp-cert-identity",
   "vuls-kernel-detection",
+  // C-axis — Runtime Adaptability tasks (case_ids 117-129)
+  "email-reply-context-shift", "email-sending-verify",
+  "watch-shop-stockout", "watch-shop-silent-fail",
+  "meeting-slot-race", "interview-slot-verify",
+  "mint-diet-stockout", "health-record-verify",
+  "social-post-rate-limit", "social-unlike-verify",
+  "finance-budget-shift", "vue-fix-rebreak",
 ]);
 
 interface AssetMapping {
@@ -606,10 +613,14 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`echo "Expense frontend served by Bun on port ${port}" > /tmp/expense-frontend.log`);
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/expense-npm-install.log`);
       } else if (bin === "social") {
-        lines.push(`export MOCK_DATA_DIR=/opt/mock/data`);
-        lines.push(`mkdir -p /opt/mock/data/social`);
+        lines.push(`export MOCK_DATA_DIR=/var/lib/mock-data`);
+        lines.push(`mkdir -p /var/lib/mock-data/social`);
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/social-backend.log 2>&1 &`);
         lines.push(`echo "Social frontend served by Bun on port ${port}" > /tmp/social-frontend.log`);
+      } else if (bin === "health") {
+        lines.push(`export MOCK_DATA_DIR=/var/lib/mock-data`);
+        lines.push(`mkdir -p /var/lib/mock-data/health`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }

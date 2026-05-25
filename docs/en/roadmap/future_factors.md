@@ -1,14 +1,14 @@
-# Future Factor Design: A3, A4, B3, C-axis
+# Future Factor Design: A3, A4, B3, C3, C4
 
 ## Priority Order
 
 | Priority | Factor | Rationale |
 |:--------:|--------|-----------|
-| 1 | **C1** — Environmental State Invalidation | Clearest reproducibility design; existing cases validate testability; most mature infrastructure |
-| 2 | **A3** — Temporal & Resource Constraints | Concrete pilot case designs exist; main bottleneck is mock clock infrastructure |
-| 3 | **B3** — Multi-Agent Delegation | Depends on OpenClaw sub-agent architecture maturity |
-| 4 | **A4** — Cross-Modal Interaction | High build cost; accumulate pilot cases first, then formalize as a scored factor; requires vision-capable model |
-| 5 | **C2** — Outcome Verification under Altered State | Defer until C1 pilot cases validate the C-axis evaluation infrastructure |
+| 1 | **A3** — Temporal & Resource Constraints | Concrete pilot case designs exist; main bottleneck is mock clock infrastructure |
+| 2 | **B3** — Multi-Agent Delegation | Depends on OpenClaw sub-agent architecture maturity |
+| 3 | **A4** — Cross-Modal Interaction | High build cost; accumulate pilot cases first, then formalize as a scored factor; requires vision-capable model |
+| 4 | **C3** — Graceful Degradation | Agent must continue with reduced functionality when optimal path is blocked |
+| 5 | **C4** — Resource Contention | Multiple agents compete for limited shared resources |
 
 ---
 
@@ -118,11 +118,14 @@ Delegation & Synthesis — how the orchestrator decomposes tasks, merges results
 
 ### Current Coverage
 
-Thin — currently only `flight-seat-selection-failed` and `noise-filtering` partially address this dimension.
+**Implemented** — 13 tasks covering C1 (7 tasks) and C2 (6 tasks) across 7 domains.
+See `CLAUDE.md` task list for full inventory.
 
 ### C1: Environmental State Invalidation
 
-**Status:** Next priority expansion direction.
+**Status:** Implemented. 7 tasks: `email-reply-context-shift`, `watch-shop-stockout`,
+`meeting-slot-race`, `mint-diet-stockout`, `social-post-rate-limit`, `finance-budget-shift`,
+`vue-fix-rebreak`.
 
 **After the agent begins execution**, the environment state changes due to external causes, invalidating assumptions the agent has already established, forcing the agent to abandon its current path and replan.
 
@@ -148,13 +151,20 @@ Typical scenarios:
 
 ### C2: Outcome Verification under Altered State
 
-**Status:** Roadmap — lower priority than C1; defer until C1 pilot cases validate the C-axis evaluation infrastructure.
+**Status:** Implemented. 6 tasks: `email-sending-verify`, `watch-shop-silent-fail`,
+`interview-slot-verify`, `health-record-verify`, `social-unlike-verify`,
+`expense-submit-verify`.
 
 The agent must observe environment state to judge whether the task truly succeeded, rather than relying on a simple pass/fail signal.
 
 Typical scenarios:
-- "Did the email convey the right tone?" requires agent self-assessment
 - After an operation, verify the service state has actually been updated, not just trust the API return value
+- Agent must detect silent failures (200 response but no persistence) and retry
+
+### Expansion Directions
+
+- **C3 — Graceful Degradation**: Agent must continue with reduced functionality when optimal path is blocked
+- **C4 — Resource Contention**: Multiple agents compete for limited shared resources
 
 ### Expansion Directions
 

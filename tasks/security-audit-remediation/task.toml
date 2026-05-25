@@ -13,6 +13,8 @@ factor_a1 = 1   # Cross-Service Dependency (Email + Git platform + Web app)
 factor_a2 = 1   # Contaminated Initial State (leaked secrets in git history, CWE vulns)
 factor_b1 = 1   # Implicit Goal Resolution (audit report lists categories, not specifics)
 factor_b2 = 0   # Knowledge System Maintenance
+factor_c1 = 0
+factor_c2 = 0
 
 case_id = 73
 

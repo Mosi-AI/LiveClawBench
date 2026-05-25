@@ -13,6 +13,8 @@ factor_a1 = 1   # Cross-Service Dependency (Git SSH + Nginx + Email)
 factor_a2 = 1   # Contaminated Initial State (port conflict + CRLF hook error)
 factor_b1 = 1   # Implicit Goal Resolution (goal-oriented, no recipe)
 factor_b2 = 1   # Knowledge System Maintenance (deployment runbook)
+factor_c1 = 0
+factor_c2 = 0
 
 case_id = 72
 

@@ -1,18 +1,17 @@
 import { Database } from "bun:sqlite";
 
 /**
- * SQLite database singleton per mock binary.
+ * SQLite database instances keyed by file path.
  *
- * Each mock gets its own database instance. The database file path
- * is determined by mock name and data directory configuration.
+ * Each unique path gets its own Database instance. This prevents cross-mock
+ * interference when multiple mock tests run concurrently in the same process
+ * (e.g., `bun test` runs all test files together).
  *
- * API Constraint: This module implements a process-level singleton. Calling getDb()
- * with different paths in the same process returns the first instance. This is safe
- * in the current architecture where each mock runs in its own isolated process,
- * but callers should be aware of this behavior for future multi-DB use cases.
+ * In production each mock runs in its own process, so there is at most one
+ * entry per process. The Map design is a safety net for the test runner.
  */
 
-let _db: Database | null = null;
+const _dbs = new Map<string, Database>();
 
 export interface SqliteOptions {
   /** Database file path. Use ":memory:" for in-memory databases. */
@@ -27,52 +26,53 @@ const DEFAULT_OPTIONS: SqliteOptions = {
 };
 
 /**
- * Get or create the SQLite database singleton.
+ * Get or create the SQLite database for the given path.
  *
- * In production: uses the configured file path.
- * In tests: defaults to :memory: for isolation.
- *
- * Note: This returns a process-level singleton. For multi-DB scenarios,
- * consider migrating to a path-isolated Map-based design.
+ * Each unique path is isolated — calling `getDb({ path: "a.db" })` and
+ * `getDb({ path: "b.db" })` returns two independent Database instances.
  */
 export function getDb(options?: SqliteOptions): Database {
-  if (_db !== null) return _db;
-
   const opts = { ...DEFAULT_OPTIONS, ...options };
+  const path = opts.path ?? ":memory:";
+
+  const cached = _dbs.get(path);
+  if (cached) return cached;
+
+  let db: Database;
   try {
-    _db = new Database(opts.path, { create: true });
+    db = new Database(path, { create: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    throw new Error(`Failed to open SQLite database at ${opts.path}: ${message}`);
+    throw new Error(`Failed to open SQLite database at ${path}: ${message}`);
   }
 
   // Enable WAL mode for better concurrent read performance
   try {
-    _db.run("PRAGMA journal_mode = WAL");
-    _db.run("PRAGMA foreign_keys = ON");
+    db.run("PRAGMA journal_mode = WAL");
+    db.run("PRAGMA foreign_keys = ON");
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    _db.close();
-    _db = null;
+    db.close();
     throw new Error(`Failed to configure SQLite database: ${message}`);
   }
 
   // Run migrations if autoMigrate is enabled (default behavior)
   if (opts.autoMigrate) {
-    migrate(_db);
+    migrate(db);
   }
 
-  return _db;
+  _dbs.set(path, db);
+  return db;
 }
 
 /**
- * Close and reset the database singleton (for testing).
+ * Close and reset all cached database instances (for testing).
  */
 export function resetDb(): void {
-  if (_db !== null) {
-    _db.close();
-    _db = null;
+  for (const db of _dbs.values()) {
+    db.close();
   }
+  _dbs.clear();
 }
 
 /**

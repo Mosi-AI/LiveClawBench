@@ -887,13 +887,20 @@ function makeSeedConfig(taskName: string): SeedConfig {
 
   switch (taskName) {
     case "email-writing":
+    // C2 variant: same baseline as email-writing (agent writes and sends an
+    // email; first send silently fails via skip_persist in the send handler).
+    case "email-sending-verify":
       return {
         senders: [...BASELINE_SENDERS],
         inbox: baselineInbox,
         sent: baselineSent,
       };
 
-    case "email-reply": {
+    case "email-reply":
+    // C1 variant: same seed as email-reply (Lau partnership). After the agent
+    // creates a draft reply, the C1 handler in emails-read.ts injects a
+    // "URGENT: Meeting cancelled" email into the inbox on the next GET.
+    case "email-reply-context-shift": {
       const senders = [...BASELINE_SENDERS, SENDER_LAU];
       return {
         senders,
@@ -1173,7 +1180,8 @@ function makeSeedConfig(taskName: string): SeedConfig {
       };
     }
 
-    case "candidate-interview-slot-confirm": {
+    case "candidate-interview-slot-confirm":
+    case "interview-slot-verify": {
       const senders = [...BASELINE_SENDERS, SENDER_HR];
       return {
         senders,

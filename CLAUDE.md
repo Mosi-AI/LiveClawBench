@@ -12,7 +12,7 @@ complexity factors along three axes (Environment Complexity, Cognitive Demand, R
 
 | Repository | Role | URL |
 |---|---|---|
-| **LiveClawBench** (this repo) | Task corpus — 116 harbor-format benchmark tasks | — |
+| **LiveClawBench** (this repo) | Task corpus — 129 harbor-format benchmark tasks | — |
 | **claw-harbor** | Evaluation framework (fork of harbor with OpenClaw support) | https://github.com/Mosi-AI/claw-harbor |
 | **OpenClaw** | Agent platform running inside task containers | https://github.com/openclaw/openclaw |
 
@@ -68,6 +68,7 @@ Edit `.env` and uncomment the block for your provider. Agent credentials are inj
 | Anthropic | `anthropic/<model-id>` | `ANTHROPIC_API_KEY` |
 | OpenAI | `openai/<model-id>` | `OPENAI_API_KEY` |
 | Gemini | `gemini/<model-id>` | `GEMINI_API_KEY` |
+| Moonshot | `moonshot/<model-id>` | `MOONSHOT_API_KEY` (native) or `CUSTOM_API_KEY` + `CUSTOM_BASE_URL` (proxy) |
 | Any OpenAI-compatible | `custom/<model-id>` | `CUSTOM_API_KEY` + `CUSTOM_BASE_URL` (+ optional `CUSTOM_CONTEXT_WINDOW` / `CUSTOM_MAX_TOKENS` / `CUSTOM_REASONING` / `CUSTOM_API`) |
 
 ## Running Tasks
@@ -92,6 +93,21 @@ harbor run -p tasks/watch-shop -a openclaw \
   -n 1 -o jobs \
   --ae VOLCANO_ENGINE_API_KEY="$VOLCANO_ENGINE_API_KEY" \
   --debug
+
+# Example: Moonshot (native endpoint)
+harbor run -p tasks/watch-shop -a openclaw \
+  -m moonshot/kimi-k2.5 \
+  -n 1 -o jobs \
+  --ae MOONSHOT_API_KEY="$MOONSHOT_API_KEY" \
+  --debug
+
+# Example: Moonshot via OpenAI-compatible proxy (e.g., Alibaba Bailian)
+harbor run -p tasks/watch-shop -a openclaw \
+  -m moonshot/qwen3.6-flash \
+  -n 1 -o jobs \
+  --ae CUSTOM_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1" \
+  --ae CUSTOM_API_KEY="$CUSTOM_API_KEY" \
+  --timeout-multiplier 2.0 --debug
 ```
 
 ### Full Dataset
@@ -137,14 +153,14 @@ cat jobs/*/*/verifier/reward.txt   # 1.0 = solved, 0.5 = partial credit
 | `--debug` | Verbose logging |
 | `--n-concurrent <int>` | Parallel task execution |
 
-> **LLM-judge tasks** (20 tasks: `ai-copyright-international-jurisprudence`, `autonomous-weapons-ethics`,
+> **LLM-judge tasks** (21 tasks: `ai-copyright-international-jurisprudence`, `autonomous-weapons-ethics`,
 > `browser-portal-injection`, `conflict-repair-acb`, `corpus-file-injection`,
 > `crispr-off-target-mitigation`, `cross-border-data-privacy-comparison`,
-> `defi-systemic-risk-contagion`, `digital-religion-ai-vr`, `formal-verification-vs-fuzzing`,
-> `fusion-energy-commercial-viability`, `incremental-update-ctp`, `live-web-research-sqlite-fts5`,
-> `long-covid-neurological-hypotheses`, `mixed-tool-memory`, `mrna-cancer-vaccines-landscape`,
-> `noise-filtering`, `pre-meeting-research-brief`, `research-with-adversarial-sources`,
-> `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
+> `defi-systemic-risk-contagion`, `digital-religion-ai-vr`, `email-reply-context-shift`,
+> `formal-verification-vs-fuzzing`, `fusion-energy-commercial-viability`, `incremental-update-ctp`,
+> `live-web-research-sqlite-fts5`, `long-covid-neurological-hypotheses`, `mixed-tool-memory`,
+> `mrna-cancer-vaccines-landscape`, `noise-filtering`, `pre-meeting-research-brief`,
+> `research-with-adversarial-sources`, `vendor-due-diligence-brief`) use `--ee` (not `--ae`)
 > for judge credentials because `llm_judge.py` runs in the verifier phase, outside the OpenClaw
 > agent process. **Missing `--ee` will cause the verifier to fail with
 > `RuntimeError: JUDGE_BASE_URL is not set`.**
@@ -204,6 +220,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | Task Dir | Domain | Difficulty | Verifier |
 |---|---|---|---|
 | `watch-shop` | E-commerce & Daily Svcs | easy | verify.py |
+| `watch-shop-stockout` | E-commerce & Daily Svcs | medium | verify.py |
+| `watch-shop-silent-fail` | E-commerce & Daily Svcs | medium | verify.py |
 | `washer-shop` | E-commerce & Daily Svcs | easy | verify.py |
 | `info-change` | E-commerce & Daily Svcs | easy | verify.py |
 | `washer-change` | E-commerce & Daily Svcs | easy | verify.py |
@@ -211,6 +229,8 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `email-washer-change` | E-commerce & Daily Svcs | easy | verify.py |
 | `email-writing` | Communication & Email | easy | verify.py |
 | `email-reply` | Communication & Email | easy | verify.py |
+| `email-reply-context-shift` | Communication & Email | medium | **llm_judge** |
+| `email-sending-verify` | Communication & Email | medium | verify.py |
 | `schedule-change-request` | Calendar & Task Mgmt | medium | verify.py |
 | `flight-booking` | E-commerce & Daily Svcs | medium | verify.py |
 | `flight-info-change-notice` | Calendar & Task Mgmt | easy | verify.py |
@@ -222,6 +242,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `blog-site-completion-from-starter` | Coding & Software Dev | easy | verify.py |
 | `vue-build-fix-single` | DevOps & Env Repair | hard | verify.py |
 | `vue-build-fix-chain` | DevOps & Env Repair | hard | verify.py |
+| `vue-fix-rebreak` | DevOps & Env Repair | hard | verify.py |
 | `skill-creation` | Documents & Knowledge | medium | evaluate.py |
 | `skill-repository-curation` | Documents & Knowledge | medium | evaluate.py |
 | `skill-supplementation` | Documents & Knowledge | medium | evaluate.py |
@@ -238,9 +259,13 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
 | `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
 | `health-daily-record` | Health & Fitness | easy | verify.py |
+| `health-record-verify` | Health & Fitness | medium | verify.py |
 | `expense-draft-delete` | Finance & Data Analytics | easy | verify.py |
+| `expense-submit-verify` | Finance & Data Analytics | medium | verify.py |
 | `social-media-posting` | Social Media | easy | verify.py |
 | `social-unlike-post` | Social Media | easy | verify.py |
+| `social-post-rate-limit` | Social Media | medium | verify.py |
+| `social-unlike-verify` | Social Media | medium | verify.py |
 | `social-event-campaign` | Social Media | medium | verify.py |
 | `social-keyword-cleanup` | Social Media | medium | verify.py |
 | `social-schedule-audit` | Social Media | medium | verify.py |
@@ -249,6 +274,7 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `social-data-anomaly-report` | Social Media | hard | verify.py |
 | `social-pinned-post-update` | Social Media | hard | verify.py |
 | `mint-diet-comprehensive` | Health & Fitness | easy | verify.py |
+| `mint-diet-stockout` | Health & Fitness | medium | verify.py |
 | `nutrition-log-meal` | Health & Fitness | easy | verify.py |
 | `weather-city-travel-pick` | Health & Fitness | medium | verify.py |
 | `weather-outdoor-window` | Health & Fitness | hard | verify.py |
@@ -260,12 +286,15 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
 | `vendor-due-diligence-brief` | Deep Research & Report | medium | **llm_judge** |
 | `meeting-reschedule-response` | Calendar & Task Mgmt | easy | verify.py |
+| `meeting-slot-race` | Calendar & Task Mgmt | medium | verify.py |
 | `candidate-interview-slot-confirm` | Calendar & Task Mgmt | easy | verify.py |
+| `interview-slot-verify` | Calendar & Task Mgmt | medium | verify.py |
 | `medication-prescription-sync` | Health & Fitness | hard | verify.py |
 | `health-appointment-scheduling` | Health & Fitness | hard | verify.py |
 | `content-calendar-cross-publish` | Calendar & Task Mgmt | hard | verify.py |
 | `finance-anomaly-detect` | Finance & Data Analytics | medium | verify.py |
 | `finance-budget-alert` | Finance & Data Analytics | medium | verify.py |
+| `finance-budget-shift` | Finance & Data Analytics | hard | verify.py |
 | `finance-dashboard-repair` | Finance & Data Analytics | hard | verify.py |
 | `finance-depreciation-audit` | Finance & Data Analytics | hard | verify.py |
 | `finance-expense-log` | Finance & Data Analytics | easy | verify.py |
@@ -404,7 +433,9 @@ factor annotation table and controlled pair definitions.
 - **A2 — Contaminated Initial State**: Environment starts in a broken/corrupt state
 - **B1 — Implicit Goal Resolution**: Goal is not explicit; agent must infer constraints
 - **B2 — Knowledge System Maintenance**: Task involves managing a persistent skill/knowledge repo
-- A3 / A4 / B3 / C1 / C2 — expansion roadmap; see [docs/en/roadmap/future_factors.md](docs/en/roadmap/future_factors.md)
+- **C1 — Environmental State Invalidation**: Environment changes mid-task (one-shot fault injection)
+- **C2 — Outcome Verification under Altered State**: Agent must verify its action succeeded despite silent failure
+- A3 / A4 / B3 — expansion roadmap; see [docs/en/roadmap/future_factors.md](docs/en/roadmap/future_factors.md)
 
 Each `task.toml` encodes which factors apply (`factor_a1 = 1`, etc.).
 
@@ -472,8 +503,8 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 
 ## Ground Truth Numbers (verified from task.toml)
 
-116 implemented tasks: A1=47, A2=37, B1=42, B2=26.
-Difficulty: Easy=35, Medium=47, Hard=34.
+129 implemented tasks: A1=50, A2=39, B1=42, B2=26, C1=7, C2=6.
+Difficulty: Easy=35, Medium=58, Hard=36.
 
 ## Known Issues
 

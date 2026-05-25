@@ -13,6 +13,8 @@ factor_a1 = 0   # Cross-Service Dependency
 factor_a2 = 1   # Contaminated Initial State (massively polluted codebase)
 factor_b1 = 1   # Implicit Goal Resolution (no list of what's broken, must discover)
 factor_b2 = 0   # Knowledge System Maintenance
+factor_c1 = 0
+factor_c2 = 0
 
 case_id = 78
 

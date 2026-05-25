@@ -1,0 +1,1 @@
+I need to buy a smart watch from Mosi Shop (http://localhost:1234/). Please find the cheapest watch with a rating of 4.6 or higher and purchase it. After checking out, confirm the order appears in my order history to make sure the purchase was successful.

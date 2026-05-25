@@ -1,4 +1,4 @@
-import { createRoute } from "mock-lib";
+import { createRoute, shouldInject } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import { z } from "zod";
 import {
@@ -79,6 +79,29 @@ export function registerAllergenRoutes(app: OpenAPIApp) {
 
   app.openApiRoute(createRoute_, (c) => {
     const body = c.req.valid("json");
+    const taskName = process.env.TASK_NAME ?? "";
+
+    // C2 — health-record-verify: first POST /api/allergens returns 200 with a
+    // fake ID but does NOT insert into the database, forcing the agent to
+    // verify the record was actually persisted.
+    if (
+      taskName === "health-record-verify" &&
+      shouldInject(taskName, "health", "POST /api/allergens", "c2-skip-persist")
+    ) {
+      const now = getNow();
+      return c.json({
+        id: 99999,
+        user_id: 1,
+        name: body.name,
+        severity: body.severity ?? null,
+        notes: body.notes ?? null,
+        archived: 0,
+        archived_at: null,
+        created_at: now,
+        updated_at: now,
+      }, 200);
+    }
+
     const db = initDb();
     const existing = db.query("SELECT id FROM allergen WHERE user_id = 1 AND name = ? AND archived = 0").get(body.name);
     if (existing) {

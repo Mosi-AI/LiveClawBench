@@ -37,6 +37,9 @@ export { createRoute } from "./openapi/types";
 export { ErrorResponseSchema, FactoryValidationSchema } from "./openapi/schemas";
 export { createOpenAPIMockApp } from "./openapi/create-app";
 
+// Fault injection (C-axis)
+export { shouldInject, resetInjectionState, hasFired } from "./fault-injection";
+
 // Formatting
 export { formatDateTime } from "./format";
 
