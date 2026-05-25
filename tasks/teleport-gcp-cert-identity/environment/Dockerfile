@@ -40,5 +40,7 @@ WORKDIR /workspace/repo
 
 # Teleport mod graph is large; pre-download all modules.
 RUN for i in 1 2 3; do \
-        go mod download && break || sleep 15; \
+        go mod download && break; \
+        [ "$i" -eq 3 ] && exit 1; \
+        sleep 15; \
     done

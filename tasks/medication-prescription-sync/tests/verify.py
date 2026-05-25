@@ -10,7 +10,7 @@ import sqlite3
 import sys
 from datetime import datetime
 
-HEALTH_DB_PATH = "/workspace/health.db"
+HEALTH_DB_PATH = "/var/lib/mock-data/health/health.db"
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
 
 ACTIVE_MED_SLOTS = []
