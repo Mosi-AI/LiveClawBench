@@ -1,35 +1,57 @@
 #!/usr/bin/env python3
-"""Verify washer_shop: check order for prod_0074 (4.6+ portable washer)"""
+"""Verify washer_shop: check order for correct product with dynamic pricing."""
 
 import json
 import sys
 
-score = 0.0
-orders_path = "/tmp/mosi_shop_orders.json"
-cart_path = "/tmp/mosi_shop_cart.json"
+ORDERS_PATH = "/tmp/mosi_shop_orders.json"
+CART_PATH = "/tmp/mosi_shop_cart.json"
 
-try:
-    with open(orders_path) as f:
-        orders = json.load(f)
-    for order in orders:
-        if (
-            order.get("order_id") == "ORD000008"
-            and order["items"][0]["id"] == "prod_0074"
-            and order["status"] == "Pending Shipment"
-        ):
-            score = 1.0
-            break
-except FileNotFoundError:
-    pass
 
-if score == 0.0:
+def compute_score(orders_path: str = ORDERS_PATH, cart_path: str = CART_PATH) -> float:
+    """Return score based on orders and cart files."""
+    score = 0.0
+
     try:
-        with open(cart_path) as f:
-            cart = json.load(f)
-        if len(cart) == 1 and cart[0].get("id") == "prod_0074":
-            score = 0.5
+        with open(orders_path) as f:
+            orders = json.load(f)
+        for order in orders:
+            if not order.get("items"):
+                continue
+            item = order["items"][0]
+            product_id = item.get("id")
+            price = item.get("price", 0)
+
+            # Optimal: prod_W01 purchased at original price (<= $300)
+            if product_id == "prod_W01" and price <= 300:
+                score = 1.0
+                break
+            # Suboptimal: prod_W02 (agent missed the window for optimal)
+            if product_id == "prod_W02":
+                score = 0.3
+                break
     except FileNotFoundError:
         pass
 
-print(f"Score: {score}/1.0")
-sys.exit(0 if score >= 0.5 else 1)
+    if score == 0.0:
+        try:
+            with open(cart_path) as f:
+                cart = json.load(f)
+            if len(cart) == 1:
+                item = cart[0]
+                product_id = item.get("id")
+                price = item.get("price", 0)
+                if product_id == "prod_W01" and price <= 300:
+                    score = 0.5
+                elif product_id == "prod_W02":
+                    score = 0.3
+        except FileNotFoundError:
+            pass
+
+    return score
+
+
+if __name__ == "__main__":
+    score = compute_score()
+    print(f"Score: {score}/1.0")
+    sys.exit(0 if score >= 0.3 else 1)

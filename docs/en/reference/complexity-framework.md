@@ -53,8 +53,8 @@ single, clean environment without structural complexity.
 |     14 | schedule-change-request           |     M      | ✓  |    |    |    |    |    | Calendar & Task Mgmt       |
 |     15 | blog-site-from-scratch            |     E      |    |    |    |    |    |    | Coding & Software Dev      |
 |     16 | blog-site-completion-from-starter |     E      |    | ✓  |    |    |    |    | Coding & Software Dev      |
-|     17 | washer-shop                       |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
-|     18 | watch-shop                        |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
+|     17 | washer-shop                       |     H      |    |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
+|     18 | watch-shop                        |     H      | ✓  |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |     19 | washer-change                     |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     20 | info-change                       |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     21 | email-watch-shop                  |     H      | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
@@ -174,9 +174,9 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    49 |      38.0% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A1     | Cross-Service Dependency       |    50 |      38.8% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
 | A2     | Contaminated Initial State     |    39 |      30.2% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1     | Implicit Goal Resolution       |    42 |      32.6% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
+| B1     | Implicit Goal Resolution       |    44 |      34.1% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
 | B2     | Knowledge System Maintenance   |    26 |      20.2% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
 | C1     | Environmental State Invalidation |  7 |       5.4% | email-reply-context-shift, watch-shop-stockout, meeting-slot-race, social-post-rate-limit, vue-fix-rebreak |
 | C2     | Outcome Verification under Altered State | 6 | 4.7% | email-sending-verify, watch-shop-silent-fail, interview-slot-verify, health-record-verify, expense-submit-verify |
@@ -185,13 +185,13 @@ single, clean environment without structural complexity.
 
 Factor combination distribution:
 
-- No factors (baseline): 34 cases (26.4%)
-- Single factor: 38 cases (29.5%)
-- Dual factor: 34 cases (26.4%)
+- No factors (baseline): 32 cases (24.8%)
+- Single factor: 39 cases (30.2%)
+- Dual factor: 35 cases (27.1%)
 - Triple factor: 19 cases (14.7%)
 - Quad factor: 2 cases (1.6%)
 - Five factors: 2 cases (1.6%)
-- **Multi-factor (≥2 factors): 57 cases (44.2%)**
+- **Multi-factor (≥2 factors): 59 cases (45.7%)**
 
 
 ---
@@ -204,7 +204,7 @@ Factor occurrence frequency per primary domain:
 |----------------------------|----|----|----|----|----|----|-----------------------:|
 | Documents & Knowledge      |  2 |  2 |  0 |  9 |  0 |  0 |                     13 |
 | Communication & Email      |  0 |  0 |  0 |  0 |  1 |  1 |                      2 |
-| E-commerce & Daily Svcs    |  7 |  0 |  6 |  0 |  1 |  1 |                     15 |
+| E-commerce & Daily Svcs    |  8 |  0 |  7 |  0 |  1 |  1 |                     17 |
 | Calendar & Task Mgmt       |  7 |  1 |  2 |  0 |  1 |  1 |                     12 |
 | Coding & Software Dev      |  2 |  4 |  5 |  4 |  0 |  0 |                     15 |
 | DevOps & Env Repair        |  0 |  3 |  0 |  0 |  1 |  0 |                      4 |
@@ -273,9 +273,9 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    35 |      27.1% | (see registry; 35 easy cases) |
+| Easy       |    33 |      25.6% | (see registry; 33 easy cases) |
 | Medium     |    58 |      45.0% | (see registry; 58 medium cases including 10 deep research, 2 workspace, and 11 C-axis tasks) |
-| Hard       |    36 |      27.9% | (see registry; 36 hard cases including 8 SWE-Pro/open-world coding tasks and 2 C-axis tasks) |
+| Hard       |    38 |      29.5% | (see registry; 38 hard cases including 8 SWE-Pro/open-world coding tasks and 2 C-axis tasks) |
 
 Factor count vs difficulty:
 

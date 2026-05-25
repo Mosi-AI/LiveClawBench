@@ -38,6 +38,13 @@ import { registerUserRoutes } from "./routes/user.js";
 
 const PRODUCTS_PER_PAGE = 30;
 
+// washer-shop dynamic pricing — only active for that task
+const TASK_NAME = process.env.TASK_NAME ?? "";
+const WASHER_SHOP_TARGET_ID = "prod_W01";
+const WASHER_SHOP_PRICE_NORMAL = 259.99;
+const WASHER_SHOP_PRICE_INCREASED = 309.99;
+const WASHER_SHOP_WINDOW_MS = 2 * 60 * 1000; // 2 minutes
+
 export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
   // Reset the shared store so each factory call picks up the current env vars
   // (needed for tests that set MOCK_DATA_DIR before creating the app)
@@ -45,6 +52,44 @@ export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
 
   // Per-instance product array — isolated from other factory calls
   let allProducts: Product[] = [];
+
+  // Track first visit for washer-shop dynamic pricing
+  let firstVisitTime: number | null = null;
+
+  function applyDynamicPricing(products: Product[]): Product[] {
+    if (TASK_NAME !== "washer-shop") return products;
+
+    const now = Date.now();
+    if (firstVisitTime === null) {
+      firstVisitTime = now;
+    }
+
+    const isExpired = now > firstVisitTime + WASHER_SHOP_WINDOW_MS;
+    return products.map((p) => {
+      if (p.id === WASHER_SHOP_TARGET_ID) {
+        return { ...p, price: isExpired ? WASHER_SHOP_PRICE_INCREASED : WASHER_SHOP_PRICE_NORMAL };
+      }
+      return p;
+    });
+  }
+
+  // Stock-aware product accessor — for C-tasks, reflects mutable stock state.
+  function applyStockAwareness(products: Product[]): Product[] {
+    if (TASK_NAME === "watch-shop-stockout") {
+      return products.map((p) => {
+        const stock = getStock(p.id);
+        return stock !== undefined
+          ? { ...p, stock_quantity: stock, low_stock: stock <= 5 }
+          : p;
+      });
+    }
+    return products;
+  }
+
+  // Unified active-products pipeline: dynamic pricing → stock awareness
+  const getActiveProducts = (): Product[] => {
+    return applyStockAwareness(applyDynamicPricing(allProducts));
+  };
 
   const mockApp = createMockApp({
     name: "shop-mosi-backend",
@@ -81,21 +126,6 @@ export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
 
   app.openApiRoute(sentinelRoute, (c) => c.json({ ok: true }));
 
-  // Stock-aware product accessor — for C-tasks, reflects mutable stock state.
-  // Must be defined before use in both search page and API routes.
-  const stockAwareProducts = (): Product[] => {
-    const taskName = process.env.TASK_NAME ?? "";
-    if (taskName === "watch-shop-stockout") {
-      return allProducts.map((p) => {
-        const stock = getStock(p.id);
-        return stock !== undefined
-          ? { ...p, stock_quantity: stock, low_stock: stock <= 5 }
-          : p;
-      });
-    }
-    return allProducts;
-  };
-
   // HTML pages
   app.page("/", (c) => c.html(<HomePage />));
 
@@ -121,8 +151,8 @@ export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
     let totalPages = 0;
 
     if (q) {
-      const stockProducts = stockAwareProducts();
-      const allResults = filterAndSortProducts(stockProducts, {
+      const activeProducts = getActiveProducts();
+      const allResults = filterAndSortProducts(activeProducts, {
         query: q,
         minPrice: min_price,
         maxPrice: max_price,
@@ -164,8 +194,8 @@ export function createShopApp(options?: { productsPath?: string }): MockAppV2 {
   });
 
   // API routes
-  registerProductRoutes(app, stockAwareProducts);
-  registerCartRoutes(app, () => allProducts);
+  registerProductRoutes(app, getActiveProducts);
+  registerCartRoutes(app, getActiveProducts);
   registerCheckoutRoutes(app);
   registerOrderRoutes(app);
   registerUserRoutes(app);

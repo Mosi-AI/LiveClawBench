@@ -29,7 +29,8 @@
     },
     "watch-shop": {
       "binaries": [
-        "shop"
+        "shop",
+        "email"
       ],
       "assets": [
         {
@@ -37,8 +38,12 @@
           "dest": "/opt/mock/static/shop/css/style.css"
         },
         {
-          "src": "mock-platform/static/shop/sample_products.json",
+          "src": "tasks/watch-shop/environment/products.json",
           "dest": "/opt/mock/static/shop/products.json"
+        },
+        {
+          "src": "tasks/watch-shop/environment/watch_options.csv",
+          "dest": "/opt/mock/data/watch_options.csv"
         }
       ]
     },
@@ -82,7 +87,7 @@
           "dest": "/opt/mock/static/shop/css/style.css"
         },
         {
-          "src": "mock-platform/static/shop/sample_products.json",
+          "src": "tasks/washer-shop/environment/products.json",
           "dest": "/opt/mock/static/shop/products.json"
         }
       ]
