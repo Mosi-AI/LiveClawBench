@@ -388,19 +388,19 @@ The judge model can be the same endpoint as the agent model or a different one. 
 | `incremental-update-ctp` | easy |
 | `conflict-repair-acb` | easy |
 | `live-web-research-sqlite-fts5` | medium |
-| `pre-meeting-research-brief` | medium |
-| `vendor-due-diligence-brief` | medium |
+| `pre-meeting-research-brief` | easy |
+| `vendor-due-diligence-brief` | easy |
 | `ai-copyright-international-jurisprudence` | medium |
 | `autonomous-weapons-ethics` | medium |
 | `browser-portal-injection` | easy |
 | `corpus-file-injection` | medium |
 | `crispr-off-target-mitigation` | medium |
-| `cross-border-data-privacy-comparison` | medium |
-| `defi-systemic-risk-contagion` | medium |
-| `digital-religion-ai-vr` | medium |
+| `cross-border-data-privacy-comparison` | hard |
+| `defi-systemic-risk-contagion` | easy |
+| `digital-religion-ai-vr` | hard |
 | `formal-verification-vs-fuzzing` | medium |
-| `fusion-energy-commercial-viability` | medium |
-| `long-covid-neurological-hypotheses` | medium |
+| `fusion-energy-commercial-viability` | hard |
+| `long-covid-neurological-hypotheses` | hard |
 | `mrna-cancer-vaccines-landscape` | medium |
 | `research-with-adversarial-sources` | hard |
 
