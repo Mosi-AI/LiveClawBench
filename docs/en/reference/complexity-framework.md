@@ -288,8 +288,8 @@ Factor count vs difficulty:
 | Medium     |             1.40 |          11 |       12 |      22 |
 | Hard       |             1.44 |          7 |       8 |      17 |
 
-The empirical reclassification (based on average solve rates across models) shows that Easy
-cases remain the largest group (32.4%). Easy cases include both baselines (54.3%) and factor-bearing tasks
-(45.7%), with medium cases now comprising the majority of new additions (10 deep research tasks)
-for current agents. Hard cases are concentrated in tasks requiring constraint failure handling
+The empirical reclassification (based on deepseek-v4-pro 3-trial average rewards) shows that Easy
+cases are the largest group (42.5%). Easy cases include both baselines (28.1%) and factor-bearing tasks
+(71.9%), with medium cases at 33.6% and hard cases at 23.9%.
+Hard cases are concentrated in tasks requiring constraint failure handling
 (B1) or specific challenging environments (A2 in DevOps).
