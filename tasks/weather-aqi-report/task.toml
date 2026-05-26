@@ -1,7 +1,7 @@
 version = "1.0"
 
 [metadata]
-difficulty = "easy"
+difficulty = "medium"
 category = "open-world"
 tags = ["deep_research_report"]
 

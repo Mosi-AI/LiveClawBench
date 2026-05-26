@@ -99,17 +99,17 @@ See [docs/en/guide/getting-started.md](docs/en/guide/getting-started.md) for ful
 
 | Domain | Easy | Medium | Hard | Total |
 |--------|------|--------|------|-------|
-| E-commerce & Daily Svcs | 8 | 9 | 5 | 22 |
-| Documents & Knowledge | 7 | 5 | — | 12 |
-| Deep Research & Report | 1 | 15 | 1 | 17 |
-| DevOps & Env Repair | 2 | 9 | 7 | 18 |
-| Finance & Data Analytics | 3 | 4 | 6 | 13 |
-| Coding & Software Dev | 2 | — | 8 | 10 |
-| Health & Fitness | 4 | 4 | 3 | 11 |
-| Social Media | 4 | 7 | — | 11 |
-| Calendar & Task Mgmt | 3 | 5 | 2 | 10 |
-| Communication & Email | 3 | 5 | 2 | 10 |
-| **Total** | **37** | **63** | **34** | **134** |
+| E-commerce & Daily Svcs | 12 | 6 | 4 | 22 |
+| Documents & Knowledge | 8 | 3 | 1 | 12 |
+| Deep Research & Report | 3 | 9 | 5 | 17 |
+| DevOps & Env Repair | 7 | 9 | 2 | 18 |
+| Finance & Data Analytics | 7 | 5 | 1 | 13 |
+| Coding & Software Dev | 4 | 1 | 5 | 10 |
+| Health & Fitness | 5 | 4 | 2 | 11 |
+| Social Media | 2 | 2 | 7 | 11 |
+| Calendar & Task Mgmt | 4 | 3 | 3 | 10 |
+| Communication & Email | 5 | 3 | 2 | 10 |
+| **Total** | **57** | **45** | **32** | **134** |
 
 Complexity factors: A1 Cross-Service Dependency (54), A2 Contaminated State (39), B1 Implicit Goals (47), B2 Knowledge Maintenance (28), C1 Environmental State Invalidation (7), C2 Outcome Verification under Altered State (6).
 

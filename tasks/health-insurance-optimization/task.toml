@@ -1,7 +1,7 @@
 version = "1.0"
 
 [metadata]
-difficulty = "medium"
+difficulty = "easy"
 category = "open-world"
 tags = ["ecommerce_daily_svcs", "calendar_task_mgmt"]
 

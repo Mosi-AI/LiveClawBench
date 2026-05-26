@@ -1,7 +1,7 @@
 version = "1.0"
 
 [metadata]
-difficulty = "easy"
+difficulty = "hard"
 category = "open-world"
 tags = ["social_media"]
 

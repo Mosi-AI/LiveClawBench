@@ -1,7 +1,7 @@
 version = "1.0"
 
 [metadata]
-difficulty = "hard"
+difficulty = "easy"
 category = "open-world"
 tags = ["coding_software_dev"]
 
