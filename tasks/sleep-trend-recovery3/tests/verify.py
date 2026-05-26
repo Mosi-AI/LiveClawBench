@@ -156,7 +156,9 @@ def valid_new_order_reference(reference, orders, product_terms):
     if not reference or reference in ORIGINAL_ORDER_IDS:
         return False
     for order in orders:
-        if order.get("order_id") == reference and order_matches(order, product_terms, quantity=1):
+        if order.get("order_id") == reference and order_matches(
+            order, product_terms, quantity=1
+        ):
             return True
     return False
 
@@ -184,7 +186,14 @@ def read_health_signal(conn):
     true_sleep = round(float(light) + float(deep) + float(rem), 2)
 
     overrides = {
-        (metric, days): {"mean": mean, "min": min_v, "max": max_v, "has_mean": has_mean, "has_min": has_min, "has_max": has_max}
+        (metric, days): {
+            "mean": mean,
+            "min": min_v,
+            "max": max_v,
+            "has_mean": has_mean,
+            "has_min": has_min,
+            "has_max": has_max,
+        }
         for metric, days, mean, min_v, max_v, has_mean, has_min, has_max in conn.execute(
             """
             SELECT metric_type, days, mean, min, max, has_mean, has_min, has_max
@@ -193,8 +202,12 @@ def read_health_signal(conn):
         )
     }
     required = {
-        ("sleep_quality", 7), ("sleep_quality", 30), ("sleep_hours", 14),
-        ("sleep_hours", 30), ("low_intensity_min", 7), ("high_intensity_min", 7),
+        ("sleep_quality", 7),
+        ("sleep_quality", 30),
+        ("sleep_hours", 14),
+        ("sleep_hours", 30),
+        ("low_intensity_min", 7),
+        ("high_intensity_min", 7),
         ("high_intensity_min", 14),
     }
     missing = required - set(overrides)
@@ -226,14 +239,20 @@ def read_health_signal(conn):
 
 
 def score_wearable_repair(conn):
-    row = conn.execute("SELECT sleep_hours, readiness FROM wearable_recovery_state WHERE id = 1").fetchone()
+    row = conn.execute(
+        "SELECT sleep_hours, readiness FROM wearable_recovery_state WHERE id = 1"
+    ).fetchone()
     if row is None:
         return 0.0, False, "sleep_hours=None readiness=None"
     sleep_hours, readiness = row
     sleep_pass = close_enough(sleep_hours, 6.5)
     readiness_pass = close_enough(readiness, 68.0)
     score = (0.04 if sleep_pass else 0.0) + (0.04 if readiness_pass else 0.0)
-    return round(score, 2), sleep_pass and readiness_pass, f"sleep_hours={sleep_hours} readiness={readiness}"
+    return (
+        round(score, 2),
+        sleep_pass and readiness_pass,
+        f"sleep_hours={sleep_hours} readiness={readiness}",
+    )
 
 
 def score_future_workouts(conn):
@@ -255,7 +274,10 @@ def score_future_workouts(conn):
         current_type = None if item is None else item[1]
         if current_type in FULL_RECOVERY_WORKOUTS:
             full_credit_dates.append(d)
-        elif original_type in HIGH_INTENSITY_WORKOUTS and current_type in MEDIUM_INTENSITY_WORKOUTS:
+        elif (
+            original_type in HIGH_INTENSITY_WORKOUTS
+            and current_type in MEDIUM_INTENSITY_WORKOUTS
+        ):
             partial_credit_dates.append(d)
         elif original_type == "swimming" and current_type in MEDIUM_INTENSITY_WORKOUTS:
             partial_credit_dates.append(d)
@@ -269,9 +291,7 @@ def score_future_workouts(conn):
     else:
         detail_parts = []
         if partial_credit_dates:
-            detail_parts.append(
-                "partial credit: " + ", ".join(partial_credit_dates)
-            )
+            detail_parts.append("partial credit: " + ", ".join(partial_credit_dates))
         if failures:
             detail_parts.append("no credit: " + ", ".join(failures))
         detail = "; ".join(detail_parts) or "no future workout credit"
@@ -305,7 +325,10 @@ def time_to_minutes(value):
 
 
 def score_tomorrow_coffee(conn):
-    row = conn.execute("SELECT start_time, cancelled FROM coffee_schedule WHERE schedule_date = ?", (TOMORROW,)).fetchone()
+    row = conn.execute(
+        "SELECT start_time, cancelled FROM coffee_schedule WHERE schedule_date = ?",
+        (TOMORROW,),
+    ).fetchone()
     if row is None:
         return 0.0, False, "missing tomorrow coffee"
     start_time, cancelled = row
@@ -324,42 +347,110 @@ def score_tomorrow_coffee(conn):
 
 
 def score_today_coffee(conn):
-    row = conn.execute("SELECT start_time, cancelled FROM coffee_schedule WHERE schedule_date = ?", (TODAY,)).fetchone()
+    row = conn.execute(
+        "SELECT start_time, cancelled FROM coffee_schedule WHERE schedule_date = ?",
+        (TODAY,),
+    ).fetchone()
     passed = row is not None and row[0] == "07:00" and int(row[1]) == 0
     return (0.04 if passed else 0.0), passed, f"today_coffee={row}"
 
 
 def grocery_rows(conn):
-    rows = conn.execute("SELECT product_id, name, quantity, unit, stock_status, reference FROM grocery_product").fetchall()
-    return {norm(name): {"product_id": product_id, "name": name, "quantity": quantity, "unit": unit, "stock_status": stock_status, "reference": reference} for product_id, name, quantity, unit, stock_status, reference in rows}
+    rows = conn.execute(
+        "SELECT product_id, name, quantity, unit, stock_status, reference FROM grocery_product"
+    ).fetchall()
+    return {
+        norm(name): {
+            "product_id": product_id,
+            "name": name,
+            "quantity": quantity,
+            "unit": unit,
+            "stock_status": stock_status,
+            "reference": reference,
+        }
+        for product_id, name, quantity, unit, stock_status, reference in rows
+    }
 
 
 def score_shopping_list(conn, orders):
     rows = grocery_rows(conn)
     checks = {}
     butter = rows.get("salted butter")
-    checks["salted_butter"] = 1.0 if butter and close_enough(butter["quantity"], 1.0) and butter["unit"] == "lb" and butter["reference"] == "ORD000005" else 0.0
+    checks["salted_butter"] = (
+        1.0
+        if butter
+        and close_enough(butter["quantity"], 1.0)
+        and butter["unit"] == "lb"
+        and butter["reference"] == "ORD000005"
+        else 0.0
+    )
     coq10 = rows.get("coq10")
-    checks["coq10_reference"] = 1.0 if coq10 and coq10["reference"] == "ORD000001" and close_enough(coq10["quantity"], 30.0) and coq10["unit"] == "capsules" and coq10["stock_status"] == "sufficient" else 0.0
+    checks["coq10_reference"] = (
+        1.0
+        if coq10
+        and coq10["reference"] == "ORD000001"
+        and close_enough(coq10["quantity"], 30.0)
+        and coq10["unit"] == "capsules"
+        and coq10["stock_status"] == "sufficient"
+        else 0.0
+    )
     omega = rows.get("omega 3")
-    checks["omega3_entry"] = 1.0 if omega and close_enough(omega["quantity"], 60.0) and omega["unit"] == "softgels" and omega["reference"] == "ORD000003" else 0.0
+    checks["omega3_entry"] = (
+        1.0
+        if omega
+        and close_enough(omega["quantity"], 60.0)
+        and omega["unit"] == "softgels"
+        and omega["reference"] == "ORD000003"
+        else 0.0
+    )
     magnesium = rows.get("magnesium")
-    checks["magnesium_entry"] = 1.0 if magnesium and close_enough(magnesium["quantity"], 60.0) and magnesium["unit"] == "tablets" and magnesium["stock_status"] == "sufficient" and valid_new_order_reference(magnesium["reference"], orders, ["magnesium", "60", "tablets"]) else 0.0
+    checks["magnesium_entry"] = (
+        1.0
+        if magnesium
+        and close_enough(magnesium["quantity"], 60.0)
+        and magnesium["unit"] == "tablets"
+        and magnesium["stock_status"] == "sufficient"
+        and valid_new_order_reference(
+            magnesium["reference"], orders, ["magnesium", "60", "tablets"]
+        )
+        else 0.0
+    )
     valerian = rows.get("valerian root")
-    valerian_full = bool(valerian and close_enough(valerian["quantity"], 60.0) and valerian["unit"] == "capsules" and valerian["stock_status"] == "sufficient" and valid_new_order_reference(valerian["reference"], orders, ["valerian", "60", "capsules"]))
+    valerian_full = bool(
+        valerian
+        and close_enough(valerian["quantity"], 60.0)
+        and valerian["unit"] == "capsules"
+        and valerian["stock_status"] == "sufficient"
+        and valid_new_order_reference(
+            valerian["reference"], orders, ["valerian", "60", "capsules"]
+        )
+    )
     valerian_sleep_tea_partial = bool(
         not valerian_full
         and valid_new_order_exists(orders, ["valerian", "sleep", "tea"])
     )
-    checks["valerian_entry"] = 1.0 if valerian_full else 0.5 if valerian_sleep_tea_partial else 0.0
+    checks["valerian_entry"] = (
+        1.0 if valerian_full else 0.5 if valerian_sleep_tea_partial else 0.0
+    )
     score = 0.05 * sum(checks.values())
     return round(score, 2), all(value == 1.0 for value in checks.values()), checks
 
 
 def score_new_orders(orders):
-    magnesium = any(order.get("order_id") not in ORIGINAL_ORDER_IDS and order_matches(order, ["magnesium", "60", "tablets"], quantity=1) for order in orders)
-    valerian = any(order.get("order_id") not in ORIGINAL_ORDER_IDS and order_matches(order, ["valerian", "60", "capsules"], quantity=1) for order in orders)
-    return round((0.035 if magnesium else 0.0) + (0.035 if valerian else 0.0), 3), {"magnesium_order": magnesium, "valerian_order": valerian}
+    magnesium = any(
+        order.get("order_id") not in ORIGINAL_ORDER_IDS
+        and order_matches(order, ["magnesium", "60", "tablets"], quantity=1)
+        for order in orders
+    )
+    valerian = any(
+        order.get("order_id") not in ORIGINAL_ORDER_IDS
+        and order_matches(order, ["valerian", "60", "capsules"], quantity=1)
+        for order in orders
+    )
+    return round((0.035 if magnesium else 0.0) + (0.035 if valerian else 0.0), 3), {
+        "magnesium_order": magnesium,
+        "valerian_order": valerian,
+    }
 
 
 def protected_meetings_unchanged(conn):
@@ -372,7 +463,16 @@ def protected_meetings_unchanged(conn):
         """,
         (FUTURE_START, FUTURE_END),
     ).fetchall()
-    expected = [(f"2026-05-{day:02d}", "Team Standup", f"2026-05-{day:02d}T09:00:00Z", "meeting", None) for day in range(10, 17)]
+    expected = [
+        (
+            f"2026-05-{day:02d}",
+            "Team Standup",
+            f"2026-05-{day:02d}T09:00:00Z",
+            "meeting",
+            None,
+        )
+        for day in range(10, 17)
+    ]
     return rows == expected
 
 
@@ -385,7 +485,9 @@ def score_state(conn, orders):
     shopping_score, shopping_pass, shopping_checks = score_shopping_list(conn, orders)
     orders_score, order_checks = score_new_orders(orders)
     meetings_pass = protected_meetings_unchanged(conn)
-    required_blockers_passed = wearable_pass and future_pass and today_pass and shopping_pass and meetings_pass
+    required_blockers_passed = (
+        wearable_pass and future_pass and today_pass and shopping_pass and meetings_pass
+    )
     return {
         "wearable_repair": wearable_score,
         "future_workouts": future_score,
@@ -394,16 +496,32 @@ def score_state(conn, orders):
         "shopping_list": shopping_score,
         "new_orders": orders_score,
         "protected_meetings": 1.0 if meetings_pass else 0.0,
-        "state_total": round(wearable_score + future_score + tomorrow_score + today_score + shopping_score + orders_score, 3),
+        "state_total": round(
+            wearable_score
+            + future_score
+            + tomorrow_score
+            + today_score
+            + shopping_score
+            + orders_score,
+            3,
+        ),
         "required_blockers_passed": required_blockers_passed,
-        "has_state_action": bool(wearable_score or future_action or tomorrow_score or shopping_score or orders_score),
+        "has_state_action": bool(
+            wearable_score
+            or future_action
+            or tomorrow_score
+            or shopping_score
+            or orders_score
+        ),
         "_meta_wearable": wearable_detail,
         "_meta_future_workouts": future_detail,
         "_meta_tomorrow_coffee": tomorrow_detail,
         "_meta_today_coffee": today_detail,
         "_meta_shopping": shopping_checks,
         "_meta_orders": order_checks,
-        "_meta_protected_meetings": "unchanged" if meetings_pass else "changed or missing",
+        "_meta_protected_meetings": "unchanged"
+        if meetings_pass
+        else "changed or missing",
     }
 
 
@@ -441,28 +559,78 @@ def exercise_trend_response_score(text):
     found = {}
     for key, terms, displayed_values, actual_values in EXERCISE_TREND_ANOMALIES:
         term_match = all(term in text for term in terms)
-        displayed_match = not displayed_values or mentions_number(text, displayed_values)
+        displayed_match = not displayed_values or mentions_number(
+            text, displayed_values
+        )
         actual_match = mentions_number(text, actual_values)
         found[key] = bool(term_match and displayed_match and actual_match)
     return round(EXERCISE_TREND_SCORE * sum(found.values()), 2), found
 
 
 def workout_inference_score(text):
-    yoga = "yoga" in text and mentions_number(text, [45]) and re.search(r"done|completed", text)
-    hiit = "hiit" in text and mentions_number(text, [30]) and re.search(r"done|completed", text)
-    exclusions = all(word in text for word in ["strength", "cycling", "swimming"]) and re.search(r"incomplete|excluded|undone|not completed", text)
-    score = (0.03 if yoga else 0.0) + (0.03 if hiit else 0.0) + (0.02 if exclusions else 0.0)
-    return round(score, 2), {"yoga_45": bool(yoga), "hiit_30": bool(hiit), "incomplete_exclusions": bool(exclusions)}
+    yoga = (
+        "yoga" in text
+        and mentions_number(text, [45])
+        and re.search(r"done|completed", text)
+    )
+    hiit = (
+        "hiit" in text
+        and mentions_number(text, [30])
+        and re.search(r"done|completed", text)
+    )
+    exclusions = all(
+        word in text for word in ["strength", "cycling", "swimming"]
+    ) and re.search(r"incomplete|excluded|undone|not completed", text)
+    score = (
+        (0.03 if yoga else 0.0)
+        + (0.03 if hiit else 0.0)
+        + (0.02 if exclusions else 0.0)
+    )
+    return round(score, 2), {
+        "yoga_45": bool(yoga),
+        "hiit_30": bool(hiit),
+        "incomplete_exclusions": bool(exclusions),
+    }
 
 
 def final_summary_score(text, sleep_found, exercise_found, workout_found):
-    sleep_summary = re.search(r"sleep.*(inconsistent|mismatch|displayed|showed)", text) and mentions_number(text, [8.0, 8]) and mentions_number(text, [6.5]) and re.search(r"correct|updated|set", text)
-    trends = sum(value for key, value in sleep_found.items() if key.startswith("7_")) >= 4 and sum(exercise_found.values()) >= 1
-    workouts = workout_found.get("yoga_45") and workout_found.get("hiit_30") and workout_found.get("incomplete_exclusions")
-    future = re.search(r"all\s+seven|seven|7", text) and re.search(r"high[- ]intensity|hiit|strength|swim", text) and re.search(r"yoga|walking|rest|recovery", text)
-    coffee = ("08:30" in text or "8:30" in text) and ("09:00" in text or "9:00" in text) and re.search(r"30[- ]?minute|brew", text)
-    shopping = all(term in text for term in ["salted butter", "coq10", "omega", "magnesium", "valerian"])
-    score = (0.02 if sleep_summary else 0.0) + (0.02 if trends else 0.0) + (0.02 if workouts else 0.0) + (0.02 if future else 0.0) + (0.02 if coffee else 0.0) + (0.02 if shopping else 0.0)
+    sleep_summary = (
+        re.search(r"sleep.*(inconsistent|mismatch|displayed|showed)", text)
+        and mentions_number(text, [8.0, 8])
+        and mentions_number(text, [6.5])
+        and re.search(r"correct|updated|set", text)
+    )
+    trends = (
+        sum(value for key, value in sleep_found.items() if key.startswith("7_")) >= 4
+        and sum(exercise_found.values()) >= 1
+    )
+    workouts = (
+        workout_found.get("yoga_45")
+        and workout_found.get("hiit_30")
+        and workout_found.get("incomplete_exclusions")
+    )
+    future = (
+        re.search(r"all\s+seven|seven|7", text)
+        and re.search(r"high[- ]intensity|hiit|strength|swim", text)
+        and re.search(r"yoga|walking|rest|recovery", text)
+    )
+    coffee = (
+        ("08:30" in text or "8:30" in text)
+        and ("09:00" in text or "9:00" in text)
+        and re.search(r"30[- ]?minute|brew", text)
+    )
+    shopping = all(
+        term in text
+        for term in ["salted butter", "coq10", "omega", "magnesium", "valerian"]
+    )
+    score = (
+        (0.02 if sleep_summary else 0.0)
+        + (0.02 if trends else 0.0)
+        + (0.02 if workouts else 0.0)
+        + (0.02 if future else 0.0)
+        + (0.02 if coffee else 0.0)
+        + (0.02 if shopping else 0.0)
+    )
     checks = {
         "sleep_summary": bool(sleep_summary),
         "trend_summary": bool(trends),
@@ -476,10 +644,14 @@ def final_summary_score(text, sleep_found, exercise_found, workout_found):
 
 def score_response_components(response, health):
     text = response.lower()
-    seven_day_score, long_window_score, sleep_found = sleep_window_response_score(text, health)
+    seven_day_score, long_window_score, sleep_found = sleep_window_response_score(
+        text, health
+    )
     exercise_score, exercise_found = exercise_trend_response_score(text)
     workout_score, workout_found = workout_inference_score(text)
-    summary_score, summary_found = final_summary_score(text, sleep_found, exercise_found, workout_found)
+    summary_score, summary_found = final_summary_score(
+        text, sleep_found, exercise_found, workout_found
+    )
     scores = {
         "sleep_7day_analysis": seven_day_score,
         "sleep_14_30_analysis": long_window_score,
@@ -491,13 +663,25 @@ def score_response_components(response, health):
     if summary_score == 0.0:
         details["sleep_summary"] = "missing or incomplete"
     if seven_day_score < round(SEVEN_DAY_SLEEP_SCORE * len(SLEEP_METRIC_TERMS), 3):
-        details["sleep_7day_analysis"] = {key: value for key, value in sleep_found.items() if key.startswith("7_") and not value}
+        details["sleep_7day_analysis"] = {
+            key: value
+            for key, value in sleep_found.items()
+            if key.startswith("7_") and not value
+        }
     if long_window_score < 0.01:
-        details["sleep_14_30_analysis"] = {key: value for key, value in sleep_found.items() if (key.startswith("14_") or key.startswith("30_")) and not value}
+        details["sleep_14_30_analysis"] = {
+            key: value
+            for key, value in sleep_found.items()
+            if (key.startswith("14_") or key.startswith("30_")) and not value
+        }
     if exercise_score < 0.02:
-        details["exercise_trend_analysis"] = {key: value for key, value in exercise_found.items() if not value}
+        details["exercise_trend_analysis"] = {
+            key: value for key, value in exercise_found.items() if not value
+        }
     if workout_score < WORKOUT_INFERENCE_TOTAL:
-        details["workout_inference"] = {key: value for key, value in workout_found.items() if not value}
+        details["workout_inference"] = {
+            key: value for key, value in workout_found.items() if not value
+        }
     for key, value in summary_found.items():
         if not value:
             details[key] = "missing or incomplete"
@@ -523,9 +707,14 @@ def has_required_agent_action(state_scores, response):
     return bool(state_scores.get("has_state_action") or response.strip())
 
 
-def compute_reward(state_scores, response_score, response, required_response_passed=None):
+def compute_reward(
+    state_scores, response_score, response, required_response_passed=None
+):
     if not has_required_agent_action(state_scores, response):
-        return 0.0, "zero-work baseline: no required action or substantive response observed"
+        return (
+            0.0,
+            "zero-work baseline: no required action or substantive response observed",
+        )
     reward = round(min(1.0, state_scores["state_total"] + response_score), 2)
     blockers = []
     if not state_scores.get("required_blockers_passed"):
@@ -573,7 +762,13 @@ def load_final_response():
                 if isinstance(content, str) and content.strip():
                     messages.append(content.strip())
                 elif isinstance(content, list):
-                    parts = [block.get("text", "").strip() for block in content if isinstance(block, dict) and block.get("type") == "text" and block.get("text")]
+                    parts = [
+                        block.get("text", "").strip()
+                        for block in content
+                        if isinstance(block, dict)
+                        and block.get("type") == "text"
+                        and block.get("text")
+                    ]
                     if parts:
                         messages.append(" ".join(parts))
     if messages:
@@ -584,14 +779,32 @@ def load_final_response():
 
 
 def apply_oracle_state(conn, orders):
-    conn.execute("UPDATE wearable_recovery_state SET sleep_hours = 6.5, sleep_score = 60, readiness = 68, resting_heart_rate = 72 WHERE id = 1")
-    conn.execute("UPDATE calendar_event SET title = 'Recovery Yoga', workout_type = 'yoga' WHERE event_type = 'workout' AND workout_type IN ('hiit', 'strength', 'swimming') AND start_time BETWEEN ? AND ?", (FUTURE_START, FUTURE_END))
-    conn.execute("UPDATE coffee_schedule SET start_time = '08:30', cancelled = 0 WHERE schedule_date = ?", (TOMORROW,))
-    conn.execute("UPDATE grocery_product SET quantity = 1, unit = 'lb', stock_status = 'sufficient', reference = 'ORD000005' WHERE name = 'Salted Butter'")
-    conn.execute("UPDATE grocery_product SET quantity = 30, unit = 'capsules', stock_status = 'sufficient', reference = 'ORD000001' WHERE name = 'CoQ10'")
-    conn.execute("INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('omega3', 'Omega-3', 60, 'softgels', 'sufficient', NULL, 'ORD000003')")
-    conn.execute("INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('magnesium', 'Magnesium', 60, 'tablets', 'sufficient', NULL, 'ORD000006')")
-    conn.execute("INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('valerian-root', 'Valerian Root', 60, 'capsules', 'sufficient', NULL, 'ORD000007')")
+    conn.execute(
+        "UPDATE wearable_recovery_state SET sleep_hours = 6.5, sleep_score = 60, readiness = 68, resting_heart_rate = 72 WHERE id = 1"
+    )
+    conn.execute(
+        "UPDATE calendar_event SET title = 'Recovery Yoga', workout_type = 'yoga' WHERE event_type = 'workout' AND workout_type IN ('hiit', 'strength', 'swimming') AND start_time BETWEEN ? AND ?",
+        (FUTURE_START, FUTURE_END),
+    )
+    conn.execute(
+        "UPDATE coffee_schedule SET start_time = '08:30', cancelled = 0 WHERE schedule_date = ?",
+        (TOMORROW,),
+    )
+    conn.execute(
+        "UPDATE grocery_product SET quantity = 1, unit = 'lb', stock_status = 'sufficient', reference = 'ORD000005' WHERE name = 'Salted Butter'"
+    )
+    conn.execute(
+        "UPDATE grocery_product SET quantity = 30, unit = 'capsules', stock_status = 'sufficient', reference = 'ORD000001' WHERE name = 'CoQ10'"
+    )
+    conn.execute(
+        "INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('omega3', 'Omega-3', 60, 'softgels', 'sufficient', NULL, 'ORD000003')"
+    )
+    conn.execute(
+        "INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('magnesium', 'Magnesium', 60, 'tablets', 'sufficient', NULL, 'ORD000006')"
+    )
+    conn.execute(
+        "INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('valerian-root', 'Valerian Root', 60, 'capsules', 'sufficient', NULL, 'ORD000007')"
+    )
     conn.commit()
     existing = {order.get("order_id") for order in orders}
     for order_id, product_id, title, price in [
@@ -599,15 +812,26 @@ def apply_oracle_state(conn, orders):
         ("ORD000007", "prod_valerian_60", "Valerian Root 60 Capsules", 14.25),
     ]:
         if order_id not in existing:
-            orders.append({
-                "order_id": order_id,
-                "user_id": "Peter Griffin",
-                "items": [{"id": product_id, "product_id": product_id, "title": title, "price": price, "quantity": 1, "image_url": f"https://example.com/{product_id}.jpg"}],
-                "total_amount": price,
-                "status": "Pending Shipment",
-                "create_time": "2026-05-09 07:35:00",
-                "shipping_address": "1234 Innovation Drive, San Francisco, CA 94105, USA",
-            })
+            orders.append(
+                {
+                    "order_id": order_id,
+                    "user_id": "Peter Griffin",
+                    "items": [
+                        {
+                            "id": product_id,
+                            "product_id": product_id,
+                            "title": title,
+                            "price": price,
+                            "quantity": 1,
+                            "image_url": f"https://example.com/{product_id}.jpg",
+                        }
+                    ],
+                    "total_amount": price,
+                    "status": "Pending Shipment",
+                    "create_time": "2026-05-09 07:35:00",
+                    "shipping_address": "1234 Innovation Drive, San Francisco, CA 94105, USA",
+                }
+            )
 
 
 def build_oracle_response(magnesium_order_id, valerian_order_id):
@@ -636,7 +860,13 @@ def write_reward_files(payload, details):
 
 
 def fail_with_reward(reason):
-    payload = {"reward": 0.0, "state_total": 0.0, "response_content": 0.0, "required_blockers_passed": 0.0, "_meta_failure": reason}
+    payload = {
+        "reward": 0.0,
+        "state_total": 0.0,
+        "response_content": 0.0,
+        "required_blockers_passed": 0.0,
+        "_meta_failure": reason,
+    }
     write_reward_files(payload, {"failure": reason})
     print(f"FAILED: {reason}")
     print("Score: 0.0/1.0")
@@ -678,7 +908,11 @@ def main():
         response,
         required_response_passed=required_response_passed,
     )
-    passed = reward >= 0.5 and state_scores.get("required_blockers_passed") and required_response_passed
+    passed = (
+        reward >= 0.5
+        and state_scores.get("required_blockers_passed")
+        and required_response_passed
+    )
 
     payload = {
         "reward": round(float(reward), 2),
@@ -690,29 +924,47 @@ def main():
         "new_orders": round(float(state_scores["new_orders"]), 3),
         "response_content": round(float(response_score), 3),
         "state_total": round(float(state_scores["state_total"]), 3),
-        "required_blockers_passed": float(bool(state_scores.get("required_blockers_passed"))),
+        "required_blockers_passed": float(
+            bool(state_scores.get("required_blockers_passed"))
+        ),
         "required_response_passed": float(bool(required_response_passed)),
         "_meta_gate": gate_detail,
     }
     details = {
-        "state": {key: value for key, value in state_scores.items() if key.startswith("_meta_")},
-        "response": response_details,
-        "health": {
-            key: value for key, value in health.items() if key != "overrides"
+        "state": {
+            key: value
+            for key, value in state_scores.items()
+            if key.startswith("_meta_")
         },
+        "response": response_details,
+        "health": {key: value for key, value in health.items() if key != "overrides"},
     }
     write_reward_files(payload, details)
 
-    print(f"D1 (Wearable sleep-hours repair): {state_scores['wearable_repair']:.2f}/0.08")
-    print(f"D2a (7-day sleep analysis): {response_components['scores']['sleep_7day_analysis']:.2f}/0.15")
-    print(f"D2b (14/30-day sleep context): {response_components['scores']['sleep_14_30_analysis']:.3f}/0.03")
-    print(f"D2c (Exercise trend response): {response_components['scores']['exercise_trend_analysis']:.2f}/0.04")
-    print(f"D3 (Yesterday workout inference): {response_components['scores']['workout_inference']:.2f}/0.08")
+    print(
+        f"D1 (Wearable sleep-hours repair): {state_scores['wearable_repair']:.2f}/0.08"
+    )
+    print(
+        f"D2a (7-day sleep analysis): {response_components['scores']['sleep_7day_analysis']:.2f}/0.15"
+    )
+    print(
+        f"D2b (14/30-day sleep context): {response_components['scores']['sleep_14_30_analysis']:.3f}/0.03"
+    )
+    print(
+        f"D2c (Exercise trend response): {response_components['scores']['exercise_trend_analysis']:.2f}/0.04"
+    )
+    print(
+        f"D3 (Yesterday workout inference): {response_components['scores']['workout_inference']:.2f}/0.08"
+    )
     print(format_workout_inference_report(response_components["workout_found"]))
-    print(f"D4 (Seven future workout downgrades): {state_scores['future_workouts']:.2f}/0.10")
+    print(
+        f"D4 (Seven future workout downgrades): {state_scores['future_workouts']:.2f}/0.10"
+    )
     print(f"D5 (Tomorrow coffee): {state_scores['tomorrow_coffee']:.2f}/0.08")
     print(f"D6 (Today coffee preserved): {state_scores['today_coffee']:.2f}/0.04")
-    print(f"D7 (Shopping-list reconciliation): {state_scores['shopping_list']:.2f}/0.25")
+    print(
+        f"D7 (Shopping-list reconciliation): {state_scores['shopping_list']:.2f}/0.25"
+    )
     print(f"D8 (New supplement orders): {state_scores['new_orders']:.3f}/0.07")
     print(f"D9 (Final response): {response_score:.2f}/0.42")
     print(f"Score: {reward:.2f}/1.0")

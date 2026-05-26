@@ -441,9 +441,7 @@ class SleepTrendRecovery2VerifierContractTests(unittest.TestCase):
     def test_protected_state_fails_if_today_schedule_changes(self):
         conn = self._smarthome_schema_conn()
         conn.executescript(SMARTHOME_SEED_PATH.read_text())
-        conn.execute(
-            "UPDATE calendar_event SET title = 'Today Tempo Run' WHERE id = 2"
-        )
+        conn.execute("UPDATE calendar_event SET title = 'Today Tempo Run' WHERE id = 2")
 
         protected_pass, detail = verify.check_protected_smarthome_state(conn)
         state_scores = verify.score_state(conn)
@@ -474,7 +472,9 @@ class SleepTrendRecovery2VerifierContractTests(unittest.TestCase):
         self.assertEqual(0.0, state_scores["protected_coffee_state"])
         self.assertFalse(state_scores["required_gates_passed"])
 
-    def test_high_intensity_actions_pass_after_all_tomorrow_workouts_are_downgraded(self):
+    def test_high_intensity_actions_pass_after_all_tomorrow_workouts_are_downgraded(
+        self,
+    ):
         conn = self._smarthome_schema_conn()
         conn.executescript(SMARTHOME_SEED_PATH.read_text())
         conn.execute(
@@ -652,7 +652,9 @@ class SleepTrendRecovery2VerifierContractTests(unittest.TestCase):
         self.assertEqual(0.45, score)
         self.assertEqual({}, details)
 
-    def test_response_contract_requires_windowed_trend_and_zero_value_sync_explanation(self):
+    def test_response_contract_requires_windowed_trend_and_zero_value_sync_explanation(
+        self,
+    ):
         health_conn = self._health_schema_conn()
         health_conn.executescript(HEALTH_SEED_PATH.read_text())
         health = verify.read_health_signal(health_conn)
@@ -755,9 +757,7 @@ class SleepTrendRecovery2VerifierContractTests(unittest.TestCase):
             "FROM liveclawbench-sleep-trend-recovery2-base:latest", dockerfile
         )
         self.assertIn("COPY seed.sql /opt/mock/data/smarthome.sql", dockerfile)
-        self.assertIn(
-            "COPY health-seed.sql /opt/mock/data/health.sql", dockerfile
-        )
+        self.assertIn("COPY health-seed.sql /opt/mock/data/health.sql", dockerfile)
         self.assertNotIn("/opt/mock/startup-overrides/", dockerfile)
         self.assertIn('CMD ["sh", "-c", "sleep infinity"]', dockerfile)
 

@@ -414,7 +414,9 @@ def score_response_companion_sleep_metrics(text):
 
 
 def score_response_hiit_reasoning(text):
-    action = re.search(r"hiit|sprint|boxing|high[- ]intensity|workout", text) and re.search(
+    action = re.search(
+        r"hiit|sprint|boxing|high[- ]intensity|workout", text
+    ) and re.search(
         r"delete|remove|changed|downgrad|replace|yoga|walking|cycling|rest", text
     )
     coverage = re.search(
@@ -442,13 +444,13 @@ def score_response_coffee_reasoning(text):
 
 
 def score_response_unsynced_recovery(text):
-    zeroed = re.search(
-        r"wearable|recovery(?:\s+data)?|smart[- ]home", text
-    ) and re.search(
-        r"date|today", text
-    ) and re.search(
-        r"all\s+(?:the\s+)?values?\s+(?:are\s+)?0|all\s+0|0\s+values|zeros?",
-        text,
+    zeroed = (
+        re.search(r"wearable|recovery(?:\s+data)?|smart[- ]home", text)
+        and re.search(r"date|today", text)
+        and re.search(
+            r"all\s+(?:the\s+)?values?\s+(?:are\s+)?0|all\s+0|0\s+values|zeros?",
+            text,
+        )
     )
     unsynced = re.search(
         r"not\s+sync|unsync|has\s+not\s+been\s+sync|health\s+data|should\s+not\s+be\s+trusted|cannot\s+be\s+trusted|before\s+relying",
@@ -605,7 +607,9 @@ def main():
     )
     print(f"D2 (Today coffee unchanged): {state_scores['today_coffee']:.2f}/0.10")
     print(f"D3 (Tomorrow coffee delay): {state_scores['tomorrow_coffee']:.2f}/0.20")
-    print(f"D4 (Protected state penalty): -{state_scores['protected_penalty']:.2f}/0.30")
+    print(
+        f"D4 (Protected state penalty): -{state_scores['protected_penalty']:.2f}/0.30"
+    )
     print(f"D5 (Final response): {response_score:.2f}/0.45")
     print(f"Score: {reward:.2f}/1.0")
 

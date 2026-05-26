@@ -25,9 +25,19 @@ SOLUTION_PATH = TASK_DIR / "solution" / "solve.sh"
 TASK_TOML_PATH = TASK_DIR / "task.toml"
 INSTRUCTION_PATH = TASK_DIR / "instruction.md"
 BINARY_MAP_PATH = REPO_ROOT / "mock-platform" / "config" / "task-binary-map.json"
-SMARTHOME_GROCERY_PAGE_PATH = REPO_ROOT / "mock-platform" / "mocks" / "smarthome" / "src" / "pages" / "inventory.tsx"
+SMARTHOME_GROCERY_PAGE_PATH = (
+    REPO_ROOT
+    / "mock-platform"
+    / "mocks"
+    / "smarthome"
+    / "src"
+    / "pages"
+    / "inventory.tsx"
+)
 
-spec = importlib.util.spec_from_file_location("sleep_trend_recovery3_verify", VERIFY_PATH)
+spec = importlib.util.spec_from_file_location(
+    "sleep_trend_recovery3_verify", VERIFY_PATH
+)
 verify = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(verify)
 
@@ -133,7 +143,9 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
         metadata = tomllib.loads(TASK_TOML_PATH.read_text())["metadata"]
         self.assertEqual("hard", metadata["difficulty"])
         self.assertEqual("Health & Fitness", metadata["domain"])
-        self.assertEqual(["Health & Fitness", "E-commerce & Daily Svcs"], metadata["domains_multi"])
+        self.assertEqual(
+            ["Health & Fitness", "E-commerce & Daily Svcs"], metadata["domains_multi"]
+        )
         self.assertEqual(1, metadata["factor_a1"])
         self.assertEqual(1, metadata["factor_a2"])
         self.assertEqual(1, metadata["factor_b1"])
@@ -152,18 +164,50 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
         task_entry = binary_map["tasks"].get("sleep-trend-recovery3")
         self.assertIsNotNone(task_entry)
         self.assertEqual(["smarthome", "health", "shop"], task_entry["binaries"])
-        self.assertEqual("tasks/sleep-trend-recovery3/environment/startup.sh", task_entry["startup_extra"])
+        self.assertEqual(
+            "tasks/sleep-trend-recovery3/environment/startup.sh",
+            task_entry["startup_extra"],
+        )
         asset_pairs = {(asset["src"], asset["dest"]) for asset in task_entry["assets"]}
-        self.assertIn(("tasks/sleep-trend-recovery3/environment/seed.sql", "/opt/mock/data/smarthome.sql"), asset_pairs)
-        self.assertIn(("tasks/sleep-trend-recovery3/environment/health-seed.sql", "/opt/mock/data/health.sql"), asset_pairs)
-        self.assertIn(("tasks/sleep-trend-recovery3/environment/products.json", "/opt/mock/static/shop/products.json"), asset_pairs)
-        self.assertIn(("tasks/sleep-trend-recovery3/environment/shop-orders.json", "/opt/mock/data/shop-orders.json"), asset_pairs)
+        self.assertIn(
+            (
+                "tasks/sleep-trend-recovery3/environment/seed.sql",
+                "/opt/mock/data/smarthome.sql",
+            ),
+            asset_pairs,
+        )
+        self.assertIn(
+            (
+                "tasks/sleep-trend-recovery3/environment/health-seed.sql",
+                "/opt/mock/data/health.sql",
+            ),
+            asset_pairs,
+        )
+        self.assertIn(
+            (
+                "tasks/sleep-trend-recovery3/environment/products.json",
+                "/opt/mock/static/shop/products.json",
+            ),
+            asset_pairs,
+        )
+        self.assertIn(
+            (
+                "tasks/sleep-trend-recovery3/environment/shop-orders.json",
+                "/opt/mock/data/shop-orders.json",
+            ),
+            asset_pairs,
+        )
 
     def test_health_seed_contains_corrupted_sleep_and_trend_overrides(self):
         health_conn = self._health_schema_conn()
         health_conn.executescript(HEALTH_SEED_PATH.read_text())
 
-        self.assertEqual("2026-05-09", health_conn.execute("SELECT value FROM system_config WHERE key = 'current_date'").fetchone()[0])
+        self.assertEqual(
+            "2026-05-09",
+            health_conn.execute(
+                "SELECT value FROM system_config WHERE key = 'current_date'"
+            ).fetchone()[0],
+        )
         row = health_conn.execute(
             """
             SELECT sleep_hours, sleep_quality, light_sleep_hours, deep_sleep_hours, rem_sleep_hours,
@@ -193,15 +237,23 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
         self.assertEqual(22.0, overrides[("high_intensity_min", 14)][0])
 
         fixed_seed_time = "2026-05-09T07:15:00"
-        for table in ["health_daily_snapshot", "health_metric_series", "health_trend_override"]:
+        for table in [
+            "health_daily_snapshot",
+            "health_metric_series",
+            "health_trend_override",
+        ]:
             created_values = {
                 created_at
-                for (created_at,) in health_conn.execute(f"SELECT DISTINCT created_at FROM {table}")
+                for (created_at,) in health_conn.execute(
+                    f"SELECT DISTINCT created_at FROM {table}"
+                )
             }
             self.assertEqual({fixed_seed_time}, created_values)
         trend_updated_values = {
             updated_at
-            for (updated_at,) in health_conn.execute("SELECT DISTINCT updated_at FROM health_trend_override")
+            for (updated_at,) in health_conn.execute(
+                "SELECT DISTINCT updated_at FROM health_trend_override"
+            )
         }
         self.assertEqual({fixed_seed_time}, trend_updated_values)
 
@@ -225,9 +277,24 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
         smarthome_conn = self._smarthome_schema_conn()
         smarthome_conn.executescript(SMARTHOME_SEED_PATH.read_text())
 
-        self.assertEqual((8.0, 60.0, 45.0, 72.0), smarthome_conn.execute("SELECT sleep_hours, sleep_score, readiness, resting_heart_rate FROM wearable_recovery_state WHERE id = 1").fetchone())
-        self.assertEqual(("07:00", 0), smarthome_conn.execute("SELECT start_time, cancelled FROM coffee_schedule WHERE schedule_date = '2026-05-09'").fetchone())
-        self.assertEqual(("07:00", 0), smarthome_conn.execute("SELECT start_time, cancelled FROM coffee_schedule WHERE schedule_date = '2026-05-10'").fetchone())
+        self.assertEqual(
+            (8.0, 60.0, 45.0, 72.0),
+            smarthome_conn.execute(
+                "SELECT sleep_hours, sleep_score, readiness, resting_heart_rate FROM wearable_recovery_state WHERE id = 1"
+            ).fetchone(),
+        )
+        self.assertEqual(
+            ("07:00", 0),
+            smarthome_conn.execute(
+                "SELECT start_time, cancelled FROM coffee_schedule WHERE schedule_date = '2026-05-09'"
+            ).fetchone(),
+        )
+        self.assertEqual(
+            ("07:00", 0),
+            smarthome_conn.execute(
+                "SELECT start_time, cancelled FROM coffee_schedule WHERE schedule_date = '2026-05-10'"
+            ).fetchone(),
+        )
 
         pantry_supplies = {
             name: (quantity, unit, category)
@@ -241,7 +308,9 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
         }
         self.assertEqual((1000.0, "grams", "beverage"), pantry_supplies["Coffee Beans"])
         self.assertEqual((5.0, "kg", "grocery"), pantry_supplies["Jasmine Rice"])
-        self.assertEqual((24.0, "bottles", "household"), pantry_supplies["Bottled Water"])
+        self.assertEqual(
+            (24.0, "bottles", "household"), pantry_supplies["Bottled Water"]
+        )
         self.assertEqual((12.0, "rolls", "household"), pantry_supplies["Toilet Paper"])
 
         yesterday = smarthome_conn.execute(
@@ -251,13 +320,16 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
             ORDER BY start_time
             """
         ).fetchall()
-        self.assertEqual([
-            ("Yoga", "yoga", "done"),
-            ("Strength", "strength", "undone"),
-            ("HIIT", "hiit", "done"),
-            ("Cycling", "cycling", "undone"),
-            ("Swimming", "swimming", "undone"),
-        ], yesterday)
+        self.assertEqual(
+            [
+                ("Yoga", "yoga", "done"),
+                ("Strength", "strength", "undone"),
+                ("HIIT", "hiit", "done"),
+                ("Cycling", "cycling", "undone"),
+                ("Swimming", "swimming", "undone"),
+            ],
+            yesterday,
+        )
         self.assertNotEqual(
             ["done", "done", "undone", "undone", "undone"],
             [status for _title, _workout_type, status in yesterday],
@@ -271,36 +343,58 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
             ORDER BY start_time
             """
         ).fetchall()
-        self.assertEqual([
-            ("2026-05-10", "HIIT Workout", "hiit"),
-            ("2026-05-11", "Strength Session", "strength"),
-            ("2026-05-12", "Swim Intervals", "swimming"),
-            ("2026-05-13", "HIIT Workout", "hiit"),
-            ("2026-05-14", "Strength Session", "strength"),
-            ("2026-05-15", "Swim Intervals", "swimming"),
-            ("2026-05-16", "HIIT Workout", "hiit"),
-        ], future_workouts)
+        self.assertEqual(
+            [
+                ("2026-05-10", "HIIT Workout", "hiit"),
+                ("2026-05-11", "Strength Session", "strength"),
+                ("2026-05-12", "Swim Intervals", "swimming"),
+                ("2026-05-13", "HIIT Workout", "hiit"),
+                ("2026-05-14", "Strength Session", "strength"),
+                ("2026-05-15", "Swim Intervals", "swimming"),
+                ("2026-05-16", "HIIT Workout", "hiit"),
+            ],
+            future_workouts,
+        )
 
-        shopping = {name: (quantity, unit, stock, ref) for name, quantity, unit, stock, ref in smarthome_conn.execute("SELECT name, quantity, unit, stock_status, reference FROM grocery_product")}
-        self.assertEqual((2.0, "lbs", "sufficient", "ORD000005"), shopping["Salted Butter"])
-        self.assertEqual((30.0, "capsules", "sufficient", "ORD000003"), shopping["CoQ10"])
+        shopping = {
+            name: (quantity, unit, stock, ref)
+            for name, quantity, unit, stock, ref in smarthome_conn.execute(
+                "SELECT name, quantity, unit, stock_status, reference FROM grocery_product"
+            )
+        }
+        self.assertEqual(
+            (2.0, "lbs", "sufficient", "ORD000005"), shopping["Salted Butter"]
+        )
+        self.assertEqual(
+            (30.0, "capsules", "sufficient", "ORD000003"), shopping["CoQ10"]
+        )
         self.assertNotIn("Omega-3", shopping)
 
     def test_shop_assets_do_not_couple_smarthome_ui_contract(self):
         products = json.loads(PRODUCTS_PATH.read_text())
         titles = {product["title"]: product for product in products}
-        for title in ["CoQ10 30 Capsules", "Omega-3 60 Softgels", "Magnesium 60 Tablets", "Valerian Root 60 Capsules"]:
+        for title in [
+            "CoQ10 30 Capsules",
+            "Omega-3 60 Softgels",
+            "Magnesium 60 Tablets",
+            "Valerian Root 60 Capsules",
+        ]:
             self.assertIn(title, titles)
 
         orders = json.loads(SHOP_ORDERS_PATH.read_text())
-        order_items = {order["order_id"]: order["items"][0]["title"] for order in orders}
+        order_items = {
+            order["order_id"]: order["items"][0]["title"] for order in orders
+        }
         self.assertEqual("CoQ10 30 Capsules", order_items["ORD000001"])
         self.assertEqual("Omega-3 60 Softgels", order_items["ORD000003"])
         self.assertEqual("Salted Butter 1 lb", order_items["ORD000005"])
 
         grocery_page = SMARTHOME_GROCERY_PAGE_PATH.read_text()
         self.assertIn("Track items that need restocking.", grocery_page)
-        self.assertNotIn("Items available in the shop should be ordered and kept in sync with orders.", grocery_page)
+        self.assertNotIn(
+            "Items available in the shop should be ordered and kept in sync with orders.",
+            grocery_page,
+        )
         self.assertNotIn("http://localhost:1234/orders", grocery_page)
         self.assertNotIn("http://localhost:1234/", grocery_page)
         self.assertNotIn("Shop recovery supplements", grocery_page)
@@ -322,13 +416,19 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
         verify.apply_oracle_state(smarthome_conn, orders)
         oracle_response = verify.build_oracle_response("ORD000006", "ORD000007")
         state_scores = verify.score_state(smarthome_conn, orders)
-        response_score, response_details = verify.score_response(oracle_response, health)
-        reward, details = verify.compute_reward(state_scores, response_score, oracle_response)
+        response_score, response_details = verify.score_response(
+            oracle_response, health
+        )
+        reward, details = verify.compute_reward(
+            state_scores, response_score, oracle_response
+        )
         self.assertEqual(1.0, reward)
         self.assertEqual({}, response_details)
         self.assertTrue(state_scores["required_blockers_passed"], details)
 
-    def test_future_workout_scoring_gives_half_credit_for_medium_intensity_changes(self):
+    def test_future_workout_scoring_gives_half_credit_for_medium_intensity_changes(
+        self,
+    ):
         _, smarthome_conn = self._load_state()
         smarthome_conn.execute(
             "UPDATE calendar_event SET workout_type = 'cycling' WHERE id IN (11, 13, 17, 19, 23)"
@@ -343,7 +443,9 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
         self.assertFalse(passed)
         self.assertIn("partial", detail.lower())
 
-    def test_future_workout_scoring_gives_full_credit_for_non_medium_recovery_changes(self):
+    def test_future_workout_scoring_gives_full_credit_for_non_medium_recovery_changes(
+        self,
+    ):
         _, smarthome_conn = self._load_state()
         smarthome_conn.execute(
             "UPDATE calendar_event SET title = 'Recovery Yoga', workout_type = 'yoga' "
@@ -394,23 +496,33 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
         were UNDONE and excluded.
         """
 
-        missing_components = verify.score_response_components(response_without_workouts, {})
-        present_components = verify.score_response_components(response_with_workouts, {})
+        missing_components = verify.score_response_components(
+            response_without_workouts, {}
+        )
+        present_components = verify.score_response_components(
+            response_with_workouts, {}
+        )
 
         self.assertFalse(missing_components["required_workout_inference_passed"])
         self.assertTrue(present_components["required_workout_inference_passed"])
         self.assertEqual(0.08, present_components["scores"]["workout_inference"])
 
-        state_scores = verify.score_state(smarthome_conn, verify.load_shop_orders(SHOP_ORDERS_PATH))
+        state_scores = verify.score_state(
+            smarthome_conn, verify.load_shop_orders(SHOP_ORDERS_PATH)
+        )
         reward, detail = verify.compute_reward(
             state_scores,
             missing_components["total"],
             response_without_workouts,
-            required_response_passed=missing_components["required_workout_inference_passed"],
+            required_response_passed=missing_components[
+                "required_workout_inference_passed"
+            ],
         )
         self.assertIn("required workout inference missing", detail)
 
-        report = verify.format_workout_inference_report(present_components["workout_found"])
+        report = verify.format_workout_inference_report(
+            present_components["workout_found"]
+        )
         self.assertIn("Yoga = 45 min (Low, DONE) -> 0.03 pts", report)
         self.assertIn("HIIT = 30 min (High, DONE) -> 0.03 pts", report)
         self.assertIn("Strength/Cycling/Swimming excluded (UNDONE) -> 0.02 pts", report)
@@ -456,37 +568,75 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
             ("ORD000006", "prod_magnesium_60", "Magnesium 60 Tablets"),
             ("ORD000007", "prod_valerian_60", "Valerian Root 60 Capsules"),
         ]:
-            orders.append({
-                "order_id": order_id,
-                "items": [{"id": product_id, "product_id": product_id, "title": title, "quantity": 1}],
-            })
+            orders.append(
+                {
+                    "order_id": order_id,
+                    "items": [
+                        {
+                            "id": product_id,
+                            "product_id": product_id,
+                            "title": title,
+                            "quantity": 1,
+                        }
+                    ],
+                }
+            )
 
-        smarthome_conn.execute("UPDATE grocery_product SET quantity = 1, unit = 'lb', stock_status = 'sufficient', reference = 'ORD000005' WHERE name = 'Salted Butter'")
-        smarthome_conn.execute("UPDATE grocery_product SET quantity = 30, unit = 'capsules', stock_status = 'sufficient', reference = 'ORD000001' WHERE name = 'CoQ10'")
-        smarthome_conn.execute("INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('omega3', 'Omega-3', 60, 'softgels', 'sufficient', NULL, 'ORD000003')")
-        smarthome_conn.execute("INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('magnesium', 'Magnesium', 60, 'tablets', 'sufficient', NULL, 'ORD000006')")
-        smarthome_conn.execute("INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('valerian-root', 'Valerian Root', 60, 'capsules', 'sufficient', NULL, 'ORD000007')")
+        smarthome_conn.execute(
+            "UPDATE grocery_product SET quantity = 1, unit = 'lb', stock_status = 'sufficient', reference = 'ORD000005' WHERE name = 'Salted Butter'"
+        )
+        smarthome_conn.execute(
+            "UPDATE grocery_product SET quantity = 30, unit = 'capsules', stock_status = 'sufficient', reference = 'ORD000001' WHERE name = 'CoQ10'"
+        )
+        smarthome_conn.execute(
+            "INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('omega3', 'Omega-3', 60, 'softgels', 'sufficient', NULL, 'ORD000003')"
+        )
+        smarthome_conn.execute(
+            "INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('magnesium', 'Magnesium', 60, 'tablets', 'sufficient', NULL, 'ORD000006')"
+        )
+        smarthome_conn.execute(
+            "INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('valerian-root', 'Valerian Root', 60, 'capsules', 'sufficient', NULL, 'ORD000007')"
+        )
 
         score, passed, checks = verify.score_shopping_list(smarthome_conn, orders)
         self.assertEqual(0.25, score)
         self.assertTrue(passed, checks)
 
-    def test_shopping_scoring_gives_half_valerian_credit_for_correct_sleep_tea_order(self):
+    def test_shopping_scoring_gives_half_valerian_credit_for_correct_sleep_tea_order(
+        self,
+    ):
         _, smarthome_conn = self._load_state()
         orders = verify.load_shop_orders(SHOP_ORDERS_PATH)
         for order_id, product_id, title in [
             ("ORD000006", "prod_magnesium_60", "Magnesium 60 Tablets"),
             ("ORD000007", "prod_valerian_sleep_tea_20", "Valerian Sleep Tea 20 Bags"),
         ]:
-            orders.append({
-                "order_id": order_id,
-                "items": [{"id": product_id, "product_id": product_id, "title": title, "quantity": 1}],
-            })
+            orders.append(
+                {
+                    "order_id": order_id,
+                    "items": [
+                        {
+                            "id": product_id,
+                            "product_id": product_id,
+                            "title": title,
+                            "quantity": 1,
+                        }
+                    ],
+                }
+            )
 
-        smarthome_conn.execute("UPDATE grocery_product SET quantity = 1, unit = 'lb', stock_status = 'sufficient', reference = 'ORD000005' WHERE name = 'Salted Butter'")
-        smarthome_conn.execute("UPDATE grocery_product SET quantity = 30, unit = 'capsules', stock_status = 'sufficient', reference = 'ORD000001' WHERE name = 'CoQ10'")
-        smarthome_conn.execute("INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('omega3', 'Omega-3', 60, 'softgels', 'sufficient', NULL, 'ORD000003')")
-        smarthome_conn.execute("INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('magnesium', 'Magnesium', 60, 'tablets', 'sufficient', NULL, 'ORD000006')")
+        smarthome_conn.execute(
+            "UPDATE grocery_product SET quantity = 1, unit = 'lb', stock_status = 'sufficient', reference = 'ORD000005' WHERE name = 'Salted Butter'"
+        )
+        smarthome_conn.execute(
+            "UPDATE grocery_product SET quantity = 30, unit = 'capsules', stock_status = 'sufficient', reference = 'ORD000001' WHERE name = 'CoQ10'"
+        )
+        smarthome_conn.execute(
+            "INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('omega3', 'Omega-3', 60, 'softgels', 'sufficient', NULL, 'ORD000003')"
+        )
+        smarthome_conn.execute(
+            "INSERT OR REPLACE INTO grocery_product (product_id, name, quantity, unit, stock_status, substitute_for, reference) VALUES ('magnesium', 'Magnesium', 60, 'tablets', 'sufficient', NULL, 'ORD000006')"
+        )
 
         score, passed, checks = verify.score_shopping_list(smarthome_conn, orders)
 
@@ -500,16 +650,35 @@ class SleepTrendRecovery3VerifierContractTests(unittest.TestCase):
             harbor = tmp_path / "harbor.jsonl"
             fallback = tmp_path / "final_response.txt"
             fallback.write_text("fallback response")
-            harbor.write_text(json.dumps({"type": "message", "message": {"role": "assistant", "content": [{"type": "text", "text": "harbor response"}]}}) + "\n")
-            with mock.patch.object(verify, "HARBOR_LOG_CANDIDATES", [harbor]), mock.patch.object(verify, "FINAL_RESPONSE_FALLBACK", fallback):
+            harbor.write_text(
+                json.dumps(
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "assistant",
+                            "content": [{"type": "text", "text": "harbor response"}],
+                        },
+                    }
+                )
+                + "\n"
+            )
+            with (
+                mock.patch.object(verify, "HARBOR_LOG_CANDIDATES", [harbor]),
+                mock.patch.object(verify, "FINAL_RESPONSE_FALLBACK", fallback),
+            ):
                 self.assertEqual("harbor response", verify.load_final_response())
             harbor.unlink()
-            with mock.patch.object(verify, "HARBOR_LOG_CANDIDATES", [harbor]), mock.patch.object(verify, "FINAL_RESPONSE_FALLBACK", fallback):
+            with (
+                mock.patch.object(verify, "HARBOR_LOG_CANDIDATES", [harbor]),
+                mock.patch.object(verify, "FINAL_RESPONSE_FALLBACK", fallback),
+            ):
                 self.assertEqual("fallback response", verify.load_final_response())
 
     def test_wrapper_dockerfile_startup_and_solution_contracts(self):
         dockerfile = DOCKERFILE_PATH.read_text()
-        self.assertIn("FROM liveclawbench-sleep-trend-recovery3-base:latest", dockerfile)
+        self.assertIn(
+            "FROM liveclawbench-sleep-trend-recovery3-base:latest", dockerfile
+        )
         self.assertIn("CMD", dockerfile)
 
         startup = STARTUP_PATH.read_text()
