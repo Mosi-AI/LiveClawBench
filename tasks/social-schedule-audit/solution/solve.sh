@@ -23,7 +23,7 @@ echo "Got session cookie."
 # the verifier accepts either (status changed away from published) OR
 # (published_at set while status remains published).
 echo "Step 2: Fixing post 101 (published with no published_at -> set published_at)..."
-sqlite3 /opt/mock/data/social/social.db \
+sqlite3 /var/lib/mock-data/social/social.db \
   "UPDATE post SET published_at = datetime('now'), updated_at = datetime('now') WHERE id = 101 AND published_at IS NULL;"
 echo "Backfilled published_at for post 101."
 
@@ -58,7 +58,7 @@ fi
 # First revert to draft, then publish again.
 echo "Step 4: Fixing post 103 (published with no action_log)..."
 # Direct DB fix is simpler here since the API transition is published->deleted->draft->published
-sqlite3 /opt/mock/data/social/social.db \
+sqlite3 /var/lib/mock-data/social/social.db \
   "INSERT INTO post_action_log (post_id, actor_account_id, action_type, new_value, created_at) VALUES (103, 1, 'published', 'published', '2026-03-15 10:00:00');"
 echo "Inserted missing action_log for post 103."
 
@@ -73,7 +73,7 @@ echo ""
 
 # Step 6: Fix implausible metrics on post 101 (0 impressions but 50000 likes)
 echo "Step 6: Fixing implausible metrics on post 101..."
-sqlite3 /opt/mock/data/social/social.db \
+sqlite3 /var/lib/mock-data/social/social.db \
   "UPDATE post_metric SET likes = 0 WHERE post_id = 101 AND impressions = 0;"
 echo "Reset likes to 0 for post 101 (no impressions = no engagement possible)."
 

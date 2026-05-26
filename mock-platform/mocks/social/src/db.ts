@@ -339,8 +339,13 @@ interface SocialSeedData {
 }
 
 function loadLayer1Seed(database: Database): void {
-  const dataDir = process.env.MOCK_DATA_DIR || "/opt/mock/data";
-  const seedPath = join(dataDir, "seed.json");
+  const primaryDir = process.env.MOCK_DATA_DIR || "/opt/mock/data";
+  const fallbackDir = "/opt/mock/data";
+  let seedPath = join(primaryDir, "seed.json");
+
+  if (!existsSync(seedPath) && primaryDir !== fallbackDir) {
+    seedPath = join(fallbackDir, "seed.json");
+  }
 
   const nowISO = () => new Date().toISOString().replace("T", " ").replace(/\.\d+Z$/, "");
 

@@ -1,1 +1,1 @@
-The scheduling data on our Mosi Social platform (http://localhost:5008/, mosi_brand / demo123) has been flagged as inconsistent. Could you take a look and fix whatever seems off? You can inspect the database directly at `/opt/mock/data/social/social.db` if needed. Let me know what you found and what you fixed.
+The scheduling data on our Mosi Social platform (http://localhost:5008/, mosi_brand / demo123) has been flagged as inconsistent. Could you take a look and fix whatever seems off? Let me know what you found and what you fixed.

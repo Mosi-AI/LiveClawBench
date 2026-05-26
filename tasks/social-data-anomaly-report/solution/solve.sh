@@ -6,7 +6,7 @@
 #   2. GET inbox, confirm presence of the data-integrity request.
 #   3. Social login as mosi_brand / demo123 (sanity check; cookie auth via
 #      top-level session_token).
-#   4. Query /opt/mock/data/social/social.db to confirm three seeded anomalies:
+#   4. Query /var/lib/mock-data/social/social.db to confirm three seeded anomalies:
 #        a. post 101: status='published' but published_at IS NULL
 #        b. post 101 metrics: 0 impressions but 50000 likes
 #        c. post 6: status='draft' but post_action_log records 'published'
@@ -25,7 +25,7 @@ EMAIL_PASSWORD="password123"
 SOCIAL_USER="mosi_brand"
 SOCIAL_PASSWORD="demo123"
 
-SOCIAL_DB="/opt/mock/data/social/social.db"
+SOCIAL_DB="/var/lib/mock-data/social/social.db"
 
 REPORT_RECIPIENT="data-team@mosi.inc"
 REPORT_SUBJECT="Social Media Data Anomaly Report"
