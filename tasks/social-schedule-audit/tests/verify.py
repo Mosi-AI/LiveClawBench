@@ -18,7 +18,7 @@ Verification uses direct SQLite access for fields not reliably exposed via the A
 import sqlite3
 import sys
 
-DB_PATH = "/opt/mock/data/social/social.db"
+DB_PATH = "/var/lib/mock-data/social/social.db"
 
 
 def get_post(db: sqlite3.Connection, post_id: int) -> dict | None:

@@ -9,9 +9,9 @@ import sqlite3
 import sys
 from datetime import date
 
-# Database is created in the CWD where mock-health binary runs
-# Based on the container setup, this is /workspace/health.db
-DB_PATH = "/workspace/health.db"
+# Database is created by mock-health binary at MOCK_DATA_DIR/health/health.db
+# build-task-images.ts sets MOCK_DATA_DIR=/var/lib/mock-data at runtime.
+DB_PATH = "/var/lib/mock-data/health/health.db"
 
 score = 0.0
 max_points = 3.0

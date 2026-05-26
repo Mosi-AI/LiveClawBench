@@ -28,7 +28,7 @@ addressed email with an empty or off-topic body must not pass.
 import sqlite3
 import sys
 
-SOCIAL_DB = "/opt/mock/data/social/social.db"
+SOCIAL_DB = "/var/lib/mock-data/social/social.db"
 
 
 def token_f1(expected: str, actual: str) -> float:

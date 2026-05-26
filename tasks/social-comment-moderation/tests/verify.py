@@ -22,7 +22,7 @@ import urllib.error
 import urllib.request
 
 SCORE = 0.0
-SOCIAL_DB = "/opt/mock/data/social/social.db"
+SOCIAL_DB = "/var/lib/mock-data/social/social.db"
 SOCIAL_API = "http://127.0.0.1:5008"
 
 
