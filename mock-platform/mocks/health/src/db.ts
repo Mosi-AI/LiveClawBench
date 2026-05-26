@@ -1,7 +1,15 @@
 import { getDb } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+
+const DEFAULT_DB_PATH = "health.db";
+
+function resolveDbPath(): string {
+  if (process.env.HEALTH_DB_PATH) return process.env.HEALTH_DB_PATH;
+  if (process.env.MOCK_DATA_DIR) return `${process.env.MOCK_DATA_DIR}/health/health.db`;
+  return DEFAULT_DB_PATH;
+}
 
 export function runMigrations(db: Database): void {
   db.exec(`
@@ -45,6 +53,35 @@ export function runMigrations(db: Database): void {
       value REAL NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       UNIQUE(user_id, metric_type, date),
+      FOREIGN KEY (user_id) REFERENCES mock_user(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS health_trend_override (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL DEFAULT 1,
+      metric_type TEXT NOT NULL,
+      days INTEGER NOT NULL,
+      mean REAL,
+      median REAL,
+      std_dev REAL,
+      min REAL,
+      max REAL,
+      previous_period_mean REAL,
+      change_percent REAL,
+      trend TEXT,
+      insight TEXT,
+      has_mean INTEGER NOT NULL DEFAULT 0,
+      has_median INTEGER NOT NULL DEFAULT 0,
+      has_std_dev INTEGER NOT NULL DEFAULT 0,
+      has_min INTEGER NOT NULL DEFAULT 0,
+      has_max INTEGER NOT NULL DEFAULT 0,
+      has_previous_period_mean INTEGER NOT NULL DEFAULT 0,
+      has_change_percent INTEGER NOT NULL DEFAULT 0,
+      has_trend INTEGER NOT NULL DEFAULT 0,
+      has_insight INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(user_id, metric_type, days),
       FOREIGN KEY (user_id) REFERENCES mock_user(id)
     );
 
@@ -106,6 +143,7 @@ export function runMigrations(db: Database): void {
 
     CREATE INDEX IF NOT EXISTS idx_snapshot_user_date ON health_daily_snapshot(user_id, date);
     CREATE INDEX IF NOT EXISTS idx_metric_user_type_date ON health_metric_series(user_id, metric_type, date);
+    CREATE INDEX IF NOT EXISTS idx_trend_override_user_type_days ON health_trend_override(user_id, metric_type, days);
     CREATE INDEX IF NOT EXISTS idx_allergen_user ON allergen(user_id, archived);
     CREATE INDEX IF NOT EXISTS idx_medication_user ON medication(user_id, archived);
     CREATE INDEX IF NOT EXISTS idx_slot_medication ON medication_intake_slot(medication_id);
@@ -125,16 +163,27 @@ export function runMigrations(db: Database): void {
   ]) {
     try { db.exec(`ALTER TABLE health_daily_snapshot ADD COLUMN ${col}`); } catch (_) {}
   }
+  for (const col of [
+    "has_mean INTEGER NOT NULL DEFAULT 0",
+    "has_median INTEGER NOT NULL DEFAULT 0",
+    "has_std_dev INTEGER NOT NULL DEFAULT 0",
+    "has_min INTEGER NOT NULL DEFAULT 0",
+    "has_max INTEGER NOT NULL DEFAULT 0",
+    "has_previous_period_mean INTEGER NOT NULL DEFAULT 0",
+    "has_change_percent INTEGER NOT NULL DEFAULT 0",
+    "has_trend INTEGER NOT NULL DEFAULT 0",
+    "has_insight INTEGER NOT NULL DEFAULT 0",
+  ]) {
+    try { db.exec(`ALTER TABLE health_trend_override ADD COLUMN ${col}`); } catch (_) {}
+  }
 }
 
 let _lastDb: Database | null = null;
 
 export function initDb(): Database {
-  const dbPath = process.env.MOCK_DATA_DIR
-    ? `${process.env.MOCK_DATA_DIR}/health/health.db`
-    : "health.db";
+  const dbPath = resolveDbPath();
   const dir = dirname(dbPath);
-  if (dir && !existsSync(dir)) mkdirSync(dir, { recursive: true });
+  if (dbPath !== ":memory:" && dir && !existsSync(dir)) mkdirSync(dir, { recursive: true });
   const db = getDb({ path: dbPath, autoMigrate: true });
   if (db !== _lastDb) {
     runMigrations(db);

@@ -3,7 +3,7 @@ version = "1.0"
 [metadata]
 difficulty = "easy"
 category = "open-world"
-tags = ["communication_email", "e-commerce_daily_svcs"]
+tags = ["e-commerce_daily_svcs", "communication_email"]
 domain = "E-commerce & Daily Svcs"
 domains_multi = ["E-commerce & Daily Svcs", "Communication & Email"]
 

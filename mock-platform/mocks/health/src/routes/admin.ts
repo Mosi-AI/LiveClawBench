@@ -3,6 +3,7 @@ import type { OpenAPIApp } from "mock-lib";
 import { z } from "zod";
 import {
   BatchSnapshotsBodySchema,
+  BatchTrendOverridesBodySchema,
   BatchMedicationsBodySchema,
   ErrorResponseSchema,
 } from "../schemas";
@@ -78,6 +79,99 @@ export function registerAdminRoutes(app: OpenAPIApp) {
           ).run(type, s.snapshot_date, value);
         }
       }
+      imported++;
+    }
+    return c.json({ success: true, imported_count: imported });
+  });
+
+  const batchTrendOverridesRoute = createRoute({
+    method: "post",
+    path: "/api/admin/health/trends/overrides/batch",
+    summary: "Batch import manual trend overrides",
+    request: {
+      body: { content: { "application/json": { schema: BatchTrendOverridesBodySchema } } },
+    },
+    responses: {
+      200: {
+        content: {
+          "application/json": {
+            schema: z.object({ success: z.boolean(), imported_count: z.number() }),
+          },
+        },
+        description: "Import successful",
+      },
+      400: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Validation error",
+      },
+      403: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Forbidden",
+      },
+    },
+  });
+
+  app.openApiRoute(batchTrendOverridesRoute, (c) => {
+    if (!isAdminAllowed()) {
+      return errorResponse(c, "FORBIDDEN", "Admin endpoints are disabled in production");
+    }
+    const { overrides } = c.req.valid("json");
+    const db = initDb();
+    let imported = 0;
+    for (const override of overrides) {
+      const statistics = override.statistics;
+      const comparison = override.comparison;
+      db.query(
+        `INSERT INTO health_trend_override
+         (user_id, metric_type, days, mean, median, std_dev, min, max,
+          previous_period_mean, change_percent, trend, insight,
+          has_mean, has_median, has_std_dev, has_min, has_max,
+          has_previous_period_mean, has_change_percent, has_trend, has_insight,
+          updated_at)
+         VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(user_id, metric_type, days) DO UPDATE SET
+           mean = excluded.mean,
+           median = excluded.median,
+           std_dev = excluded.std_dev,
+           min = excluded.min,
+           max = excluded.max,
+           previous_period_mean = excluded.previous_period_mean,
+           change_percent = excluded.change_percent,
+           trend = excluded.trend,
+           insight = excluded.insight,
+           has_mean = excluded.has_mean,
+           has_median = excluded.has_median,
+           has_std_dev = excluded.has_std_dev,
+           has_min = excluded.has_min,
+           has_max = excluded.has_max,
+           has_previous_period_mean = excluded.has_previous_period_mean,
+           has_change_percent = excluded.has_change_percent,
+           has_trend = excluded.has_trend,
+           has_insight = excluded.has_insight,
+           updated_at = excluded.updated_at`
+      ).run(
+        override.metric_type,
+        override.days,
+        statistics?.mean ?? null,
+        statistics?.median ?? null,
+        statistics?.std_dev ?? null,
+        statistics?.min ?? null,
+        statistics?.max ?? null,
+        comparison?.previous_period_mean ?? null,
+        comparison?.change_percent ?? null,
+        comparison?.trend ?? null,
+        override.insight ?? null,
+        Number(Object.prototype.hasOwnProperty.call(statistics ?? {}, "mean")),
+        Number(Object.prototype.hasOwnProperty.call(statistics ?? {}, "median")),
+        Number(Object.prototype.hasOwnProperty.call(statistics ?? {}, "std_dev")),
+        Number(Object.prototype.hasOwnProperty.call(statistics ?? {}, "min")),
+        Number(Object.prototype.hasOwnProperty.call(statistics ?? {}, "max")),
+        Number(Object.prototype.hasOwnProperty.call(comparison ?? {}, "previous_period_mean")),
+        Number(Object.prototype.hasOwnProperty.call(comparison ?? {}, "change_percent")),
+        Number(Object.prototype.hasOwnProperty.call(comparison ?? {}, "trend")),
+        Number(Object.prototype.hasOwnProperty.call(override, "insight")),
+        getNow(),
+      );
       imported++;
     }
     return c.json({ success: true, imported_count: imported });

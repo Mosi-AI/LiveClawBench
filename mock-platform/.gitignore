@@ -7,3 +7,5 @@ dist/openapi/*.json
 jobs/
 mocks/*/dist/
 
+# Ignore old mock src files (not used, but may be left over from old commits)
+mocks/smarthome/src/index.pre-refactor.tsxs

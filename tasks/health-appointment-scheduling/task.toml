@@ -3,7 +3,7 @@ version = "1.0"
 [metadata]
 difficulty = "medium"
 category = "open-world"
-tags = ["calendar_task_mgmt", "health_fitness", "communication_email"]
+tags = ["health_fitness", "calendar_task_mgmt", "communication_email"]
 
 domain = "Health & Fitness"
 domains_multi = ["Health & Fitness", "Calendar & Task Mgmt", "Communication & Email"]

@@ -1,4 +1,4 @@
--- Seed data for smarthome-test task
+-- Seed data for smarthome-morning-checkup task
 -- Focus: Morning routine automation scenario
 
 -- Room
@@ -13,8 +13,8 @@ INSERT OR IGNORE INTO thermostat_settings (id, mode, temperature, updated_at)
 VALUES (1, 'eco', 70.0, '2026-05-09T06:00:00Z');
 
 -- Coffee Schedule
-INSERT OR IGNORE INTO coffee_schedule (id, start_time, beans_grams, cancelled, updated_at)
-VALUES (1, '07:00', 20, 0, '2026-05-09T06:00:00Z');
+INSERT OR IGNORE INTO coffee_schedule (schedule_date, start_time, beans_grams, cancelled, updated_at)
+VALUES ('2026-05-09', '07:00', 20, 0, '2026-05-09T06:00:00Z');
 
 -- Benchmark Clock (morning time)
 INSERT OR IGNORE INTO benchmark_clock (id, clock_time)
@@ -54,7 +54,7 @@ VALUES (1, 7.5, 82.0, 75.0, 58.0);
 
 -- Calendar Events (today's schedule)
 INSERT OR IGNORE INTO calendar_event (id, title, start_time, event_type, workout_type, updated_at) VALUES
-(1, 'Morning Workout', '2026-05-09T08:00:00Z', 'workout', 'yoga', '2026-05-08T20:00:00Z'),
+(1, 'Morning Workout', '2026-05-09T08:00:00Z', 'workout', 'strength', '2026-05-08T20:00:00Z'),
 (2, 'Team Standup', '2026-05-09T10:00:00Z', 'meeting', NULL, '2026-05-08T09:00:00Z'),
 (3, 'Lunch with Client', '2026-05-09T12:30:00Z', 'meeting', NULL, '2026-05-07T14:00:00Z'),
 (4, 'Project Review', '2026-05-09T15:00:00Z', 'meeting', NULL, '2026-05-06T10:00:00Z');

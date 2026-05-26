@@ -1073,6 +1073,92 @@
       "binaries": [
         "email"
       ]
+    },
+    "smarthome-sleep-quality": {
+      "binaries": [
+        "smarthome",
+        "health",
+        "shop"
+      ],
+      "startup_extra": "tasks/smarthome-sleep-quality/environment/startup.sh",
+      "assets": [
+        {
+          "src": "tasks/smarthome-sleep-quality/environment/seed.sql",
+          "dest": "/opt/mock/data/smarthome.sql"
+        },
+        {
+          "src": "tasks/smarthome-sleep-quality/environment/health-seed.sql",
+          "dest": "/opt/mock/data/health.sql"
+        },
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "tasks/smarthome-sleep-quality/environment/products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "sleep-trend-recovery1": {
+      "binaries": [
+        "smarthome",
+        "health"
+      ],
+      "startup_extra": "tasks/sleep-trend-recovery1/environment/startup.sh",
+      "assets": [
+        {
+          "src": "tasks/sleep-trend-recovery1/environment/seed.sql",
+          "dest": "/opt/mock/data/smarthome.sql"
+        },
+        {
+          "src": "tasks/sleep-trend-recovery1/environment/health-seed.sql",
+          "dest": "/opt/mock/data/health.sql"
+        }
+      ]
+    },
+    "sleep-trend-recovery2": {
+      "binaries": [
+        "smarthome",
+        "health"
+      ],
+      "startup_extra": "tasks/sleep-trend-recovery2/environment/startup.sh",
+      "assets": [
+        {
+          "src": "tasks/sleep-trend-recovery2/environment/seed.sql",
+          "dest": "/opt/mock/data/smarthome.sql"
+        },
+        {
+          "src": "tasks/sleep-trend-recovery2/environment/health-seed.sql",
+          "dest": "/opt/mock/data/health.sql"
+        }
+      ]
+    },
+    "sleep-trend-recovery3": {
+      "binaries": [
+        "smarthome",
+        "health",
+        "shop"
+      ],
+      "startup_extra": "tasks/sleep-trend-recovery3/environment/startup.sh",
+      "assets": [
+        {
+          "src": "tasks/sleep-trend-recovery3/environment/seed.sql",
+          "dest": "/opt/mock/data/smarthome.sql"
+        },
+        {
+          "src": "tasks/sleep-trend-recovery3/environment/health-seed.sql",
+          "dest": "/opt/mock/data/health.sql"
+        },
+        {
+          "src": "tasks/sleep-trend-recovery3/environment/products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        },
+        {
+          "src": "tasks/sleep-trend-recovery3/environment/shop-orders.json",
+          "dest": "/opt/mock/data/shop-orders.json"
+        }
+      ]
     }
   }
 }

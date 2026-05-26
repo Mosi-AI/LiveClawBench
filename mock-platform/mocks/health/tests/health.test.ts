@@ -1,5 +1,10 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+import { mkdtempSync, rmSync, unlinkSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { Database } from "bun:sqlite";
 import { createTestApp, jsonRequest, cleanup } from "./setup";
+import { initDb } from "../src/db";
 
 describe("Health Snapshot & Metrics API", () => {
   let app: ReturnType<typeof createTestApp>;
@@ -158,6 +163,18 @@ describe("Health Snapshot & Metrics API", () => {
     expect(body.statistics).toHaveProperty("median");
   });
 
+  test("GET /api/health/trends anchors the window to configured current_date", async () => {
+    const db = initDb();
+    db.query("UPDATE system_config SET value = ? WHERE key = 'current_date'").run("2025-01-17");
+
+    const res = await app.request("/api/health/trends?metric_type=steps&days=7");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.statistics.mean).toBe(8000);
+    expect(body.statistics.min).toBe(6000);
+    expect(body.statistics.max).toBe(10000);
+  });
+
   test("GET /api/health/trends returns null stats when no data", async () => {
     const res = await app.request("/api/health/trends?metric_type=blood_oxygen_percent&days=1");
     // This might have data or not depending on date('now') vs seeded dates
@@ -171,5 +188,134 @@ describe("Health Snapshot & Metrics API", () => {
   test("GET /api/health/trends returns 400 for invalid metric type", async () => {
     const res = await app.request("/api/health/trends?metric_type=fake_metric&days=7");
     expect(res.status).toBe(400);
+  });
+
+  test("GET /api/health/trends returns manual override statistics when configured", async () => {
+    const importRes = await jsonRequest(app, "/api/admin/health/trends/overrides/batch", {
+      overrides: [
+        {
+          metric_type: "steps",
+          days: 7,
+          statistics: {
+            mean: 9100,
+            median: 9000,
+            std_dev: 320.25,
+            min: 8600,
+            max: 9500,
+          },
+          comparison: {
+            previous_period_mean: 7800,
+            change_percent: 16.7,
+            trend: "rising",
+          },
+          insight: "Scenario override",
+        },
+      ],
+    });
+    expect(importRes.status).toBe(200);
+
+    const res = await app.request("/api/health/trends?metric_type=steps&days=7");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.statistics).toEqual({
+      mean: 9100,
+      median: 9000,
+      std_dev: 320.25,
+      min: 8600,
+      max: 9500,
+    });
+    expect(body.comparison).toEqual({
+      previous_period_mean: 7800,
+      change_percent: 16.7,
+      trend: "rising",
+    });
+    expect(body.insight).toBe("Scenario override");
+  });
+
+  test("GET /api/health/trends allows explicit null manual override fields", async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const db = initDb();
+    db.query("UPDATE system_config SET value = ? WHERE key = 'current_date'").run(today);
+    db.query(
+      "INSERT OR REPLACE INTO health_metric_series (user_id, metric_type, date, value) VALUES (1, 'steps', ?, 1234)"
+    ).run(today);
+
+    const importRes = await jsonRequest(app, "/api/admin/health/trends/overrides/batch", {
+      overrides: [
+        {
+          metric_type: "steps",
+          days: 1,
+          statistics: {
+            mean: null,
+          },
+        },
+      ],
+    });
+    expect(importRes.status).toBe(200);
+
+    const res = await app.request("/api/health/trends?metric_type=steps&days=1");
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.statistics.mean).toBeNull();
+    expect(body.statistics.median).toBe(1234);
+  });
+
+  test("health metric detail page applies manual trend overrides to displayed stats", async () => {
+    const db = initDb();
+    db.query("UPDATE system_config SET value = ? WHERE key = 'current_date'").run("2025-01-17");
+    db.query(`
+      INSERT INTO health_trend_override (
+        user_id, metric_type, days, mean, max, has_mean, has_max
+      ) VALUES (1, 'steps', 7, 9100, 9500, 1, 1)
+    `).run();
+
+    const res = await app.request("/health/steps?days=7");
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    const statsHtml = html.match(/<div class="stats-grid">[\s\S]*?<div class="section">/)?.[0] ?? "";
+    expect(statsHtml).toContain("9100");
+    expect(statsHtml).toContain("9500");
+    expect(statsHtml).not.toContain(">8000<");
+    expect(statsHtml).not.toContain(">10000<");
+  });
+});
+
+describe("Health DB path configuration", () => {
+  afterEach(() => {
+    cleanup();
+    delete process.env.HEALTH_DB_PATH;
+  });
+
+  test("initDb uses HEALTH_DB_PATH when set", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "health-db-"));
+    const dbPath = join(tempDir, "configured-health.db");
+
+    cleanup();
+    delete process.env.HEALTH_DB_PATH;
+    try { unlinkSync("health.db"); } catch {}
+
+    process.env.HEALTH_DB_PATH = dbPath;
+
+    const db = initDb();
+    db.close();
+    cleanup();
+
+    const configuredDb = new Database(dbPath, { readonly: true });
+    const tables = configuredDb
+      .query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'system_config'")
+      .all() as Array<{ name: string }>;
+    configuredDb.close();
+
+    expect(tables).toEqual([{ name: "system_config" }]);
+
+    try {
+      const strayDb = new Database("health.db", { readonly: true });
+      strayDb.close();
+      expect.unreachable("health.db should not be created when HEALTH_DB_PATH is set");
+    } catch {
+      expect(true).toBe(true);
+    }
+
+    rmSync(tempDir, { recursive: true, force: true });
   });
 });

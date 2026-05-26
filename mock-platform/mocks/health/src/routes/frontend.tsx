@@ -360,12 +360,24 @@ export function registerFrontendRoutes(app: OpenAPIApp) {
         const change = ((secondHalf - firstHalf) / firstHalf) * 100;
         stats.trend = change > 5 ? "rising" : change < -5 ? "falling" : "stable";
       }
+      const override = !customRange ? db.query(
+        `SELECT mean, min, max, trend, insight, has_mean, has_min, has_max, has_trend, has_insight
+         FROM health_trend_override
+         WHERE user_id = 1 AND metric_type = ? AND days = ?`
+      ).get(metricType, days) as any : null;
+      if (override) {
+        if (override.has_mean) stats.mean = override.mean;
+        if (override.has_min) stats.min = override.min;
+        if (override.has_max) stats.max = override.max;
+        if (override.has_trend && override.trend) stats.trend = override.trend;
+      }
       const rangeLabel = customRange ? `${startDate} to ${endDate}` : `the past ${days} days`;
-      stats.insight = stats.trend === "rising"
+      const baseInsight = stats.trend === "rising"
         ? `${meta.label} has been rising over ${rangeLabel}, averaging ${stats.mean}${meta.unit ? " " + meta.unit : ""}`
         : stats.trend === "falling"
           ? `${meta.label} has been falling over ${rangeLabel}, averaging ${stats.mean}${meta.unit ? " " + meta.unit : ""}`
           : `${meta.label} has been stable over ${rangeLabel}, averaging ${stats.mean}${meta.unit ? " " + meta.unit : ""}`;
+      stats.insight = override?.has_insight ? override.insight ?? baseInsight : baseInsight;
     }
 
     return c.html(

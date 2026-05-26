@@ -61,6 +61,34 @@ describe("Admin API", () => {
     expect(body.data.length).toBe(2);
   });
 
+  test("POST /api/admin/health/trends/overrides/batch imports manual trend overrides", async () => {
+    const res = await jsonRequest(app, "/api/admin/health/trends/overrides/batch", {
+      overrides: [
+        {
+          metric_type: "steps",
+          days: 7,
+          statistics: {
+            mean: 9000,
+            median: 8800,
+            std_dev: 450.5,
+            min: 8200,
+            max: 9800,
+          },
+          comparison: {
+            previous_period_mean: 7600,
+            change_percent: 18.4,
+            trend: "rising",
+          },
+          insight: "Manual override for scenario setup",
+        },
+      ],
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.imported_count).toBe(1);
+  });
+
   test("POST /api/admin/medications/batch creates medications", async () => {
     const res = await jsonRequest(app, "/api/admin/medications/batch", {
       medications: [

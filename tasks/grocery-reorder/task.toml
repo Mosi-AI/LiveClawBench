@@ -3,7 +3,7 @@ version = "1.0"
 [metadata]
 difficulty = "hard"
 category = "open-world"
-tags = ["e_commerce_daily_svcs", "smart_home"]
+tags = ["e-commerce_daily_svcs", "smart_home"]
 
 domain = "E-commerce & Daily Svcs"
 domains_multi = ["E-commerce & Daily Svcs", "Smart Home"]

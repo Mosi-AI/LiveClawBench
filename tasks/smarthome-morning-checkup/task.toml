@@ -3,7 +3,7 @@ version = "1.0"
 [metadata]
 difficulty = "medium"
 category = "open-world"
-tags = ["smart_home", "calendar_task_mgmt", "e_commerce_daily_svcs"]
+tags = ["smart_home", "calendar_task_mgmt", "e-commerce_daily_svcs"]
 
 domain = "E-commerce & Daily Svcs"
 domains_multi = ["Smart Home", "Calendar & Task Mgmt", "E-commerce & Daily Svcs"]

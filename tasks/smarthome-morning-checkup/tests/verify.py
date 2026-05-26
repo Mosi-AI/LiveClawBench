@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-Verify smarthome-test task: 8-dimension scoring.
+Verify smarthome-morning-checkup task: 8-dimension scoring.
 
 Dimensions (each 0.125 pts):
 - D1: Dashboard report — mentions temperature (68.5°F), humidity (52%), initial thermostat mode (eco)
-- D2: Coffee report — mentions start_time (07:00) AND status (ready/brewing)
+- D2: Coffee report/state — response mentions start_time (07:00) AND status (ready), and DB coffee schedule for today remains unchanged
 - D3: Thermostat state — DB: mode='comfort' AND target_temperature=74 (HARD REQUIRED)
 - D4: Inventory report — mentions fridge count (8) AND pantry count (5)
 - D5: Expiring items report — mentions all 6 items: milk, bread, chicken breast, tomatoes, yogurt, cheese
 - D6: Calendar report — mentions event count (4) AND all 4 titles
-- D7: Workout state — DB: event='Morning Workout' AND workout_type='walking' (HARD REQUIRED)
+- D7: Workout state — DB: event='Morning Workout' AND workout_type in ('walking', 'yoga') (HARD REQUIRED)
 - D8: Shopping list with reasoning — DB: COUNT(*) > 8 AND new items correspond to expiring inventory
 
 Pass threshold: ≥ 0.75 (6 of 8 dimensions passed)
-D3 and D7 are hard required (DB state must match regardless of overall score).
+D2, D3 and D7 are hard required (DB state must match regardless of overall score).
 """
 
 import json
@@ -46,6 +46,8 @@ EXPECTED_EVENT_TITLES = [
 EXPECTED_FRIDGE_COUNT = 8
 EXPECTED_PANTRY_COUNT = 5
 INITIAL_SHOPPING_LIST_COUNT = 8
+EXPECTED_COFFEE_START_TIME = "07:00"
+EXPECTED_COFFEE_DATE = "2026-05-09"
 
 
 def http_request(method, path, data=None):
@@ -190,32 +192,65 @@ def check_d1_dashboard_report(response):
 
 
 def check_d2_coffee_report(response):
-    """D2: Coffee report — mentions start_time (07:00) AND status (ready/brewing)"""
-    print("\n=== D2: Coffee Report ===")
+    """D2: Coffee report/state — response must report 07:00 + ready, and today's coffee schedule must remain unchanged."""
+    print("\n=== D2: Coffee Report/State (HARD REQUIRED) ===")
 
     if response is None:
         print("FAIL: Could not get agent response")
         return 0.0
 
+    try:
+        conn = sqlite3.connect(SQLITE_DB)
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT start_time, cancelled FROM coffee_schedule
+            WHERE schedule_date = ?
+            """,
+            (EXPECTED_COFFEE_DATE,),
+        )
+        row = cursor.fetchone()
+        conn.close()
+    except sqlite3.Error as e:
+        print(f"FAIL: Database error: {e}")
+        return 0.0
+
+    if row is None:
+        print(f"FAIL: No coffee schedule found for {EXPECTED_COFFEE_DATE}")
+        return 0.0
+
+    start_time, cancelled = row
+    if start_time != EXPECTED_COFFEE_START_TIME or int(cancelled) != 0:
+        print(
+            "FAIL: Today's coffee schedule was modified "
+            f"(start_time={start_time}, cancelled={cancelled})"
+        )
+        return 0.0
+
+    print(
+        f"PASS: Today's coffee schedule remains unchanged at {EXPECTED_COFFEE_START_TIME}"
+    )
+
     response_lower = response.lower()
     found = 0
 
     # Check start time (07:00)
-    if "07:00" in response_lower or "7:00" in response_lower or "7am" in response_lower:
+    if (
+        EXPECTED_COFFEE_START_TIME in response_lower
+        or "7:00" in response_lower
+        or "7am" in response_lower
+    ):
         print("PASS: Coffee start time mentioned")
         found += 1
     else:
         print("FAIL: Coffee start time not mentioned")
 
-    # Check status (ready/brewing)
-    if any(
-        word in response_lower
-        for word in ["ready", "brewing", "preparing", "scheduled"]
-    ):
-        print("PASS: Coffee status mentioned")
+    # Check status (ready only at the benchmark time)
+    if re.search(r"\bready\b", response_lower):
+        print("PASS: Coffee ready status mentioned")
         found += 1
     else:
-        print("FAIL: Coffee status not mentioned")
+        print("FAIL: Coffee ready status not mentioned")
 
     if found == 2:
         print("D2: PASS (full 0.125)")
@@ -388,7 +423,7 @@ def check_d6_calendar_report(response):
 
 
 def check_d7_workout_state():
-    """D7: Workout state — DB: event='Morning Workout' AND workout_type='walking' (HARD REQUIRED)"""
+    """D7: Workout state — DB: event='Morning Workout' AND workout_type='walking' OR workout_type='yoga' (HARD REQUIRED)"""
     print("\n=== D7: Workout State (HARD REQUIRED) ===")
 
     try:
@@ -409,12 +444,12 @@ def check_d7_workout_state():
         title, workout_type = row
         print(f"Workout event: title={title}, workout_type={workout_type}")
 
-        if title == "Morning Workout" and workout_type == "walking":
+        if title == "Morning Workout" and workout_type in ("walking", "yoga"):
             print("D7: PASS (0.125)")
             return 0.125
         else:
             print(
-                f"D7: FAIL - Expected title='Morning Workout' AND workout_type='walking', got title='{title}' AND workout_type='{workout_type}'"
+                f"D7: FAIL - Expected title='Morning Workout' AND workout_type in ('walking', 'yoga'), got title='{title}' AND workout_type='{workout_type}'"
             )
             return 0.0
     except sqlite3.Error as e:
@@ -515,7 +550,7 @@ def main():
 
     for dim, score in results.items():
         status = "PASS" if score >= 0.125 else "PARTIAL" if score >= 0.083 else "FAIL"
-        hard_req = " (HARD REQUIRED)" if dim in ["D3", "D7"] else ""
+        hard_req = " (HARD REQUIRED)" if dim in ["D2", "D3", "D7"] else ""
         print(f"  {dim}: {score:.3f}/0.125 [{status}]{hard_req}")
         total_score += score
         if score >= 0.125:
@@ -525,12 +560,14 @@ def main():
     print(f"Dimensions passed: {passed_count}/8")
 
     # Check hard requirements
+    d2_pass = results["D2"] >= 0.125
     d3_pass = results["D3"] >= 0.125
     d7_pass = results["D7"] >= 0.125
-    hard_req_pass = d3_pass and d7_pass
+    hard_req_pass = d2_pass and d3_pass and d7_pass
 
     print(
-        f"Hard requirements: D3={'PASS' if d3_pass else 'FAIL'}, D7={'PASS' if d7_pass else 'FAIL'}"
+        f"Hard requirements: D2={'PASS' if d2_pass else 'FAIL'}, "
+        f"D3={'PASS' if d3_pass else 'FAIL'}, D7={'PASS' if d7_pass else 'FAIL'}"
     )
 
     # Write reward file
