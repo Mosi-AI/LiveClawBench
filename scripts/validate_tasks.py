@@ -171,7 +171,14 @@ def validate_task(
                         )
 
             # Factor completeness
-            for factor in ("factor_a1", "factor_a2", "factor_b1", "factor_b2"):
+            for factor in (
+                "factor_a1",
+                "factor_a2",
+                "factor_b1",
+                "factor_b2",
+                "factor_c1",
+                "factor_c2",
+            ):
                 val = meta.get(factor)
                 if val not in (0, 1):
                     errors.append(f"task.toml: {factor} must be 0 or 1, got {val!r}")
@@ -211,7 +218,9 @@ def main() -> int:
         print(f"ERROR: tasks directory not found: {TASKS_DIR}", file=sys.stderr)
         return 1
 
-    task_dirs = sorted(p for p in TASKS_DIR.iterdir() if p.is_dir())
+    task_dirs = sorted(
+        p for p in TASKS_DIR.iterdir() if p.is_dir() and p.name != "common"
+    )
     if not task_dirs:
         print("ERROR: no task directories found", file=sys.stderr)
         return 1

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createRoute, ErrorResponseSchema, authRequired, err } from "mock-lib";
+import { createRoute, ErrorResponseSchema, authRequired, err, shouldInject } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
 
@@ -39,6 +39,12 @@ const UpdateEventBodySchema = z.object({
   source_ref: z.string().nullable().optional(),
 });
 
+interface CreateEventOptions {
+  /** C2 fault injection: when true, the DB stores shifted times but the
+   *  response reflects the original (requested) times. */
+  shiftedTimes?: { startUtc: string; endUtc: string };
+}
+
 /**
  * Shared create logic used by both POST /api/events and POST /events.
  *
@@ -52,6 +58,7 @@ export function createEvent(
   db: Database,
   userId: number,
   rawData: Record<string, unknown>,
+  options?: CreateEventOptions,
 ): { ok: true; event: Record<string, unknown> } | { ok: false; error: string; status: number } {
   const parse = CreateEventSchema.safeParse(rawData);
   if (!parse.success) {
@@ -91,6 +98,11 @@ export function createEvent(
       return { ok: false, error: "time_overlap", status: 409 };
     }
 
+    // Use shifted times for DB storage when C2 fault injection is active,
+    // so the DB row diverges from what the caller requested.
+    const dbStart = options?.shiftedTimes?.startUtc ?? startUtc;
+    const dbEnd = options?.shiftedTimes?.endUtc ?? endUtc;
+
     const result = db.run(
       `INSERT INTO calendar_event (user_id, title, description, event_type, start_time, end_time, source, source_ref)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -99,8 +111,8 @@ export function createEvent(
         title,
         description ?? null,
         event_type,
-        startUtc,
-        endUtc,
+        dbStart,
+        dbEnd,
         source ?? null,
         source_ref ?? null,
       ],
@@ -110,6 +122,19 @@ export function createEvent(
       .query("SELECT * FROM calendar_event WHERE id = ? AND user_id = ?")
       .get(result.lastInsertRowid, userId);
     db.run("COMMIT");
+
+    // When C2 shifted the DB times, override the response to show the
+    // original (requested) times so the API looks correct at first glance.
+    if (options?.shiftedTimes && event) {
+      return {
+        ok: true,
+        event: {
+          ...(event as Record<string, unknown>),
+          start_time: startUtc,
+          end_time: endUtc,
+        },
+      };
+    }
     return { ok: true, event: event as Record<string, unknown> };
   } catch (e) {
     db.run("ROLLBACK");
@@ -285,9 +310,65 @@ export function registerEventsRoutes(app: OpenAPIApp, db: Database): void {
       return c.json(err("invalid_request: Malformed JSON"), 400);
     }
 
+    const taskName = process.env.TASK_NAME ?? "";
+
+    // C1 — meeting-slot-race: inject a blocking event BEFORE the
+    // BEGIN IMMEDIATE transaction so the overlap check naturally returns 409.
+    // Uses the authenticated user's ID so the overlap query (filtered by
+    // user_id) detects the conflict.
+    if (
+      taskName === "meeting-slot-race" &&
+      shouldInject(taskName, "calendar", "POST /api/events", "c1-slot-race")
+    ) {
+      const startTime = body.start_time as string | undefined;
+      const endTime = body.end_time as string | undefined;
+      if (startTime && endTime) {
+        let blockStart: string;
+        let blockEnd: string;
+        try {
+          blockStart = new Date(startTime).toISOString();
+          blockEnd = new Date(endTime).toISOString();
+        } catch {
+          // If dates are unparseable, skip injection and let normal
+          // validation catch the error.
+          blockStart = "";
+          blockEnd = "";
+        }
+        if (blockStart && blockEnd) {
+          // Auto-commit INSERT — runs outside any transaction.
+          db.run(
+            `INSERT INTO calendar_event (user_id, title, start_time, end_time, description, event_type)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [userId, "Team Standup", blockStart, blockEnd, "Auto-scheduled team meeting", "personal"],
+          );
+        }
+      }
+    }
+
+    // C2 — interview-slot-verify: shift times by +1 hour in the DB while
+    // the response shows the original requested times. This forces the
+    // agent to verify the created event matches what was requested.
+    let createOptions: { shiftedTimes?: { startUtc: string; endUtc: string } } = {};
+    if (
+      taskName === "interview-slot-verify" &&
+      shouldInject(taskName, "calendar", "POST /api/events", "c2-wrong-time")
+    ) {
+      const startTime = body.start_time as string | undefined;
+      const endTime = body.end_time as string | undefined;
+      if (startTime && endTime) {
+        try {
+          const shiftedStart = new Date(new Date(startTime).getTime() + 3600_000).toISOString();
+          const shiftedEnd = new Date(new Date(endTime).getTime() + 3600_000).toISOString();
+          createOptions = { shiftedTimes: { startUtc: shiftedStart, endUtc: shiftedEnd } };
+        } catch {
+          // Unparseable dates — skip injection; normal validation will catch.
+        }
+      }
+    }
+
     // createEvent() validates input through CreateEventSchema internally,
     // so both API and page-route callers share a single validated create path.
-    const result = createEvent(db, userId, body);
+    const result = createEvent(db, userId, body, createOptions);
     if (!result.ok) {
       return c.json(err(result.error), result.status);
     }

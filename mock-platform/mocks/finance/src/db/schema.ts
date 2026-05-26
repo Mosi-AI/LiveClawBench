@@ -137,4 +137,12 @@ CREATE TABLE IF NOT EXISTS asset_record (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS budget_alert (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  department_name TEXT,
+  threshold REAL NOT NULL DEFAULT 0,
+  month TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;

@@ -118,7 +118,7 @@ function portProxyLines(listenPort: number, targetPort: number): string[] {
   ];
 }
 
-// All 120 benchmark task names (canonical source of truth)
+// All 138 benchmark task names (canonical source of truth)
 const ALL_TASK_NAMES = new Set([
   "watch-shop", "washer-shop", "info-change", "washer-change",
   "email-watch-shop", "email-washer-change", "email-writing", "email-reply",
@@ -131,13 +131,13 @@ const ALL_TASK_NAMES = new Set([
   "mixed-tool-memory", "incremental-update-ctp", "live-web-research-sqlite-fts5",
   "conflict-repair-acb", "skill-combination", "insurance-deductible-selection", "health-insurance-optimization",
   "mint-diet-snack-log", "mint-diet-comprehensive", "nutrition-log-meal", "weather-aqi-report",
-  "social-media-posting", "social-unlike-post", "expense-draft-delete",
+  "social-media-posting", "social-unlike-post", "expense-draft-delete", "expense-submit-verify",
   "health-daily-record",
   "finance-portfolio-rebalancing", "finance-monthly-close",
   "finance-expense-log", "finance-anomaly-detect", "finance-budget-alert",
   "finance-invoice-process", "finance-tax-prepare", "finance-analysis-generate",
   "finance-depreciation-audit", "finance-dashboard-repair",
-  "smarthome-morning-checkup", "grocery-reorder", "morning-comfort-setup",
+  "smarthome-test", "grocery-reorder", "morning-comfort-setup",
   "weather-city-travel-pick", "weather-outdoor-window",
   "pre-meeting-research-brief", "vendor-due-diligence-brief",
   "social-schedule-audit", "social-keyword-cleanup", "social-event-campaign",
@@ -181,8 +181,22 @@ const ALL_TASK_NAMES = new Set([
   "openlibrary-3rd-metadata-source",
   "teleport-gcp-cert-identity",
   "vuls-kernel-detection",
-  // Additional smart-home tasks (case_ids 117-119)
-  "smarthome-sleep-quality", "sleep-trend-recovery1", "sleep-trend-recovery2", "sleep-trend-recovery3",
+  // C-axis — Runtime Adaptability tasks (case_ids 117-129)
+  "email-reply-context-shift", "email-sending-verify",
+  "watch-shop-stockout", "watch-shop-silent-fail",
+  "meeting-slot-race", "interview-slot-verify",
+  "mint-diet-stockout", "health-record-verify",
+  "social-post-rate-limit", "social-unlike-verify",
+  "finance-budget-shift", "vue-fix-rebreak",
+  // PR #69 Communication & Email tasks (case_ids 130-134)
+  "vendor-requirement-followup",
+  "invoice-to-expense-draft",
+  "newsletter-digest-forward",
+  "procurement-quote-compare-reply",
+  "stale-client-escalation",
+  // Additional smart-home recovery tasks (case_ids 135-138)
+  "smarthome-sleep-quality", "sleep-trend-recovery1",
+  "sleep-trend-recovery2", "sleep-trend-recovery3",
 ]);
 
 interface AssetMapping {
@@ -533,17 +547,6 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
     lines.push("");
   }
 
-  // Health binary must use the shared DB path that startup_extra and verifiers
-  // reference, otherwise the service seeds one DB while task scripts mutate another.
-  if (binaries.includes("health")) {
-    lines.push("# Initialize shared health data directory and DB path");
-    lines.push("mkdir -p /var/lib/mock-data/health");
-    lines.push("chown mock:mock /var/lib/mock-data/health");
-    lines.push("chmod 700 /var/lib/mock-data/health");
-    lines.push("export HEALTH_DB_PATH=/var/lib/mock-data/health/health.db");
-    lines.push("");
-  }
-
   // Step 1: Launch Bun mock binaries
   if (binaries.length > 0) {
     lines.push("# Start Bun mock binaries");
@@ -619,10 +622,14 @@ function generateStartupScript(task: string, binaries: string[], startupExtra?: 
         lines.push(`echo "Expense frontend served by Bun on port ${port}" > /tmp/expense-frontend.log`);
         lines.push(`echo "npm install skipped — frontend pre-built at image time" > /tmp/expense-npm-install.log`);
       } else if (bin === "social") {
-        lines.push(`export MOCK_DATA_DIR=/opt/mock/data`);
-        lines.push(`mkdir -p /opt/mock/data/social`);
+        lines.push(`export MOCK_DATA_DIR=/var/lib/mock-data`);
+        lines.push(`mkdir -p /var/lib/mock-data/social`);
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} > /tmp/social-backend.log 2>&1 &`);
         lines.push(`echo "Social frontend served by Bun on port ${port}" > /tmp/social-frontend.log`);
+      } else if (bin === "health") {
+        lines.push(`export MOCK_DATA_DIR=/var/lib/mock-data`);
+        lines.push(`mkdir -p /var/lib/mock-data/health`);
+        lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       } else {
         lines.push(`/opt/mock/bin/mock-${bin} --port ${port} &`);
       }

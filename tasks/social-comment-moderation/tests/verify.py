@@ -3,11 +3,11 @@
 and a reply was posted to the legitimate question.
 
 Scoring (total 1.0):
-  - Comment 101 (scam) deleted/hidden:       0.2
-  - Comment 103 (fake news) deleted/hidden:   0.2
-  - Comment 104 (spam) deleted/hidden:        0.2
-  - Comment 102 still visible:                0.2
-  - Reply posted to comment 102:              0.2
+  - Comment 101 (scam) deleted/hidden:       0.05
+  - Comment 103 (fake news) deleted/hidden:   0.05
+  - Comment 104 (spam) deleted/hidden:        0.05
+  - Comment 102 still visible:                0.1
+  - Reply posted to comment 102:              0.75
 
 Completion gate: the reply to comment 102 is the required workflow artifact for
 this task. When no reply is found, the final score is capped at 0.4 — below the
@@ -45,10 +45,14 @@ def api(path, method="GET", data=None, cookie=None):
         with urllib.request.urlopen(req, timeout=10) as resp:
             return resp.status, json.loads(resp.read())
     except urllib.error.HTTPError as e:
-        body_text = e.read()
-        return e.code, json.loads(body_text) if body_text else {}
-    except Exception as e:
-        return 0, {"error": str(e)}
+        try:
+            body_text = e.read()
+            parsed = json.loads(body_text) if body_text else {}
+        except json.JSONDecodeError:
+            parsed = {"error": e.reason or str(e)}
+        return e.code, parsed
+    except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:
+        return 0, {"error": f"{type(e).__name__}: {e}"}
 
 
 # --- Check 1-3: Violating comments should be deleted or hidden ---
@@ -62,12 +66,12 @@ violating_comments = [
 for cid, keyword in violating_comments:
     rows = query_db("SELECT status FROM comment WHERE id = ?", (cid,))
     if not rows:
-        SCORE += 0.2
+        SCORE += 0.05
         print(f"PASS: Comment {cid} ({keyword}) removed from database")
     else:
         status = rows[0]["status"]
         if status != "visible":
-            SCORE += 0.2
+            SCORE += 0.05
             print(f"PASS: Comment {cid} ({keyword}) status is '{status}'")
         else:
             print(f"FAIL: Comment {cid} ({keyword}) is still visible")
@@ -76,7 +80,7 @@ for cid, keyword in violating_comments:
 
 rows = query_db("SELECT status FROM comment WHERE id = 102")
 if rows and rows[0]["status"] == "visible":
-    SCORE += 0.2
+    SCORE += 0.1
     print("PASS: Comment 102 (legitimate question) is still visible")
 else:
     status = rows[0]["status"] if rows else "missing"
@@ -95,7 +99,7 @@ replies = query_db(
 
 if replies:
     reply_found = True
-    SCORE += 0.2
+    SCORE += 0.75
     reply_info = ", ".join(
         f"'{r['body'][:50]}' by {r.get('username', 'unknown')}" for r in replies
     )
@@ -131,7 +135,7 @@ else:
             ]
             if mosi_replies:
                 reply_found = True
-                SCORE += 0.2
+                SCORE += 0.75
                 print(
                     f"PASS: Reply found via API to comment 102 (mosi_brand): "
                     f"'{mosi_replies[0].get('body', '')[:50]}'"
@@ -143,7 +147,7 @@ else:
 
 # Completion gate: the reply-to-comment-102 workflow is the required artifact.
 # Moderation-only solutions (hiding the three violating comments without replying)
-# accumulate 0.6 from the hide checks alone — cap at 0.4 so they cannot cross
+# accumulate 0.25 from the hide checks alone — cap at 0.4 so they cannot cross
 # the 0.5 success threshold without completing the required reply step.
 if not reply_found:
     capped = min(SCORE, 0.4)

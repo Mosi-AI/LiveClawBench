@@ -20,7 +20,7 @@ Technical reference for task format and complexity annotations:
 
 | Reference | Description |
 |-----------|-------------|
-| [Complexity Framework](reference/complexity-framework.md) | Factor definitions, 32-case annotation table, domain heatmap, controlled pairs |
+| [Complexity Framework](reference/complexity-framework.md) | Factor definitions, 134-case annotation table, domain heatmap, controlled pairs |
 | [Task Format](reference/task-format.md) | Harbor task directory structure, `task.toml` fields, evaluation rubric |
 | [Jobs Output](reference/jobs-output.md) | `harbor run -o jobs` directory layout, file lifecycle (bind mounts), key fields, troubleshooting |
 
@@ -29,7 +29,7 @@ Technical reference for task format and complexity annotations:
 | Document | Description |
 |----------|-------------|
 | [What Makes Real Assistant Tasks Hard?](background/assistant_task_complexity.md) | Factor stacking effect, benchmark comparison, why this framework matters |
-| [Future Factors](roadmap/future_factors.md) | A3/A4/B3/C-axis expansion roadmap with priority order |
+| [Future Factors](roadmap/future_factors.md) | A3/A4/B3/C3/C4 expansion roadmap; C1/C2 are implemented (see Complexity Framework) |
 
 ## Metadata
 

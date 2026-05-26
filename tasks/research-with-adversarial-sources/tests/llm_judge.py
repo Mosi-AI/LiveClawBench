@@ -11,6 +11,7 @@
 #   tasks/noise-filtering/tests/llm_judge.py
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -159,8 +160,22 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
         },
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=180) as response:
-        return json.loads(response.read().decode("utf-8"))
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=180) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            if 400 <= exc.code < 500:
+                raise
+            if attempt < 2:
+                time.sleep(2**attempt)
+                continue
+            raise
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if attempt < 2:
+                time.sleep(2**attempt)
+                continue
+            raise
 
 
 DEFAULT_JUDGE_MODEL = "deepseek-v3.2"

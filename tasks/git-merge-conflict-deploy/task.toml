@@ -1,7 +1,7 @@
 version = "1.0"
 
 [metadata]
-difficulty = "medium"
+difficulty = "easy"
 category = "open-world"
 tags = ["devops_env_repair"]
 domain = "DevOps & Env Repair"
@@ -10,6 +10,8 @@ factor_a1 = 1
 factor_a2 = 1
 factor_b1 = 0
 factor_b2 = 0
+factor_c1 = 0
+factor_c2 = 0
 case_id = 80
 
 [verifier]

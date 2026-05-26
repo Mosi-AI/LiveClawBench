@@ -11,8 +11,8 @@ The agent must:
      announcement post (unpinned) and the new 10K followers giveaway post (pinned)
 
 Scoring:
-  - 0.2 for post_id=1 unpinned
-  - 0.2 for post_id=9 pinned
+  - 0.1 for post_id=1 unpinned
+  - 0.3 for post_id=9 pinned
   - 0.6 for the confirmation email — binary check, requires ALL of:
       * folder = 'sent'
       * lower(recipient_email) = 'social-team@mosi.inc'
@@ -62,10 +62,14 @@ def api(path, method="GET", data=None, cookie=None):
         with urllib.request.urlopen(req, timeout=10) as resp:
             return resp.status, json.loads(resp.read())
     except urllib.error.HTTPError as e:
-        resp_body = e.read()
-        return e.code, json.loads(resp_body) if resp_body else {}
-    except Exception as e:
-        return 0, {"error": str(e)}
+        try:
+            resp_body = e.read()
+            parsed = json.loads(resp_body) if resp_body else {}
+        except json.JSONDecodeError:
+            parsed = {"error": e.reason or str(e)}
+        return e.code, parsed
+    except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:
+        return 0, {"error": f"{type(e).__name__}: {e}"}
 
 
 def main():
@@ -111,18 +115,18 @@ def main():
             elif p.get("id") == 9:
                 new_post = p
 
-        # Dimension 1: post_id=1 unpinned (0.2)
+        # Dimension 1: post_id=1 unpinned (0.1)
         dim1_score = 0.0
         if old_post and old_post.get("is_pinned", 0) == 0:
-            dim1_score = 0.2
+            dim1_score = 0.1
             messages.append("PASS: post_id=1 unpinned")
         else:
             messages.append("FAIL: post_id=1 still pinned or not found")
 
-        # Dimension 2: post_id=9 pinned (0.2)
+        # Dimension 2: post_id=9 pinned (0.3)
         dim2_score = 0.0
         if new_post and new_post.get("is_pinned", 0) == 1:
-            dim2_score = 0.2
+            dim2_score = 0.3
             messages.append("PASS: post_id=9 pinned")
         else:
             messages.append("FAIL: post_id=9 not pinned or not found")
@@ -193,8 +197,8 @@ def main():
                     )
                     for fr in fail_reasons[:5]:
                         messages.append(f"  - {fr}")
-        except Exception as e:
-            messages.append(f"FAIL: cannot check email DB: {e}")
+        except sqlite3.Error as e:
+            messages.append(f"FAIL: cannot check email DB: {type(e).__name__}: {e}")
 
         score = dim1_score + dim2_score + dim3_score
 

@@ -13,6 +13,8 @@ factor_a1 = 1   # Cross-Service Dependency (gRPC KV-Store + Email)
 factor_a2 = 1   # Contaminated Initial State (buggy service code)
 factor_b1 = 1   # Implicit Goal Resolution (vague bug report, must infer root cause)
 factor_b2 = 0   # Knowledge System Maintenance
+factor_c1 = 0
+factor_c2 = 0
 
 case_id = 75
 

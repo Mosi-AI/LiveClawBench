@@ -1,6 +1,6 @@
 /** @jsxImportSource hono/jsx */
 import bcryptjs from "bcryptjs";
-import { sign, tokenCookieOptions, serializeCookie, authRequired } from "mock-lib";
+import { sign, tokenCookieOptions, serializeCookie, authRequired, shouldInject } from "mock-lib";
 import type { AppEnv } from "mock-lib";
 import type { Database } from "bun:sqlite";
 import { CalendarPage } from "./pages/calendar-page";
@@ -143,13 +143,51 @@ export function registerPageRoutes(app: Hono<AppEnv>, db: Database): void {
     // createEvent() validates event_type through CreateEventSchema and parses
     // start_time/end_time internally, so crafted form data (e.g. event_type=bad)
     // or malformed dates are rejected before any database mutation.
+
+    const taskName = process.env.TASK_NAME ?? "";
+
+    // C1 — meeting-slot-race: inject a blocking event before the main create.
+    // Uses the authenticated user's ID so the overlap query (filtered by
+    // user_id) detects the conflict.
+    if (
+      taskName === "meeting-slot-race" &&
+      shouldInject(taskName, "calendar", "POST /api/events", "c1-slot-race")
+    ) {
+      try {
+        const blockStart = new Date(startTime).toISOString();
+        const blockEnd = new Date(endTime).toISOString();
+        db.run(
+          `INSERT INTO calendar_event (user_id, title, start_time, end_time, description, event_type)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [userId, "Team Standup", blockStart, blockEnd, "Auto-scheduled team meeting", "personal"],
+        );
+      } catch {
+        // Unparseable dates — skip injection; normal validation will catch.
+      }
+    }
+
+    // C2 — interview-slot-verify: shift times by +1 hour in DB.
+    let pageCreateOptions: { shiftedTimes?: { startUtc: string; endUtc: string } } = {};
+    if (
+      taskName === "interview-slot-verify" &&
+      shouldInject(taskName, "calendar", "POST /api/events", "c2-wrong-time")
+    ) {
+      try {
+        const shiftedStart = new Date(new Date(startTime).getTime() + 3600_000).toISOString();
+        const shiftedEnd = new Date(new Date(endTime).getTime() + 3600_000).toISOString();
+        pageCreateOptions = { shiftedTimes: { startUtc: shiftedStart, endUtc: shiftedEnd } };
+      } catch {
+        // Unparseable dates — skip injection; normal validation will catch.
+      }
+    }
+
     const result = createEvent(db, userId, {
       title,
       description: description || undefined,
       event_type: eventType,
       start_time: startTime,
       end_time: endTime,
-    });
+    }, pageCreateOptions);
     if (!result.ok) {
       const events = listEvents(db, userId);
       return c.html(

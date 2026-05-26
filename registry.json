@@ -2,7 +2,7 @@
   {
     "name": "liveclawbench",
     "version": "0.1.0",
-    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 119 tasks with 4 complexity factors (A1/A2/B1/B2) across 11 task domains.",
+    "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 138 tasks with 6 complexity factors (A1/A2/B1/B2/C1/C2) across 11 task domains.",
     "tasks": [
       {
         "name": "skill-creation",
@@ -169,8 +169,8 @@
         "path": "tasks/mint-diet-comprehensive"
       },
       {
-        "name": "smarthome-morning-checkup",
-        "path": "tasks/smarthome-morning-checkup"
+        "name": "smarthome-test",
+        "path": "tasks/smarthome-test"
       },
       {
         "name": "weather-aqi-report",
@@ -469,6 +469,78 @@
         "path": "tasks/vuls-kernel-detection"
       },
       {
+        "name": "vendor-requirement-followup",
+        "path": "tasks/vendor-requirement-followup"
+      },
+      {
+        "name": "invoice-to-expense-draft",
+        "path": "tasks/invoice-to-expense-draft"
+      },
+      {
+        "name": "newsletter-digest-forward",
+        "path": "tasks/newsletter-digest-forward"
+      },
+      {
+        "name": "procurement-quote-compare-reply",
+        "path": "tasks/procurement-quote-compare-reply"
+      },
+      {
+        "name": "stale-client-escalation",
+        "path": "tasks/stale-client-escalation"
+      },
+      {
+        "name": "email-reply-context-shift",
+        "path": "tasks/email-reply-context-shift"
+      },
+      {
+        "name": "email-sending-verify",
+        "path": "tasks/email-sending-verify"
+      },
+      {
+        "name": "expense-submit-verify",
+        "path": "tasks/expense-submit-verify"
+      },
+      {
+        "name": "finance-budget-shift",
+        "path": "tasks/finance-budget-shift"
+      },
+      {
+        "name": "health-record-verify",
+        "path": "tasks/health-record-verify"
+      },
+      {
+        "name": "interview-slot-verify",
+        "path": "tasks/interview-slot-verify"
+      },
+      {
+        "name": "meeting-slot-race",
+        "path": "tasks/meeting-slot-race"
+      },
+      {
+        "name": "mint-diet-stockout",
+        "path": "tasks/mint-diet-stockout"
+      },
+      {
+        "name": "social-post-rate-limit",
+        "path": "tasks/social-post-rate-limit"
+      },
+      {
+        "name": "social-unlike-verify",
+        "path": "tasks/social-unlike-verify"
+      },
+      {
+        "name": "vue-fix-rebreak",
+        "path": "tasks/vue-fix-rebreak"
+      },
+      {
+        "name": "watch-shop-silent-fail",
+        "path": "tasks/watch-shop-silent-fail"
+      },
+      {
+        "name": "watch-shop-stockout",
+        "path": "tasks/watch-shop-stockout"
+      },
+      {
         "name": "smarthome-sleep-quality",
         "path": "tasks/smarthome-sleep-quality"
       },
@@ -479,6 +551,10 @@
       {
         "name": "sleep-trend-recovery2",
         "path": "tasks/sleep-trend-recovery2"
+      },
+      {
+        "name": "sleep-trend-recovery3",
+        "path": "tasks/sleep-trend-recovery3"
       }
     ]
   }

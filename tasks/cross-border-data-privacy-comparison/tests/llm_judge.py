@@ -121,8 +121,22 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
         },
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=180) as response:
-        return json.loads(response.read().decode("utf-8"))
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=180) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            if 400 <= exc.code < 500:
+                raise
+            if attempt < 2:
+                time.sleep(2**attempt)
+                continue
+            raise
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if attempt < 2:
+                time.sleep(2**attempt)
+                continue
+            raise
 
 
 def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:

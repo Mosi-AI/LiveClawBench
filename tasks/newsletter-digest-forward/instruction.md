@@ -1,0 +1,1 @@
+Please review the unread newsletters in my company email system (http://localhost:5174/, open it in browser), write a short digest of the top three updates, save the digest into my workspace at `/workspace/notes/newsletter-digest.md`, and send it to research@work.mosi.inc.

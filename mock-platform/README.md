@@ -8,11 +8,22 @@ Bun+Hono mock services that simulate real-world APIs inside task containers. Eac
 mock-platform/
 ├── packages/mock-lib/         # Shared library
 ├── mocks/                     # Per-service implementations
-│   ├── shop/
-│   ├── doc-search/
 │   ├── airline/
+│   ├── calendar/
+│   ├── chat/
+│   ├── doc-search/
 │   ├── email/
-│   └── todolist/
+│   ├── expense/
+│   ├── finance/
+│   ├── health/
+│   ├── insurance/
+│   ├── mint-diet/
+│   ├── shop/
+│   ├── smarthome/
+│   ├── social/
+│   ├── todolist/
+│   ├── weather/
+│   └── workspace/
 ├── scripts/                   # Build & image tools
 ├── config/                    # Task-to-binary mapping
 └── docs/                      # API docs & test references
@@ -44,11 +55,22 @@ Search parity between the legacy Python mock implementations and the current Bun
 
 | Service | Directory | Binary | Description |
 |---------|-----------|--------|-------------|
-| Shop | `mocks/shop/` | `mock-shop` | E-commerce: products, cart, orders, user profile, search |
-| Doc-search | `mocks/doc-search/` | `mock-doc-search` | FTS5 full-text search with BM25 ranking, JSONL access logging |
 | Airline | `mocks/airline/` | `mock-airline` | Flight booking, seat selection, baggage tracking |
+| Calendar | `mocks/calendar/` | `mock-calendar` | Calendar events CRUD with overlap rejection |
+| Chat | `mocks/chat/` | `mock-chat` | Chat messaging with sticker engagement |
+| Doc-search | `mocks/doc-search/` | `mock-doc-search` | FTS5 full-text search with BM25 ranking, JSONL access logging |
 | Email | `mocks/email/` | `mock-email` | Email inbox, compose, reply |
-| Todolist | `mocks/todolist/` | `mock-todolist` | Task management |
+| Expense | `mocks/expense/` | `mock-expense` | Expense tracking and draft management |
+| Finance | `mocks/finance/` | `mock-finance` | Portfolio, invoices, tax, budget, anomaly detection |
+| Health | `mocks/health/` | `mock-health` | Health records, medication tracking, appointments |
+| Insurance | `mocks/insurance/` | `mock-insurance` | Health insurance: claims, appointments, plan selection |
+| Mint-diet | `mocks/mint-diet/` | `mock-mint-diet` | Diet logging, nutrition tracking, snack management |
+| Shop | `mocks/shop/` | `mock-shop` | E-commerce: products, cart, orders, user profile, search |
+| Smarthome | `mocks/smarthome/` | `mock-smarthome` | Smart device management and automation |
+| Social | `mocks/social/` | `mock-social` | Social media posting, scheduling, analytics, moderation |
+| Todolist | `mocks/todolist/` | `mock-todolist` | Task management with date filtering |
+| Weather | `mocks/weather/` | `mock-weather` | Weather reports, AQI, outdoor activity recommendations |
+| Workspace | `mocks/workspace/` | `mock-workspace` | Workspace briefs, task records, batch operations |
 
 API documentation is auto-generated as OpenAPI 3.1 specs in `dist/openapi/*.json`. Run `bun run generate-openapi` to regenerate after route changes.
 
@@ -159,6 +181,52 @@ BROWSER_MOCK_DATA_DIR=tasks/mixed-tool-memory/environment \
 - Shop writes order/cart state to a JSON file under `MOCK_DATA_DIR` (atomic write via `json-store.ts`). If the directory does not exist, the mock creates it.
 - Doc-search seeds its SQLite FTS5 index from `documents.sql` on first startup; subsequent restarts reuse the existing database unless the file is deleted.
 - All mocks expose `GET /health` and `GET /__mock_sentinel__/<name>` for orchestration health checks.
+
+## C-Axis Fault Injection (Runtime Adaptability)
+
+Mocks support deterministic fault injection for **C1 (Environmental State Invalidation)** and **C2 (Outcome Verification under Altered State)** tasks. Faults are gated by `process.env.TASK_NAME` and triggered via `shouldInject()` from `mock-lib`.
+
+### How it works
+
+1. **TASK_NAME gating**: Each fault is wrapped in `if (process.env.TASK_NAME === "<task-name>")` so non-C tasks are unaffected.
+2. **One-shot via `shouldInject()`**: `shouldInject(taskName, service, route, faultId)` returns `true` on the first call for a given key, then `false`. This makes faults deterministic and reproducible.
+3. **C1 — State Invalidation**: After the agent's first action, the mock mutates internal state (e.g., lowers stock, deletes catalog rows, changes budget thresholds). The agent must detect the change and replan.
+4. **C2 — Silent Failure**: The first API call returns HTTP 200 with a success message but skips persistence (e.g., order not saved, like not removed). The agent must verify state and retry.
+
+### Implemented C-axis tasks
+
+| Task | Service | Fault Type | Trigger |
+|------|---------|-----------|---------|
+| `watch-shop-stockout` | shop | C1 | 1st checkout with watch → 409 SOLD_OUT, stock set to 0 |
+| `watch-shop-silent-fail` | shop | C2 | 1st checkout → 200 fake order, no persistence |
+| `mint-diet-stockout` | mint-diet | C1 | 1st search → deletes matching food rows |
+| `social-post-rate-limit` | social | C1 | 3rd POST /posts → 429 RATE_LIMITED |
+| `social-unlike-verify` | social | C2 | 1st unlike → 200 but DB delete skipped |
+| `expense-submit-verify` | expense | C2 | 1st submit → 200 but status stays "draft" |
+| `finance-budget-shift` | finance | C1 | 1st budget-alert POST → lowers non-violating dept budgets |
+| `email-reply-context-shift` | email | C1 | New cancellation email injected mid-session |
+| `email-sending-verify` | email | C2 | 1st send → 200 but email not persisted |
+| `health-record-verify` | health | C2 | 1st allergen add → 200 but not persisted |
+| `interview-slot-verify` | calendar | C2 | 1st event create → time silently wrong |
+| `meeting-slot-race` | calendar | C1 | 1st event create → 409 slot taken |
+| `vue-fix-rebreak` | n/a | C1 | Build fixes trigger secondary config break |
+
+### Adding new fault injection
+
+```typescript
+import { shouldInject } from "mock-lib";
+
+if (
+  process.env.TASK_NAME === "my-new-c1-task" &&
+  shouldInject("my-new-c1-task", "shop", "POST /api/checkout", "c1-my-fault")
+) {
+  // Mutate state
+  setStock(productId, 0);
+  return c.json(err("Sold out", "SOLD_OUT"), 409);
+}
+```
+
+Per-mock C-axis tests live in `mocks/<service>/tests/c-axis.test.ts`. See existing suites (shop, social, expense, finance, mint-diet) for patterns.
 
 ## Negative-Path Testing
 

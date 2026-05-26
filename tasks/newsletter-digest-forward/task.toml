@@ -1,0 +1,31 @@
+version = "1.0"
+
+[metadata]
+difficulty = "medium"
+category = "open-world"
+tags = ["communication_email", "documents_knowledge"]
+
+domain = "Communication & Email"
+domains_multi = ["Communication & Email", "Documents & Knowledge"]
+
+factor_a1 = 1
+factor_a2 = 0
+factor_b1 = 1
+factor_b2 = 0
+factor_c1 = 0
+factor_c2 = 0
+
+case_id = 132
+
+[verifier]
+timeout_sec = 900.0
+
+[agent]
+timeout_sec = 1800.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 10240
+allow_internet = true

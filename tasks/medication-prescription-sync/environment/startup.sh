@@ -7,7 +7,7 @@ set -euo pipefail
 # KEY collision short-circuits the second insert. Without fixed IDs the
 # calendar table (no UNIQUE constraint on title+start_time) would duplicate
 # on every restart, leaving the verifier with a non-deterministic fixture.
-HEALTH_DB="/workspace/health.db"
+HEALTH_DB="/var/lib/mock-data/health/health.db"
 if [ ! -f "$HEALTH_DB" ]; then
     echo "ERROR: Health DB not found at $HEALTH_DB; cannot seed required A2 fixtures" >&2
     echo "       The health mock must be running and have initialized its database before this script runs." >&2

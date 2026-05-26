@@ -6,6 +6,40 @@
       "content": "New product launch announcement coming soon!",
       "status": "published",
       "published_at": null
+    },
+    {
+      "id": 102,
+      "author_username": "mosi_brand",
+      "content": "Product launch retrospective: what we learned from the release.",
+      "status": "published",
+      "published_at": "2026-04-10 10:00:00"
+    },
+    {
+      "id": 103,
+      "author_username": "mosi_brand",
+      "content": "May newsletter: community updates and upcoming events.",
+      "status": "scheduled",
+      "scheduled_for": "2026-06-01 08:00:00"
+    },
+    {
+      "id": 104,
+      "author_username": "mosi_brand",
+      "content": "Draft: summer campaign ideas for the marketing team.",
+      "status": "draft"
+    },
+    {
+      "id": 105,
+      "author_username": "mosi_brand",
+      "content": "Customer success story: week 1 results after onboarding.",
+      "status": "published",
+      "published_at": "2026-05-01 09:00:00"
+    },
+    {
+      "id": 106,
+      "author_username": "mosi_brand",
+      "content": "Internal memo: new hire onboarding process update.",
+      "status": "published",
+      "published_at": "2026-05-10 11:00:00"
     }
   ],
   "post_metrics": [
@@ -18,6 +52,36 @@
       "clicks": 0,
       "profile_visits": 0,
       "new_followers": 0
+    },
+    {
+      "post_id": 102,
+      "impressions": 3200,
+      "likes": 145,
+      "replies": 12,
+      "reposts": 23,
+      "clicks": 67,
+      "profile_visits": 89,
+      "new_followers": 15
+    },
+    {
+      "post_id": 105,
+      "impressions": 5400,
+      "likes": 230,
+      "replies": 18,
+      "reposts": 41,
+      "clicks": 95,
+      "profile_visits": 156,
+      "new_followers": 28
+    },
+    {
+      "post_id": 106,
+      "impressions": 1200,
+      "likes": 45,
+      "replies": 3,
+      "reposts": 8,
+      "clicks": 12,
+      "profile_visits": 23,
+      "new_followers": 5
     }
   ],
   "action_logs": [

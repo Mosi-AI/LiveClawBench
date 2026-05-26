@@ -1,0 +1,1 @@
+I think a supplier sent me an invoice this morning. Please find it in my company email system (http://localhost:5174/, open it in browser), extract the invoice details, and create a reimbursement draft in the expense system (http://localhost:5005/) with the correct vendor, amount, currency, invoice date, and attachment.

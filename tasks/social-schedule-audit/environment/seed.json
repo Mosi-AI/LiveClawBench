@@ -44,6 +44,182 @@
       "published_at": null,
       "is_pinned": 0,
       "has_event_cta": 0
+    },
+    {
+      "id": 105,
+      "author_username": "mosi_brand",
+      "content": "Q2 roadmap overview for internal stakeholders. Key priorities and timelines inside.",
+      "status": "published",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": "2026-05-20 10:00:00",
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 106,
+      "author_username": "mosi_brand",
+      "content": "Customer spotlight: how Mosi helped a local business grow their online presence.",
+      "status": "published",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": "2026-05-18 09:00:00",
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 107,
+      "author_username": "mosi_brand",
+      "content": "Upcoming maintenance window: May 25, 2-4 AM UTC. Brief downtime expected.",
+      "status": "scheduled",
+      "visibility": "public",
+      "scheduled_for": "2026-05-25 02:00:00",
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 108,
+      "author_username": "mosi_brand",
+      "content": "Save the date: Mosi annual party, December 15! More details coming soon.",
+      "status": "scheduled",
+      "visibility": "public",
+      "scheduled_for": "2026-12-15 18:00:00",
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 109,
+      "author_username": "mosi_brand",
+      "content": "Beta tester recruitment now open. Apply to get early access to new features.",
+      "status": "draft",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 110,
+      "author_username": "mosi_brand",
+      "content": "Engineering blog: scaling our database layer to handle 10x traffic.",
+      "status": "draft",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 111,
+      "author_username": "mosi_brand",
+      "content": "Product launch announcement: our biggest release yet, coming next month!",
+      "status": "published",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": "2026-06-30 10:00:00",
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 112,
+      "author_username": "mosi_brand",
+      "content": "Weekly tips: optimizing your content strategy for better engagement.",
+      "status": "published",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": "2026-05-22 14:00:00",
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 113,
+      "author_username": "mosi_brand",
+      "content": "Holiday special: limited-time features available through January 5.",
+      "status": "scheduled",
+      "visibility": "public",
+      "scheduled_for": "2026-07-10 08:00:00",
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 114,
+      "author_username": "mosi_brand",
+      "content": "Draft: Q3 marketing campaign ideas under review.",
+      "status": "draft",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 115,
+      "author_username": "mosi_brand",
+      "content": "Coming soon: our biggest feature update ever. Stay tuned for the reveal!",
+      "status": "published",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": "2026-04-01 10:00:00",
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 116,
+      "author_username": "mosi_brand",
+      "content": "Community guidelines refresh: what's changing and why.",
+      "status": "published",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": "2026-05-15 09:00:00",
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 117,
+      "author_username": "mosi_brand",
+      "content": "Internal memo: new remote work policy effective June 1.",
+      "status": "published",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": "2026-05-28 11:00:00",
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 118,
+      "author_username": "mosi_brand",
+      "content": "Partner spotlight: collaborating with industry leaders to bring you more value.",
+      "status": "published",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": "2026-05-10 08:00:00",
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 119,
+      "author_username": "mosi_brand",
+      "content": "Scheduled: monthly community AMA session with the product team.",
+      "status": "scheduled",
+      "visibility": "public",
+      "scheduled_for": "2026-07-01 15:00:00",
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
+    },
+    {
+      "id": 120,
+      "author_username": "mosi_brand",
+      "content": "Draft: year-end retrospective and 2027 roadmap preview.",
+      "status": "draft",
+      "visibility": "public",
+      "scheduled_for": null,
+      "published_at": null,
+      "is_pinned": 0,
+      "has_event_cta": 0
     }
   ],
   "tags": [],
@@ -61,6 +237,36 @@
       "clicks": 5,
       "profile_visits": 2,
       "new_followers": 0
+    },
+    {
+      "post_id": 105,
+      "impressions": 3200,
+      "likes": 145,
+      "replies": 8,
+      "reposts": 23,
+      "clicks": 45,
+      "profile_visits": 67,
+      "new_followers": 12
+    },
+    {
+      "post_id": 106,
+      "impressions": 5400,
+      "likes": 230,
+      "replies": 15,
+      "reposts": 41,
+      "clicks": 78,
+      "profile_visits": 112,
+      "new_followers": 19
+    },
+    {
+      "post_id": 114,
+      "impressions": 120,
+      "likes": 8,
+      "replies": 1,
+      "reposts": 2,
+      "clicks": 5,
+      "profile_visits": 3,
+      "new_followers": 0
     }
   ],
   "event_campaigns": [],
@@ -72,6 +278,14 @@
       "old_value": "draft",
       "new_value": "published",
       "created_at": "2026-04-20 09:30:00"
+    },
+    {
+      "post_id": 112,
+      "actor_username": "mosi_brand",
+      "action_type": "scheduled",
+      "old_value": "draft",
+      "new_value": "scheduled",
+      "created_at": "2026-05-22 14:00:00"
     }
   ],
   "post_likes": [],

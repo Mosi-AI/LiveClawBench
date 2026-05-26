@@ -38,7 +38,12 @@ RUN curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash - && \
 # Clone at base_commit so the bug is present in the working tree.
 ARG BASE_COMMIT=339e7dab18df52b7fb3e5a86a195eab2adafe36a
 ARG FIX_COMMIT=5e8488c2838ff4268f39db4a8cca7d74eecf5a7e
-RUN git clone https://github.com/element-hq/element-web.git /workspace/repo && \
+RUN for i in 1 2 3; do \
+        rm -rf /workspace/repo && \
+        git clone --depth=1 https://github.com/element-hq/element-web.git /workspace/repo && break; \
+        [ "$i" -eq 3 ] && exit 1; \
+        sleep 15; \
+    done && \
     cd /workspace/repo && \
     git fetch --depth=1 origin "${FIX_COMMIT}" && \
     git fetch --depth=1 origin "${BASE_COMMIT}" && \

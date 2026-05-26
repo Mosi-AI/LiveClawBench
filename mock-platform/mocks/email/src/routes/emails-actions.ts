@@ -1,6 +1,6 @@
 import type { OpenAPIApp } from "mock-lib";
 import type { Database } from "bun:sqlite";
-import { createRoute } from "mock-lib";
+import { createRoute, shouldInject } from "mock-lib";
 import { ok, err, getAuthUserId } from "../helpers";
 import {
   ReadEmailBodySchema,
@@ -163,6 +163,18 @@ export function registerActionEmailRoutes(app: OpenAPIApp, db: Database): void {
     if (!email) return c.json(err("Email not found"), 404);
     if (email.sender_id !== userId) return c.json(err("Access denied"), 403);
     if (email.folder !== "drafts") return c.json(err("Only drafts can be sent"), 400);
+
+    // C2 — email-sending-verify: first send silently fails (skip_persist).
+    // Returns 200 success but does NOT update folder, create recipient copy,
+    // or copy attachments. Email stays in drafts. One-shot: only first call.
+    const taskName = process.env.TASK_NAME ?? "";
+    if (
+      taskName === "email-sending-verify" &&
+      shouldInject(taskName, "email", "PUT /api/emails/:id/send", "c2-skip-persist")
+    ) {
+      // Return fake success without persisting
+      return c.json(ok({ message: "Email sent successfully", email: getEmailById(db, emailId) }, "Email sent successfully"));
+    }
 
     db.query("UPDATE emails SET folder = 'sent', updated_at = datetime('now') WHERE id = ?").run(emailId);
 

@@ -10,6 +10,64 @@ describe("Allergens API", () => {
 
   afterEach(() => cleanup());
 
+  // --- C2 fault injection tests ---
+
+  describe("C2 fault injection (health-record-verify)", () => {
+    const origTaskName = process.env.TASK_NAME;
+
+    beforeEach(() => {
+      process.env.TASK_NAME = "health-record-verify";
+    });
+
+    afterEach(() => {
+      process.env.TASK_NAME = origTaskName;
+    });
+
+    test("first POST /api/allergens returns 200 with fake ID, not persisted", async () => {
+      const res = await jsonRequest(app, "/api/allergens", {
+        name: "Dust Mites",
+        severity: "moderate",
+        notes: "Indoor allergen",
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.id).toBe(99999);
+      expect(body.name).toBe("Dust Mites");
+      expect(body.severity).toBe("moderate");
+      expect(body.notes).toBe("Indoor allergen");
+
+      // Verify it was NOT persisted — GET list should not include it
+      const listRes = await app.request("/api/allergens");
+      const listBody = await listRes.json();
+      const names = listBody.allergens.map((a: any) => a.name);
+      expect(names).not.toContain("Dust Mites");
+    });
+
+    test("second POST /api/allergens actually persists (one-shot)", async () => {
+      // First call triggers the fault
+      await jsonRequest(app, "/api/allergens", { name: "Dust Mites" });
+
+      // Second call should work normally
+      const res = await jsonRequest(app, "/api/allergens", {
+        name: "Mold",
+        severity: "mild",
+      });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.name).toBe("Mold");
+      expect(body.id).toBeGreaterThan(0);
+      expect(body.id).not.toBe(99999);
+
+      // Verify it was persisted
+      const listRes = await app.request("/api/allergens");
+      const listBody = await listRes.json();
+      const names = listBody.allergens.map((a: any) => a.name);
+      expect(names).toContain("Mold");
+    });
+  });
+
+  // --- Standard tests ---
+
   test("POST /api/allergens creates an allergen", async () => {
     const res = await jsonRequest(app, "/api/allergens", {
       name: "Peanuts",

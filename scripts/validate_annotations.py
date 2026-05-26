@@ -53,6 +53,8 @@ def load_toml_annotations() -> dict[str, dict]:
             "factor_a2": bool(meta.get("factor_a2", 0)),
             "factor_b1": bool(meta.get("factor_b1", 0)),
             "factor_b2": bool(meta.get("factor_b2", 0)),
+            "factor_c1": bool(meta.get("factor_c1", 0)),
+            "factor_c2": bool(meta.get("factor_c2", 0)),
         }
     return results
 
@@ -86,7 +88,13 @@ def load_framework_annotations(framework_path: Path = FRAMEWORK_MD) -> dict[str,
             a2 = "✓" in cols[4]
             b1 = "✓" in cols[5]
             b2 = "✓" in cols[6]
-            domain = cols[7].strip() if len(cols) > 7 else ""
+            c1 = "✓" in cols[7] if len(cols) > 7 else False
+            c2 = "✓" in cols[8] if len(cols) > 8 else False
+            domain = (
+                cols[9].strip()
+                if len(cols) > 9
+                else (cols[7].strip() if len(cols) > 7 else "")
+            )
             results[case_name] = {
                 "case_id": int(case_id_str),
                 "difficulty": DIFFICULTY_MAP.get(diff_code, diff_code),
@@ -95,6 +103,8 @@ def load_framework_annotations(framework_path: Path = FRAMEWORK_MD) -> dict[str,
                 "factor_a2": a2,
                 "factor_b1": b1,
                 "factor_b2": b2,
+                "factor_c1": c1,
+                "factor_c2": c2,
             }
         elif in_table and not line.startswith("|"):
             break
@@ -123,6 +133,8 @@ def load_csv_annotations(csv_path: Path) -> dict[str, dict]:
                 "factor_a2": row.get("factor_A2", "0").strip() == "1",
                 "factor_b1": row.get("factor_B1", "0").strip() == "1",
                 "factor_b2": row.get("factor_B2", "0").strip() == "1",
+                "factor_c1": row.get("factor_C1", "0").strip() == "1",
+                "factor_c2": row.get("factor_C2", "0").strip() == "1",
                 "status": row.get("status", "implemented").strip(),
             }
     return results
@@ -137,7 +149,14 @@ def compare_sources(
 ) -> list[str]:
     """Compare annotations across all three sources, return list of errors."""
     errors: list[str] = []
-    factor_keys = ["factor_a1", "factor_a2", "factor_b1", "factor_b2"]
+    factor_keys = [
+        "factor_a1",
+        "factor_a2",
+        "factor_b1",
+        "factor_b2",
+        "factor_c1",
+        "factor_c2",
+    ]
     check_keys = ["case_id", "difficulty", "domain"] + factor_keys
 
     # Check toml tasks against framework
@@ -198,7 +217,7 @@ def compare_sources(
 
 def print_summary(toml_data: dict[str, dict]) -> None:
     """Print summary statistics from task.toml ground truth."""
-    factor_counts = {"A1": 0, "A2": 0, "B1": 0, "B2": 0}
+    factor_counts = {"A1": 0, "A2": 0, "B1": 0, "B2": 0, "C1": 0, "C2": 0}
     diff_counts = {"easy": 0, "medium": 0, "hard": 0}
 
     for ann in toml_data.values():
@@ -210,6 +229,10 @@ def print_summary(toml_data: dict[str, dict]) -> None:
             factor_counts["B1"] += 1
         if ann["factor_b2"]:
             factor_counts["B2"] += 1
+        if ann.get("factor_c1"):
+            factor_counts["C1"] += 1
+        if ann.get("factor_c2"):
+            factor_counts["C2"] += 1
         diff = ann.get("difficulty", "")
         if diff in diff_counts:
             diff_counts[diff] += 1
@@ -269,6 +292,8 @@ def main() -> int:
                     "factor_a2",
                     "factor_b1",
                     "factor_b2",
+                    "factor_c1",
+                    "factor_c2",
                 ]:
                     if framework_data[case_name].get(key) != framework_data_zh[
                         case_name

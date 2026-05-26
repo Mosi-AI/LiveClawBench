@@ -1,7 +1,7 @@
 version = "1.0"
 
 [metadata]
-difficulty = "hard"
+difficulty = "easy"
 category = "open-world"
 tags = ["e-commerce_daily_svcs", "communication_email"]
 domain = "E-commerce & Daily Svcs"
@@ -11,6 +11,8 @@ factor_a1 = 0
 factor_a2 = 0
 factor_b1 = 1
 factor_b2 = 0
+factor_c1 = 0
+factor_c2 = 0
 
 case_id = 71
 

@@ -12,9 +12,11 @@ domains_multi = ["E-commerce & Daily Svcs", "Health & Fitness", "Smart Home"]
 factor_a1 = 1   # Cross-Service Dependency
 factor_a2 = 1   # Contaminated Initial State
 factor_b1 = 1   # Implicit Goal Resolution
-factor_b2 = 0   # Knowledge System Maintenance
+factor_b2 = 0
+factor_c1 = 0
+factor_c2 = 0   # Knowledge System Maintenance
 
-case_id = 117
+case_id = 135
 
 [verifier]
 timeout_sec = 900.0

@@ -42,6 +42,36 @@
         }
       ]
     },
+    "watch-shop-stockout": {
+      "binaries": [
+        "shop"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
+    "watch-shop-silent-fail": {
+      "binaries": [
+        "shop"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/shop/css/style.css",
+          "dest": "/opt/mock/static/shop/css/style.css"
+        },
+        {
+          "src": "mock-platform/static/shop/sample_products.json",
+          "dest": "/opt/mock/static/shop/products.json"
+        }
+      ]
+    },
     "washer-shop": {
       "binaries": [
         "shop"
@@ -127,6 +157,16 @@
       ]
     },
     "email-reply": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "email-reply-context-shift": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "email-sending-verify": {
       "binaries": [
         "email"
       ]
@@ -239,6 +279,9 @@
     "vue-build-fix-chain": {
       "binaries": []
     },
+    "vue-fix-rebreak": {
+      "binaries": []
+    },
     "skill-creation": {
       "binaries": []
     },
@@ -332,12 +375,27 @@
         "mint-diet"
       ]
     },
+    "mint-diet-stockout": {
+      "binaries": [
+        "mint-diet"
+      ]
+    },
     "social-media-posting": {
       "binaries": [
         "social"
       ]
     },
     "social-unlike-post": {
+      "binaries": [
+        "social"
+      ]
+    },
+    "social-post-rate-limit": {
+      "binaries": [
+        "social"
+      ]
+    },
+    "social-unlike-verify": {
       "binaries": [
         "social"
       ]
@@ -353,7 +411,17 @@
         }
       ]
     },
+    "expense-submit-verify": {
+      "binaries": [
+        "expense"
+      ]
+    },
     "health-daily-record": {
+      "binaries": [
+        "health"
+      ]
+    },
+    "health-record-verify": {
       "binaries": [
         "health"
       ]
@@ -453,13 +521,13 @@
         "finance"
       ]
     },
-    "smarthome-morning-checkup": {
+    "smarthome-test": {
       "binaries": [
         "smarthome"
       ],
       "assets": [
         {
-          "src": "tasks/smarthome-morning-checkup/environment/seed.sql",
+          "src": "tasks/smarthome-test/environment/seed.sql",
           "dest": "/opt/mock/data/smarthome.sql"
         }
       ]
@@ -534,6 +602,12 @@
         "email"
       ]
     },
+    "finance-budget-shift": {
+      "binaries": [
+        "finance",
+        "email"
+      ]
+    },
     "finance-dashboard-repair": {
       "binaries": [
         "finance"
@@ -580,7 +654,31 @@
         }
       ]
     },
+    "meeting-slot-race": {
+      "binaries": [
+        "email",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ]
+    },
     "candidate-interview-slot-confirm": {
+      "binaries": [
+        "email",
+        "calendar"
+      ],
+      "assets": [
+        {
+          "src": "mock-platform/static/calendar/css/style.css",
+          "dest": "/opt/mock/static/calendar/css/style.css"
+        }
+      ]
+    },
+    "interview-slot-verify": {
       "binaries": [
         "email",
         "calendar"
@@ -949,6 +1047,32 @@
     },
     "mrna-cancer-vaccines-landscape": {
       "binaries": []
+    },
+    "vendor-requirement-followup": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "invoice-to-expense-draft": {
+      "binaries": [
+        "email",
+        "expense"
+      ]
+    },
+    "newsletter-digest-forward": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "procurement-quote-compare-reply": {
+      "binaries": [
+        "email"
+      ]
+    },
+    "stale-client-escalation": {
+      "binaries": [
+        "email"
+      ]
     },
     "smarthome-sleep-quality": {
       "binaries": [

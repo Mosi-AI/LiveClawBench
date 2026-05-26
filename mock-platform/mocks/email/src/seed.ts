@@ -439,72 +439,50 @@ const SENDER_COMM_MANAGER = { username: "comm.manager", email: "comm.manager@mos
 const SENDER_CEO = { username: "ceo.mosi", email: "ceo@mosi.inc" };
 
 const INBOX_CROSS_PUBLISH = {
-  subject: "Cross-Publish Content to Social Media",
+  subject: "Summer Tech Summit social push",
   body: `Hi,
 
-Our marketing team has prepared a new promotional post that needs to be published on the Mosi Social platform. Here's the content:
+Marketing wants to push the Summer Tech Summit on social. I attached the talking points below. You'll also want to check the calendar for the confirmed event date — the social post should reference that. Get it up on the brand account when ready.
 
-Title: Summer Tech Summit 2026 - Early Bird Registration Open
+Talking points: industry leaders, 50+ sessions, workshops, startup pitches, networking, early bird ends June 30, save 30%.
 
-Content:
-"Join us for the biggest tech event of the year! The Summer Tech Summit 2026 brings together industry leaders, innovators, and tech enthusiasts for three days of keynotes, workshops, and networking.
-
-Key highlights:
-- 50+ speaker sessions
-- Hands-on workshops
-- Startup pitch competition
-- Evening networking events
-
-Early bird pricing ends June 30. Register now to save 30%!
-
-#TechSummit2026 #SummerSummit #TechConference"
-
-Please check the company calendar for the event date and recommended posting format, then publish this to our social media account.
+Hashtags to include: #TechSummit2026 #SummerSummit #TechConference
 
 Best regards,
-Marketing Team`,
+Marketing Team (social.team@mosi.inc)`,
   days_ago: 0,
   is_read: 0,
 };
 
 const INBOX_PINNED_POST = {
-  subject: "Update Pinned Post on Social Media",
+  subject: "Refresh featured content",
   body: `Hi,
 
-We need to update the pinned post on our social media account. The current pinned post about our launch is outdated.
-
-Please pin the post about our "10K followers giveaway" instead, and unpin the current one. You'll need a verification code from the calendar event titled "Social Media Q2 Content Plan" to complete this change.
+Time to refresh the featured content on the brand page. The launch announcement has been up there for a while — the community team would rather highlight something more recent. There's a note in the calendar about the change procedure. Make sure you follow that before confirming with the social team.
 
 Best regards,
-Social Media Team`,
+Social Media Team (social-team@mosi.inc)`,
   days_ago: 0,
   is_read: 0,
 };
 
 const INBOX_EVENT_CAMPAIGN = {
-  subject: "Publish Event Campaign Post",
+  subject: "Event campaign ready to go live",
   body: `Hi,
 
-We have a draft post ready for our upcoming event campaign on the social media platform. It's currently saved as a draft under the Mosi Brand account.
-
-Please review the draft and publish it. After publishing, send a notification email to events@mosi.inc with the subject "Event Campaign Published" confirming the post is live.
+The Events Team has finalized the Mosi Tech Innovation Summit materials. The campaign content is sitting in drafts on the brand account. Get it live when you have a moment, and loop in the events team once it's out.
 
 Thanks,
-Events Team`,
+Events Team (events@mosi.inc)`,
   days_ago: 0,
   is_read: 0,
 };
 
 const INBOX_KEYWORD_CLEANUP = {
-  subject: "Remove Posts with Specific Keywords",
+  subject: "Clean up old campaign content",
   body: `Hi,
 
-We need to clean up some posts on our social media account. Please delete all posts that contain any of the following keywords:
-
-- "giveaway"
-- "milestone"
-
-These posts were part of a completed campaign and should be removed. Delete each post one by one through the platform.
+We've wrapped up the Q1 engagement campaigns. Can you clear out any leftover promotional posts and personal milestone announcements from the brand feed? The community team wants a clean slate for Q2.
 
 Best regards,
 Content Moderation Team`,
@@ -513,14 +491,10 @@ Content Moderation Team`,
 };
 
 const INBOX_COMMENT_MODERATION = {
-  subject: "Moderate Comments on Recent Posts",
+  subject: "Comment section cleanup needed",
   body: `Hi,
 
-Several comments on our social media posts need moderation. Please review the recent comments and reply to the ones that ask questions. Use the brand account (mosi_brand) for official replies.
-
-Also, check if any comments violate our keyword rules. If you find violations, hide or delete those comments.
-
-Important: some comments may need replies from different accounts. Use the account switch feature to respond appropriately.
+The community team flagged some noise in the comment sections. A few posts are getting off-topic replies and there's been feedback about unhelpful responses. Can you tidy things up and make sure legitimate questions get proper answers?
 
 Best regards,
 Community Management`,
@@ -529,20 +503,13 @@ Community Management`,
 };
 
 const INBOX_ANOMALY_REPORT = {
-  subject: "Social Media Data Integrity Check",
+  subject: "Analytics numbers look off",
   body: `Hi,
 
-We suspect there might be data inconsistencies in our social media analytics. Please review the post metrics and action logs on the platform to identify any anomalies.
-
-Specifically check for:
-- Posts with metrics that don't match their action logs
-- Posts with inconsistent status and published_at values
-- Any orphaned or duplicate data entries
-
-Once you've identified all anomalies, send a detailed report to data-team@mosi.inc with the subject "Social Media Data Anomaly Report" listing each issue you found.
+We've had some odd feedback about the analytics numbers not adding up. Could you take a look at the post data and see if anything looks off? If you find anything suspicious, flag it with the data team.
 
 Best regards,
-Data Integrity Team`,
+Data Integrity Team (data-team@mosi.inc)`,
   days_ago: 0,
   is_read: 0,
 };
@@ -905,13 +872,20 @@ function makeSeedConfig(taskName: string): SeedConfig {
 
   switch (taskName) {
     case "email-writing":
+    // C2 variant: same baseline as email-writing (agent writes and sends an
+    // email; first send silently fails via skip_persist in the send handler).
+    case "email-sending-verify":
       return {
         senders: [...BASELINE_SENDERS],
         inbox: baselineInbox,
         sent: baselineSent,
       };
 
-    case "email-reply": {
+    case "email-reply":
+    // C1 variant: same seed as email-reply (Lau partnership). After the agent
+    // creates a draft reply, the C1 handler in emails-read.ts injects a
+    // "URGENT: Meeting cancelled" email into the inbox on the next GET.
+    case "email-reply-context-shift": {
       const senders = [...BASELINE_SENDERS, SENDER_LAU];
       return {
         senders,
@@ -1179,7 +1153,8 @@ function makeSeedConfig(taskName: string): SeedConfig {
       };
     }
 
-    case "candidate-interview-slot-confirm": {
+    case "candidate-interview-slot-confirm":
+    case "interview-slot-verify": {
       const senders = [...BASELINE_SENDERS, SENDER_HR];
       return {
         senders,
@@ -1265,6 +1240,207 @@ function makeSeedConfig(taskName: string): SeedConfig {
         senders: [...BASELINE_SENDERS],
         inbox: baselineInbox,
         sent: baselineSent,
+      };
+    }
+
+    case "vendor-requirement-followup": {
+      const vendor = { username: "orchid_systems_ops", email: "ops@orchid-systems.com" };
+      const nearVendor = { username: "orchid_partners", email: "partners@orchid-partners.com" };
+      const finance = { username: "finance_ops", email: "finance@work.mosi.inc" };
+      return {
+        senders: [...BASELINE_SENDERS, vendor, nearVendor, finance],
+        inbox: [
+          ...baselineInbox,
+          {
+            senderUsername: "orchid_systems_ops",
+            subject: "Requirement Summary: Phoenix Analytics pilot API scope",
+            body: "Hi Peter,\n\nAttached is the latest requirement summary for the Phoenix Analytics pilot. Key items:\n  - Authentication: OAuth2 client credentials, scoped per tenant\n  - Data freshness: 5-minute incremental sync\n  - Rate limits: 200 rps per project\n  - Optional features: row-level ACLs (deferred to phase 2)\n\nBest,\nOps @ Orchid Systems",
+            days_ago: 0,
+            is_read: 0,
+          },
+          {
+            senderUsername: "orchid_partners",
+            subject: "Quarterly partner sync",
+            body: "Hi Peter,\n\nQuick reminder about Orchid Partners' quarterly sync next month. Nothing actionable today.\n\nThanks,\nOrchid Partners",
+            days_ago: 0,
+            is_read: 0,
+          },
+          {
+            senderUsername: "finance_ops",
+            subject: "Phoenix budget check",
+            body: "Hey Peter, finance here. Just confirming the Phoenix Analytics pilot budget is still under the cap. No action required.",
+            days_ago: 0,
+            is_read: 0,
+          },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "invoice-to-expense-draft": {
+      const northwind = { username: "northwind_ap", email: "ap@northwind-components.com" };
+      const northbound = { username: "northbound_bill", email: "billing@northbound.io" };
+      return {
+        senders: [...BASELINE_SENDERS, northwind, northbound],
+        inbox: [
+          ...baselineInbox,
+          {
+            senderUsername: "northwind_ap",
+            subject: "Invoice INV-NC-2048 -- April 2026",
+            body: "Hi Peter,\n\nPlease find this month's invoice details below.\n\n  Vendor: Northwind Components\n  Invoice #: INV-NC-2048\n  Bill Date: 2026-04-03\n  Total Due: USD 1840.50\n  Attachment ref: inv_nc_2048 (file: INV-NC-2048.pdf)\n\nPayment due in 30 days.\n\nBest,\nNorthwind AP",
+            days_ago: 0,
+            is_read: 0,
+          },
+          {
+            senderUsername: "northbound_bill",
+            subject: "Order Acknowledgement -- Purchase #87412",
+            body: "Hi Peter,\n\nConfirming receipt of your purchase order.\n\n  Order ID: 87412\n  Order Date: 2026-04-02\n  Estimated total: USD 920.00\n\nWe will follow up with the invoice once items ship.\n\n--Northbound billing",
+            days_ago: 0,
+            is_read: 0,
+          },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "newsletter-digest-forward": {
+      const vector = { username: "vectordb_news", email: "news@vectordb-cloud.io" };
+      const openbrowse = { username: "openbrowse_builders", email: "builders@openbrowse.dev" };
+      const founders = { username: "founders_editor", email: "editor@founders-brief.com" };
+      const pulse = { username: "marketing_pulse", email: "pulse@marketing-pulse.io" };
+      return {
+        senders: [...BASELINE_SENDERS, vector, openbrowse, founders, pulse],
+        inbox: [
+          ...baselineInbox,
+          {
+            senderUsername: "vectordb_news",
+            subject: "Weekly Vector Digest -- 2026-04-02",
+            body: "Top stories this week:\n\n  1. VectorDB Cloud row-level ACLs are now generally available...\n  2. New benchmark publication...\n  3. Customer story from FinTech\n\n--Vector Digest team",
+            days_ago: 1,
+            is_read: 0,
+          },
+          {
+            senderUsername: "openbrowse_builders",
+            subject: "OpenBrowse Builders Notes -- April",
+            body: "Hello builders!\n\nHeadline update: OpenBrowse persistent sessions are now in beta. Sessions survive a tab reload and auth restart -- huge unlock for long-running automation flows.\n\nOther items: tooling refresh, community office hours.\n\n--OpenBrowse",
+            days_ago: 1,
+            is_read: 0,
+          },
+          {
+            senderUsername: "founders_editor",
+            subject: "Founders Brief -- 2026-04-02",
+            body: "This week's headline: NovaStack Series A closed at $42M led by Crucible Ventures. Big news for the agent-platform space.\n\nOther items: regulatory roundup, hiring trends.\n\n--Founders Brief",
+            days_ago: 1,
+            is_read: 0,
+          },
+          {
+            senderUsername: "marketing_pulse",
+            subject: "Marketing Pulse Monthly -- March",
+            body: "Hot off the press: April mascot giveaway launches for our enterprise tier customers. Plus: brand survey results, content roadmap.\n\n--Marketing Pulse",
+            days_ago: 14,
+            is_read: 0,
+          },
+        ],
+        sent: baselineSent,
+      };
+    }
+
+    case "procurement-quote-compare-reply": {
+      const asterbyte = { username: "asterbyte_sales", email: "sales@asterbyte.io" };
+      const northpeak = { username: "northpeak_quotes", email: "quotes@northpeak.tech" };
+      const latticepro = { username: "latticepro_desk", email: "desk@latticepro.ai" };
+      const rfqSubject = "Procurement RFQ -- 24 x LaptopX1";
+      const rfqBody = "Hello vendors,\n\nPlease quote on 24 units of LaptopX1 (16GB RAM, 512GB SSD).\nBudget cap: USD 1200 per unit.\nDelivery expected within 7 business days.\nPlease reply with unit price and delivery commitment.\n\nQuote needed by 2026-04-04.\n\nThanks,\nPeter";
+      return {
+        senders: [...BASELINE_SENDERS, asterbyte, northpeak, latticepro],
+        inbox: [
+          ...baselineInbox,
+          {
+            senderUsername: "asterbyte_sales",
+            subject: "Re: Procurement RFQ -- 24 x LaptopX1",
+            body: "Hi Peter,\n\nWe can offer LaptopX1 at USD 1180 per unit. Delivery: 5 business days from PO confirmation.\n\nBest,\nAsterByte sales",
+            days_ago: 1,
+            is_read: 0,
+          },
+          {
+            senderUsername: "northpeak_quotes",
+            subject: "Re: Procurement RFQ -- 24 x LaptopX1",
+            body: "Peter,\n\nOur unit price is USD 1090. Delivery: 6 weeks (we are out of stock; next batch from factory).\n\nThanks,\nNorthPeak",
+            days_ago: 1,
+            is_read: 0,
+          },
+          {
+            senderUsername: "latticepro_desk",
+            subject: "Re: Procurement RFQ -- 24 x LaptopX1",
+            body: "Hello,\n\nLatticePro can deliver LaptopX1 at USD 1240 per unit. Delivery: 4 business days. Premium support included.\n\nLatticePro desk",
+            days_ago: 1,
+            is_read: 0,
+          },
+        ],
+        sent: [
+          ...baselineSent,
+          { recipient_email: "sales@asterbyte.io", subject: rfqSubject, body: rfqBody, days_ago: 2 },
+          { recipient_email: "quotes@northpeak.tech", subject: rfqSubject, body: rfqBody, days_ago: 2 },
+          { recipient_email: "desk@latticepro.ai", subject: rfqSubject, body: rfqBody, days_ago: 2 },
+        ],
+      };
+    }
+
+    case "stale-client-escalation": {
+      const bh = { username: "blueharbor_procurement", email: "procurement@blueharbor.example.com" };
+      const nd = { username: "nimbus_acct", email: "acct@nimbus-data.example.com" };
+      const ss = { username: "stratoscape_legal", email: "legal@stratoscape.example.com" };
+      const mp = { username: "market_pulse_news", email: "news@market-pulse.io" };
+      const colin = { username: "colin_eng", email: "colin@work.mosi.inc" };
+      return {
+        senders: [...BASELINE_SENDERS, bh, nd, ss, mp, colin],
+        inbox: [
+          ...baselineInbox,
+          {
+            senderUsername: "blueharbor_procurement",
+            subject: "Contract redline blocked -- DPA needed",
+            body: "Hi Peter,\n\nWe're stuck on the contract redline -- our legal team can't sign off without the Data Processing Addendum. Can you confirm the DPA is on its way? This is blocking signature.\n\nThanks,\nBlueHarbor procurement",
+            days_ago: 2,
+            is_read: 0,
+          },
+          {
+            senderUsername: "nimbus_acct",
+            subject: "Re: April invoice question",
+            body: "Hi Peter, quick clarification on the April invoice... -- Nimbus AE",
+            days_ago: 0,
+            is_read: 0,
+          },
+          {
+            senderUsername: "stratoscape_legal",
+            subject: "Schema migration question",
+            body: "Peter, please review the schema migration plan for Q2... -- Stratoscape legal",
+            days_ago: 3,
+            is_read: 1,
+          },
+          {
+            senderUsername: "market_pulse_news",
+            subject: "Market Pulse -- March wrap-up",
+            body: "Top marketing trends... --Market Pulse",
+            days_ago: 9,
+            is_read: 0,
+          },
+          {
+            senderUsername: "colin_eng",
+            subject: "Lunch tomorrow?",
+            body: "Hey Peter -- want to grab lunch tomorrow? --Colin",
+            days_ago: 5,
+            is_read: 1,
+          },
+        ],
+        sent: [
+          ...baselineSent,
+          {
+            recipient_email: "legal@stratoscape.example.com",
+            subject: "Re: Schema migration question",
+            body: "Thanks -- approved, please proceed. --Peter",
+            days_ago: 1,
+          },
+        ],
       };
     }
 

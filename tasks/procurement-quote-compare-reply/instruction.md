@@ -1,0 +1,1 @@
+I received several vendor quotes by email for the same laptop order. Please compare them in my company email system (http://localhost:5174/, open it in browser), identify the best option under our budget, and reply to the selected vendor saying we would like to proceed.

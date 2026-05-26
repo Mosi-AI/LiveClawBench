@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # A2 data injection: seed stale social posts and orphan calendar events
-# Social mock uses ./data/social.db by default when no MOCK_DATA_DIR is set
-SOCIAL_DB="/workspace/data/social.db"
+# Social mock writes to $MOCK_DATA_DIR/social/social.db at runtime
+SOCIAL_DB="/var/lib/mock-data/social/social.db"
 if [ ! -f "$SOCIAL_DB" ]; then
     echo "ERROR: Social DB not found at $SOCIAL_DB; cannot seed required A2 fixtures" >&2
     echo "       The social mock must be running and have initialized its database before this script runs." >&2

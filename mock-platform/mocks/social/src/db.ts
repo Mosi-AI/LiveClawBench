@@ -8,6 +8,13 @@ const DB_PATH = process.env.MOCK_DATA_DIR
 
 let db: Database | null = null;
 
+export function resetDb(): void {
+  if (db !== null) {
+    db.close();
+    db = null;
+  }
+}
+
 export function getDb(): Database {
   if (db) return db;
 

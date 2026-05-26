@@ -10,6 +10,8 @@ factor_a1 = 1   # Cross-Service Dependency (kv-store + api-server + nginx)
 factor_a2 = 1   # Contaminated Initial State (port binding errors, wrong gRPC addresses)
 factor_b1 = 1   # Implicit Goal Resolution (no architecture diagram, must read source)
 factor_b2 = 0
+factor_c1 = 0
+factor_c2 = 0
 case_id = 83
 
 [verifier]

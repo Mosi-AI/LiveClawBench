@@ -1,4 +1,4 @@
-import { createRoute } from "mock-lib";
+import { createRoute, shouldInject } from "mock-lib";
 import type { OpenAPIApp } from "mock-lib";
 import { z } from "zod";
 import { getExpenseDb, escapeLikePattern } from "../utils/db.js";
@@ -192,6 +192,18 @@ export function registerDraftRoutes(app: OpenAPIApp): void {
         error: "Validation failed",
         fields: [{ field: "category", message: "Category is required before submission" }],
       }, 400);
+    }
+
+    const taskName = process.env.TASK_NAME ?? "";
+
+    // C2 — expense-submit-verify: first submit returns 200 success but skips
+    // the UPDATE that sets status = 'submitted'. Draft remains 'draft'.
+    // Agent must verify the status actually changed.
+    if (
+      taskName === "expense-submit-verify" &&
+      shouldInject(taskName, "expense", "POST /api/drafts/:id/submit", "c2-skip-submit")
+    ) {
+      return c.json({ success: true, draft: rowToDraft(row), message: "Draft submitted successfully" });
     }
 
     db.exec("UPDATE expense_draft SET status = 'submitted', submitted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?", [id]);

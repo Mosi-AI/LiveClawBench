@@ -3,7 +3,7 @@
 Verifier for social-schedule-audit task (case_id=50).
 
 Checks that the agent fixed 5 scheduling anomalies seeded into the social DB.
-Each anomaly is worth 0.2 points, total 1.0.
+Weighted scoring: 0.1 / 0.1 / 0.3 / 0.2 / 0.3, total 1.0.
 
 Anomalies:
   1. Post 101: status=published but published_at=NULL -> fixed if published_at set OR status changed
@@ -64,8 +64,8 @@ def main():
     try:
         db = sqlite3.connect(DB_PATH)
         db.execute("PRAGMA journal_mode = WAL")
-    except Exception as e:
-        messages.append(f"FATAL: Cannot open database: {e}")
+    except sqlite3.Error as e:
+        messages.append(f"FATAL: Cannot open database: {type(e).__name__}: {e}")
         print(f"Score: {score}/1.0")
         for msg in messages:
             print(f"  {msg}")
@@ -86,12 +86,12 @@ def main():
             f"ANOMALY 1 (post 101): PASS — status changed to '{p101['status']}' "
             f"(no longer published without timestamp)"
         )
-        score += 0.2
+        score += 0.1
     elif p101["published_at"] is not None and p101["status"] == "published":
         messages.append(
             f"ANOMALY 1 (post 101): PASS — published_at now set to '{p101['published_at']}'"
         )
-        score += 0.2
+        score += 0.1
     else:
         messages.append(
             f"ANOMALY 1 (post 101): FAIL — status='{p101['status']}', "
@@ -117,7 +117,7 @@ def main():
                 else ""
             )
         )
-        score += 0.2
+        score += 0.1
     elif p102["status"] == "draft":
         messages.append(
             "ANOMALY 2 (post 102): FAIL — changed to 'draft' instead of 'published'"
@@ -141,13 +141,13 @@ def main():
         )
     elif p103_has_log:
         messages.append("ANOMALY 3 (post 103): PASS — action_log entry now exists")
-        score += 0.2
+        score += 0.3
     elif p103["status"] != "published":
         messages.append(
             f"ANOMALY 3 (post 103): PASS — status changed to '{p103['status']}' "
             f"(no longer claims to be published without log)"
         )
-        score += 0.2
+        score += 0.3
     else:
         messages.append(
             "ANOMALY 3 (post 103): FAIL — still published with no action_log entry"
@@ -187,7 +187,7 @@ def main():
         messages.append(
             "ANOMALY 5 (post 101 metrics): PASS — implausible metric row deleted"
         )
-        score += 0.2
+        score += 0.3
     elif metric_row[0] == 0 and metric_row[1] > 0:
         messages.append(
             f"ANOMALY 5 (post 101 metrics): FAIL — still implausible "
@@ -198,7 +198,7 @@ def main():
             f"ANOMALY 5 (post 101 metrics): PASS — metrics corrected "
             f"(impressions={metric_row[0]}, likes={metric_row[1]})"
         )
-        score += 0.2
+        score += 0.3
 
     db.close()
 

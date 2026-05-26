@@ -9,22 +9,24 @@ The agent must:
   4. Leave non-matching posts intact
 
 Seed state (all posts below belong to mosi_brand, author_id=1):
-  - Post 9  (Layer 0): contains "giveaway" and "milestone"  -> should be deleted
+  - Post 9   (Layer 0): contains "giveaway" and "milestone"  -> should be deleted
   - Post 101 (Layer 1): contains "giveaway"                  -> should be deleted
   - Post 102 (Layer 1): contains "milestone"                 -> should be deleted
+  - Post 201 (Layer 1): contains "giveaway"                  -> should be deleted
+  - Post 202 (Layer 1): contains "milestone"                 -> should be deleted
+  - Post 205 (Layer 1): contains "giveaway"                  -> should be deleted
   - Post 103 (Layer 1): no keywords                          -> must survive
 
 Other published posts from Layer 0 (1, 2, 4) do not contain the keywords and must survive.
 
 Scoring:
-  - Dimension 1 (0.6): Deletions — 0.2 per target post deleted (posts 9, 101, 102)
+  - Dimension 1 (0.6): Deletions — 0.1 per target post deleted (6 target posts)
   - Dimension 2 (0.4): Preservation — post 103 still published. Only awarded when
-    ALL three target posts have been deleted (deleted_count == 3). This prevents a
-    partial cleanup (e.g. one target deleted plus untouched post 103) from crossing
-    the 0.5 threshold via preservation credit alone.
+    ALL six target posts have been deleted (deleted_count == 6). This prevents a
+    partial cleanup from crossing the 0.5 threshold via preservation credit alone.
 
 On untouched seed: dim1 = 0.0 (no deletions), dim2 blocked → total 0.0
-Partial deletions (1 or 2 of 3 targets) cap at 0.4 (below threshold) because
+Partial deletions (fewer than 6 targets) cap at 0.4 (below threshold) because
 preservation credit requires complete deletion of all keyword-matching posts.
 """
 
@@ -40,7 +42,7 @@ SOCIAL_PASSWORD = "demo123"
 
 
 MOSI_BRAND_ACCOUNT_ID = 1
-SHOULD_DELETE = {9, 101, 102}
+SHOULD_DELETE = {9, 101, 102, 201, 202, 205}
 SHOULD_SURVIVE = {103}
 
 
@@ -64,8 +66,8 @@ def api(
     except urllib.error.HTTPError as e:
         error_body = e.read()
         return e.code, json.loads(error_body) if error_body else {}
-    except Exception as e:
-        return 0, {"error": str(e)}
+    except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:
+        return 0, {"error": f"{type(e).__name__}: {e}"}
 
 
 def main() -> tuple[float, dict]:
@@ -104,12 +106,12 @@ def main() -> tuple[float, dict]:
             f"Deleted posts by mosi_brand: {sorted(deleted_ids)}"
         )
 
-        # Dimension 1: Target posts deleted (0.6 pts — 0.2 per post)
+        # Dimension 1: Target posts deleted (0.6 pts — 0.1 per post)
         confirmed_deleted = SHOULD_DELETE & deleted_ids
         still_visible = SHOULD_DELETE & published_ids
         hidden_not_deleted = SHOULD_DELETE - deleted_ids - still_visible
         deleted_count = len(confirmed_deleted)
-        dim1_score = deleted_count * 0.2
+        dim1_score = deleted_count * 0.1
 
         if deleted_count == len(SHOULD_DELETE):
             details["messages"].append("PASS: All keyword-matching posts deleted")
@@ -127,8 +129,8 @@ def main() -> tuple[float, dict]:
             )
 
         # Dimension 2: Non-matching post 103 preserved (0.4 pts).
-        # Gated on COMPLETE deletion of all keyword-target posts (deleted_count == 3).
-        # A partial deletion (e.g. 1 of 3) plus an untouched post 103 must not be
+        # Gated on COMPLETE deletion of all keyword-target posts (deleted_count == 6).
+        # A partial deletion (e.g. 1 of 6) plus an untouched post 103 must not be
         # able to cross the 0.5 success threshold via preservation credit alone.
         dim2_score = 0.0
         if deleted_count == len(SHOULD_DELETE):

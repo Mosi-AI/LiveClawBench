@@ -1,0 +1,1 @@
+Please submit the draft expense report in the expense management system at http://localhost:5005/. Find the draft and submit it for approval. After submitting, verify the status has changed to "submitted" by checking the draft details.

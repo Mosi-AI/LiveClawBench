@@ -1,0 +1,1 @@
+Please check the finance dashboard at http://localhost:1235/ and review the department budget data. Set up a budget alert for the Marketing department with a threshold of 80% of the budget amount. Make sure to verify the alert was created correctly.

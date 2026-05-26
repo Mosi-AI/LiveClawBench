@@ -13,7 +13,7 @@ HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 
 USER root
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update -o Acquire::Retries=3 && apt-get install -y --no-install-recommends -o Acquire::Retries=3 \
         git ca-certificates curl xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
@@ -39,4 +39,8 @@ RUN git clone https://github.com/gravitational/teleport.git /workspace/repo && \
 WORKDIR /workspace/repo
 
 # Teleport mod graph is large; pre-download all modules.
-RUN go mod download
+RUN for i in 1 2 3; do \
+        go mod download && break; \
+        [ "$i" -eq 3 ] && exit 1; \
+        sleep 15; \
+    done
