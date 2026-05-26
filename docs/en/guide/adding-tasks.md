@@ -356,3 +356,64 @@ This means a bare path like `output/result.json` in `instruction.md` is interpre
 - **Option B — Explicit path in instruction**: use the full absolute path in `instruction.md` (`/home/node/.openclaw/output/result.json`). Removes ambiguity but is verbose and leaks container internals into the task description.
 
 The existing PKB tasks currently use Option B. New tasks should prefer Option A — letting the verifier handle both locations so the instruction stays readable.
+
+**Mock database path consistency**
+
+When a task uses a mock service that persists data to SQLite, four locations must agree on the database path:
+
+1. **Mock runtime** — where the mock binary actually creates/opens the DB (controlled by env vars like `MOCK_DATA_DIR`, `CHAT_DB_PATH`, etc., set in `build-task-images.ts`)
+2. **Verifier** — where `verify.py` reads state from
+3. **Instruction** — if you mention a DB path to the agent, it must be the real path
+4. **Solution** — `solve.sh` must read/write the same DB the mock uses
+
+Common mistakes:
+- Hard-coding `/opt/mock/data/social/social.db` in the verifier when `build-task-images.ts` sets `MOCK_DATA_DIR=/var/lib/mock-data` (the mock creates the DB under `/var/lib/mock-data/social/social.db`)
+- Telling the agent to inspect `/opt/mock/data/...` in `instruction.md` while the verifier checks `/var/lib/mock-data/...` — the agent writes to the wrong file and the verifier sees nothing
+- `solution/solve.sh` querying a stale path; the oracle baseline then fails even though the task is theoretically solvable
+
+**Rule:** always derive the verifier's DB path from the same source the mock uses. Check `mock-platform/scripts/build-task-images.ts` for the env var the mock's startup script exports, then match that in `verify.py`. If the mock supports a fallback default, the verifier should use the same fallback.
+
+**Seed file placement (`seed.json`)**
+
+Per-task `seed.json` fixtures are declared in `mock-platform/config/task-binary-map.json` under `assets`. The `dest` path must align with where the mock looks for it at runtime:
+
+- The social mock uses `process.env.MOCK_DATA_DIR || "/opt/mock/data"` as its data directory and expects `seed.json` inside that directory
+- If `build-task-images.ts` sets `MOCK_DATA_DIR=/var/lib/mock-data` for social, the seed should be copied to `/var/lib/mock-data/seed.json`
+- If you place it at `/opt/mock/data/seed.json` instead, the mock will not find it (pre-existing bug fixed in PR #105)
+
+When in doubt, read the mock's `seed.ts` or `db.ts` to see how it resolves `dataDir` and `seedPath`, then set the asset `dest` to match.
+
+**Direct DB access in instructions**
+
+Two design patterns coexist in the corpus. Pick one and stay consistent:
+
+- **Pattern A — API-only** (preferred for most tasks): do not mention the database file path in `instruction.md`. The agent discovers the service API and operates through it. This tests real-world interaction patterns and prevents agents from short-circuiting exploration by reading `seed.json` directly. Used by `social-comment-moderation`, `social-cross-publish`, etc.
+- **Pattern B — DB access allowed**: explicitly tell the agent it may inspect the DB directly. Use this only when the task inherently requires SQL-level analysis (e.g., anomaly detection across tables with no exposed endpoint). If you use this pattern, the path in `instruction.md` must match the actual runtime path exactly.
+
+Do not mix the patterns within the same task family without a clear reason.
+
+**Go Dockerfile cross-platform compilation**
+
+Go tasks must build on both `x86_64` and `ARM64` hosts. Do not hard-code the amd64 Go toolchain:
+
+```dockerfile
+# Bad — fails on ARM64 with "gcc: error: unrecognized command-line option '-m64'"
+RUN curl -sL "https://golang.google.cn/dl/go${GO_VERSION}.linux-amd64.tar.gz" ...
+```
+
+Use `uname -m` runtime detection instead:
+
+```dockerfile
+ARG GO_VERSION=1.23.4
+RUN ARCH=$(uname -m) && \
+    case "$ARCH" in \
+      x86_64)  GOARCH=amd64 ;; \
+      aarch64) GOARCH=arm64 ;; \
+      arm64)   GOARCH=arm64 ;; \
+      *) echo "Unsupported arch: $ARCH"; exit 1 ;; \
+    esac && \
+    curl -sL "https://golang.google.cn/dl/go${GO_VERSION}.linux-${GOARCH}.tar.gz" -o /tmp/go.tgz && \
+    tar -C /usr/local -xzf /tmp/go.tgz && rm /tmp/go.tgz
+```
+
+This works with plain `docker build` (no buildx required) and preserves CGO.

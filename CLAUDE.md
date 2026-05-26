@@ -511,6 +511,8 @@ Difficulty: Easy=37, Medium=63, Hard=34.
 - Tasks with `factor_a1=1` (Cross-Service Dependency) involve multiple running services in the same container — check Dockerfile for service startup scripts
 - The OpenClaw agent process does not auto-exit after completing its turns; harbor's agent timeout terminates it
 - `openclaw --timeout` is an idle timeout and will not fire while the agent is actively processing
+- **Mock database path drift**: `build-task-images.ts` sets `MOCK_DATA_DIR=/var/lib/mock-data` for `social` and `health` mocks at runtime, but some older verifiers and instructions still hard-code `/opt/mock/data/`. Always align verifier DB paths, instruction hints, and `solution/solve.sh` with the actual runtime path defined in `build-task-images.ts`.
+- **Seed file placement mismatch**: `task-binary-map.json` copies `seed.json` to `/opt/mock/data/seed.json`, but the social mock (with `MOCK_DATA_DIR=/var/lib/mock-data`) looks in `/var/lib/mock-data/seed.json`. The mock now falls back to `/opt/mock/data/seed.json` if the primary path is missing, but new tasks should place seeds at the path the mock actually reads.
 
 ## Notes for Claude Code
 
