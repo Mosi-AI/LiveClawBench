@@ -1,7 +1,7 @@
 [
   {
     "name": "liveclawbench",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks. 134 tasks with 4 complexity factors (A1/A2/B1/B2) across 10 task domains.",
     "tasks": [
       {

@@ -63,7 +63,7 @@ harbor run -p tasks/watch-shop -a openclaw -m moonshot/<YOUR_MODEL_ID> \
 To run all 134 tasks:
 
 ```bash
-harbor run --dataset liveclawbench@0.1.0 -a openclaw \
+harbor run --dataset liveclawbench@0.2.0 -a openclaw \
   -m moonshot/<YOUR_MODEL_ID> --n-concurrent 4 -o jobs \
   --ae CUSTOM_BASE_URL="<YOUR_BASE_URL>" \
   --ae CUSTOM_API_KEY="<YOUR_API_KEY>" \
