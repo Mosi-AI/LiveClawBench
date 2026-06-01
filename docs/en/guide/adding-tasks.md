@@ -371,17 +371,11 @@ Prefer API-only instructions (do not mention DB paths). Only expose the DB path 
 
 **Go Dockerfile cross-platform compilation**
 
-Do not hard-code `linux-amd64`. Use `uname -m` runtime detection:
+Do not hard-code `linux-amd64`. Use BuildKit's `TARGETARCH`:
 
 ```dockerfile
 ARG GO_VERSION=1.23.4
-RUN ARCH=$(uname -m) && \
-    case "$ARCH" in \
-      x86_64)  GOARCH=amd64 ;; \
-      aarch64) GOARCH=arm64 ;; \
-      arm64)   GOARCH=arm64 ;; \
-      *) echo "Unsupported arch: $ARCH"; exit 1 ;; \
-    esac && \
-    curl -sL "https://golang.google.cn/dl/go${GO_VERSION}.linux-${GOARCH}.tar.gz" -o /tmp/go.tgz && \
+ARG TARGETARCH
+RUN curl -sL "https://golang.google.cn/dl/go${GO_VERSION}.linux-${TARGETARCH}.tar.gz" -o /tmp/go.tgz && \
     tar -C /usr/local -xzf /tmp/go.tgz && rm /tmp/go.tgz
 ```

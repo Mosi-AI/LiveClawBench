@@ -17,16 +17,9 @@ RUN apt-get update -o Acquire::Retries=3 && apt-get install -y --no-install-reco
         git ca-certificates curl xz-utils && \
     rm -rf /var/lib/apt/lists/*
 
-# Detect container architecture at build time so the same Dockerfile works on x86_64 and ARM64.
 ARG GO_VERSION=1.23.4
-RUN ARCH=$(uname -m) && \
-    case "$ARCH" in \
-      x86_64)  GOARCH=amd64 ;; \
-      aarch64) GOARCH=arm64 ;; \
-      arm64)   GOARCH=arm64 ;; \
-      *) echo "Unsupported arch: $ARCH"; exit 1 ;; \
-    esac && \
-    curl -sL "https://golang.google.cn/dl/go${GO_VERSION}.linux-${GOARCH}.tar.gz" -o /tmp/go.tgz && \
+ARG TARGETARCH
+RUN curl -sL "https://golang.google.cn/dl/go${GO_VERSION}.linux-${TARGETARCH}.tar.gz" -o /tmp/go.tgz && \
     tar -C /usr/local -xzf /tmp/go.tgz && rm /tmp/go.tgz
 
 ENV PATH="/usr/local/go/bin:${PATH}" \
