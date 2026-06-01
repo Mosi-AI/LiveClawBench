@@ -1,7 +1,7 @@
 version = "1.0"
 
 [metadata]
-difficulty = "hard"
+difficulty = "easy"
 category = "open-world"
 tags = ["communication_email", "e-commerce_daily_svcs"]
 domain = "E-commerce & Daily Svcs"

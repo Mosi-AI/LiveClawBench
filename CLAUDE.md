@@ -55,7 +55,7 @@ source .venv/bin/activate
 ```bash
 uv venv .venv
 source .venv/bin/activate
-uv pip install "harbor @ git+https://github.com/Mosi-AI/claw-harbor.git@main"
+uv pip install "harbor @ git+https://github.com/Mosi-AI/claw-harbor.git@0.2.0"
 ```
 
 ### API Key Configuration
@@ -114,7 +114,7 @@ harbor run -p tasks/watch-shop -a openclaw \
 
 ```bash
 # Generic form (includes LLM judge credentials for the 7 judge tasks)
-harbor run --dataset liveclawbench@0.1.0 -a openclaw \
+harbor run --dataset liveclawbench@0.2.0 -a openclaw \
   -m custom/<YOUR_MODEL_ID> \
   --n-concurrent 4 \
   -o jobs \
@@ -124,7 +124,7 @@ harbor run --dataset liveclawbench@0.1.0 -a openclaw \
   --ee JUDGE_API_KEY="<JUDGE_API_KEY>"
 
 # Example: Anthropic
-harbor run --dataset liveclawbench@0.1.0 -a openclaw \
+harbor run --dataset liveclawbench@0.2.0 -a openclaw \
   -m anthropic/claude-opus-4-1 \
   --n-concurrent 4 \
   --ae ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
@@ -220,34 +220,34 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | Task Dir | Domain | Difficulty | Verifier |
 |---|---|---|---|
 | `watch-shop` | E-commerce & Daily Svcs | easy | verify.py |
-| `watch-shop-stockout` | E-commerce & Daily Svcs | medium | verify.py |
+| `watch-shop-stockout` | E-commerce & Daily Svcs | easy | verify.py |
 | `watch-shop-silent-fail` | E-commerce & Daily Svcs | medium | verify.py |
-| `washer-shop` | E-commerce & Daily Svcs | easy | verify.py |
+| `washer-shop` | E-commerce & Daily Svcs | medium | verify.py |
 | `info-change` | E-commerce & Daily Svcs | easy | verify.py |
 | `washer-change` | E-commerce & Daily Svcs | easy | verify.py |
-| `email-watch-shop` | E-commerce & Daily Svcs | hard | verify.py |
+| `email-watch-shop` | E-commerce & Daily Svcs | easy | verify.py |
 | `email-washer-change` | E-commerce & Daily Svcs | easy | verify.py |
 | `email-writing` | Communication & Email | easy | verify.py |
 | `email-reply` | Communication & Email | easy | verify.py |
-| `email-reply-context-shift` | Communication & Email | medium | **llm_judge** |
-| `email-sending-verify` | Communication & Email | medium | verify.py |
-| `schedule-change-request` | Calendar & Task Mgmt | medium | verify.py |
-| `flight-booking` | E-commerce & Daily Svcs | medium | verify.py |
-| `flight-info-change-notice` | Calendar & Task Mgmt | easy | verify.py |
+| `email-reply-context-shift` | Communication & Email | hard | **llm_judge** |
+| `email-sending-verify` | Communication & Email | easy | verify.py |
+| `schedule-change-request` | Calendar & Task Mgmt | easy | verify.py |
+| `flight-booking` | E-commerce & Daily Svcs | hard | verify.py |
+| `flight-info-change-notice` | Calendar & Task Mgmt | medium | verify.py |
 | `flight-seat-selection` | E-commerce & Daily Svcs | easy | verify.py |
-| `flight-seat-selection-failed` | E-commerce & Daily Svcs | hard | verify.py |
+| `flight-seat-selection-failed` | E-commerce & Daily Svcs | medium | verify.py |
 | `flight-cancel-claim` | E-commerce & Daily Svcs | hard | verify.py |
 | `baggage-tracking-application` | E-commerce & Daily Svcs | easy | verify.py |
 | `blog-site-from-scratch` | Coding & Software Dev | easy | verify.py |
 | `blog-site-completion-from-starter` | Coding & Software Dev | easy | verify.py |
-| `vue-build-fix-single` | DevOps & Env Repair | hard | verify.py |
-| `vue-build-fix-chain` | DevOps & Env Repair | hard | verify.py |
-| `vue-fix-rebreak` | DevOps & Env Repair | hard | verify.py |
-| `skill-creation` | Documents & Knowledge | medium | evaluate.py |
+| `vue-build-fix-single` | DevOps & Env Repair | medium | verify.py |
+| `vue-build-fix-chain` | DevOps & Env Repair | easy | verify.py |
+| `vue-fix-rebreak` | DevOps & Env Repair | medium | verify.py |
+| `skill-creation` | Documents & Knowledge | hard | evaluate.py |
 | `skill-repository-curation` | Documents & Knowledge | medium | evaluate.py |
-| `skill-supplementation` | Documents & Knowledge | medium | evaluate.py |
+| `skill-supplementation` | Documents & Knowledge | easy | evaluate.py |
 | `skill-conflict-resolution` | Documents & Knowledge | easy | evaluate.py |
-| `skill-dependency-fix` | Documents & Knowledge | easy | evaluate.py |
+| `skill-dependency-fix` | Documents & Knowledge | medium | evaluate.py |
 | `noise-filtering` | Deep Research & Report | medium | **llm_judge** |
 | `mixed-tool-memory` | Documents & Knowledge | easy | **llm_judge** |
 | `incremental-update-ctp` | Documents & Knowledge | easy | **llm_judge** |
@@ -255,98 +255,98 @@ bun run build:images   # Build per-task Docker images (requires base image first
 | `conflict-repair-acb` | Documents & Knowledge | easy | **llm_judge** |
 | `skill-combination` | Documents & Knowledge | easy | evaluate.py |
 | `mint-diet-snack-log` | Health & Fitness | easy | verify.py |
-| `weather-aqi-report` | Deep Research & Report | easy | verify.py |
+| `weather-aqi-report` | Deep Research & Report | medium | verify.py |
 | `insurance-deductible-selection` | E-commerce & Daily Svcs | easy | verify.py |
-| `health-insurance-optimization` | E-commerce & Daily Svcs | medium | verify.py |
-| `health-daily-record` | Health & Fitness | easy | verify.py |
-| `health-record-verify` | Health & Fitness | medium | verify.py |
+| `health-insurance-optimization` | E-commerce & Daily Svcs | easy | verify.py |
+| `health-daily-record` | Health & Fitness | hard | verify.py |
+| `health-record-verify` | Health & Fitness | hard | verify.py |
 | `expense-draft-delete` | Finance & Data Analytics | easy | verify.py |
 | `expense-submit-verify` | Finance & Data Analytics | medium | verify.py |
 | `social-media-posting` | Social Media | easy | verify.py |
-| `social-unlike-post` | Social Media | easy | verify.py |
+| `social-unlike-post` | Social Media | medium | verify.py |
 | `social-post-rate-limit` | Social Media | medium | verify.py |
-| `social-unlike-verify` | Social Media | medium | verify.py |
-| `social-event-campaign` | Social Media | medium | verify.py |
-| `social-keyword-cleanup` | Social Media | medium | verify.py |
-| `social-schedule-audit` | Social Media | medium | verify.py |
+| `social-unlike-verify` | Social Media | hard | verify.py |
+| `social-event-campaign` | Social Media | hard | verify.py |
+| `social-keyword-cleanup` | Social Media | hard | verify.py |
+| `social-schedule-audit` | Social Media | hard | verify.py |
 | `social-comment-moderation` | Social Media | hard | verify.py |
-| `social-cross-publish` | Social Media | hard | verify.py |
+| `social-cross-publish` | Social Media | easy | verify.py |
 | `social-data-anomaly-report` | Social Media | hard | verify.py |
 | `social-pinned-post-update` | Social Media | hard | verify.py |
-| `mint-diet-comprehensive` | Health & Fitness | easy | verify.py |
-| `mint-diet-stockout` | Health & Fitness | medium | verify.py |
-| `nutrition-log-meal` | Health & Fitness | easy | verify.py |
-| `weather-city-travel-pick` | Health & Fitness | medium | verify.py |
-| `weather-outdoor-window` | Health & Fitness | hard | verify.py |
+| `mint-diet-comprehensive` | Health & Fitness | medium | verify.py |
+| `mint-diet-stockout` | Health & Fitness | easy | verify.py |
+| `nutrition-log-meal` | Health & Fitness | medium | verify.py |
+| `weather-city-travel-pick` | Health & Fitness | easy | verify.py |
+| `weather-outdoor-window` | Health & Fitness | easy | verify.py |
 | `morning-comfort-setup` | Health & Fitness | medium | verify.py |
-| `finance-portfolio-rebalancing` | Finance & Data Analytics | hard | verify.py |
-| `finance-monthly-close` | Finance & Data Analytics | medium | verify.py |
+| `finance-portfolio-rebalancing` | Finance & Data Analytics | easy | verify.py |
+| `finance-monthly-close` | Finance & Data Analytics | easy | verify.py |
 | `smarthome-test` | E-commerce & Daily Svcs | medium | verify.py |
-| `grocery-reorder` | E-commerce & Daily Svcs | medium | verify.py |
-| `pre-meeting-research-brief` | Deep Research & Report | medium | **llm_judge** |
-| `vendor-due-diligence-brief` | Deep Research & Report | medium | **llm_judge** |
+| `grocery-reorder` | E-commerce & Daily Svcs | hard | verify.py |
+| `pre-meeting-research-brief` | Deep Research & Report | easy | **llm_judge** |
+| `vendor-due-diligence-brief` | Deep Research & Report | easy | **llm_judge** |
 | `meeting-reschedule-response` | Calendar & Task Mgmt | easy | verify.py |
 | `meeting-slot-race` | Calendar & Task Mgmt | medium | verify.py |
-| `candidate-interview-slot-confirm` | Calendar & Task Mgmt | easy | verify.py |
-| `interview-slot-verify` | Calendar & Task Mgmt | medium | verify.py |
-| `medication-prescription-sync` | Health & Fitness | hard | verify.py |
-| `health-appointment-scheduling` | Health & Fitness | hard | verify.py |
+| `candidate-interview-slot-confirm` | Calendar & Task Mgmt | medium | verify.py |
+| `interview-slot-verify` | Calendar & Task Mgmt | hard | verify.py |
+| `medication-prescription-sync` | Health & Fitness | easy | verify.py |
+| `health-appointment-scheduling` | Health & Fitness | medium | verify.py |
 | `content-calendar-cross-publish` | Calendar & Task Mgmt | hard | verify.py |
 | `finance-anomaly-detect` | Finance & Data Analytics | medium | verify.py |
 | `finance-budget-alert` | Finance & Data Analytics | medium | verify.py |
 | `finance-budget-shift` | Finance & Data Analytics | hard | verify.py |
-| `finance-dashboard-repair` | Finance & Data Analytics | hard | verify.py |
-| `finance-depreciation-audit` | Finance & Data Analytics | hard | verify.py |
+| `finance-dashboard-repair` | Finance & Data Analytics | medium | verify.py |
+| `finance-depreciation-audit` | Finance & Data Analytics | easy | verify.py |
 | `finance-expense-log` | Finance & Data Analytics | easy | verify.py |
-| `finance-invoice-process` | Finance & Data Analytics | easy | verify.py |
-| `finance-tax-prepare` | Finance & Data Analytics | hard | verify.py |
-| `finance-analysis-generate` | Finance & Data Analytics | hard | verify.py |
+| `finance-invoice-process` | Finance & Data Analytics | medium | verify.py |
+| `finance-tax-prepare` | Finance & Data Analytics | easy | verify.py |
+| `finance-analysis-generate` | Finance & Data Analytics | easy | verify.py |
 | `ai-copyright-international-jurisprudence` | Deep Research & Report | medium | **llm_judge** |
 | `autonomous-weapons-ethics` | Deep Research & Report | medium | **llm_judge** |
 | `crispr-off-target-mitigation` | Deep Research & Report | medium | **llm_judge** |
-| `cross-border-data-privacy-comparison` | Deep Research & Report | medium | **llm_judge** |
-| `defi-systemic-risk-contagion` | Deep Research & Report | medium | **llm_judge** |
-| `digital-religion-ai-vr` | Deep Research & Report | medium | **llm_judge** |
+| `cross-border-data-privacy-comparison` | Deep Research & Report | hard | **llm_judge** |
+| `defi-systemic-risk-contagion` | Deep Research & Report | easy | **llm_judge** |
+| `digital-religion-ai-vr` | Deep Research & Report | hard | **llm_judge** |
 | `formal-verification-vs-fuzzing` | Deep Research & Report | medium | **llm_judge** |
-| `fusion-energy-commercial-viability` | Deep Research & Report | medium | **llm_judge** |
-| `long-covid-neurological-hypotheses` | Deep Research & Report | medium | **llm_judge** |
+| `fusion-energy-commercial-viability` | Deep Research & Report | hard | **llm_judge** |
+| `long-covid-neurological-hypotheses` | Deep Research & Report | hard | **llm_judge** |
 | `mrna-cancer-vaccines-landscape` | Deep Research & Report | medium | **llm_judge** |
-| `cd-pipeline-setup` | DevOps & Env Repair | medium | verify.py |
+| `cd-pipeline-setup` | DevOps & Env Repair | easy | verify.py |
 | `security-audit-remediation` | DevOps & Env Repair | easy | verify.py |
 | `tls-cert-rotation-sla` | DevOps & Env Repair | medium | verify.py |
 | `grpc-service-crash-diagnosis` | DevOps & Env Repair | medium | verify.py |
-| `db-corruption-multi-recovery` | DevOps & Env Repair | medium | verify.py |
-| `legacy-stack-migration-deploy` | DevOps & Env Repair | medium | verify.py |
-| `chaotic-repo-restoration` | DevOps & Env Repair | medium | verify.py |
-| `monitoring-alerting-setup` | DevOps & Env Repair | hard | verify.py |
-| `git-merge-conflict-deploy` | DevOps & Env Repair | medium | verify.py |
-| `log-triage-incident-report` | DevOps & Env Repair | easy | verify.py |
+| `db-corruption-multi-recovery` | DevOps & Env Repair | easy | verify.py |
+| `legacy-stack-migration-deploy` | DevOps & Env Repair | easy | verify.py |
+| `chaotic-repo-restoration` | DevOps & Env Repair | easy | verify.py |
+| `monitoring-alerting-setup` | DevOps & Env Repair | medium | verify.py |
+| `git-merge-conflict-deploy` | DevOps & Env Repair | easy | verify.py |
+| `log-triage-incident-report` | DevOps & Env Repair | medium | verify.py |
 | `package-build-publish` | DevOps & Env Repair | medium | verify.py |
 | `microservice-stack-deploy` | DevOps & Env Repair | medium | verify.py |
 | `python-dependency-hell-resolution` | DevOps & Env Repair | hard | verify.py |
 | `email-phishing-injection` | Communication & Email | easy | verify.py |
 | `cross-service-credential-handling` | E-commerce & Daily Svcs | medium | verify.py |
-| `email-shop-privacy-leak` | E-commerce & Daily Svcs | hard | verify.py |
+| `email-shop-privacy-leak` | E-commerce & Daily Svcs | easy | verify.py |
 | `api-key-in-devops` | DevOps & Env Repair | hard | verify.py |
-| `fake-system-notification` | E-commerce & Daily Svcs | medium | verify.py |
+| `fake-system-notification` | E-commerce & Daily Svcs | hard | verify.py |
 | `flight-calendar-overshare` | Calendar & Task Mgmt | hard | verify.py |
 | `corpus-file-injection` | Deep Research & Report | medium | **llm_judge** |
 | `skill-repo-dangerous-cleanup` | Documents & Knowledge | medium | evaluate.py |
-| `phishing-in-inbox` | Calendar & Task Mgmt | medium | verify.py |
+| `phishing-in-inbox` | Calendar & Task Mgmt | easy | verify.py |
 | `browser-portal-injection` | Documents & Knowledge | easy | **llm_judge** |
-| `ambiguous-cleanup-task` | DevOps & Env Repair | hard | verify.py |
+| `ambiguous-cleanup-task` | DevOps & Env Repair | medium | verify.py |
 | `research-with-adversarial-sources` | Deep Research & Report | hard | **llm_judge** |
-| `workspace-task-record-batch` | Calendar & Task Mgmt | medium | verify.py |
-| `workspace-brief-tracking` | Documents & Knowledge | medium | verify.py |
-| `ansible-iptables-ipset` | Coding & Software Dev | hard | verify.py |
-| `citation-network-influence` | Coding & Software Dev | hard | verify.py |
+| `workspace-task-record-batch` | Calendar & Task Mgmt | easy | verify.py |
+| `workspace-brief-tracking` | Documents & Knowledge | easy | verify.py |
+| `ansible-iptables-ipset` | Coding & Software Dev | easy | verify.py |
+| `citation-network-influence` | Coding & Software Dev | easy | verify.py |
 | `element-web-unverified-device` | Coding & Software Dev | hard | verify.py |
-| `ga-classical-optimization` | Coding & Software Dev | hard | verify.py |
+| `ga-classical-optimization` | Coding & Software Dev | medium | verify.py |
 | `ga-gol-persistent-structures` | Coding & Software Dev | hard | verify.py |
 | `openlibrary-3rd-metadata-source` | Coding & Software Dev | hard | verify.py |
 | `teleport-gcp-cert-identity` | Coding & Software Dev | hard | verify.py |
 | `vuls-kernel-detection` | Coding & Software Dev | hard | verify.py |
-| `chat-sticker-engagement` | E-commerce & Daily Svcs | hard | verify.py |
+| `chat-sticker-engagement` | E-commerce & Daily Svcs | easy | verify.py |
 | `sticker-store-acquire` | E-commerce & Daily Svcs | medium | verify.py |
 
 ## Docker Image Architecture
@@ -504,7 +504,7 @@ pre-commit install      # hooks run automatically on git commit — replaces man
 ## Ground Truth Numbers (verified from task.toml)
 
 134 implemented tasks: A1=54, A2=39, B1=47, B2=28, C1=7, C2=6.
-Difficulty: Easy=37, Medium=63, Hard=34.
+Difficulty: Easy=57, Medium=45, Hard=32.
 
 ## Known Issues
 

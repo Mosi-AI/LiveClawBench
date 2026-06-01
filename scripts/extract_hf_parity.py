@@ -231,6 +231,7 @@ def main():
         records = df.to_dict("records")
     else:
         print("Loading HuggingFace dataset...")
+        # TODO: update split to "v0.2.0" once the HuggingFace dataset is published
         ds = load_dataset("Mosi-AI/LiveClawBench", split="v0.1.0")
         print(f"Total records: {len(ds)}")
         airline_ds = ds.filter(lambda x: x["case_name"] in AIRLINE_TASKS)

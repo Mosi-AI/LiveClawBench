@@ -184,9 +184,9 @@ recalibration (PR #25):
 
 | Former Pair | Factor | Issue |
 |-------------|--------|-------|
-| washer-shop → email-washer-change | A1 | Both E — no gradient (A1 already covered by watch-shop → email-watch-shop) |
-| vue-build-fix-single → chain | A2 | Both H — no gradient; current difficulty tiers too coarse |
-| skill-creation → skill-dependency-fix | B2 | M → E inverted; dependency repair empirically easier than open-ended creation |
+| washer-shop → email-washer-change | A1 | M → E reversed (A1 already covered by watch-shop → email-watch-shop) |
+| vue-build-fix-single → chain | A2 | M → E reversed; adding A2 factors empirically lowered difficulty for pro |
+| skill-creation → skill-dependency-fix | B2 | H → M inverted; dependency repair empirically easier than open-ended creation |
 
 ### Needed: A2 and B2 Isolation Pairs
 
