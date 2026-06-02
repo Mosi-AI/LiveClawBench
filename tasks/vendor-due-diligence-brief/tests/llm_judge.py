@@ -2,7 +2,6 @@
 import http.client  # PR-5: RemoteDisconnected / IncompleteRead retries
 import json
 import os
-import random  # PR-5: retry backoff jitter
 import time
 import urllib.error
 import urllib.request
@@ -153,12 +152,14 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
         },
         method="POST",
     )
-    # PR-5: bumped attempts 3 -> 5; added jitter; broadened retried exceptions
-    # to cover TLS EOF / RemoteDisconnected. (Issue #108 §2.4 / TRACKING B5.1)
+    # PR-5: cover TLS EOF / RemoteDisconnected / IncompleteRead in addition
+    # to the original URLError. Budget: 3 attempts x 60s + (1 + 2)s sleeps
+    # = ~183s, fits within harbor's 240s verifier_timeout default.
+    # (Issue #108 §2.4 / TRACKING B5.1; budget tuned per PR #112 review.)
     last_exc: Exception | None = None
-    for attempt in range(5):
+    for attempt in range(3):
         try:
-            with urllib.request.urlopen(request, timeout=180) as response:
+            with urllib.request.urlopen(request, timeout=60) as response:
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             if 400 <= exc.code < 500:
@@ -170,8 +171,8 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
             # IncompleteRead is a HTTPException so it must be listed
             # separately. (PR-5 / PR #112 review simplification.)
             last_exc = exc
-        if attempt < 4:
-            time.sleep((2**attempt) + random.uniform(0, 1.5))
+        if attempt < 2:
+            time.sleep(2**attempt)
     if last_exc is None:
         # Defensive: retry loop must have set last_exc on every failure path;
         # `if` instead of `assert` so behavior is identical under `python -O`.
