@@ -9,8 +9,9 @@ RUN cd /workspace/environment/airline-app/backend && pip install --break-system-
 # Install airline-app frontend dependencies
 RUN cd /workspace/environment/airline-app/frontend && npm install --include=dev 2>&1 | tee /tmp/airline-npm-install.log
 
-# (inject_data.py moved to startup.sh — datetime.now()-relative seeds must
-#  be computed at container start, not at image build. Issue #108 §2.1)
+# (inject_data.py removed from build-time — runtime seeding is handled
+#  by the mock-airline binary's seedDatabase() with datetime.now()-relative
+#  dates. See mock-platform/mocks/airline/src/seed.ts. Issue #108 §2.1)
 
 # Install Playwright Chromium and symlink to /usr/bin/chromium so openclaw's
 # findChromeExecutableLinux() can detect it. openclaw only checks system paths
