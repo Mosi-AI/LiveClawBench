@@ -13,7 +13,10 @@ HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 
 USER root
 
-RUN apt-get update -o Acquire::Retries=3 && apt-get install -y --no-install-recommends -o Acquire::Retries=3 \
+# PR-4 review (PR #114): normalize Acquire::Retries from 3 to 5 to match the
+# rest of the PR-4 task images and docker/base. Eliminates the 3-vs-5 split
+# that PR #103 left behind.
+RUN apt-get update -o Acquire::Retries=5 && apt-get install -y --no-install-recommends -o Acquire::Retries=5 \
         git ca-certificates curl xz-utils && \
     rm -rf /var/lib/apt/lists/*
 

@@ -62,7 +62,13 @@ RUN for i in 1 2 3; do \
 
 # Explicit pytest fallback: openlibrary's requirements_test.txt may pin a different
 # version or skip pytest entirely; ensure the verifier's `python3 -m pytest` works.
-RUN python3 -m pip install --no-cache-dir --break-system-packages -i ${PIP_INDEX_URL} pytest pytest-mock && \
+# PR-4 review (PR #114): wrap multi-package pip install in 3-attempt shell retry
+# to match the rest of the PR-4 pip-install pattern.
+RUN for i in 1 2 3; do \
+        python3 -m pip install --no-cache-dir --break-system-packages -i ${PIP_INDEX_URL} pytest pytest-mock && break; \
+        [ "$i" -eq 3 ] && exit 1; \
+        echo "pip install pytest pytest-mock attempt $i failed; sleep 15"; sleep 15; \
+    done && \
     python3 -c "import pytest; print('pytest', pytest.__version__, 'OK on', __import__('sys').executable)"
 
 # Install infogami (openlibrary's framework dep, not on PyPI; lives in a sibling
