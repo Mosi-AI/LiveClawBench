@@ -237,17 +237,48 @@ def two_tier_score(
     agent_total: int,
     agent_compiled: bool,
     fallback_cap: float = 0.5,
+    sparse_overlay_threshold: int = 2,
+    sparse_agent_min_total: int = 5,
+    sparse_agent_min_ratio: float = 0.6,
 ) -> tuple[float, str]:
     """Combine canonical gold-overlay score with agent-own fallback.
 
     Priority:
-      - Gold overlay compiled AND >0 tests ran → use overlay ratio (canonical).
-      - Otherwise fall back to ``fallback_cap * agent_ratio`` so partial credit
-        is given for agent's own working fix even if it diverges from gold's
-        exact interface.
+      - Sparse-overlay rescue: if the gold patch carries very few tests
+        (``overlay_total <= sparse_overlay_threshold``) AND the agent's
+        own test suite is substantial (``agent_total >=
+        sparse_agent_min_total``) AND mostly green (``agent_pass /
+        agent_total >= sparse_agent_min_ratio``), trust the agent path
+        weighted up to 0.7. Rationale: a single gold test pins gold's
+        exact module layout; a reasonable agent implementation that
+        passes 13/15 of its own behavioural tests should not be zeroed
+        for an interface-shape mismatch on one assertion.
+      - Gold overlay compiled AND >0 tests ran -> use overlay ratio
+        (canonical, the standard SWE-bench Pro f2p path).
+      - Otherwise fall back to ``fallback_cap * agent_ratio`` so partial
+        credit is given for agent's own working fix even if it diverges
+        from gold's exact interface.
       - Returns 0 only when both paths produce no signal.
+
+    PR-7 B7.3: openlibrary-3rd-metadata-source had a single-test gold
+    overlay (``overlay_total == 1``); when the agent's implementation
+    diverged from gold's exact entry point that 0/1 fail zeroed the
+    score even when the agent's own 13/15 tests passed. The sparse-
+    overlay rescue branch above prevents this pathological case while
+    still treating a substantial gold overlay (>=3 tests) as canonical.
     """
     if overlay_compiled and overlay_total > 0:
+        if (
+            overlay_total <= sparse_overlay_threshold
+            and agent_compiled
+            and agent_total >= sparse_agent_min_total
+            and agent_pass / agent_total >= sparse_agent_min_ratio
+        ):
+            # Sparse overlay + strong agent-own evidence -> rescue path
+            return 0.7 * (agent_pass / agent_total), (
+                f"agent-own (sparse overlay rescue, overlay={overlay_pass}/"
+                f"{overlay_total} suppressed)"
+            )
         return overlay_pass / overlay_total, "gold-overlay"
     if agent_compiled and agent_total > 0:
         return fallback_cap * (
