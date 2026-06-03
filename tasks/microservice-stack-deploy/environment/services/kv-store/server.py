@@ -10,7 +10,10 @@ import grpc
 import kvstore_pb2
 import kvstore_pb2_grpc
 
-DEFAULT_PORT = os.environ.get("KV_STORE_PORT", "50052")
+# PR-7 B7.1: verify.py probes localhost:50051 directly for kv_store test 4.
+# Previously DEFAULT_PORT was 50052, which caused the port-reachability
+# sub-test to fail for every agent regardless of correctness.
+DEFAULT_PORT = os.environ.get("KV_STORE_PORT", "50051")
 
 
 class KVStoreServicer(kvstore_pb2_grpc.KVStoreServicer):

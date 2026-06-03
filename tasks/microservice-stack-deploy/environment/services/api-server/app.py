@@ -13,9 +13,12 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-# NOTE: default hardcoded to kvstore:9000 per architecture doc (services/README.md).
-# The KV_STORE_HOST env override exists but ops still sometimes forgets to set it.
-KV_STORE_HOST = os.environ.get("KV_STORE_HOST", "kvstore:9000")
+# PR-7 B7.1: default was hardcoded to "kvstore:9000" which neither resolves
+# nor matches the KV server's actual port. The architecture doc had drifted
+# from the real services layout; aligning the default to localhost:50051
+# matches the kv-store server's new DEFAULT_PORT (also 50051). KV_STORE_HOST
+# env override still wins when ops needs to point elsewhere.
+KV_STORE_HOST = os.environ.get("KV_STORE_HOST", "localhost:50051")
 
 
 def get_kv_stub():
