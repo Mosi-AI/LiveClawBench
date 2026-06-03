@@ -5,9 +5,11 @@ HEALTHCHECK --interval=2s --timeout=1s --retries=1 CMD true
 USER root
 
 # Install common packages needed by all task containers.
+# PR-4: -o Acquire::Retries=5 mitigates transient apt mirror flakes (Issue #101).
 # On restricted networks, configure Docker daemon proxy before building so that
 # apt-get can reach deb.debian.org — see docs/guide/getting-started.md.
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update -o Acquire::Retries=5 && \
+    apt-get install -y --no-install-recommends -o Acquire::Retries=5 \
         python3 python3-pip python3-venv curl sqlite3 unzip && \
     rm -rf /var/lib/apt/lists/*
 
