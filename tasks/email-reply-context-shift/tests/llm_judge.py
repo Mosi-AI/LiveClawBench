@@ -22,6 +22,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 DB_PATH = "/var/lib/mock-data/email/email.db"
 
@@ -252,9 +253,7 @@ def _write_breakdown(
 ) -> None:
     """PR-5 B5.4: write reward.json with breakdown fields. Stage-2 / harbor can
     inspect _meta_judge_* to distinguish a true 0-score from a judge failure."""
-    import pathlib as _pl
-
-    verifier_dir = _pl.Path("/logs/verifier")
+    verifier_dir = Path("/logs/verifier")
     try:
         verifier_dir.mkdir(parents=True, exist_ok=True)
         payload = {
@@ -294,10 +293,6 @@ def main():
         pass
 
     judge_url = os.environ.get("JUDGE_BASE_URL")
-    judge_mode = ""
-    judge_verdict = ""
-    judge_failed = 0
-    judge_error = ""
     if judge_url:
         prompt = (
             "The agent was asked to reply to an email about a meeting, "
@@ -310,22 +305,28 @@ def main():
         # JUDGE_FAILED marker to stderr so harbor can distinguish a true 0 from
         # a judge crash. We still write a 0 score (harbor expects a number) but
         # the _meta_judge_failed=1 flag makes the cause visible.
+        # Per PR #112 review: declare per-path metadata inside each branch so
+        # _write_breakdown calls sit directly under their producing code path.
         try:
             score, judge_verdict, judge_mode = call_judge(prompt)
+            _write_breakdown(
+                score,
+                sent_emails,
+                judge_used=1,
+                judge_mode=judge_mode,
+                judge_verdict=judge_verdict,
+            )
         except Exception as exc:
-            judge_failed = 1
             judge_error = str(exc)[:500]
-            score = 0.0
             print(f"JUDGE_FAILED: {judge_error}", file=sys.stderr)
-        _write_breakdown(
-            score,
-            sent_emails,
-            judge_used=1,
-            judge_mode=judge_mode,
-            judge_verdict=judge_verdict,
-            judge_failed=judge_failed,
-            judge_error=judge_error,
-        )
+            score = 0.0
+            _write_breakdown(
+                score,
+                sent_emails,
+                judge_used=1,
+                judge_failed=1,
+                judge_error=judge_error,
+            )
     else:
         # No JUDGE_BASE_URL configured — heuristic is the documented offline path.
         # This is NOT a judge failure, so judge_used=0 (not judge_failed=1).
