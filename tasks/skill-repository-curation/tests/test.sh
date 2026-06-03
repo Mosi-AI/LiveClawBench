@@ -3,11 +3,37 @@ set -euo pipefail
 cd /workspace
 mkdir -p /logs/verifier
 
+# PR-7 B7.1: evaluate.py's REDUNDANCY_IDENTIFIED (15 pts) and
+# CONSOLIDATION_RATIONALE (10 pts) dimensions are gated on a
+# `--conversation-log` argument. Previously test.sh omitted it entirely,
+# hard-zeroing 25/100 across every agent. Build a synthetic log by
+# concatenating whatever evidence sources we can find at verify time:
+#   - openclaw harbor session jsonl (the agent's own messages)
+#   - CONSOLIDATION_RATIONALE.md written by the agent as a deliverable
+# Either source is sufficient on its own; both is best.
+CONV_LOG=/tmp/skill_consolidation_evidence.log
+: > "$CONV_LOG"
+
+for candidate in \
+    /home/node/.openclaw/agents/main/sessions/harbor.jsonl \
+    /root/.openclaw/agents/main/sessions/harbor.jsonl \
+    /workspace/.openclaw/agents/main/sessions/harbor.jsonl \
+    /workspace/environment/skills/sales-data-pipeline/CONSOLIDATION_RATIONALE.md \
+    /workspace/environment/skills/sales-data-pipeline/RATIONALE.md \
+    /workspace/output/CONSOLIDATION_RATIONALE.md; do
+  if [ -s "$candidate" ]; then
+    echo "# === source: $candidate ===" >> "$CONV_LOG"
+    cat "$candidate" >> "$CONV_LOG"
+    echo "" >> "$CONV_LOG"
+  fi
+done
+
 # Run evaluation (|| true: evaluate.py exits non-zero when score is 0;
 # must not abort before writing reward.txt)
 python3 /tests/evaluate.py \
     --base-dir /workspace \
     --model-output environment/skills/sales-data-pipeline \
+    --conversation-log "$CONV_LOG" \
     --output-json /workspace/output/eval_result.json 2>&1 | tee /tmp/eval_output.txt || true
 
 # reward.txt: 0-1 scalar (TOTAL SCORE: X / 100 → X/100)
