@@ -81,5 +81,16 @@ RUN for i in 1 2 3; do \
         [ "$i" -eq 3 ] && exit 1; \
         echo "infogami clone attempt $i failed; sleep 10"; sleep 10; \
     done && \
-    python3 -m pip install --no-cache-dir --break-system-packages -e /opt/infogami && \
+    for i in 1 2 3; do \
+        python3 -m pip install --no-cache-dir --break-system-packages -e /opt/infogami && break; \
+        [ "$i" -eq 3 ] && exit 1; \
+        echo "pip install -e /opt/infogami attempt $i failed; sleep 15"; sleep 15; \
+    done && \
     python3 -c "import infogami; print('infogami OK:', infogami.__file__)"
+# PR-4 (PR #114 follow-up review): the pip install -e step is wrapped in its
+# own 3-attempt retry. Even though /opt/infogami is local at this point,
+# 'pip install -e <path>' reads the package's setup.py / pyproject.toml and
+# fetches its install_requires from PyPI — so the network surface is identical
+# to a fresh 'pip install <name>'. Separate retry (vs. consolidating with the
+# clone block) avoids re-downloading the ~50MB infogami repo on a pure pip
+# failure, but still gives 3 PyPI attempts.
