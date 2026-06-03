@@ -114,9 +114,17 @@ def run_agent(task_id: int, seed: int, out_dir: Path) -> bool:
         "PYTHONPATH": "/workspace/repo",
         "HOME": "/root",
     }
-    r = subprocess.run(
-        cmd, cwd=str(REPO), capture_output=True, text=True, timeout=180, env=env
-    )
+    try:
+        r = subprocess.run(
+            cmd, cwd=str(REPO), capture_output=True, text=True, timeout=180, env=env
+        )
+    except subprocess.TimeoutExpired:
+        # PR-7 B7.4: a single task hanging must not crash the verifier.
+        print(f"  AGENT TIMEOUT task={task_id} seed={seed} (>180s)")
+        return False
+    except Exception as e:  # noqa: BLE001
+        print(f"  AGENT EXCEPTION task={task_id} seed={seed}: {type(e).__name__}: {e}")
+        return False
     if r.returncode != 0:
         print(f"  AGENT FAIL task={task_id} seed={seed}\n    {r.stderr[-400:]}")
         return False
@@ -224,41 +232,70 @@ def grade_viz(tasks: list[dict]) -> float:
 def main() -> int:
     print("── ga-gol-persistent-structures verifier ──")
 
-    ok, msg = hard_gate()
-    if not ok:
-        emit(0.0, reason=msg)
+    # PR-7 B7.4: each stage is isolated so one crash does not collapse the
+    # whole reward.json — a partial score is more useful than a missing file.
+    try:
+        ok, msg = hard_gate()
+        if not ok:
+            emit(0.0, reason=msg)
+            return 1
+        print("Stage 1 hard gate: OK")
+
+        try:
+            mult, _ = scan_ast()
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 2 AST scan crashed: {type(e).__name__}: {e}")
+            mult = 0.0
+        print(f"Stage 2 AST scan: multiplier={mult}")
+
+        try:
+            tasks = json.loads(TASKS_JSON.read_text())["tasks"]
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 3 tasks.json load crashed: {type(e).__name__}: {e}")
+            emit(0.0, reason=f"tasks.json crash: {e}")
+            return 1
+
+        try:
+            base, per_task = grade_functional(tasks)
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 3 functional crashed: {type(e).__name__}: {e}")
+            base, per_task = 0.0, [{"error": str(e)}]
+        print(f"Stage 3 functional: base={base:.4f}")
+
+        try:
+            det = grade_determinism(tasks)
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 4 determinism crashed: {type(e).__name__}: {e}")
+            det = 0.0
+        print(f"Stage 4 determinism: +{det:.4f}")
+
+        try:
+            viz = grade_viz(tasks)
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 5 viz crashed: {type(e).__name__}: {e}")
+            viz = 0.0
+        print(f"Stage 5 viz: +{viz:.4f}")
+
+        sub_total = base + det + viz
+        final = sub_total * mult
+        # Harbor's VerifierResult requires `_meta_*` fields to be float|int.
+        # Stringify the per_task list via a JSON-encoded debug log instead.
+        log_path = LOG_DIR / "per_task.json"
+        log_path.write_text(json.dumps(per_task, indent=2), encoding="utf-8")
+        breakdown = {
+            "functional_base": round(base, 4),
+            "determinism": round(det, 4),
+            "viz": round(viz, 4),
+            "surface_multiplier": mult,
+            "_meta_n_tasks_passed": sum(1 for t in per_task if t.get("verified")),
+            "_meta_n_tasks_total": len(per_task),
+        }
+        emit(final, breakdown=breakdown)
+        return 0 if final >= 0.5 else 1
+    except Exception as e:  # noqa: BLE001
+        print(f"VERIFIER CRASH at main level: {type(e).__name__}: {e}")
+        emit(0.0, reason=f"verifier crash: {type(e).__name__}: {e}")
         return 1
-    print("Stage 1 hard gate: OK")
-
-    mult, _ = scan_ast()
-    print(f"Stage 2 AST scan: multiplier={mult}")
-
-    tasks = json.loads(TASKS_JSON.read_text())["tasks"]
-    base, per_task = grade_functional(tasks)
-    print(f"Stage 3 functional: base={base:.4f}")
-
-    det = grade_determinism(tasks)
-    print(f"Stage 4 determinism: +{det:.4f}")
-
-    viz = grade_viz(tasks)
-    print(f"Stage 5 viz: +{viz:.4f}")
-
-    sub_total = base + det + viz
-    final = sub_total * mult
-    # Harbor's VerifierResult requires `_meta_*` fields to be float|int.
-    # Stringify the per_task list via a JSON-encoded debug log instead.
-    log_path = LOG_DIR / "per_task.json"
-    log_path.write_text(json.dumps(per_task, indent=2), encoding="utf-8")
-    breakdown = {
-        "functional_base": round(base, 4),
-        "determinism": round(det, 4),
-        "viz": round(viz, 4),
-        "surface_multiplier": mult,
-        "_meta_n_tasks_passed": sum(1 for t in per_task if t.get("verified")),
-        "_meta_n_tasks_total": len(per_task),
-    }
-    emit(final, breakdown=breakdown)
-    return 0 if final >= 0.5 else 1
 
 
 if __name__ == "__main__":

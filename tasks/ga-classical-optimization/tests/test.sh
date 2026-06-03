@@ -21,4 +21,12 @@ SCORE=$(grep -oP 'Score:\s*\K[0-9.]+' /logs/verifier/verify_stdout.txt | tail -1
 # pipe failed.  Fall back to 0.0 so the harness never sees a missing file.
 echo "${SCORE:-0.0}" > /logs/verifier/reward.txt
 echo "Verification score: ${SCORE:-0.0}"
+
+# PR-7 B7.4 defense-in-depth: if verify.py crashed before emit() ran,
+# reward.json will be missing — synthesize a minimal one so the harness
+# never sees a malformed verifier output.
+if [ ! -s /logs/verifier/reward.json ]; then
+  printf '{"reward": %s, "_meta_verifier_no_reward_json": 1}\n' "${SCORE:-0.0}" \
+    > /logs/verifier/reward.json
+fi
 exit 0
