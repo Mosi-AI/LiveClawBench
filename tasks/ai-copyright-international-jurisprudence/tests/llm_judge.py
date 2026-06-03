@@ -141,13 +141,20 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
             # IncompleteRead is a HTTPException so it must be listed
             # separately. (PR-5 / PR #112 review simplification.)
             last_exc = exc
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            # PR #112 review (112-4): partial / malformed response bodies
+            # (truncated chunked transfers, gzip stripping by middleboxes,
+            # the judge endpoint returning HTML on a transient 5xx page) get
+            # raised here. Treat as retryable instead of bubbling an
+            # uncaught exception past the verifier's per-dimension try/except.
+            last_exc = exc
         if attempt < 2:
             time.sleep(2**attempt)
-    if last_exc is None:
-        # Defensive: retry loop must have set last_exc on every failure path;
-        # `if` instead of `assert` so behavior is identical under `python -O`.
-        raise RuntimeError("post_json retry loop exited without raising")
-    raise last_exc
+    # PR #112 review (112-5): the prior `if last_exc is None: raise
+    # RuntimeError(...)` guard is unreachable — the loop only falls through
+    # after attempt 2, and every failure branch above assigns last_exc.
+    # The `type: ignore` covers the Optional narrowing for mypy/ruff.
+    raise last_exc  # type: ignore[misc]
 
 
 def call_judge(system_prompt: str, user_prompt: str) -> tuple[dict, dict]:
