@@ -53,16 +53,37 @@ RUN for i in 1 2 3; do \
 
 WORKDIR /workspace/repo
 
+# PR-7 B7.3: yarn.lock pins every resolved URL to the upstream
+# registry.yarnpkg.com / registry.npmjs.org. `yarn config set registry`
+# only affects metadata lookups -- the actual fetches still hit those
+# pinned URLs and time out on CN-routed hosts (observed in
+# gpt-5.5-medium trial as ETIMEDOUT 108.160.166.42:443). Rewriting the
+# lockfile URLs to npmmirror up front is what makes the mirror actually
+# stick for the whole dependency tree.
+RUN sed -i \
+        -e 's|https://registry.yarnpkg.com/|https://registry.npmmirror.com/|g' \
+        -e 's|https://registry.npmjs.org/|https://registry.npmmirror.com/|g' \
+        yarn.lock
+
 # Pre-fetch deps so trial-time test runs do not need network.
 # yarn install with retry: registry can be flaky from CN-routed hosts.
 # Drop --frozen-lockfile so a partial-install failure can be recovered on retry,
 # and explicitly install jest if devDeps were skipped (some npmmirror responses
 # cause yarn to silently drop subtrees).
+#
+# PR-7 B7.3 (second-layer fix): `@casualbot/jest-sonar-reporter` is
+# referenced as a `testResultsProcessor` in element-web's jest config but
+# is NOT in package.json / yarn.lock, so jest crashes at startup with
+# "Module ... was not found" -- both agent-own and gold-overlay test
+# tiers go to 0 (see deepseek-v4-pro / CKis5Mf trial). Add it to the
+# dev-deps fallback so jest at least loads.
 RUN for i in 1 2 3; do \
         yarn install --network-timeout 600000 --ignore-scripts && break || sleep 30; \
     done && \
     (test -x node_modules/.bin/jest || \
         yarn add --dev --network-timeout 600000 \
             jest@^29 jest-environment-jsdom@^29 @testing-library/jest-dom \
-            babel-jest@^29 jest-canvas-mock fetch-mock-jest jest-mock jest-raw-loader) && \
+            babel-jest@^29 jest-canvas-mock fetch-mock-jest jest-mock jest-raw-loader \
+            @casualbot/jest-sonar-reporter) && \
+    yarn add --dev --network-timeout 600000 @casualbot/jest-sonar-reporter && \
     test -x node_modules/.bin/jest && echo "jest installed OK"
