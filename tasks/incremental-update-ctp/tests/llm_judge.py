@@ -8,6 +8,7 @@
 import http.client  # PR-5: RemoteDisconnected / IncompleteRead retries
 import json
 import os
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -328,7 +329,23 @@ def main() -> None:
 
     (dc.OUT / "llm_judge_prompt.txt").write_text(prompt, encoding="utf-8")
 
-    judge_payload, debug_payload = call_judge(SYSTEM_PROMPT, prompt)
+    # PR #112 review (112-1): wrap the judge invocation so a RuntimeError
+    # from call_judge() does NOT crash the verifier without writing
+    # reward.json. On judge failure we still emit reward.json with the
+    # structural dimensions preserved (they were computed before the judge
+    # call and remain valid), zero out judge-derived dimensions, and set
+    # _meta_judge_failed=1 + _meta_judge_error so downstream statistics
+    # can distinguish a transport / model failure from a genuine low score.
+    try:
+        judge_payload, debug_payload = call_judge(SYSTEM_PROMPT, prompt)
+        judge_failed = 0
+        judge_error = ""
+    except RuntimeError as exc:
+        judge_error = str(exc)[:500]
+        print(f"JUDGE_FAILED: {judge_error}", file=sys.stderr)
+        judge_payload = {}
+        debug_payload = {"mode": "", "model": ""}
+        judge_failed = 1
     (dc.OUT / "llm_judge_response.json").write_text(
         json.dumps(debug_payload, ensure_ascii=False, indent=2), encoding="utf-8"
     )
@@ -343,6 +360,8 @@ def main() -> None:
         "_meta_rationales": judge_payload.get("rationales", {}),
         "_meta_judge_model": debug_payload.get("model"),
         "_meta_judge_mode": debug_payload.get("mode"),
+        "_meta_judge_failed": judge_failed,
+        "_meta_judge_error": judge_error,
     }
     score["reward"] = weighted_sum(score, rubric)
 
