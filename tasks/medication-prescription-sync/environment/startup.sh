@@ -1,29 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Wait until a sqlite DB exists AND contains the listed tables.
-# Mitigates the race where this startup script runs before the underlying
-# mock service has finished schema bootstrap.
-wait_for_db_tables() {
-    local db="$1" timeout="${2:-60}" elapsed=0
-    shift 2 || true
-    local tables="$*"
-    while [ $elapsed -lt $timeout ]; do
-        if [ -f "$db" ]; then
-            local present
-            present=$(sqlite3 "$db" ".tables" 2>/dev/null || echo "")
-            local missing=0
-            for t in $tables; do
-                printf '%s\n' $present | grep -qwF "$t" || { missing=1; break; }
-            done
-            [ $missing -eq 0 ] && return 0
-        fi
-        sleep 1
-        elapsed=$((elapsed + 1))
-    done
-    echo "ERROR: wait_for_db_tables timed out after ${timeout}s: $db (need: $tables)" >&2
-    return 1
-}
+# wait_for_db_tables() is injected by mock-platform/scripts/build-task-images.ts
+# at the top of the generated /opt/mock/startup.d/<task>.sh, alongside wait_http
+# (see PR #113 review by @mockiemochi). Per-task startup_extra scripts only need
+# to *call* the helper.
 
 # A2 data injection: seed outdated active medications in health DB
 # Fixed IDs (100, 101 for medications; 200, 201 for calendar events) keep
