@@ -30,7 +30,11 @@ def _wait_for_tables(db_path: str, required_tables, timeout: int = 60) -> None:
     The downstream sqlite3.connect() will surface a normal OperationalError
     if the file truly does not exist, which the verifier's per-anomaly
     try/except will score as 0 for that dimension only.
+
+    Timeout can be overridden at runtime via MOCK_READY_TIMEOUT env var
+    (Issue #108 §2.3 — cold-start variance on loaded CI runners).
     """
+    timeout = int(os.environ.get("MOCK_READY_TIMEOUT", str(timeout)))
     deadline = time.monotonic() + timeout
     last_err = None
     while time.monotonic() < deadline:
