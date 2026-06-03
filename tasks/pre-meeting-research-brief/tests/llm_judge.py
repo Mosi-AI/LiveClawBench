@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 import datetime
+# NOTE: The utility functions in this file (call_judge, post_json, extract_chat_text,
+# extract_responses_text, parse_json_blob, etc.) are intentionally duplicated across all
+# twenty-one LLM-judge tasks. Harbor's per-task build context (environment/ dir only)
+# prevents cross-task file sharing without baking shared logic into the base image.
+# If you edit these helpers, sync the change to every other tasks/*/tests/llm_judge.py
+# (21 files in total — see CLAUDE.md `LLM-judge tasks` for the canonical list).
 import http.client  # PR-5: RemoteDisconnected / IncompleteRead retries
 import json
 import os
