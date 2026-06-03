@@ -16,8 +16,10 @@ comments without replying) cannot pass.
 """
 
 import json
+import os
 import sqlite3
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -34,15 +36,13 @@ def _wait_for_tables(db_path: str, required_tables, timeout: int = 60) -> None:
 
     On timeout: prints a WARNING with diagnostic info (parent-dir listing)
     and RETURNS. We don't raise SystemExit because that would short-circuit
-    the verifier and turn a "DB late" condition into a hard 0 — observed
-    regression in pr_audit/results/pr2/social-schedule-audit (0.40 → 0.0).
+    the verifier and turn a "DB late" condition into a hard 0 — see
+    GitHub issue #108 §2.3 for the underlying mock-vs-verifier race,
+    and PR #113 review for the regression that motivated this design.
     The downstream sqlite3.connect() will surface a normal OperationalError
     if the file truly does not exist, which the verifier's per-anomaly
     try/except will score as 0 for that dimension only.
     """
-    import os
-    import time
-
     deadline = time.monotonic() + timeout
     last_err = None
     while time.monotonic() < deadline:
