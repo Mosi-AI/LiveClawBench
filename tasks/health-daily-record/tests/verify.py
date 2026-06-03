@@ -33,8 +33,13 @@ def _wait_for_tables(db_path: str, required_tables, timeout: int = 60) -> None:
 
     Timeout can be overridden at runtime via MOCK_READY_TIMEOUT env var
     (Issue #108 §2.3 — cold-start variance on loaded CI runners).
+    Invalid values (empty / non-integer) silently fall back to the default,
+    so a misconfigured env var cannot crash the verifier at module load.
     """
-    timeout = int(os.environ.get("MOCK_READY_TIMEOUT", str(timeout)))
+    try:
+        timeout = int(os.environ.get("MOCK_READY_TIMEOUT", str(timeout)))
+    except (ValueError, TypeError):
+        pass
     deadline = time.monotonic() + timeout
     last_err = None
     while time.monotonic() < deadline:
