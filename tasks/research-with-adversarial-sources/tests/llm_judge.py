@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 # NOTE: The utility functions in this file (call_judge, post_json, extract_chat_text,
 # extract_responses_text, parse_json_blob, etc.) are intentionally duplicated across all
-# five LLM-judge tasks. Harbor's per-task build context (environment/ dir only) prevents
-# cross-task file sharing without baking shared logic into the base image. If you edit
-# these helpers, apply the same change to the counterparts in:
-#   tasks/conflict-repair-acb/tests/llm_judge.py
-#   tasks/incremental-update-ctp/tests/llm_judge.py
-#   tasks/live-web-research-sqlite-fts5/tests/llm_judge.py
-#   tasks/mixed-tool-memory/tests/llm_judge.py
-#   tasks/noise-filtering/tests/llm_judge.py
+# twenty-one LLM-judge tasks. Harbor's per-task build context (environment/ dir only)
+# prevents cross-task file sharing without baking shared logic into the base image.
+# If you edit these helpers, sync the change to every other tasks/*/tests/llm_judge.py
+# (21 files in total — see CLAUDE.md `LLM-judge tasks` for the canonical list).
+import http.client  # PR-5: RemoteDisconnected / IncompleteRead retries
 import json
 import os
 import time
@@ -160,22 +157,39 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
         },
         method="POST",
     )
+    # PR-5: cover TLS EOF / RemoteDisconnected / IncompleteRead in addition
+    # to the original URLError. Budget: 3 attempts x 60s + (1 + 2)s sleeps
+    # = ~183s, fits within harbor's 240s verifier_timeout default.
+    # (Issue #108 §2.4 / TRACKING B5.1; budget tuned per PR #112 review.)
+    last_exc: Exception | None = None
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(request, timeout=180) as response:
+            with urllib.request.urlopen(request, timeout=60) as response:
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             if 400 <= exc.code < 500:
-                raise
-            if attempt < 2:
-                time.sleep(2**attempt)
-                continue
-            raise
-        except (urllib.error.URLError, TimeoutError, ConnectionError):
-            if attempt < 2:
-                time.sleep(2**attempt)
-                continue
-            raise
+                raise  # 4xx is permanent — do not retry
+            last_exc = exc
+        except (OSError, http.client.IncompleteRead) as exc:
+            # URLError, TimeoutError, ConnectionError, ssl.SSLError, and
+            # http.client.RemoteDisconnected all inherit from OSError;
+            # IncompleteRead is a HTTPException so it must be listed
+            # separately. (PR-5 / PR #112 review simplification.)
+            last_exc = exc
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            # PR #112 review (112-4): partial / malformed response bodies
+            # (truncated chunked transfers, gzip stripping by middleboxes,
+            # the judge endpoint returning HTML on a transient 5xx page) get
+            # raised here. Treat as retryable instead of bubbling an
+            # uncaught exception past the verifier's per-dimension try/except.
+            last_exc = exc
+        if attempt < 2:
+            time.sleep(2**attempt)
+    # PR #112 review (112-5): the prior `if last_exc is None: raise
+    # RuntimeError(...)` guard is unreachable — the loop only falls through
+    # after attempt 2, and every failure branch above assigns last_exc.
+    # The `type: ignore` covers the Optional narrowing for mypy/ruff.
+    raise last_exc  # type: ignore[misc]
 
 
 DEFAULT_JUDGE_MODEL = "deepseek-v3.2"
