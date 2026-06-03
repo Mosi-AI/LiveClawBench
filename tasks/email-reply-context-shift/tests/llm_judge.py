@@ -1,9 +1,26 @@
 """Verifier for email-reply-context-shift (C1).
 
 Checks: final sent email acknowledges the meeting cancellation.
-Uses LLM judge to evaluate response quality, with heuristic fallback.
+
+Scoring:
+  - When JUDGE_BASE_URL is set and the judge call succeeds, return the
+    judge's 0.0-1.0 score + write per-dimension breakdown to reward.json.
+  - When JUDGE_BASE_URL is set but the call fails (network outage, model
+    rejected, etc.), the retry loop exhausts and the verifier emits 0.0
+    with `_meta_judge_failed=1`. (Was previously a silent 0; PR-5 makes
+    the failure mode explicit so downstream stats can filter judge errors
+    out of agent-skill aggregates.)
+  - When JUDGE_BASE_URL is unset (offline / no-credentials run), fall back
+    to the deterministic heuristic scorer.
 """
 
+# NOTE: The utility functions in this file (call_judge, post_json, extract_chat_text,
+# extract_responses_text, parse_json_blob, etc.) are intentionally duplicated across all
+# twenty-one LLM-judge tasks. Harbor's per-task build context (environment/ dir only)
+# prevents cross-task file sharing without baking shared logic into the base image.
+# If you edit these helpers, sync the change to every other tasks/*/tests/llm_judge.py
+# (21 files in total — see CLAUDE.md `LLM-judge tasks` for the canonical list).
+import http.client  # PR-5: RemoteDisconnected / IncompleteRead retries
 import json
 import os
 import sqlite3
@@ -11,6 +28,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 DB_PATH = "/var/lib/mock-data/email/email.db"
 
@@ -101,25 +119,45 @@ def post_json(url: str, payload: dict, api_key: str) -> dict:
         },
         method="POST",
     )
+    # PR-5: cover TLS EOF / RemoteDisconnected / IncompleteRead in addition
+    # to the original URLError. Budget: 3 attempts x 60s + (1 + 2)s sleeps
+    # = ~183s, fits within harbor's 240s verifier_timeout default.
+    # (Issue #108 §2.4 / TRACKING B5.1; budget tuned per PR #112 review.)
+    last_exc: Exception | None = None
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(request, timeout=180) as response:
+            with urllib.request.urlopen(request, timeout=60) as response:
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             if 400 <= exc.code < 500:
-                raise
-            if attempt < 2:
-                time.sleep(2**attempt)
-                continue
-            raise
-        except (urllib.error.URLError, TimeoutError, ConnectionError):
-            if attempt < 2:
-                time.sleep(2**attempt)
-                continue
-            raise
+                raise  # 4xx is permanent — do not retry
+            last_exc = exc
+        except (OSError, http.client.IncompleteRead) as exc:
+            # URLError, TimeoutError, ConnectionError, ssl.SSLError, and
+            # http.client.RemoteDisconnected all inherit from OSError;
+            # IncompleteRead is a HTTPException so it must be listed
+            # separately. (PR-5 / PR #112 review simplification.)
+            last_exc = exc
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            # PR #112 review (112-4): partial / malformed response bodies
+            # (truncated chunked transfers, gzip stripping by middleboxes,
+            # the judge endpoint returning HTML on a transient 5xx page) get
+            # raised here. Treat as retryable instead of bubbling an
+            # uncaught exception past the verifier's per-dimension try/except.
+            last_exc = exc
+        if attempt < 2:
+            time.sleep(2**attempt)
+    # PR #112 review (112-5): the prior `if last_exc is None: raise
+    # RuntimeError(...)` guard is unreachable — the loop only falls through
+    # after attempt 2, and every failure branch above assigns last_exc.
+    # The `type: ignore` covers the Optional narrowing for mypy/ruff.
+    raise last_exc  # type: ignore[misc]
 
 
-def call_judge(prompt: str) -> float:
+def call_judge(prompt: str) -> tuple[float, str, str]:
+    """Return (score, rationale, mode) from the judge. PR-5 B5.4: rationale is
+    surfaced so the verifier can write it into reward.json's _meta_judge_verdict.
+    Raises RuntimeError on persistent failure (no silent fallback to 0)."""
     base_url = os.environ.get("JUDGE_BASE_URL", "")
     model = os.environ.get("JUDGE_MODEL_ID") or DEFAULT_JUDGE_MODEL
     api_key = os.environ.get("JUDGE_API_KEY", "")
@@ -144,6 +182,7 @@ def call_judge(prompt: str) -> float:
     responses_url = base_url.rstrip("/") + "/responses"
     attempts = [
         (
+            "chat_completions",
             chat_url,
             {
                 "model": model,
@@ -157,6 +196,7 @@ def call_judge(prompt: str) -> float:
             extract_chat_text,
         ),
         (
+            "responses",
             responses_url,
             {
                 "model": model,
@@ -178,23 +218,24 @@ def call_judge(prompt: str) -> float:
     ]
 
     errors = []
-    for url, payload, extractor in attempts:
+    for mode, url, payload, extractor in attempts:
         try:
             raw = post_json(url, payload, api_key)
             text = extractor(raw)
             parsed = parse_json_blob(text)
             score = parsed.get("score")
+            rationale = str(parsed.get("rationale", ""))[:500]
             if score is not None:
                 try:
-                    return float(score)
+                    return float(score), rationale, mode
                 except (TypeError, ValueError):
                     pass
-            errors.append("response did not contain valid score")
+            errors.append(f"{mode}: response did not contain valid score")
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="ignore")
-            errors.append(f"HTTP {exc.code} {body}")
+            errors.append(f"{mode}: HTTP {exc.code} {body}")
         except Exception as exc:
-            errors.append(str(exc))
+            errors.append(f"{mode}: {exc}")
 
     raise RuntimeError("LLM judge request failed: " + " | ".join(errors))
 
@@ -213,12 +254,45 @@ def heuristic_score(sent_emails):
     return score
 
 
+def _write_breakdown(
+    score: float,
+    sent_emails,
+    *,
+    judge_used: int,
+    judge_mode: str = "",
+    judge_verdict: str = "",
+    judge_failed: int = 0,
+    judge_error: str = "",
+) -> None:
+    """PR-5 B5.4: write reward.json with breakdown fields. Stage-2 / harbor can
+    inspect _meta_judge_* to distinguish a true 0-score from a judge failure."""
+    verifier_dir = Path("/logs/verifier")
+    try:
+        verifier_dir.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "reward": round(float(score), 4),
+            "passed": int(score >= 0.5),
+            "_meta_sent_email_count": len(sent_emails),
+            "_meta_judge_used": int(judge_used),
+            "_meta_judge_mode": judge_mode,
+            "_meta_judge_verdict": judge_verdict,
+            "_meta_judge_failed": int(judge_failed),
+            "_meta_judge_error": judge_error,
+        }
+        (verifier_dir / "reward.json").write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except Exception as exc:
+        print(f"WARNING: could not write reward.json: {exc}", file=sys.stderr)
+
+
 def main():
     score = 0.0
     sent_emails = check_sent_emails()
 
     if not sent_emails:
         print("No sent emails found")
+        _write_breakdown(score, sent_emails, judge_used=0)
         print(f"Score: {score:.2f}/1.0")
         sys.exit(0 if score >= 0.5 else 1)
 
@@ -239,13 +313,38 @@ def main():
             "Check if the final sent email acknowledges the cancellation.\n\n"
             f"Sent emails: {json.dumps(emails_data)}"
         )
+        # PR-5: NO silent heuristic fallback when judge fails. Per PR-5 design,
+        # judge failure must be loud — record it in reward.json and emit a
+        # JUDGE_FAILED marker to stderr so harbor can distinguish a true 0 from
+        # a judge crash. We still write a 0 score (harbor expects a number) but
+        # the _meta_judge_failed=1 flag makes the cause visible.
+        # Per PR #112 review: declare per-path metadata inside each branch so
+        # _write_breakdown calls sit directly under their producing code path.
         try:
-            score = call_judge(prompt)
+            score, judge_verdict, judge_mode = call_judge(prompt)
+            _write_breakdown(
+                score,
+                sent_emails,
+                judge_used=1,
+                judge_mode=judge_mode,
+                judge_verdict=judge_verdict,
+            )
         except Exception as exc:
-            print(f"LLM judge failed: {exc}")
-            score = heuristic_score(sent_emails)
+            judge_error = str(exc)[:500]
+            print(f"JUDGE_FAILED: {judge_error}", file=sys.stderr)
+            score = 0.0
+            _write_breakdown(
+                score,
+                sent_emails,
+                judge_used=1,
+                judge_failed=1,
+                judge_error=judge_error,
+            )
     else:
+        # No JUDGE_BASE_URL configured — heuristic is the documented offline path.
+        # This is NOT a judge failure, so judge_used=0 (not judge_failed=1).
         score = heuristic_score(sent_emails)
+        _write_breakdown(score, sent_emails, judge_used=0)
 
     print(f"Score: {score:.2f}/1.0")
     sys.exit(0 if score >= 0.5 else 1)
