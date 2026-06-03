@@ -8,6 +8,31 @@ echo "=== Step 1: Check current certificate status ==="
 openssl x509 -in /etc/nginx/ssl/server.crt -noout -enddate
 echo ""
 
+# PR-7 B7.1: verify.py requires monitoring evidence at
+# /workspace/monitoring/{downtime_seconds.txt, probe.log}; without it the
+# downtime_sla dimension (0.50 weight) is hard-zeroed regardless of how
+# clean the rotation actually is. Start a probe BEFORE the rotation so we
+# can write a real downtime measurement at the end.
+mkdir -p /workspace/monitoring
+PROBE_LOG=/workspace/monitoring/probe.log
+DOWNTIME_FILE=/workspace/monitoring/downtime_seconds.txt
+: > "$PROBE_LOG"
+
+(
+  while true; do
+    if curl -sk --connect-timeout 2 --max-time 3 \
+        -o /dev/null -w "%{http_code}" https://localhost \
+        | grep -qE '^(200|301|302)$'; then
+      echo "$(date -u +%FT%TZ) UP" >> "$PROBE_LOG"
+    else
+      echo "$(date -u +%FT%TZ) DOWN" >> "$PROBE_LOG"
+    fi
+    sleep 1
+  done
+) &
+PROBE_PID=$!
+trap 'kill $PROBE_PID 2>/dev/null || true' EXIT
+
 echo "=== Step 2: Generate new self-signed TLS certificate (365 days) ==="
 openssl req -x509 -nodes \
     -days 365 \
@@ -50,6 +75,16 @@ curl -sk https://localhost/health -o /dev/null
 sleep 1
 echo "Access log entries:"
 tail -5 /var/log/nginx/access.log
+
+# PR-7 B7.1: stop the probe and persist the measured downtime so
+# verify.py:check_downtime_sla() can read it. `nginx -s reload` is
+# graceful, so a clean run typically reports 0 seconds.
+kill $PROBE_PID 2>/dev/null || true
+trap - EXIT
+sleep 1  # let last probe line flush
+DOWN_COUNT=$(grep -c DOWN "$PROBE_LOG" || true)
+echo "$DOWN_COUNT" > "$DOWNTIME_FILE"
+echo "Measured downtime: ${DOWN_COUNT}s (probe samples 1s apart)"
 
 echo "=== Step 7: Write completed runbook ==="
 mkdir -p /workspace/output
