@@ -32,6 +32,7 @@ ARG FIX_COMMIT=be59caa59bf47ca78a4760eb7ff38568372a8260
 # Naked `git clone github.com/...` is the most common build-time failure for
 # SWE-Pro tasks — network blips during the multi-GB transfer abort the whole
 # `docker build` (exit code 128). See pr_audit/results/pr4 for evidence.
+# PR-4 v3 (PR #114 review 114-3): jittered sleep so parallel builds desync.
 RUN for i in 1 2 3; do \
         rm -rf /workspace/repo; \
         ( git clone https://github.com/ansible/ansible.git /workspace/repo && \
@@ -43,7 +44,8 @@ RUN for i in 1 2 3; do \
           git tag gold-fix-commit "${FIX_COMMIT}" \
         ) && break; \
         [ "$i" -eq 3 ] && exit 1; \
-        echo "git clone/fetch attempt $i failed; sleep 15"; sleep 15; \
+        echo "git clone/fetch attempt $i failed; sleeping with jitter"; \
+        sleep $(( i * 10 + $$ % 10 )); \
     done
 
 WORKDIR /workspace/repo
