@@ -79,9 +79,13 @@ tail -5 /var/log/nginx/access.log
 # PR-7 B7.1: stop the probe and persist the measured downtime so
 # verify.py:check_downtime_sla() can read it. `nginx -s reload` is
 # graceful, so a clean run typically reports 0 seconds.
+# Use `wait $PROBE_PID` (not `sleep 1`) so we deterministically block
+# until the probe loop actually exits; otherwise an in-flight curl could
+# write one more DOWN line between SIGTERM and our grep, biasing the
+# downtime count by a sample.
 kill $PROBE_PID 2>/dev/null || true
 trap - EXIT
-sleep 1  # let last probe line flush
+wait $PROBE_PID 2>/dev/null || true
 DOWN_COUNT=$(grep -c DOWN "$PROBE_LOG" || true)
 echo "$DOWN_COUNT" > "$DOWNTIME_FILE"
 echo "Measured downtime: ${DOWN_COUNT}s (probe samples 1s apart)"

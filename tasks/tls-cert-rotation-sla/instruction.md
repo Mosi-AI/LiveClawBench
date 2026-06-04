@@ -15,6 +15,8 @@ Rotate the TLS certificate, fix any service configuration issues you discover, a
 
 ## SLA Requirement
 
-Total HTTPS downtime during the rotation must not exceed **10 seconds**. The verifier reads `/workspace/monitoring/downtime_seconds.txt`; if the file is missing the SLA dimension scores 0 regardless of how clean your rotation actually was.
+Total HTTPS downtime during the rotation must be **≤5 seconds** for full credit on the `downtime_sla` dimension. Partial credit tiers: ≤10s gives 0.60, ≤20s gives 0.30, ≤30s gives 0.15, >30s gives 0. A graceful `nginx -s reload` typically yields 0.
+
+The verifier reads `/workspace/monitoring/downtime_seconds.txt`; if the file is missing the SLA dimension scores 0 regardless of how clean your rotation actually was.
 
 

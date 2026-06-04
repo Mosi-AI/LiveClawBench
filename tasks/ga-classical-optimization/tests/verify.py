@@ -264,8 +264,13 @@ def grade_viz() -> float:
 def main() -> int:
     print("── ga-classical-optimization verifier ──")
 
-    # PR-7 B7.4: each stage isolated so a crash leaves a partial breakdown
-    # instead of a missing reward.json.
+    # PR-7 B7.4: each stage isolated so a crash leaves a partial
+    # breakdown instead of a missing reward.json. Broad `except Exception`
+    # is intentional defense-in-depth (NOT silent swallow): the exception
+    # type and message are logged to stdout AND surfaced as
+    # `_meta_<stage>_error` strings so debug consumers see exactly what
+    # failed without grepping the verifier log.
+    stage_errors: dict[str, str] = {}
     try:
         ok, msg = hard_gate()
         if not ok:
@@ -277,6 +282,7 @@ def main() -> int:
             mult, _ = scan_ast()
         except Exception as e:  # noqa: BLE001
             print(f"Stage 2 AST scan crashed: {type(e).__name__}: {e}")
+            stage_errors["ast_scan"] = f"{type(e).__name__}: {e}"
             mult = 0.0
         print(f"Stage 2 AST scan: multiplier={mult}")
 
@@ -284,6 +290,7 @@ def main() -> int:
             base, per_bench, bench_meta = grade_functional()
         except Exception as e:  # noqa: BLE001
             print(f"Stage 3 functional crashed: {type(e).__name__}: {e}")
+            stage_errors["functional"] = f"{type(e).__name__}: {e}"
             base, per_bench = 0.0, {"error": str(e)}
             bench_meta = {"n_passed": 0, "n_total": 0}
         print(f"Stage 3 functional: base={base:.4f}")
@@ -292,6 +299,7 @@ def main() -> int:
             det = grade_determinism()
         except Exception as e:  # noqa: BLE001
             print(f"Stage 4 determinism crashed: {type(e).__name__}: {e}")
+            stage_errors["determinism"] = f"{type(e).__name__}: {e}"
             det = 0.0
         print(f"Stage 4 determinism: +{det:.4f}")
 
@@ -299,13 +307,13 @@ def main() -> int:
             viz = grade_viz()
         except Exception as e:  # noqa: BLE001
             print(f"Stage 5 viz crashed: {type(e).__name__}: {e}")
+            stage_errors["viz"] = f"{type(e).__name__}: {e}"
             viz = 0.0
         print(f"Stage 5 viz: +{viz:.4f}")
 
         sub_total = base + det + viz
         final = sub_total * mult
 
-        # Harbor's VerifierResult requires `_meta_*` fields to be float|int.
         # Stringify the nested per_benchmark dict via a JSON-encoded debug log.
         log_path = LOG_DIR / "per_benchmark.json"
         log_path.write_text(json.dumps(per_bench, indent=2), encoding="utf-8")
@@ -317,11 +325,17 @@ def main() -> int:
             "_meta_n_passed": bench_meta["n_passed"],
             "_meta_n_total": bench_meta["n_total"],
         }
+        for stage, msg in stage_errors.items():
+            breakdown[f"_meta_{stage}_error"] = msg
         emit(final, breakdown=breakdown)
         return 0 if final >= 0.5 else 1
     except Exception as e:  # noqa: BLE001
         print(f"VERIFIER CRASH at main level: {type(e).__name__}: {e}")
-        emit(0.0, reason=f"verifier crash: {type(e).__name__}: {e}")
+        emit(
+            0.0,
+            breakdown={"_meta_verifier_crash": f"{type(e).__name__}: {e}"},
+            reason=f"verifier crash: {type(e).__name__}: {e}",
+        )
         return 1
 
 

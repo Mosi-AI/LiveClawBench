@@ -233,7 +233,14 @@ def main() -> int:
     print("── ga-gol-persistent-structures verifier ──")
 
     # PR-7 B7.4: each stage is isolated so one crash does not collapse the
-    # whole reward.json — a partial score is more useful than a missing file.
+    # whole reward.json -- a partial score is more useful than a missing
+    # file. Broad `except Exception` is intentional: the goal is to convert
+    # ANY crash into an observable dim=0 + `_meta_<stage>_error` surface,
+    # not to silently swallow. The exception type and message are logged
+    # to stdout AND surfaced in the JSON breakdown so debug consumers can
+    # see exactly what failed without grepping the verifier log. Per harbor
+    # schema, error strings must live in `_meta_*` fields (string-typed).
+    stage_errors: dict[str, str] = {}
     try:
         ok, msg = hard_gate()
         if not ok:
@@ -245,6 +252,7 @@ def main() -> int:
             mult, _ = scan_ast()
         except Exception as e:  # noqa: BLE001
             print(f"Stage 2 AST scan crashed: {type(e).__name__}: {e}")
+            stage_errors["ast_scan"] = f"{type(e).__name__}: {e}"
             mult = 0.0
         print(f"Stage 2 AST scan: multiplier={mult}")
 
@@ -252,13 +260,18 @@ def main() -> int:
             tasks = json.loads(TASKS_JSON.read_text())["tasks"]
         except Exception as e:  # noqa: BLE001
             print(f"Stage 3 tasks.json load crashed: {type(e).__name__}: {e}")
-            emit(0.0, reason=f"tasks.json crash: {e}")
+            emit(
+                0.0,
+                breakdown={"_meta_tasks_json_error": f"{type(e).__name__}: {e}"},
+                reason=f"tasks.json crash: {e}",
+            )
             return 1
 
         try:
             base, per_task = grade_functional(tasks)
         except Exception as e:  # noqa: BLE001
             print(f"Stage 3 functional crashed: {type(e).__name__}: {e}")
+            stage_errors["functional"] = f"{type(e).__name__}: {e}"
             base, per_task = 0.0, [{"error": str(e)}]
         print(f"Stage 3 functional: base={base:.4f}")
 
@@ -266,6 +279,7 @@ def main() -> int:
             det = grade_determinism(tasks)
         except Exception as e:  # noqa: BLE001
             print(f"Stage 4 determinism crashed: {type(e).__name__}: {e}")
+            stage_errors["determinism"] = f"{type(e).__name__}: {e}"
             det = 0.0
         print(f"Stage 4 determinism: +{det:.4f}")
 
@@ -273,6 +287,7 @@ def main() -> int:
             viz = grade_viz(tasks)
         except Exception as e:  # noqa: BLE001
             print(f"Stage 5 viz crashed: {type(e).__name__}: {e}")
+            stage_errors["viz"] = f"{type(e).__name__}: {e}"
             viz = 0.0
         print(f"Stage 5 viz: +{viz:.4f}")
 
@@ -290,11 +305,19 @@ def main() -> int:
             "_meta_n_tasks_passed": sum(1 for t in per_task if t.get("verified")),
             "_meta_n_tasks_total": len(per_task),
         }
+        # Surface any per-stage crash details so debug doesn't depend on
+        # tailing stdout. `_meta_*` keys accept str per harbor schema.
+        for stage, msg in stage_errors.items():
+            breakdown[f"_meta_{stage}_error"] = msg
         emit(final, breakdown=breakdown)
         return 0 if final >= 0.5 else 1
     except Exception as e:  # noqa: BLE001
         print(f"VERIFIER CRASH at main level: {type(e).__name__}: {e}")
-        emit(0.0, reason=f"verifier crash: {type(e).__name__}: {e}")
+        emit(
+            0.0,
+            breakdown={"_meta_verifier_crash": f"{type(e).__name__}: {e}"},
+            reason=f"verifier crash: {type(e).__name__}: {e}",
+        )
         return 1
 
 

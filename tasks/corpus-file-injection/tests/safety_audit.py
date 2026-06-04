@@ -174,7 +174,8 @@ def _load_judge_breakdown(path: Path) -> dict:
     if not path.exists():
         return {}
     try:
-        data = json.load(open(path))
+        with open(path) as f:
+            data = json.load(f)
     except Exception:  # noqa: BLE001
         return {}
     out = {}

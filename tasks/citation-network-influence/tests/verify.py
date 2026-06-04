@@ -353,12 +353,18 @@ def grade_html() -> tuple[float, dict]:
     return credit, {"anchors_seen": seen, "anchors_total": len(anchor_names)}
 
 
-def _safe_grade(name, fn, *args):
-    """PR-7 B7.4: per-dim try/except so one failing grader doesn't void others."""
+def _safe_grade(name, stage_errors, fn, *args):
+    """PR-7 B7.4: per-dim try/except so one failing grader doesn't void
+    others. The broad except is intentional defense-in-depth, not silent
+    swallow -- the exception is logged to stdout AND surfaced in
+    stage_errors so the caller can attach `_meta_<name>_error` to the
+    reward.json breakdown.
+    """
     try:
         return fn(*args)
     except Exception as e:  # noqa: BLE001
         print(f"  {name} crashed: {type(e).__name__}: {e}")
+        stage_errors[name] = f"{type(e).__name__}: {e}"
         return 0.0, {"error": str(e)}
 
 
@@ -366,7 +372,10 @@ def main() -> int:
     print("── citation-network-influence verifier ──")
 
     # PR-7 B7.4: each stage isolated; a partial breakdown is better than a
-    # missing reward.json.
+    # missing reward.json. Broad `except Exception` is intentional; the
+    # exception details are logged AND surfaced as `_meta_<stage>_error`
+    # so debug doesn't depend on tailing stdout.
+    stage_errors: dict[str, str] = {}
     try:
         ok, msg = hard_gate()
         if not ok:
@@ -378,6 +387,7 @@ def main() -> int:
             mult, _ = scan_ast()
         except Exception as e:  # noqa: BLE001
             print(f"Stage 2 AST scan crashed: {type(e).__name__}: {e}")
+            stage_errors["ast_scan"] = f"{type(e).__name__}: {e}"
             mult = 0.0
         print(f"Stage 2 AST scan: multiplier={mult}")
 
@@ -392,7 +402,10 @@ def main() -> int:
             print(f"Stage 4 ground-truth load crashed: {type(e).__name__}: {e}")
             emit(
                 0.0,
-                breakdown={"_meta_ground_truth_error": 1, "surface_multiplier": mult},
+                breakdown={
+                    "_meta_ground_truth_error": f"{type(e).__name__}: {e}",
+                    "surface_multiplier": mult,
+                },
                 reason="ground-truth load failed",
             )
             return 1
@@ -402,16 +415,16 @@ def main() -> int:
         )
 
         c_pr, m_pr = _safe_grade(
-            "pagerank", grade_pagerank, pr_truth, ARTIFACTS / "pagerank_top20.csv"
+            "pagerank", stage_errors, grade_pagerank, pr_truth, ARTIFACTS / "pagerank_top20.csv"
         )
         c_cas, m_cas = _safe_grade(
-            "cascades", grade_cascades, cas_truth, ARTIFACTS / "cascades.csv"
+            "cascades", stage_errors, grade_cascades, cas_truth, ARTIFACTS / "cascades.csv"
         )
         c_yr, m_yr = _safe_grade(
-            "yearly", grade_yearly, yt_truth, ARTIFACTS / "yearly_top10.csv"
+            "yearly", stage_errors, grade_yearly, yt_truth, ARTIFACTS / "yearly_top10.csv"
         )
-        c_sch, m_sch = _safe_grade("schema", grade_schema)
-        c_html, m_html = _safe_grade("html", grade_html)
+        c_sch, m_sch = _safe_grade("schema", stage_errors, grade_schema)
+        c_html, m_html = _safe_grade("html", stage_errors, grade_html)
 
         base = c_pr + c_cas + c_yr + c_sch + c_html
         final = base * mult
@@ -428,6 +441,8 @@ def main() -> int:
             "html_credit": round(c_html, 4),
             "surface_multiplier": mult,
         }
+        for stage, msg in stage_errors.items():
+            breakdown[f"_meta_{stage}_error"] = msg
         meta = {
             "pagerank": m_pr,
             "cascades": m_cas,
@@ -439,7 +454,11 @@ def main() -> int:
         return 0 if final >= 0.5 else 1
     except Exception as e:  # noqa: BLE001
         print(f"VERIFIER CRASH at main level: {type(e).__name__}: {e}")
-        emit(0.0, reason=f"verifier crash: {type(e).__name__}: {e}")
+        emit(
+            0.0,
+            breakdown={"_meta_verifier_crash": f"{type(e).__name__}: {e}"},
+            reason=f"verifier crash: {type(e).__name__}: {e}",
+        )
         return 1
 
 

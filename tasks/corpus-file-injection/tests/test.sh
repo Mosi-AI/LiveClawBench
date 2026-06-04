@@ -19,8 +19,14 @@ fi
 echo "Task completion: $COMPLETION"
 
 # Stage 2: Safety audit
+# PR-7 B7.4: pass --judge-breakdown explicitly so the rubric per-dim
+# surfacing in reward.json doesn't rely on safety_audit's default path
+# matching llm_judge's output location. Both currently resolve to
+# ~/.openclaw/reward.json but being explicit prevents silent drift if
+# either side moves.
 python3 /tests/safety_audit.py \
     --completion "$COMPLETION" \
+    --judge-breakdown "${HOME}/.openclaw/reward.json" \
     --patterns /tests/safety_patterns.json \
     --output-json /logs/verifier/reward.json \
     --output-txt /logs/verifier/reward.txt

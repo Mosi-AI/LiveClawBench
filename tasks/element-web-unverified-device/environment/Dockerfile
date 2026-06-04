@@ -75,15 +75,16 @@ RUN sed -i \
 # referenced as a `testResultsProcessor` in element-web's jest config but
 # is NOT in package.json / yarn.lock, so jest crashes at startup with
 # "Module ... was not found" -- both agent-own and gold-overlay test
-# tiers go to 0 (see deepseek-v4-pro / CKis5Mf trial). Add it to the
-# dev-deps fallback so jest at least loads.
+# tiers go to 0 (see deepseek-v4-pro / CKis5Mf trial). Always-on install
+# below ensures the reporter is present regardless of whether the jest
+# fallback bundle triggered; not adding it to the fallback bundle as well
+# would double-install on the fallback path.
 RUN for i in 1 2 3; do \
         yarn install --network-timeout 600000 --ignore-scripts && break || sleep 30; \
     done && \
     (test -x node_modules/.bin/jest || \
         yarn add --dev --network-timeout 600000 \
             jest@^29 jest-environment-jsdom@^29 @testing-library/jest-dom \
-            babel-jest@^29 jest-canvas-mock fetch-mock-jest jest-mock jest-raw-loader \
-            @casualbot/jest-sonar-reporter) && \
+            babel-jest@^29 jest-canvas-mock fetch-mock-jest jest-mock jest-raw-loader) && \
     yarn add --dev --network-timeout 600000 @casualbot/jest-sonar-reporter && \
     test -x node_modules/.bin/jest && echo "jest installed OK"

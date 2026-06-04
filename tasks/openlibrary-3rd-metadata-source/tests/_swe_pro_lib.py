@@ -237,22 +237,27 @@ def two_tier_score(
     agent_total: int,
     agent_compiled: bool,
     fallback_cap: float = 0.5,
-    sparse_overlay_threshold: int = 2,
+    sparse_overlay_threshold: int = 1,
     sparse_agent_min_total: int = 5,
     sparse_agent_min_ratio: float = 0.6,
 ) -> tuple[float, str]:
     """Combine canonical gold-overlay score with agent-own fallback.
 
     Priority:
-      - Sparse-overlay rescue: if the gold patch carries very few tests
-        (``overlay_total <= sparse_overlay_threshold``) AND the agent's
-        own test suite is substantial (``agent_total >=
+      - Sparse-overlay rescue: if the gold patch carries ONLY a single
+        test (``overlay_total <= sparse_overlay_threshold``, default 1)
+        AND the agent's own test suite is substantial (``agent_total >=
         sparse_agent_min_total``) AND mostly green (``agent_pass /
         agent_total >= sparse_agent_min_ratio``), trust the agent path
         weighted up to 0.7. Rationale: a single gold test pins gold's
         exact module layout; a reasonable agent implementation that
         passes 13/15 of its own behavioural tests should not be zeroed
-        for an interface-shape mismatch on one assertion.
+        for an interface-shape mismatch on one assertion. Threshold is
+        intentionally tight (1, not 2) so a 2-test gold overlay -- which
+        still carries reasonable behavioural signal -- remains
+        canonical. Empirical justification: PR-7 audit found only
+        overlay_total==1 produced the pathological all-zero outcome
+        across 4 agents x 10 trials on openlibrary.
       - Gold overlay compiled AND >0 tests ran -> use overlay ratio
         (canonical, the standard SWE-bench Pro f2p path).
       - Otherwise fall back to ``fallback_cap * agent_ratio`` so partial
@@ -265,7 +270,7 @@ def two_tier_score(
     diverged from gold's exact entry point that 0/1 fail zeroed the
     score even when the agent's own 13/15 tests passed. The sparse-
     overlay rescue branch above prevents this pathological case while
-    still treating a substantial gold overlay (>=3 tests) as canonical.
+    still treating any gold overlay with >=2 tests as canonical.
     """
     if overlay_compiled and overlay_total > 0:
         if (

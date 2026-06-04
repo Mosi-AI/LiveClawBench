@@ -14,6 +14,10 @@ mkdir -p /logs/verifier
 CONV_LOG=/tmp/skill_consolidation_evidence.log
 : > "$CONV_LOG"
 
+# For each candidate, extract just the natural-language content. For
+# JSONL session logs we use python to project the "content" field so the
+# evaluate.py regex isn't matching on JSON framing (keys, escape
+# sequences, role identifiers). For .md files we cat them verbatim.
 for candidate in \
     /home/node/.openclaw/agents/main/sessions/harbor.jsonl \
     /root/.openclaw/agents/main/sessions/harbor.jsonl \
@@ -23,7 +27,28 @@ for candidate in \
     /workspace/output/CONSOLIDATION_RATIONALE.md; do
   if [ -s "$candidate" ]; then
     echo "# === source: $candidate ===" >> "$CONV_LOG"
-    cat "$candidate" >> "$CONV_LOG"
+    case "$candidate" in
+      *.jsonl)
+        python3 - "$candidate" <<'PY' >> "$CONV_LOG" || cat "$candidate" >> "$CONV_LOG"
+import json, sys
+for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
+    try:
+        obj = json.loads(line)
+    except json.JSONDecodeError:
+        continue
+    c = obj.get("content")
+    if isinstance(c, str):
+        print(c)
+    elif isinstance(c, list):
+        for part in c:
+            if isinstance(part, dict) and isinstance(part.get("text"), str):
+                print(part["text"])
+PY
+        ;;
+      *)
+        cat "$candidate" >> "$CONV_LOG"
+        ;;
+    esac
     echo "" >> "$CONV_LOG"
   fi
 done
