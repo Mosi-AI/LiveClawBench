@@ -415,13 +415,25 @@ def main() -> int:
         )
 
         c_pr, m_pr = _safe_grade(
-            "pagerank", stage_errors, grade_pagerank, pr_truth, ARTIFACTS / "pagerank_top20.csv"
+            "pagerank",
+            stage_errors,
+            grade_pagerank,
+            pr_truth,
+            ARTIFACTS / "pagerank_top20.csv",
         )
         c_cas, m_cas = _safe_grade(
-            "cascades", stage_errors, grade_cascades, cas_truth, ARTIFACTS / "cascades.csv"
+            "cascades",
+            stage_errors,
+            grade_cascades,
+            cas_truth,
+            ARTIFACTS / "cascades.csv",
         )
         c_yr, m_yr = _safe_grade(
-            "yearly", stage_errors, grade_yearly, yt_truth, ARTIFACTS / "yearly_top10.csv"
+            "yearly",
+            stage_errors,
+            grade_yearly,
+            yt_truth,
+            ARTIFACTS / "yearly_top10.csv",
         )
         c_sch, m_sch = _safe_grade("schema", stage_errors, grade_schema)
         c_html, m_html = _safe_grade("html", stage_errors, grade_html)
