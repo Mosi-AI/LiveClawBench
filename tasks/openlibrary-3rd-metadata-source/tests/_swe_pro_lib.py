@@ -246,40 +246,36 @@ def two_tier_score(
     Priority:
       - Sparse-overlay rescue: if the gold patch carries ONLY a single
         test (``overlay_total <= sparse_overlay_threshold``, default 1)
+        AND the gold test FAILS (``overlay_pass < overlay_total``; a
+        passing sparse overlay should win canonically at 1.0)
         AND the agent's own test suite is substantial (``agent_total >=
-        sparse_agent_min_total``) AND mostly green (``agent_pass /
-        agent_total >= sparse_agent_min_ratio``), trust the agent path
-        weighted up to 0.7. Rationale: a single gold test pins gold's
-        exact module layout; a reasonable agent implementation that
-        passes 13/15 of its own behavioural tests should not be zeroed
-        for an interface-shape mismatch on one assertion. Threshold is
-        intentionally tight (1, not 2) so a 2-test gold overlay -- which
-        still carries reasonable behavioural signal -- remains
-        canonical. Empirical justification: PR-7 audit found only
-        overlay_total==1 produced the pathological all-zero outcome
-        across 4 agents x 10 trials on openlibrary.
+        sparse_agent_min_total``, default 5; guards the divide below)
+        AND mostly green (``agent_pass / agent_total >=
+        sparse_agent_min_ratio``, default 0.6), trust the agent path
+        weighted up to 0.7. A single gold test pins gold's exact module
+        layout; a reasonable agent implementation that passes most of
+        its own behavioural tests should not be zeroed for an
+        interface-shape mismatch on one assertion. Threshold is
+        intentionally tight (1, not 2) so a 2-test gold overlay --
+        which still carries reasonable behavioural signal -- remains
+        canonical. The 0.7 cap keeps this path strictly below a clean
+        gold-overlay max (1.0) so agents that DO match gold's interface
+        stay incentivized.
       - Gold overlay compiled AND >0 tests ran -> use overlay ratio
         (canonical, the standard SWE-bench Pro f2p path).
       - Otherwise fall back to ``fallback_cap * agent_ratio`` so partial
         credit is given for agent's own working fix even if it diverges
         from gold's exact interface.
       - Returns 0 only when both paths produce no signal.
-
-    PR-7 B7.3: openlibrary-3rd-metadata-source had a single-test gold
-    overlay (``overlay_total == 1``); when the agent's implementation
-    diverged from gold's exact entry point that 0/1 fail zeroed the
-    score even when the agent's own 13/15 tests passed. The sparse-
-    overlay rescue branch above prevents this pathological case while
-    still treating any gold overlay with >=2 tests as canonical.
     """
     if overlay_compiled and overlay_total > 0:
         if (
             overlay_total <= sparse_overlay_threshold
+            and overlay_pass < overlay_total
             and agent_compiled
             and agent_total >= sparse_agent_min_total
             and agent_pass / agent_total >= sparse_agent_min_ratio
         ):
-            # Sparse overlay + strong agent-own evidence -> rescue path
             return 0.7 * (agent_pass / agent_total), (
                 f"agent-own (sparse overlay rescue, overlay={overlay_pass}/"
                 f"{overlay_total} suppressed)"

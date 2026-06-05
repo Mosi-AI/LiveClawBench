@@ -193,6 +193,45 @@ def gate_logging_fixed() -> bool:
 # === Scored dimensions ========================================================
 
 
+def _downtime_from_probe_log(lines: list[str]) -> int | None:
+    """Derive downtime in seconds from a probe.log.
+
+    The canonical probe pattern is ``<ISO8601_UTC> (UP|DOWN)`` per line
+    at 1Hz. We try two strategies and prefer the more robust one:
+
+    1. If at least the first two lines parse as ``<ts> (UP|DOWN)``,
+       use the median delta between adjacent timestamps to derive the
+       sample interval (seconds) and multiply DOWN count by it. This
+       handles probes that ran at a non-1Hz cadence.
+    2. Otherwise fall back to a 1:1 line-to-second count, matching the
+       documented 1Hz reference probe.
+    """
+    parsed: list[datetime.datetime] = []
+    down_flags: list[bool] = []
+    for raw in lines:
+        parts = raw.strip().split(maxsplit=1)
+        if len(parts) != 2:
+            continue
+        ts_str, state = parts
+        try:
+            ts = datetime.datetime.fromisoformat(ts_str.rstrip("Z"))
+        except ValueError:
+            continue
+        parsed.append(ts)
+        down_flags.append("DOWN" in state)
+    if not down_flags:
+        return None
+    down_count = sum(down_flags)
+    if len(parsed) >= 2:
+        deltas = sorted(
+            (parsed[i + 1] - parsed[i]).total_seconds() for i in range(len(parsed) - 1)
+        )
+        median = deltas[len(deltas) // 2]
+        if median > 0:
+            return round(down_count * median)
+    return down_count
+
+
 def check_downtime_sla() -> float:
     """SLA tightened to ≤5s. No monitoring data = fail."""
     try:
@@ -208,15 +247,12 @@ def check_downtime_sla() -> float:
         if downtime is None and os.path.exists(PROBE_LOG):
             with open(PROBE_LOG) as f:
                 lines = f.readlines()
-            if len(lines) > 0:
-                down_count = sum(1 for line in lines if "DOWN" in line)
-                # PR-7 B7.1: the canonical reference probe samples at 1Hz
-                # (one `sleep 1` per iteration). The legacy `* 5`
-                # multiplier assumed a 5s sampling interval that no
-                # longer matches the documented probe pattern -- it
-                # over-counted real downtime by 5x for any 1Hz probe.
-                # Fall back to 1:1 line-to-second mapping.
-                downtime = down_count
+            if lines:
+                # Prefer timestamps when present so probes at arbitrary
+                # cadence are measured correctly; fall back to a 1:1
+                # line-to-second mapping (the documented 1Hz reference
+                # probe).
+                downtime = _downtime_from_probe_log(lines)
 
         if downtime is None:
             print("  downtime_sla: 0.00 (no monitoring data)")

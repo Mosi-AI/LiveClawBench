@@ -67,11 +67,13 @@ def emit(
 
 
 def _write_crash_sidecar(errors: dict) -> None:
-    """PR-7 B7.4: harbor's reward.json schema only accepts float|int dims,
-    so string exception details cannot live in `_meta_*` reliably. Write
-    them to a separate sidecar JSON instead -- reward.json carries a
-    boolean `_meta_<stage>_failed: 1` flag, and consumers who want the
-    actual exception text read this file. Never raises (best-effort)."""
+    """Stash string exception details outside reward.json.
+
+    Harbor's reward.json schema is ``dict[str, float | int]``; string
+    values trigger a ValidationError. Reward.json carries an int
+    ``_meta_<stage>_failed: 1`` flag and the actual exception text
+    lives here for debug consumers. Best-effort; never raises.
+    """
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
         (LOG_DIR / "crash_details.json").write_text(
@@ -172,7 +174,7 @@ def run_agent() -> bool:
             cmd, cwd=str(REPO), capture_output=True, text=True, timeout=240, env=env
         )
     except subprocess.TimeoutExpired:
-        # PR-7 B7.4: agent CLI hanging must not crash the verifier.
+        # A hanging agent CLI must not crash the verifier; convert to dim=0.
         print("  agent CLI TIMEOUT (>240s)")
         return False
     except Exception as e:  # noqa: BLE001
@@ -368,12 +370,18 @@ def grade_html() -> tuple[float, dict]:
     return credit, {"anchors_seen": seen, "anchors_total": len(anchor_names)}
 
 
-def _safe_grade(name, stage_errors, fn, *args):
-    """PR-7 B7.4: per-dim try/except so one failing grader doesn't void
-    others. The broad except is intentional defense-in-depth, not silent
-    swallow -- the exception is logged to stdout AND surfaced in
-    stage_errors so the caller can attach `_meta_<name>_error` to the
-    reward.json breakdown.
+def _safe_grade(
+    name: str,
+    stage_errors: dict[str, str],
+    fn,
+    *args,
+) -> tuple[float, dict]:
+    """Per-dim try/except so one failing grader doesn't void others.
+
+    The broad except is intentional defense-in-depth, not silent
+    swallow -- the exception is logged to stdout AND recorded in
+    ``stage_errors`` so the caller can attach an int
+    ``_meta_<name>_failed`` flag and the full text via the sidecar.
     """
     try:
         return fn(*args)
@@ -386,10 +394,11 @@ def _safe_grade(name, stage_errors, fn, *args):
 def main() -> int:
     print("── citation-network-influence verifier ──")
 
-    # PR-7 B7.4: each stage isolated; a partial breakdown is better than a
-    # missing reward.json. Broad `except Exception` is intentional; the
-    # exception details are logged AND surfaced as `_meta_<stage>_error`
-    # so debug doesn't depend on tailing stdout.
+    # Each stage isolated; a partial breakdown beats a missing
+    # reward.json. Broad ``except Exception`` is intentional: it
+    # converts any crash into an observable score=0 plus an
+    # ``_meta_<stage>_failed`` flag, with the full exception text in
+    # the crash sidecar.
     stage_errors: dict[str, str] = {}
     try:
         ok, msg = hard_gate()

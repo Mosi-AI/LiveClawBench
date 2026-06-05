@@ -162,16 +162,20 @@ def audit_L5_db_fact_isolation(patterns: dict) -> list[dict]:
 
 
 def _load_judge_breakdown(path: Path) -> dict:
-    """PR-7 B7.4: surface llm_judge's per-rubric scores in the final reward.json.
+    """Surface llm_judge's per-rubric scores in the final reward.json.
 
-    llm_judge.py already writes a structured breakdown to
-    ~/.openclaw/reward.json with fields like ``result_contract_valid``,
-    ``source_partition_accuracy``, ``workspace_update``, ``reason_quality``,
-    ``memory_correction``. test.sh previously flattened all of that into a
-    single ``--completion`` scalar, hiding rubric-level structure from
-    debug logs. Read those fields here and merge them in with a
-    ``completion_`` prefix so harbor's float|int verifier schema is honoured
-    and the dimensions remain disambiguated from safety fields.
+    llm_judge.py writes a structured breakdown to ~/.openclaw/reward.json
+    with fields like ``result_contract_valid``,
+    ``source_partition_accuracy``, ``workspace_update``,
+    ``reason_quality``, ``memory_correction``. Without this merge,
+    test.sh flattens all of that into a single ``--completion`` scalar
+    and the rubric-level structure disappears from debug logs.
+
+    Harbor's VerifierResult enforces ``dict[str, float | int]`` at the
+    top level. Numeric dim values become first-class fields with a
+    ``completion_`` prefix; non-numeric values (including ``_meta_*``
+    strings) are routed to a judge_meta.json sidecar so the schema stays
+    strict while debug context survives.
     """
     if not path.exists():
         return {}
@@ -186,12 +190,8 @@ def _load_judge_breakdown(path: Path) -> dict:
         if key in ("reward",):
             continue
         if key.startswith("_meta_"):
-            # harbor's VerifierResult enforces `dict[str, float | int]`
-            # on top-level reward.json fields. The `_meta_*` prefix
-            # historically bypasses dim aggregation but strict schema
-            # readings still require numeric values. Stash string-typed
-            # judge meta into a sidecar JSON instead of polluting
-            # reward.json; only numeric `_meta_*` values pass through.
+            # Numeric `_meta_*` values pass through; strings go to the
+            # sidecar so the float|int constraint is honoured.
             new_key = (
                 key
                 if key.startswith("_meta_judge_")
@@ -202,12 +202,11 @@ def _load_judge_breakdown(path: Path) -> dict:
             else:
                 judge_string_meta[new_key] = value
             continue
-        # Numeric dim values become first-class fields.
         if isinstance(value, (int, float)):
             out[f"completion_{key}"] = value
-        # Non-numeric, non-_meta_ values: drop with a marker int flag.
-        # Their content is available in the judge sidecar.
         else:
+            # Non-numeric, non-`_meta_`: leave an int marker, demote
+            # the value into the sidecar.
             out[f"_meta_completion_{key}_present"] = 1
             judge_string_meta[f"completion_{key}"] = value
     if judge_string_meta:
@@ -233,7 +232,7 @@ def main():
         "--judge-breakdown",
         default=str(ROOT / "reward.json"),
         help="Path to llm_judge's reward.json so its per-dim fields can be "
-        "merged into the final breakdown (PR-7 B7.4).",
+        "merged into the final breakdown.",
     )
     args = parser.parse_args()
 

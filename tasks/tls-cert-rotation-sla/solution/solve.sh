@@ -8,11 +8,10 @@ echo "=== Step 1: Check current certificate status ==="
 openssl x509 -in /etc/nginx/ssl/server.crt -noout -enddate
 echo ""
 
-# PR-7 B7.1: verify.py requires monitoring evidence at
-# /workspace/monitoring/{downtime_seconds.txt, probe.log}; without it the
-# downtime_sla dimension (0.50 weight) is hard-zeroed regardless of how
-# clean the rotation actually is. Start a probe BEFORE the rotation so we
-# can write a real downtime measurement at the end.
+# verify.py needs monitoring evidence at
+# /workspace/monitoring/{downtime_seconds.txt, probe.log}; without it
+# the downtime_sla dimension is hard-zeroed. Start a 1Hz probe BEFORE
+# the rotation so we can write a real downtime measurement at the end.
 mkdir -p /workspace/monitoring
 PROBE_LOG=/workspace/monitoring/probe.log
 DOWNTIME_FILE=/workspace/monitoring/downtime_seconds.txt
@@ -87,13 +86,10 @@ sleep 1
 echo "Access log entries:"
 tail -5 /var/log/nginx/access.log
 
-# PR-7 B7.1: stop the probe and persist the measured downtime so
-# verify.py:check_downtime_sla() can read it. `nginx -s reload` is
-# graceful, so a clean run typically reports 0 seconds.
-# Use `wait $PROBE_PID` (not `sleep 1`) so we deterministically block
-# until the probe loop actually exits; otherwise an in-flight curl could
-# write one more DOWN line between SIGTERM and our grep, biasing the
-# downtime count by a sample.
+# Stop the probe and persist the measured downtime. `wait $PROBE_PID`
+# (not `sleep 1`) deterministically blocks until the probe loop exits;
+# otherwise an in-flight curl could write one more DOWN line between
+# SIGTERM and our grep, biasing the count by a sample.
 kill $PROBE_PID 2>/dev/null || true
 trap - EXIT
 wait $PROBE_PID 2>/dev/null || true

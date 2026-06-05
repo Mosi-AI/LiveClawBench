@@ -3,21 +3,19 @@ set -euo pipefail
 cd /workspace
 mkdir -p /logs/verifier
 
-# PR-7 B7.1: evaluate.py's REDUNDANCY_IDENTIFIED (15 pts) and
-# CONSOLIDATION_RATIONALE (10 pts) dimensions are gated on a
-# `--conversation-log` argument. Previously test.sh omitted it entirely,
-# hard-zeroing 25/100 across every agent. Build a synthetic log by
-# concatenating whatever evidence sources we can find at verify time:
+# evaluate.py's REDUNDANCY_IDENTIFIED and CONSOLIDATION_RATIONALE
+# dimensions are gated on a `--conversation-log` argument. Build one
+# from whatever evidence we can find at verify time:
 #   - openclaw harbor session jsonl (the agent's own messages)
 #   - CONSOLIDATION_RATIONALE.md written by the agent as a deliverable
 # Either source is sufficient on its own; both is best.
 CONV_LOG=/tmp/skill_consolidation_evidence.log
 : > "$CONV_LOG"
 
-# For each candidate, extract just the natural-language content. For
-# JSONL session logs we use python to project the "content" field so the
-# evaluate.py regex isn't matching on JSON framing (keys, escape
-# sequences, role identifiers). For .md files we cat them verbatim.
+# For JSONL session logs, project just the natural-language `content`
+# field so the evaluate.py regex isn't matching on JSON framing (keys,
+# escape sequences, role identifiers). For .md files we cat them
+# verbatim.
 for candidate in \
     /home/node/.openclaw/agents/main/sessions/harbor.jsonl \
     /root/.openclaw/agents/main/sessions/harbor.jsonl \

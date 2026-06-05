@@ -58,11 +58,13 @@ def emit(score: float, breakdown: dict | None = None, *, reason: str = "") -> No
 
 
 def _write_crash_sidecar(errors: dict) -> None:
-    """PR-7 B7.4: harbor's reward.json schema only accepts float|int dims,
-    so string exception details cannot live in `_meta_*` reliably. Write
-    them to a separate sidecar JSON instead -- reward.json carries a
-    boolean `_meta_<stage>_failed: 1` flag, and consumers who want the
-    actual exception text read this file. Never raises (best-effort)."""
+    """Stash string exception details outside reward.json.
+
+    Harbor's reward.json schema is ``dict[str, float | int]``; string
+    values trigger a ValidationError. Reward.json carries an int
+    ``_meta_<stage>_failed: 1`` flag and the actual exception text
+    lives here for debug consumers. Best-effort; never raises.
+    """
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
         (LOG_DIR / "crash_details.json").write_text(
@@ -169,7 +171,7 @@ def run_one(problem: str, seed: int, out: Path) -> dict | None:
             cmd, cwd=str(REPO), capture_output=True, text=True, timeout=120, env=env
         )
     except subprocess.TimeoutExpired:
-        # PR-7 B7.4: a single benchmark hanging must not crash the verifier.
+        # A hanging benchmark must not crash the verifier; convert to None.
         print(f"  RUN TIMEOUT {problem} seed={seed} (>120s)")
         return None
     except Exception as e:  # noqa: BLE001
@@ -279,12 +281,11 @@ def grade_viz() -> float:
 def main() -> int:
     print("── ga-classical-optimization verifier ──")
 
-    # PR-7 B7.4: each stage isolated so a crash leaves a partial
-    # breakdown instead of a missing reward.json. Broad `except Exception`
-    # is intentional defense-in-depth (NOT silent swallow): the exception
-    # type and message are logged to stdout AND surfaced as
-    # `_meta_<stage>_error` strings so debug consumers see exactly what
-    # failed without grepping the verifier log.
+    # Each stage isolated; a partial breakdown beats a missing
+    # reward.json. Broad ``except Exception`` is intentional: it
+    # converts any crash into an observable score=0 plus an
+    # ``_meta_<stage>_failed`` flag, with the full exception text in
+    # the crash sidecar.
     stage_errors: dict[str, str] = {}
     try:
         ok, msg = hard_gate()

@@ -22,11 +22,18 @@ SCORE=$(grep -oP 'Score:\s*\K[0-9.]+' /logs/verifier/verify_stdout.txt | tail -1
 echo "${SCORE:-0.0}" > /logs/verifier/reward.txt
 echo "Verification score: ${SCORE:-0.0}"
 
-# PR-7 B7.4 defense-in-depth: if verify.py crashed before emit() ran,
-# reward.json will be missing — synthesize a minimal one so the harness
-# never sees a malformed verifier output.
+# Defense-in-depth: if verify.py crashed before emit() ran, reward.json
+# will be missing. Synthesize a minimal one so the harness never sees
+# malformed verifier output. Re-validate the captured SCORE as a clean
+# decimal first so a malformed regex hit (e.g. "0.45.5") can't produce
+# invalid JSON.
 if [ ! -s /logs/verifier/reward.json ]; then
-  printf '{"reward": %s, "_meta_verifier_no_reward_json": 1}\n' "${SCORE:-0.0}" \
+  if printf '%s' "${SCORE:-0.0}" | grep -qE '^[0-9]+(\.[0-9]+)?$'; then
+    SAFE_SCORE="${SCORE:-0.0}"
+  else
+    SAFE_SCORE="0.0"
+  fi
+  printf '{"reward": %s, "_meta_verifier_no_reward_json": 1}\n' "$SAFE_SCORE" \
     > /logs/verifier/reward.json
 fi
 exit 0

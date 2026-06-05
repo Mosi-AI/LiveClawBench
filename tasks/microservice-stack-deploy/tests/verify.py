@@ -26,11 +26,10 @@ def http_get(url, timeout=5):
         resp = urllib.request.urlopen(url, timeout=timeout)
         return resp.status, resp.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
-        # PR-7 B7.1: urllib raises HTTPError on 4xx/5xx but the response is
-        # still valid HTTP. The verifier sub-tests (kv_store test 3 expects
-        # 404 / api_server test 2 expects 400) need to see the real status
-        # code, not 0. Returning code=0 silently zeroed every dimension
-        # that exercised an error path.
+        # urllib raises HTTPError on 4xx/5xx but the response is still a
+        # valid HTTP exchange. Sub-tests that assert specific error
+        # codes (e.g. 404 on missing key, 400 on bad request) need the
+        # real status, not 0.
         body = ""
         try:
             body = e.read().decode("utf-8", errors="replace")
@@ -51,8 +50,7 @@ def http_post(url, data, timeout=5):
         resp = urllib.request.urlopen(req, timeout=timeout)
         return resp.status, resp.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
-        # PR-7 B7.1: same fix as http_get -- 4xx/5xx must surface as their
-        # real status code, not 0.
+        # 4xx/5xx must surface as their real status code, not 0.
         body = ""
         try:
             body = e.read().decode("utf-8", errors="replace")
