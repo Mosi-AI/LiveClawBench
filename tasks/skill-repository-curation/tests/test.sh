@@ -54,6 +54,18 @@ PY
   fi
 done
 
+# If none of the candidate sources existed (or all were empty), warn
+# loudly so debug consumers can tell apart "agent did the work silently"
+# from "test.sh couldn't find evidence" -- both yield 0 on the
+# conversation-log-gated dimensions but the fix is different.
+if [ ! -s "$CONV_LOG" ]; then
+    echo "WARNING: no conversation-log evidence found; tried:" >&2
+    echo "  /home/node/.openclaw/.../harbor.jsonl  /root/.openclaw/.../harbor.jsonl" >&2
+    echo "  /workspace/.openclaw/.../harbor.jsonl" >&2
+    echo "  CONSOLIDATION_RATIONALE.md in skill dir / output" >&2
+    echo "REDUNDANCY_IDENTIFIED and CONSOLIDATION_RATIONALE will score 0." >&2
+fi
+
 # Run evaluation (|| true: evaluate.py exits non-zero when score is 0;
 # must not abort before writing reward.txt)
 python3 /tests/evaluate.py \

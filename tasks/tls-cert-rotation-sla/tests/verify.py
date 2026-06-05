@@ -210,7 +210,13 @@ def check_downtime_sla() -> float:
                 lines = f.readlines()
             if len(lines) > 0:
                 down_count = sum(1 for line in lines if "DOWN" in line)
-                downtime = down_count * 5
+                # PR-7 B7.1: the canonical reference probe samples at 1Hz
+                # (one `sleep 1` per iteration). The legacy `* 5`
+                # multiplier assumed a 5s sampling interval that no
+                # longer matches the documented probe pattern -- it
+                # over-counted real downtime by 5x for any 1Hz probe.
+                # Fall back to 1:1 line-to-second mapping.
+                downtime = down_count
 
         if downtime is None:
             print("  downtime_sla: 0.00 (no monitoring data)")

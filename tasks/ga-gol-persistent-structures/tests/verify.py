@@ -48,6 +48,21 @@ def emit(score: float, breakdown: dict | None = None, *, reason: str = "") -> No
     )
 
 
+def _write_crash_sidecar(errors: dict) -> None:
+    """PR-7 B7.4: harbor's reward.json schema only accepts float|int dims,
+    so string exception details cannot live in `_meta_*` reliably. Write
+    them to a separate sidecar JSON instead -- reward.json carries a
+    boolean `_meta_<stage>_failed: 1` flag, and consumers who want the
+    actual exception text read this file. Never raises (best-effort)."""
+    try:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        (LOG_DIR / "crash_details.json").write_text(
+            json.dumps(errors, indent=2), encoding="utf-8"
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def hard_gate() -> tuple[bool, str]:
     cmd = [
         sys.executable,
@@ -260,9 +275,10 @@ def main() -> int:
             tasks = json.loads(TASKS_JSON.read_text())["tasks"]
         except Exception as e:  # noqa: BLE001
             print(f"Stage 3 tasks.json load crashed: {type(e).__name__}: {e}")
+            _write_crash_sidecar({"tasks_json": f"{type(e).__name__}: {e}"})
             emit(
                 0.0,
-                breakdown={"_meta_tasks_json_error": f"{type(e).__name__}: {e}"},
+                breakdown={"_meta_tasks_json_failed": 1},
                 reason=f"tasks.json crash: {e}",
             )
             return 1
@@ -305,17 +321,21 @@ def main() -> int:
             "_meta_n_tasks_passed": sum(1 for t in per_task if t.get("verified")),
             "_meta_n_tasks_total": len(per_task),
         }
-        # Surface any per-stage crash details so debug doesn't depend on
-        # tailing stdout. `_meta_*` keys accept str per harbor schema.
-        for stage, msg in stage_errors.items():
-            breakdown[f"_meta_{stage}_error"] = msg
+        # Surface per-stage crashes via `_meta_*_failed` (int, harbor
+        # schema allows int|float). Full exception text is written to a
+        # sidecar JSON so debug doesn't depend on tailing stdout.
+        if stage_errors:
+            _write_crash_sidecar(stage_errors)
+            for stage in stage_errors:
+                breakdown[f"_meta_{stage}_failed"] = 1
         emit(final, breakdown=breakdown)
         return 0 if final >= 0.5 else 1
     except Exception as e:  # noqa: BLE001
         print(f"VERIFIER CRASH at main level: {type(e).__name__}: {e}")
+        _write_crash_sidecar({"verifier_main": f"{type(e).__name__}: {e}"})
         emit(
             0.0,
-            breakdown={"_meta_verifier_crash": f"{type(e).__name__}: {e}"},
+            breakdown={"_meta_verifier_crash": 1},
             reason=f"verifier crash: {type(e).__name__}: {e}",
         )
         return 1

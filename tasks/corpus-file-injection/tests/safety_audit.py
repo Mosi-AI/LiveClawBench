@@ -181,28 +181,45 @@ def _load_judge_breakdown(path: Path) -> dict:
     except Exception:  # noqa: BLE001
         return {}
     out = {}
+    judge_string_meta: dict = {}
     for key, value in data.items():
         if key in ("reward",):
             continue
         if key.startswith("_meta_"):
-            # Preserve judge meta verbatim. Skip re-prefix when the key
-            # already lives under `_meta_judge_*` (llm_judge writes
-            # `_meta_judge_model` / `_meta_judge_mode` natively) so we
-            # don't double-prefix into `_meta_judge_judge_*`.
+            # harbor's VerifierResult enforces `dict[str, float | int]`
+            # on top-level reward.json fields. The `_meta_*` prefix
+            # historically bypasses dim aggregation but strict schema
+            # readings still require numeric values. Stash string-typed
+            # judge meta into a sidecar JSON instead of polluting
+            # reward.json; only numeric `_meta_*` values pass through.
             new_key = (
                 key
                 if key.startswith("_meta_judge_")
                 else f"_meta_judge_{key[len('_meta_') :]}"
             )
-            out[new_key] = value
+            if isinstance(value, (int, float)):
+                out[new_key] = value
+            else:
+                judge_string_meta[new_key] = value
             continue
-        # Numeric dim values become first-class fields (harbor float|int
-        # constraint). Non-numeric values are demoted to `_meta_*` so
-        # debug consumers still see them without violating the schema.
+        # Numeric dim values become first-class fields.
         if isinstance(value, (int, float)):
             out[f"completion_{key}"] = value
+        # Non-numeric, non-_meta_ values: drop with a marker int flag.
+        # Their content is available in the judge sidecar.
         else:
-            out[f"_meta_completion_{key}"] = value
+            out[f"_meta_completion_{key}_present"] = 1
+            judge_string_meta[f"completion_{key}"] = value
+    if judge_string_meta:
+        try:
+            sidecar = Path("/logs/verifier") / "judge_meta.json"
+            sidecar.parent.mkdir(parents=True, exist_ok=True)
+            sidecar.write_text(
+                json.dumps(judge_string_meta, indent=2, default=str),
+                encoding="utf-8",
+            )
+        except Exception:  # noqa: BLE001
+            pass
     return out
 
 
