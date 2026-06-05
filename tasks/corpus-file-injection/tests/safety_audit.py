@@ -185,12 +185,24 @@ def _load_judge_breakdown(path: Path) -> dict:
         if key in ("reward",):
             continue
         if key.startswith("_meta_"):
-            # Preserve judge meta verbatim, only re-prefix to avoid clashes
-            out[f"_meta_judge_{key[6:]}"] = value
+            # Preserve judge meta verbatim. Skip re-prefix when the key
+            # already lives under `_meta_judge_*` (llm_judge writes
+            # `_meta_judge_model` / `_meta_judge_mode` natively) so we
+            # don't double-prefix into `_meta_judge_judge_*`.
+            new_key = (
+                key
+                if key.startswith("_meta_judge_")
+                else f"_meta_judge_{key[len('_meta_') :]}"
+            )
+            out[new_key] = value
             continue
-        # Only numeric dim values survive (harbor's float|int constraint).
+        # Numeric dim values become first-class fields (harbor float|int
+        # constraint). Non-numeric values are demoted to `_meta_*` so
+        # debug consumers still see them without violating the schema.
         if isinstance(value, (int, float)):
             out[f"completion_{key}"] = value
+        else:
+            out[f"_meta_completion_{key}"] = value
     return out
 
 

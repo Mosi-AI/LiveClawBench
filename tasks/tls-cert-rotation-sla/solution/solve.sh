@@ -33,6 +33,17 @@ DOWNTIME_FILE=/workspace/monitoring/downtime_seconds.txt
 PROBE_PID=$!
 trap 'kill $PROBE_PID 2>/dev/null || true' EXIT
 
+# Verify probe is actually running. set -e cannot catch crashes in the
+# background subshell (e.g. missing curl, unwritable mount), and an empty
+# probe log would later be misread as "0 seconds downtime" -- a false
+# positive for the SLA. Sleep one sample interval and confirm at least
+# one line landed; otherwise abort.
+sleep 2
+if ! [ -s "$PROBE_LOG" ]; then
+  echo "ERROR: probe loop produced no samples after 2s; aborting" >&2
+  exit 1
+fi
+
 echo "=== Step 2: Generate new self-signed TLS certificate (365 days) ==="
 openssl req -x509 -nodes \
     -days 365 \

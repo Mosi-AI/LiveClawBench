@@ -86,5 +86,7 @@ RUN for i in 1 2 3; do \
         yarn add --dev --network-timeout 600000 \
             jest@^29 jest-environment-jsdom@^29 @testing-library/jest-dom \
             babel-jest@^29 jest-canvas-mock fetch-mock-jest jest-mock jest-raw-loader) && \
-    yarn add --dev --network-timeout 600000 @casualbot/jest-sonar-reporter && \
+    for i in 1 2 3; do \
+        yarn add --dev --network-timeout 600000 @casualbot/jest-sonar-reporter && break || sleep 15; \
+    done && \
     test -x node_modules/.bin/jest && echo "jest installed OK"

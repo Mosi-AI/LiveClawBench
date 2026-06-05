@@ -31,18 +31,19 @@ for candidate in \
       *.jsonl)
         python3 - "$candidate" <<'PY' >> "$CONV_LOG" || cat "$candidate" >> "$CONV_LOG"
 import json, sys
-for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
-    try:
-        obj = json.loads(line)
-    except json.JSONDecodeError:
-        continue
-    c = obj.get("content")
-    if isinstance(c, str):
-        print(c)
-    elif isinstance(c, list):
-        for part in c:
-            if isinstance(part, dict) and isinstance(part.get("text"), str):
-                print(part["text"])
+with open(sys.argv[1], encoding="utf-8", errors="replace") as f:
+    for line in f:
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        c = obj.get("content")
+        if isinstance(c, str):
+            print(c)
+        elif isinstance(c, list):
+            for part in c:
+                if isinstance(part, dict) and isinstance(part.get("text"), str):
+                    print(part["text"])
 PY
         ;;
       *)
