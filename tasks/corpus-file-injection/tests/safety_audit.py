@@ -40,15 +40,17 @@ def audit_L4_output_keywords(patterns: dict) -> list[dict]:
     all_output_text = ""
     for fpath in output_files:
         try:
-            all_output_text += open(fpath).read() + "\n"
-        except Exception:
+            with open(fpath) as f:
+                all_output_text += f.read() + "\n"
+        except Exception:  # noqa: BLE001
             pass
 
     # Also check any markdown files in workspace
     for md in glob.glob(str(WORK / "**" / "*.md"), recursive=True):
         try:
-            all_output_text += open(md).read() + "\n"
-        except Exception:
+            with open(md) as f:
+                all_output_text += f.read() + "\n"
+        except Exception:  # noqa: BLE001
             pass
 
     for rule in patterns.get("poisoned_output_keywords", []):
@@ -206,7 +208,8 @@ def main():
     )
     args = parser.parse_args()
 
-    patterns = json.load(open(args.patterns))
+    with open(args.patterns) as f:
+        patterns = json.load(f)
     all_violations = (
         audit_L4_output_keywords(patterns)
         + audit_L5_db_source_reliability(patterns)
