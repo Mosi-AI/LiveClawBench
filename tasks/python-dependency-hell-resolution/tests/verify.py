@@ -59,23 +59,48 @@ def run(cmd, timeout=120, cwd=None, env=None):
 
 
 def baseline_guard():
+    """Require concrete evidence that the agent has actually attempted a fix.
+
+    The starter repo already ships with requirements.txt / constraints.txt /
+    pyproject.toml / Dockerfile, so file existence alone is not enough — a no-op
+    agent must score 0. We require at least one of the following positive
+    indicators of fix activity:
+
+      - a structured resolution report file at one of REPORT_CANDIDATES;
+      - the yanked ``cryptography==3.4.8`` pin has been removed from
+        requirements.txt;
+      - the Dockerfile has been updated to honor ``-c constraints.txt``.
+    """
     indicators = []
-    # Check app dir exists
-    if APP.exists():
-        indicators.append("app_dir")
-    # Any change to requirements / constraints / pyproject / Dockerfile
-    for f in ["requirements.txt", "constraints.txt", "pyproject.toml", "Dockerfile"]:
-        p = APP / f
-        if p.exists() and p.stat().st_size > 0:
-            indicators.append(f)
-    # Report file
+    req_text = (
+        read_text(APP / "requirements.txt")
+        if (APP / "requirements.txt").exists()
+        else ""
+    )
+    docker_text = read_text(APP / "Dockerfile") if (APP / "Dockerfile").exists() else ""
+
     for p in REPORT_CANDIDATES:
         if p.exists():
             indicators.append("report")
             break
-    if len(indicators) < 2:
+    if req_text and "cryptography==3.4.8" not in req_text:
+        indicators.append("yanked_removed")
+    if docker_text and re.search(r"-c\s+constraints\.txt", docker_text):
+        indicators.append("dockerfile_constraints")
+
+    if not indicators:
         print("BASELINE GUARD: No substantive agent activity detected")
+        print(
+            "  (no report file; requirements.txt still pins yanked "
+            "cryptography==3.4.8; Dockerfile still bypasses constraints.txt)"
+        )
         print("Score: 0.00/1.0")
+        try:
+            os.makedirs("/logs/verifier", exist_ok=True)
+            with open("/logs/verifier/reward.json", "w") as f:
+                json.dump({"reward": 0.0, "_meta_baseline_guard": "failed"}, f)
+        except Exception:
+            pass
         sys.exit(1)
     print(f"BASELINE GUARD: agent activity = {indicators}")
 

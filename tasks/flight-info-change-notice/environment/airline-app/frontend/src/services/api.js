@@ -3,12 +3,38 @@ import axios from 'axios';
 // Use relative URL to work with Vite proxy
 const API_BASE_URL = '/api';
 
+// PR-6 / B6.2 L4 — mock-airline uses JWT cookie-first / Bearer-fallback
+// middleware. withCredentials lets the browser replay the Set-Cookie token
+// the login endpoint plants, and the request interceptor also attaches
+// Authorization: Bearer <token> when AuthContext has stored one in
+// localStorage. Either channel is sufficient on its own; both together
+// survive same-origin proxy quirks and hot-reload sessions where one
+// channel may be cleared.
+const TOKEN_KEY = 'gkd_airline_token';
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  try {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      config.headers = config.headers ?? {};
+      if (!config.headers.Authorization) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+  } catch (_) {
+    // localStorage may be unavailable (private mode, SSR, etc.) — let the
+    // request go without a Bearer header; cookie auth still applies.
+  }
+  return config;
 });
 
 // Auth API (no trailing slashes - backend routes don't have them)

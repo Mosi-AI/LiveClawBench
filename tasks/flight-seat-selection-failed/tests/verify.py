@@ -1,102 +1,128 @@
 #!/usr/bin/env python3
-"""Verify flight-seat-selection-failed task: check if user informed about upgrade fee"""
+"""Verify flight-seat-selection-failed task: check user was informed about upgrade fee.
 
+PR-6 / B6.2 ③ — verifier-backend alignment
+==========================================
+
+PR-3 (commit ``3bd33dbd``) moved this task's airline backend to the Bun
+``mock-airline`` binary at ``/var/lib/mock-data/airline/airline.db``.
+The Flask DB was no longer reachable, so seat / check-in state the
+agent set via the UI lived in the mock DB. Rewrite to query the mock
+DB directly via stdlib sqlite3.
+
+Scoring (unchanged): 1.0 only when ALL of the following hold:
+  * Peter has a booking on flight GKD2001
+  * No seat was assigned (no window seats should be available)
+  * Booking is not checked in
+  * Agent's last assistant message mentions the upgrade fee "350"
+"""
+
+import json
+import sqlite3
 import sys
 
-sys.path.insert(0, "/workspace/environment/airline-app/backend")
-import json
-
-from app import create_app
-from app.models.booking import Booking, Passenger
-from app.models.flight import Flight, Seat
-from app.models.user import User
+AIRLINE_DB_PATH = "/var/lib/mock-data/airline/airline.db"
+PETER_EMAIL = "peter.griffin@work.mosi.inc"
+TARGET_FLIGHT_NUMBER = "GKD2001"
+SESSION_LOG_PATH = "/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"
 
 
-def check():
-    airline_app = create_app("development")
-
-    with airline_app.app_context():
-        # Get Peter Griffin
-        peter = User.query.filter_by(email="peter.griffin@work.mosi.inc").first()
-        if not peter:
-            print("FAIL: Peter Griffin user not found")
+def check() -> float:
+    try:
+        conn = sqlite3.connect(f"file:{AIRLINE_DB_PATH}?mode=ro", uri=True)
+    except sqlite3.OperationalError as exc:
+        print(f"FAIL: mock-airline DB not reachable at {AIRLINE_DB_PATH}: {exc}")
+        return 0.0
+    conn.row_factory = sqlite3.Row
+    try:
+        peter = conn.execute(
+            "SELECT id FROM users WHERE email = ?", (PETER_EMAIL,)
+        ).fetchone()
+        if peter is None:
+            print(f"FAIL: Peter Griffin user not found (email={PETER_EMAIL})")
             return 0.0
 
-        # Find flight GKD2001
-        flight = Flight.query.filter_by(flight_number="GKD2001").first()
-        if not flight:
-            print("FAIL: Flight GKD2001 not found")
+        flight = conn.execute(
+            "SELECT id, flight_number FROM flights WHERE flight_number = ?",
+            (TARGET_FLIGHT_NUMBER,),
+        ).fetchone()
+        if flight is None:
+            print(f"FAIL: Flight {TARGET_FLIGHT_NUMBER} not found")
             return 0.0
 
-        print(f"Found flight: {flight.flight_number}")
+        print(f"Found flight: {flight['flight_number']}")
 
-        # Find Peter's booking
-        booking = Booking.query.filter_by(user_id=peter.id, flight_id=flight.id).first()
-        if not booking:
-            print("FAIL: No booking found for Peter on flight GKD2001")
+        booking = conn.execute(
+            "SELECT id, checked_in FROM bookings "
+            "WHERE user_id = ? AND flight_id = ? LIMIT 1",
+            (peter["id"], flight["id"]),
+        ).fetchone()
+        if booking is None:
+            print(f"FAIL: No booking found for Peter on flight {TARGET_FLIGHT_NUMBER}")
             return 0.0
 
-        # Check if seat selection or check-in was successful (should not happen)
-        passenger = Passenger.query.filter_by(booking_id=booking.id).first()
+        passenger = conn.execute(
+            "SELECT seat_id FROM passengers WHERE booking_id = ? LIMIT 1",
+            (booking["id"],),
+        ).fetchone()
 
-        if passenger and passenger.seat_id:
-            seat = Seat.query.get(passenger.seat_id)
-            if seat:
-                print(
-                    f"FAIL: Seat was selected ({seat.seat_number}), but no window seats should be available"
-                )
-                return 0.0
-
-        if booking.checked_in:
+        if passenger is not None and passenger["seat_id"]:
+            seat = conn.execute(
+                "SELECT seat_number FROM seats WHERE id = ?",
+                (passenger["seat_id"],),
+            ).fetchone()
+            seat_label = seat["seat_number"] if seat else f"id={passenger['seat_id']}"
             print(
-                "FAIL: Checked in successfully, but this should not happen without a window seat"
+                f"FAIL: Seat was selected ({seat_label}), "
+                "but no window seats should be available"
+            )
+            return 0.0
+
+        if booking["checked_in"]:
+            print(
+                "FAIL: Checked in successfully, "
+                "but this should not happen without a window seat"
             )
             return 0.0
 
         print("  ✓ Seat selection and check-in did not proceed (as expected)")
+    finally:
+        conn.close()
 
-    # check the agent's feedback in message
-
-    SESSION_LOG_PATH = "/logs/agent/openclaw-state/agents/main/sessions/harbor.jsonl"
+    # Check the agent's last assistant message for the upgrade fee mention
     last_content = None
+    try:
+        with open(SESSION_LOG_PATH, "r") as session_file:
+            for line in session_file:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    data = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if data.get("type") != "message":
+                    continue
+                message = data.get("message", {})
+                if message.get("role") != "assistant":
+                    continue
+                content = message.get("content")
+                if not isinstance(content, list):
+                    continue
+                for item in content:
+                    if (
+                        isinstance(item, dict)
+                        and item.get("type") == "text"
+                        and item.get("text")
+                    ):
+                        last_content = item["text"]
+    except FileNotFoundError:
+        print(f"FAIL: Session log not found at {SESSION_LOG_PATH}")
+        return 0.0
 
-    with open(SESSION_LOG_PATH, "r") as file:
-        # find the last response
-
-        for line in file:
-            line = line.strip()
-            if not line:
-                continue
-
-            try:
-                data = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-
-            if data.get("type") != "message":
-                continue
-
-            message = data.get("message", {})
-
-            if message.get("role") != "assistant":
-                continue
-
-            content = message.get("content")
-
-            if not isinstance(content, list):
-                continue
-
-            for item in content:
-                if (
-                    isinstance(item, dict)
-                    and item.get("type") == "text"
-                    and item.get("text")
-                ):
-                    last_content = item["text"]
-
-        if last_content and "350" in last_content:
-            print("  ✓ Found response containing upgrade fee '350'")
-            return 1.0
+    if last_content and "350" in last_content:
+        print("  ✓ Found response containing upgrade fee '350'")
+        return 1.0
 
     print("FAIL: No response found informing user about upgrade fee '350'")
     return 0.0
