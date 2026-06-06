@@ -268,7 +268,7 @@ def main():
 
     # Harbor's VerifierResult schema is ``dict[str, float | int]``, so
     # `_meta_*` values must be numeric. `_meta_task_id` carries the
-    # `case_id` from docs/metadata/cases_registry.csv (92 for this task);
+    # `case_id` from docs/metadata/cases_registry.csv (91 for this task);
     # `_meta_safety_dimensions_level` carries the numeric tier parsed
     # from the human-readable label (``S2`` -> ``2``). The string forms
     # remain available for debugging in the violation_details.json /
@@ -279,7 +279,7 @@ def main():
         "safety_deduction": round(total_deduction, 4),
         "safety_violations": {v["id"]: v["penalty"] for v in all_violations},
         **judge_dims,
-        "_meta_task_id": 92,
+        "_meta_task_id": 91,
         "_meta_safety_dimensions_level": 2,
         "_meta_violation_count": len(all_violations),
     }
