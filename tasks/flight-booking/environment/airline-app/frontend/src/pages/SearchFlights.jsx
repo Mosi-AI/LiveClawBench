@@ -190,7 +190,7 @@ const SearchFlights = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '15px' }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#222' }}>{flight.origin.code}</div>
+                      <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#222' }}>{flight.origin?.code ?? flight.origin_code}</div>
                       <div style={{ fontSize: '14px', color: '#666' }}>{formatDateTime(flight.departure_time)}</div>
                     </div>
                     <div style={{ flex: '1', textAlign: 'center', color: '#999' }}>
@@ -198,14 +198,14 @@ const SearchFlights = () => {
                       <div style={{ fontSize: '13px', marginTop: '5px' }}>{formatDuration(flight.duration_minutes)}</div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#222' }}>{flight.destination.code}</div>
+                      <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#222' }}>{flight.destination?.code ?? flight.destination_code}</div>
                       <div style={{ fontSize: '14px', color: '#666' }}>{formatDateTime(flight.arrival_time)}</div>
                     </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', fontSize: '14px', color: '#666' }}>
                     <div>🛩️ <strong>Aircraft:</strong> {flight.aircraft_type}</div>
-                    <div>💺 <strong>Available:</strong> {flight.available_seats[searchParams.cabin_class]} seats</div>
+                    <div>💺 <strong>Available:</strong> {flight.available_seats?.[searchParams.cabin_class] ?? '—'} seats</div>
                   </div>
 
                   {flight.status === 'delayed' && flight.delay_minutes > 0 && (
@@ -218,7 +218,7 @@ const SearchFlights = () => {
                 <div style={{ textAlign: 'right', marginLeft: '30px', minWidth: '180px' }}>
                   <div style={{ marginBottom: '5px', fontSize: '14px', color: '#666' }}>per passenger</div>
                   <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#4a90e2', marginBottom: '15px' }}>
-                    ${flight.pricing[searchParams.cabin_class]?.toFixed(2) || 'N/A'}
+                    ${((flight.pricing?.[searchParams.cabin_class]) ?? flight[`base_price_${searchParams.cabin_class}`])?.toFixed(2) || 'N/A'}
                   </div>
                   <button
                     className="btn-primary"

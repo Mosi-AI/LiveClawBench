@@ -179,12 +179,12 @@ const Booking = () => {
 
       <div className="card">
         <h3>Flight Details</h3>
-        <p><strong>Route:</strong> {flight.origin.code} → {flight.destination.code}</p>
+        <p><strong>Route:</strong> {flight.origin?.code ?? flight.origin_code} → {flight.destination?.code ?? flight.destination_code}</p>
         <p><strong>Departure:</strong> {formatDateTime(flight.departure_time)}</p>
         <p><strong>Cabin Class:</strong> {cabinClass.charAt(0).toUpperCase() + cabinClass.slice(1)}</p>
         <p><strong>Passengers:</strong> {passengerCount}</p>
         <p style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '10px' }}>
-          Total Price: ${((flight.pricing[cabinClass] || flight.pricing.economy) * passengerCount).toFixed(2)}
+          Total Price: ${((((flight.pricing?.[cabinClass]) ?? flight[`base_price_${cabinClass}`]) || ((flight.pricing?.economy) ?? flight.base_price_economy) || 0) * passengerCount).toFixed(2)}
         </p>
       </div>
 

@@ -5,6 +5,8 @@ Reward (sum = 1.0):
   0.8  acceptance email to sales@asterbyte.io with an acceptance phrase
   0.2  no acceptance email to either losing vendor
        (quotes@northpeak.tech, desk@latticepro.ai)
+       — only awarded once the winner has been correctly addressed,
+         so a no-op agent that sends nothing scores 0.
 
 Reads email data directly from the Bun email mock's SQLite database.
 """
@@ -60,7 +62,12 @@ def check():
     ]
 
     acceptance_score = 0.8 if winner_hits else 0.0
-    distractor_score = 0.0 if loser_hits else 0.2
+    # Gate distractor credit on having actually sent the winning email.
+    # Otherwise a no-op agent (zero sent emails) trivially earns 0.2.
+    if winner_hits:
+        distractor_score = 0.0 if loser_hits else 0.2
+    else:
+        distractor_score = 0.0
 
     if winner_hits:
         print(
