@@ -66,6 +66,23 @@ def emit(
         )
 
 
+def _write_crash_sidecar(errors: dict) -> None:
+    """Stash string exception details outside reward.json.
+
+    Harbor's reward.json schema is ``dict[str, float | int]``; string
+    values trigger a ValidationError. Reward.json carries an int
+    ``_meta_<stage>_failed: 1`` flag and the actual exception text
+    lives here for debug consumers. Best-effort; never raises.
+    """
+    try:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        (LOG_DIR / "crash_details.json").write_text(
+            json.dumps(errors, indent=2), encoding="utf-8"
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def hard_gate() -> tuple[bool, str]:
     cmd = [
         sys.executable,
@@ -152,9 +169,17 @@ def run_agent() -> bool:
         "PYTHONPATH": "/workspace/repo",
         "HOME": "/root",
     }
-    r = subprocess.run(
-        cmd, cwd=str(REPO), capture_output=True, text=True, timeout=240, env=env
-    )
+    try:
+        r = subprocess.run(
+            cmd, cwd=str(REPO), capture_output=True, text=True, timeout=240, env=env
+        )
+    except subprocess.TimeoutExpired:
+        # A hanging agent CLI must not crash the verifier; convert to dim=0.
+        print("  agent CLI TIMEOUT (>240s)")
+        return False
+    except Exception as e:  # noqa: BLE001
+        print(f"  agent CLI EXCEPTION: {type(e).__name__}: {e}")
+        return False
     if r.returncode != 0:
         print(f"  agent CLI FAIL:\n    {r.stderr[-600:]}")
         return False
@@ -345,59 +370,136 @@ def grade_html() -> tuple[float, dict]:
     return credit, {"anchors_seen": seen, "anchors_total": len(anchor_names)}
 
 
+def _safe_grade(
+    name: str,
+    stage_errors: dict[str, str],
+    fn,
+    *args,
+) -> tuple[float, dict]:
+    """Per-dim try/except so one failing grader doesn't void others.
+
+    The broad except is intentional defense-in-depth, not silent
+    swallow -- the exception is logged to stdout AND recorded in
+    ``stage_errors`` so the caller can attach an int
+    ``_meta_<name>_failed`` flag and the full text via the sidecar.
+    """
+    try:
+        return fn(*args)
+    except Exception as e:  # noqa: BLE001
+        print(f"  {name} crashed: {type(e).__name__}: {e}")
+        stage_errors[name] = f"{type(e).__name__}: {e}"
+        return 0.0, {"error": str(e)}
+
+
 def main() -> int:
     print("── citation-network-influence verifier ──")
 
-    ok, msg = hard_gate()
-    if not ok:
-        emit(0.0, reason=msg)
+    # Each stage isolated; a partial breakdown beats a missing
+    # reward.json. Broad ``except Exception`` is intentional: it
+    # converts any crash into an observable score=0 plus an
+    # ``_meta_<stage>_failed`` flag, with the full exception text in
+    # the crash sidecar.
+    stage_errors: dict[str, str] = {}
+    try:
+        ok, msg = hard_gate()
+        if not ok:
+            emit(0.0, reason=msg)
+            return 1
+        print("Stage 1 hard gate: OK")
+
+        try:
+            mult, _ = scan_ast()
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 2 AST scan crashed: {type(e).__name__}: {e}")
+            stage_errors["ast_scan"] = f"{type(e).__name__}: {e}"
+            mult = 0.0
+        print(f"Stage 2 AST scan: multiplier={mult}")
+
+        if not run_agent():
+            emit(0.0 * mult, reason="agent CLI failed")
+            return 1
+        print("Stage 3 agent run: OK")
+
+        try:
+            pr_truth, cas_truth, yt_truth = compute_ground_truth()
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 4 ground-truth load crashed: {type(e).__name__}: {e}")
+            _write_crash_sidecar({"ground_truth": f"{type(e).__name__}: {e}"})
+            emit(
+                0.0,
+                breakdown={
+                    "_meta_ground_truth_failed": 1,
+                    "surface_multiplier": mult,
+                },
+                reason="ground-truth load failed",
+            )
+            return 1
+        print(
+            f"Stage 4 ground truth: pr_top1={max(pr_truth.values()):.6f} "
+            f"n_cascades={len(cas_truth)} years={list(yt_truth.keys())}"
+        )
+
+        c_pr, m_pr = _safe_grade(
+            "pagerank",
+            stage_errors,
+            grade_pagerank,
+            pr_truth,
+            ARTIFACTS / "pagerank_top20.csv",
+        )
+        c_cas, m_cas = _safe_grade(
+            "cascades",
+            stage_errors,
+            grade_cascades,
+            cas_truth,
+            ARTIFACTS / "cascades.csv",
+        )
+        c_yr, m_yr = _safe_grade(
+            "yearly",
+            stage_errors,
+            grade_yearly,
+            yt_truth,
+            ARTIFACTS / "yearly_top10.csv",
+        )
+        c_sch, m_sch = _safe_grade("schema", stage_errors, grade_schema)
+        c_html, m_html = _safe_grade("html", stage_errors, grade_html)
+
+        base = c_pr + c_cas + c_yr + c_sch + c_html
+        final = base * mult
+        print(
+            f"  pagerank={c_pr:.4f}  cascades={c_cas:.4f}  yearly={c_yr:.4f}  "
+            f"schema={c_sch:.4f}  html={c_html:.4f}  mult={mult}  ->  {final:.4f}"
+        )
+
+        breakdown = {
+            "pagerank_credit": round(c_pr, 4),
+            "cascades_credit": round(c_cas, 4),
+            "yearly_credit": round(c_yr, 4),
+            "schema_credit": round(c_sch, 4),
+            "html_credit": round(c_html, 4),
+            "surface_multiplier": mult,
+        }
+        if stage_errors:
+            _write_crash_sidecar(stage_errors)
+            for stage in stage_errors:
+                breakdown[f"_meta_{stage}_failed"] = 1
+        meta = {
+            "pagerank": m_pr,
+            "cascades": m_cas,
+            "yearly": m_yr,
+            "schema": m_sch,
+            "html": m_html,
+        }
+        emit(final, breakdown=breakdown, meta=meta)
+        return 0 if final >= 0.5 else 1
+    except Exception as e:  # noqa: BLE001
+        print(f"VERIFIER CRASH at main level: {type(e).__name__}: {e}")
+        _write_crash_sidecar({"verifier_main": f"{type(e).__name__}: {e}"})
+        emit(
+            0.0,
+            breakdown={"_meta_verifier_crash": 1},
+            reason=f"verifier crash: {type(e).__name__}: {e}",
+        )
         return 1
-    print("Stage 1 hard gate: OK")
-
-    mult, _ = scan_ast()
-    print(f"Stage 2 AST scan: multiplier={mult}")
-
-    if not run_agent():
-        emit(0.0 * mult, reason="agent CLI failed")
-        return 1
-    print("Stage 3 agent run: OK")
-
-    pr_truth, cas_truth, yt_truth = compute_ground_truth()
-    print(
-        f"Stage 4 ground truth: pr_top1={max(pr_truth.values()):.6f} "
-        f"n_cascades={len(cas_truth)} years={list(yt_truth.keys())}"
-    )
-
-    c_pr, m_pr = grade_pagerank(pr_truth, ARTIFACTS / "pagerank_top20.csv")
-    c_cas, m_cas = grade_cascades(cas_truth, ARTIFACTS / "cascades.csv")
-    c_yr, m_yr = grade_yearly(yt_truth, ARTIFACTS / "yearly_top10.csv")
-    c_sch, m_sch = grade_schema()
-    c_html, m_html = grade_html()
-
-    base = c_pr + c_cas + c_yr + c_sch + c_html
-    final = base * mult
-    print(
-        f"  pagerank={c_pr:.4f}  cascades={c_cas:.4f}  yearly={c_yr:.4f}  "
-        f"schema={c_sch:.4f}  html={c_html:.4f}  mult={mult}  ->  {final:.4f}"
-    )
-
-    breakdown = {
-        "pagerank_credit": round(c_pr, 4),
-        "cascades_credit": round(c_cas, 4),
-        "yearly_credit": round(c_yr, 4),
-        "schema_credit": round(c_sch, 4),
-        "html_credit": round(c_html, 4),
-        "surface_multiplier": mult,
-    }
-    meta = {
-        "pagerank": m_pr,
-        "cascades": m_cas,
-        "yearly": m_yr,
-        "schema": m_sch,
-        "html": m_html,
-    }
-    emit(final, breakdown=breakdown, meta=meta)
-    return 0 if final >= 0.5 else 1
 
 
 if __name__ == "__main__":

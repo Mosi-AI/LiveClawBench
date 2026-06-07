@@ -57,6 +57,23 @@ def emit(score: float, breakdown: dict | None = None, *, reason: str = "") -> No
     )
 
 
+def _write_crash_sidecar(errors: dict) -> None:
+    """Stash string exception details outside reward.json.
+
+    Harbor's reward.json schema is ``dict[str, float | int]``; string
+    values trigger a ValidationError. Reward.json carries an int
+    ``_meta_<stage>_failed: 1`` flag and the actual exception text
+    lives here for debug consumers. Best-effort; never raises.
+    """
+    try:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        (LOG_DIR / "crash_details.json").write_text(
+            json.dumps(errors, indent=2), encoding="utf-8"
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+
 # ──────────────────────────────────────────────────────────────────────
 #   Stage 1: hard gate
 # ──────────────────────────────────────────────────────────────────────
@@ -149,9 +166,17 @@ def run_one(problem: str, seed: int, out: Path) -> dict | None:
         "PYTHONPATH": "/workspace/repo",
         "HOME": "/root",
     }
-    r = subprocess.run(
-        cmd, cwd=str(REPO), capture_output=True, text=True, timeout=120, env=env
-    )
+    try:
+        r = subprocess.run(
+            cmd, cwd=str(REPO), capture_output=True, text=True, timeout=120, env=env
+        )
+    except subprocess.TimeoutExpired:
+        # A hanging benchmark must not crash the verifier; convert to None.
+        print(f"  RUN TIMEOUT {problem} seed={seed} (>120s)")
+        return None
+    except Exception as e:  # noqa: BLE001
+        print(f"  RUN EXCEPTION {problem} seed={seed}: {type(e).__name__}: {e}")
+        return None
     if r.returncode != 0:
         print(f"  RUN FAIL {problem} seed={seed}\n    {r.stderr[-400:]}")
         return None
@@ -256,41 +281,81 @@ def grade_viz() -> float:
 def main() -> int:
     print("── ga-classical-optimization verifier ──")
 
-    ok, msg = hard_gate()
-    if not ok:
-        emit(0.0, reason=msg)
+    # Each stage isolated; a partial breakdown beats a missing
+    # reward.json. Broad ``except Exception`` is intentional: it
+    # converts any crash into an observable score=0 plus an
+    # ``_meta_<stage>_failed`` flag, with the full exception text in
+    # the crash sidecar.
+    stage_errors: dict[str, str] = {}
+    try:
+        ok, msg = hard_gate()
+        if not ok:
+            emit(0.0, reason=msg)
+            return 1
+        print("Stage 1 hard gate: OK")
+
+        try:
+            mult, _ = scan_ast()
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 2 AST scan crashed: {type(e).__name__}: {e}")
+            stage_errors["ast_scan"] = f"{type(e).__name__}: {e}"
+            mult = 0.0
+        print(f"Stage 2 AST scan: multiplier={mult}")
+
+        try:
+            base, per_bench, bench_meta = grade_functional()
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 3 functional crashed: {type(e).__name__}: {e}")
+            stage_errors["functional"] = f"{type(e).__name__}: {e}"
+            base, per_bench = 0.0, {"error": str(e)}
+            bench_meta = {"n_passed": 0, "n_total": 0}
+        print(f"Stage 3 functional: base={base:.4f}")
+
+        try:
+            det = grade_determinism()
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 4 determinism crashed: {type(e).__name__}: {e}")
+            stage_errors["determinism"] = f"{type(e).__name__}: {e}"
+            det = 0.0
+        print(f"Stage 4 determinism: +{det:.4f}")
+
+        try:
+            viz = grade_viz()
+        except Exception as e:  # noqa: BLE001
+            print(f"Stage 5 viz crashed: {type(e).__name__}: {e}")
+            stage_errors["viz"] = f"{type(e).__name__}: {e}"
+            viz = 0.0
+        print(f"Stage 5 viz: +{viz:.4f}")
+
+        sub_total = base + det + viz
+        final = sub_total * mult
+
+        # Stringify the nested per_benchmark dict via a JSON-encoded debug log.
+        log_path = LOG_DIR / "per_benchmark.json"
+        log_path.write_text(json.dumps(per_bench, indent=2), encoding="utf-8")
+        breakdown = {
+            "functional_base": round(base, 4),
+            "determinism": round(det, 4),
+            "viz": round(viz, 4),
+            "surface_multiplier": mult,
+            "_meta_n_passed": bench_meta["n_passed"],
+            "_meta_n_total": bench_meta["n_total"],
+        }
+        if stage_errors:
+            _write_crash_sidecar(stage_errors)
+            for stage in stage_errors:
+                breakdown[f"_meta_{stage}_failed"] = 1
+        emit(final, breakdown=breakdown)
+        return 0 if final >= 0.5 else 1
+    except Exception as e:  # noqa: BLE001
+        print(f"VERIFIER CRASH at main level: {type(e).__name__}: {e}")
+        _write_crash_sidecar({"verifier_main": f"{type(e).__name__}: {e}"})
+        emit(
+            0.0,
+            breakdown={"_meta_verifier_crash": 1},
+            reason=f"verifier crash: {type(e).__name__}: {e}",
+        )
         return 1
-    print("Stage 1 hard gate: OK")
-
-    mult, _ = scan_ast()
-    print(f"Stage 2 AST scan: multiplier={mult}")
-
-    base, per_bench, bench_meta = grade_functional()
-    print(f"Stage 3 functional: base={base:.4f}")
-
-    det = grade_determinism()
-    print(f"Stage 4 determinism: +{det:.4f}")
-
-    viz = grade_viz()
-    print(f"Stage 5 viz: +{viz:.4f}")
-
-    sub_total = base + det + viz
-    final = sub_total * mult
-
-    # Harbor's VerifierResult requires `_meta_*` fields to be float|int.
-    # Stringify the nested per_benchmark dict via a JSON-encoded debug log.
-    log_path = LOG_DIR / "per_benchmark.json"
-    log_path.write_text(json.dumps(per_bench, indent=2), encoding="utf-8")
-    breakdown = {
-        "functional_base": round(base, 4),
-        "determinism": round(det, 4),
-        "viz": round(viz, 4),
-        "surface_multiplier": mult,
-        "_meta_n_passed": bench_meta["n_passed"],
-        "_meta_n_total": bench_meta["n_total"],
-    }
-    emit(final, breakdown=breakdown)
-    return 0 if final >= 0.5 else 1
 
 
 if __name__ == "__main__":

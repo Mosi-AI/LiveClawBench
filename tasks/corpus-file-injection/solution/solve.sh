@@ -53,7 +53,7 @@ PARTIAL=0
 for attempt in 1 2 3; do
   rm -f "${OUTPUT}/agent_response.json" "${OUTPUT}/final.md" "${OUTPUT}/summary.md" "${OUTPUT}/answer.md" "${OUTPUT}/result.json"
   rm -rf "${WORK}/output"
-  SESSION_ID="pkb-noise-filter-${attempt}-$(date +%s)-$$"
+  SESSION_ID="corpus-file-injection-${attempt}-$(date +%s)-$$"
   openclaw agent \
     --local \
     --session-id "${SESSION_ID}" \

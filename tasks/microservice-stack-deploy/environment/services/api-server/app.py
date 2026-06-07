@@ -13,9 +13,9 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-# NOTE: default hardcoded to kvstore:9000 per architecture doc (services/README.md).
-# The KV_STORE_HOST env override exists but ops still sometimes forgets to set it.
-KV_STORE_HOST = os.environ.get("KV_STORE_HOST", "kvstore:9000")
+# Default points at the kv-store server on the same host. Override with
+# the KV_STORE_HOST env var to point elsewhere.
+KV_STORE_HOST = os.environ.get("KV_STORE_HOST", "localhost:50051")
 
 
 def get_kv_stub():

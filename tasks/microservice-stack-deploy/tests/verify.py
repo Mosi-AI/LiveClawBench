@@ -17,6 +17,7 @@ import os
 import socket
 import sys
 import time
+import urllib.error
 import urllib.request
 
 
@@ -24,7 +25,18 @@ def http_get(url, timeout=5):
     try:
         resp = urllib.request.urlopen(url, timeout=timeout)
         return resp.status, resp.read().decode("utf-8", errors="replace")
-    except Exception as e:
+    except urllib.error.HTTPError as e:
+        # urllib raises HTTPError on 4xx/5xx but the response is still a
+        # valid HTTP exchange. Sub-tests that assert specific error
+        # codes (e.g. 404 on missing key, 400 on bad request) need the
+        # real status, not 0.
+        body = ""
+        try:
+            body = e.read().decode("utf-8", errors="replace")
+        except Exception:  # noqa: BLE001
+            pass
+        return e.code, body
+    except Exception as e:  # noqa: BLE001
         return 0, str(e)
 
 
@@ -37,7 +49,15 @@ def http_post(url, data, timeout=5):
         )
         resp = urllib.request.urlopen(req, timeout=timeout)
         return resp.status, resp.read().decode("utf-8", errors="replace")
-    except Exception as e:
+    except urllib.error.HTTPError as e:
+        # 4xx/5xx must surface as their real status code, not 0.
+        body = ""
+        try:
+            body = e.read().decode("utf-8", errors="replace")
+        except Exception:  # noqa: BLE001
+            pass
+        return e.code, body
+    except Exception as e:  # noqa: BLE001
         return 0, str(e)
 
 
