@@ -37,7 +37,7 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 |     10 | flight-seat-selection-failed      |  M   | ✓  |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |     11 | flight-cancel-claim               |  H   | ✓  |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |     12 | flight-info-change-notice         |  M   | ✓  |    | ✓  |    |    |    | Calendar & Task Mgmt       |
-|     13 | baggage-tracking-application      |  E   |    |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
+|     13 | baggage-tracking-application      |  E   |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     14 | schedule-change-request           |  E   | ✓  |    |    |    |    |    | Calendar & Task Mgmt       |
 |     15 | blog-site-from-scratch            |  E   |    |    |    |    |    |    | Coding & Software Dev      |
 |     16 | blog-site-completion-from-starter |  E   |    | ✓  |    |    |    |    | Coding & Software Dev      |
@@ -51,7 +51,7 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 |     24 | vue-build-fix-chain               |  E   |    | ✓  |    |    |    |    | DevOps & Env Repair        |
 |     25 | noise-filtering                   |  M   |    | ✓  |    | ✓  |    |    | Deep Research & Report     |
 |     26 | incremental-update-ctp            |  E   |    | ✓  |    | ✓  |    |    | Documents & Knowledge      |
-|     27 | conflict-repair-acb               |  E   | ✓  | ✓  |    | ✓  |    |    | Documents & Knowledge      |
+|     27 | conflict-repair-acb               |  E   | ✓  |    |    | ✓  |    |    | Documents & Knowledge      |
 |     28 | mixed-tool-memory                 |  E   | ✓  |    |    | ✓  |    |    | Documents & Knowledge      |
 |     29 | live-web-research-sqlite-fts5     |  M   | ✓  |    |    | ✓  |    |    | Deep Research & Report     |
 |     30 | skill-combination                 |  E   |    |    |    | ✓  |    |    | Documents & Knowledge      |
@@ -61,9 +61,9 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 |     34 | social-unlike-post                |  M   |    |    |    |    |    |    | Social Media               |
 |     35 | expense-draft-delete              |  E   |    |    |    |    |    |    | Finance & Data Analytics   |
 |     36 | insurance-deductible-selection    |  E   |    |    |    |    |    |    | E-commerce & Daily Svcs    |
-|     37 | health-insurance-optimization     |  E   | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
+|     37 | health-insurance-optimization     |  E   |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     38 | health-daily-record               |  H   |    |    |    |    |    |    | Health & Fitness           |
-|     39 | finance-portfolio-rebalancing     |  E   |    |    | ✓  |    |    |    | Finance & Data Analytics   |
+|     39 | finance-portfolio-rebalancing     |  E   |    |    |    |    |    |    | Finance & Data Analytics   |
 |     40 | finance-monthly-close             |  E   |    | ✓  |    |    |    |    | Finance & Data Analytics   |
 |     41 | nutrition-log-meal                |  M   |    |    |    |    |    |    | Health & Fitness           |
 |     42 | mint-diet-comprehensive           |  M   |    |    |    |    |    |    | Health & Fitness           |
@@ -72,8 +72,8 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 |     45 | morning-comfort-setup             |  M   |    | ✓  | ✓  |    |    |    | Health & Fitness           |
 |     46 | weather-city-travel-pick          |  E   |    |    |    |    |    |    | Health & Fitness           |
 |     47 | weather-outdoor-window            |  E   |    |    |    |    |    |    | Health & Fitness           |
-|     48 | pre-meeting-research-brief        |  E   |    |    | ✓  | ✓  |    |    | Deep Research & Report     |
-|     49 | vendor-due-diligence-brief        |  E   | ✓  |    | ✓  |    |    |    | Deep Research & Report     |
+|     48 | pre-meeting-research-brief        |  E   |    |    | ✓  |    |    |    | Deep Research & Report     |
+|     49 | vendor-due-diligence-brief        |  E   |    |    | ✓  |    |    |    | Deep Research & Report     |
 |     50 | social-schedule-audit             |  H   |    | ✓  |    |    |    |    | Social Media               |
 |     51 | social-keyword-cleanup            |  H   | ✓  |    | ✓  |    |    |    | Social Media               |
 |     52 | social-event-campaign             |  H   | ✓  |    | ✓  |    |    |    | Social Media               |
@@ -86,26 +86,26 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 |     59 | medication-prescription-sync      |  E   | ✓  | ✓  | ✓  |    |    |    | Health & Fitness           |
 |     60 | health-appointment-scheduling     |  M   | ✓  | ✓  | ✓  |    |    |    | Health & Fitness           |
 |     61 | content-calendar-cross-publish    |  H   | ✓  | ✓  | ✓  |    |    |    | Calendar & Task Mgmt       |
-|     62 | finance-tax-prepare               |  E   | ✓  |    | ✓  | ✓  |    |    | Finance & Data Analytics   |
-|     63 | finance-analysis-generate         |  E   | ✓  |    | ✓  | ✓  |    |    | Finance & Data Analytics   |
-|     64 | finance-depreciation-audit        |  E   |    | ✓  | ✓  | ✓  |    |    | Finance & Data Analytics   |
-|     65 | finance-dashboard-repair          |  M   |    | ✓  |    | ✓  |    |    | Finance & Data Analytics   |
-|     66 | finance-expense-log               |  E   |    |    | ✓  |    |    |    | Finance & Data Analytics   |
+|     62 | finance-tax-prepare               |  E   | ✓  |    | ✓  |    |    |    | Finance & Data Analytics   |
+|     63 | finance-analysis-generate         |  E   |    |    | ✓  |    |    |    | Finance & Data Analytics   |
+|     64 | finance-depreciation-audit        |  E   |    | ✓  | ✓  |    |    |    | Finance & Data Analytics   |
+|     65 | finance-dashboard-repair          |  M   |    | ✓  |    |    |    |    | Finance & Data Analytics   |
+|     66 | finance-expense-log               |  E   |    |    |    |    |    |    | Finance & Data Analytics   |
 |     67 | finance-invoice-process           |  M   | ✓  |    |    |    |    |    | Finance & Data Analytics   |
 |     68 | finance-anomaly-detect            |  M   |    | ✓  | ✓  |    |    |    | Finance & Data Analytics   |
 |     69 | finance-budget-alert              |  M   | ✓  | ✓  |    |    |    |    | Finance & Data Analytics   |
 |     70 | sticker-store-acquire             |  M   |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     71 | chat-sticker-engagement           |  E   |    |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
-|     72 | cd-pipeline-setup                 |  E   | ✓  | ✓  | ✓  | ✓  |    |    | DevOps & Env Repair        |
+|     72 | cd-pipeline-setup                 |  E   | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     73 | security-audit-remediation        |  E   | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
-|     74 | tls-cert-rotation-sla             |  M   | ✓  | ✓  | ✓  | ✓  |    |    | DevOps & Env Repair        |
+|     74 | tls-cert-rotation-sla             |  M   | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     75 | grpc-service-crash-diagnosis      |  M   | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     76 | db-corruption-multi-recovery      |  E   | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     77 | legacy-stack-migration-deploy     |  E   | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
-|     78 | chaotic-repo-restoration          |  E   |    | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
+|     78 | chaotic-repo-restoration          |  E   |   ✓| ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     79 | monitoring-alerting-setup         |  M   | ✓  |    | ✓  |    |    |    | DevOps & Env Repair        |
 |     80 | git-merge-conflict-deploy         |  E   | ✓  | ✓  |    |    |    |    | DevOps & Env Repair        |
-|     81 | log-triage-incident-report        |  M   | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
+|     81 | log-triage-incident-report        |  M   |    | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     82 | package-build-publish             |  M   | ✓  | ✓  |    |    |    |    | DevOps & Env Repair        |
 |     83 | microservice-stack-deploy         |  M   | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     84 | python-dependency-hell-resolution |  H   |    | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
@@ -134,13 +134,13 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 |    107 | ai-copyright-international-jurisprudence |  M   |    |    |    |    |    |    | Deep Research & Report     |
 |    108 | long-covid-neurological-hypotheses |  H   |    |    |    |    |    |    | Deep Research & Report     |
 |    109 | ansible-iptables-ipset            |  E   |    | ✓  | ✓  |    |    |    | Coding & Software Dev      |
-|    110 | citation-network-influence        |  E   |    |    | ✓  |    |    |    | Coding & Software Dev      |
+|    110 | citation-network-influence        |  E   |    |    |    |    |    |    | Coding & Software Dev      |
 |    111 | element-web-unverified-device     |  H   |    | ✓  | ✓  |    |    |    | Coding & Software Dev      |
-|    112 | ga-classical-optimization         |  M   |    |    | ✓  | ✓  |    |    | Coding & Software Dev      |
+|    112 | ga-classical-optimization         |  M   |    |    | ✓  |    |    |    | Coding & Software Dev      |
 |    113 | ga-gol-persistent-structures      |  H   |    |    | ✓  |    |    |    | Coding & Software Dev      |
-|    114 | openlibrary-3rd-metadata-source   |  H   | ✓  |    |    | ✓  |    |    | Coding & Software Dev      |
-|    115 | teleport-gcp-cert-identity        |  H   | ✓  |    |    | ✓  |    |    | Coding & Software Dev      |
-|    116 | vuls-kernel-detection             |  H   |    | ✓  |    | ✓  |    |    | Coding & Software Dev      |
+|    114 | openlibrary-3rd-metadata-source   |  H   |    |    |    |    |    |    | Coding & Software Dev      |
+|    115 | teleport-gcp-cert-identity        |  H   |    |    |    |    |    |    | Coding & Software Dev      |
+|    116 | vuls-kernel-detection             |  H   |    | ✓  |    |    |    |    | Coding & Software Dev      |
 |     117 | email-reply-context-shift          |  H   |    |    |    |    | ✓  |    | Communication & Email      |
 |     118 | email-sending-verify               |  E   |    |    |    |    |    | ✓  | Communication & Email      |
 |     119 | watch-shop-stockout                 |  E   |    |    |    |    | ✓  |    | E-commerce & Daily Svcs    |
@@ -152,13 +152,13 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 |     125 | social-post-rate-limit              |  M   |    |    |    |    | ✓  |    | Social Media               |
 |     126 | social-unlike-verify                |  H   |    |    |    |    |    | ✓  | Social Media               |
 |     127 | expense-submit-verify               |  M   |    |    |    |    |    | ✓  | Finance & Data Analytics   |
-|     128 | finance-budget-shift                |  H   | ✓  | ✓  |    |    | ✓  |    | Finance & Data Analytics   |
+|     128 | finance-budget-shift                |  H   |    | ✓  |    |    | ✓  |    | Finance & Data Analytics   |
 |     129 | vue-fix-rebreak                     |  M   |    | ✓  |    |    | ✓  |    | DevOps & Env Repair        |
-|     130 | vendor-requirement-followup       |  E   | ✓  |    | ✓  | ✓  |    |    | Communication & Email      |
+|     130 | vendor-requirement-followup       |  E   |    |    | ✓  | ✓  |    |    | Communication & Email      |
 |     131 | invoice-to-expense-draft          |  M   | ✓  |    | ✓  |    |    |    | Communication & Email      |
-|     132 | newsletter-digest-forward         |  M   | ✓  |    | ✓  |    |    |    | Communication & Email      |
+|     132 | newsletter-digest-forward         |  M   |    |    | ✓  |    |    |    | Communication & Email      |
 |     133 | procurement-quote-compare-reply   |  H   |    |    | ✓  |    |    |    | Communication & Email      |
-|     134 | stale-client-escalation           |  M   | ✓  |    | ✓  | ✓  |    |    | Communication & Email      |
+|     134 | stale-client-escalation           |  M   |    |    | ✓  | ✓  |    |    | Communication & Email      |
 
 
 ---
@@ -167,23 +167,22 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 
 | 因子 | 描述                     | 数量 | 占比   | 代表性 Case                                                     |
 |------|--------------------------|-----:|-------:|----------------------------------------------------------------|
-| A1   | 跨服务依赖               |    54 |  40.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2   | 初始状态污染             |    39 |  29.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1   | 隐式目标解析             |    47 |  35.1% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2   | 知识系统维护             |    28 |  20.9% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
-| C1   | 环境状态失效             |     7 |   5.4% | email-reply-context-shift, watch-shop-stockout, meeting-slot-race, social-post-rate-limit, vue-fix-rebreak |
-| C2   | 变更状态下结果验证       |     6 |   4.7% | email-sending-verify, watch-shop-silent-fail, interview-slot-verify, health-record-verify, expense-submit-verify |
+| A1   | 跨服务依赖               |    45 |  33.6% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2   | 初始状态污染             |    38 |  28.4% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1   | 隐式目标解析             |    43 |  32.1% | flight-seat-selection-failed, flight-cancel-claim, smarthome-test, pre-meeting-research-brief, finance-anomaly-detect |
+| B2   | 知识系统维护             |    17 |  12.7% | skill-creation, skill-dependency-fix, noise-filtering, conflict-repair-acb, research-with-adversarial-sources |
+| C1   | 环境状态失效             |     7 |   5.2% | email-reply-context-shift, watch-shop-stockout, meeting-slot-race, social-post-rate-limit, vue-fix-rebreak |
+| C2   | 变更状态下结果验证       |     6 |   4.5% | email-sending-verify, watch-shop-silent-fail, interview-slot-verify, health-record-verify, expense-submit-verify |
 
 > 占比以 134 个已实现 case 总数为分母。
 
 因子组合分布：
 
-- 无因子（基准）：34 个 case（25.4%）
-- 单因子：42 个 case（31.3%）
-- 双因子：37 个 case（27.6%）
-- 三因子：19 个 case（14.2%）
-- 四因子：2 个 case（1.5%）
-- **多因子（≥2 个因子）：58 个 case（43.3%）**
+- 无因子（基准）：41 个 case（30.6%）
+- 单因子：44 个 case（32.8%）
+- 双因子：35 个 case（26.1%）
+- 三因子：14 个 case（10.4%）
+- **多因子（≥2 个因子）：49 个 case（36.6%）**
 
 
 ---
@@ -194,24 +193,24 @@ LiveClawBench 定义了六个正交复杂度因子，用于描述超出基础任
 
 | 主要领域                   | A1 | A2 | B1 | B2 | C1 | C2 | 因子实例总数 |
 |----------------------------|----|----|----|----|----|----|:------------:|
-| Documents & Knowledge      |  3 |  3 |  0 | 11 |  0 |  0 |           17 |
-| Communication & Email      |  4 |  0 |  5 |  2 |  1 |  1 |           13 |
-| E-commerce & Daily Svcs    |  9 |  0 |  6 |  0 |  1 |  1 |           17 |
+| Documents & Knowledge      |  3 |  2 |  0 | 11 |  0 |  0 |           16 |
+| Communication & Email      |  1 |  0 |  5 |  2 |  1 |  1 |           10 |
+| E-commerce & Daily Svcs    |  8 |  0 |  5 |  0 |  1 |  1 |           15 |
 | Calendar & Task Mgmt       |  9 |  1 |  3 |  0 |  1 |  1 |           15 |
-| Coding & Software Dev      |  2 |  4 |  5 |  4 |  0 |  0 |           15 |
-| DevOps & Env Repair        | 11 | 17 | 11 |  2 |  1 |  0 |           42 |
-| Deep Research & Report     |  3 |  2 |  2 |  5 |  0 |  0 |           12 |
+| Coding & Software Dev      |  0 |  4 |  4 |  0 |  0 |  0 |            8 |
+| DevOps & Env Repair        | 11 | 17 | 11 |  0 |  1 |  0 |           40 |
+| Deep Research & Report     |  2 |  2 |  2 |  4 |  0 |  0 |           10 |
 | Health & Fitness           |  2 |  3 |  3 |  0 |  1 |  1 |           10 |
 | Social Media               |  6 |  3 |  6 |  0 |  1 |  1 |           17 |
-| Finance & Data Analytics   |  5 |  6 |  6 |  4 |  1 |  1 |           23 |
+| Finance & Data Analytics   |  3 |  6 |  4 |  0 |  1 |  1 |           15 |
 
 关键观察：
 - **B2 高度集中在 Documents & Knowledge**（11/17），反映了知识管理任务的本质
-- **A1 分布最广**，横跨 8 个领域——跨服务协调是普遍的复杂度来源
+- **A1 分布最广**，横跨 9 个领域——跨服务协调是普遍的复杂度来源
 - **B1 出现在除 Documents & Knowledge 外的所有领域** ——隐式目标解析是跨领域的基础复杂度
-- **Communication & Email 不再是纯零因子领域** ——通过 email-reply-context-shift、email-sending-verify 等任务获得 C1/C2 覆盖，同时 vendor-requirement-followup 和 invoice-to-expense-draft 引入 A1+B1
-- **DevOps & Env Repair 是因子密度最高的领域**（42 个实例）——A2 和 B1 负载极重，反映了环境修复任务的诊断-执行双重难度
-- **Social Media（11 个任务）与 E-commerce（22 个任务）并列因子实例数第三**（各 17 个）——Social Media 覆盖 A1=6、A2=3、B1=6，E-commerce 覆盖 A1=9、B1=6
+- **Communication & Email 不再是纯零因子领域** ——通过 email-reply-context-shift、email-sending-verify 等任务获得 C1/C2 覆盖，同时 vendor-requirement-followup 和 invoice-to-expense-draft 引入 B1/B2 等因子
+- **DevOps & Env Repair 是因子密度最高的领域**（40 个实例）——A2 和 B1 负载极重，反映了环境修复任务的诊断-执行双重难度
+- **Social Media（11 个任务）因子实例数最高**（17 个），覆盖 A1=6、A2=3、B1=6；E-commerce 紧随其后（15 个），覆盖 A1=8、B1=5
 
 ---
 
@@ -250,9 +249,9 @@ LiveClawBench 包含 2 个经验证具有有效难度梯度的控制对。
 
 | 难度 | 平均因子数 | 基准（0 因子） | 单因子 | 多因子 |
 |:----:|:----------:|:--------------:|:------:|:------:|
-| 简单 |       1.26 |             16 |       22 |      19 |
-| 中等 |       1.40 |             11 |       12 |      22 |
-| 困难 |       1.44 |             7 |       8 |      17 |
+| 简单 |       1.04 |             21 |       20 |      16 |
+| 中等 |       1.27 |             11 |       15 |      19 |
+| 困难 |       1.25 |             9 |       9 |      14 |
 
-基于 deepseek-v4-pro 的 3-trial 平均通过率的经验重分类显示，简单 case 占比最大（42.5%）。简单 case 包含基准任务（28.1%）和带因子任务（71.9%），
+基于 deepseek-v4-pro 的 3-trial 平均通过率的经验重分类显示，简单 case 占比最大（42.5%）。简单 case 包含基准任务（36.8%）和带因子任务（63.2%），
 中等 case 占比 33.6%，困难 case 集中在需要约束失败处理（B1）或特定挑战性环境（DevOps 中的 A2）的任务上。

@@ -9,7 +9,7 @@ domain = "Deep Research & Report"
 domains_multi = ["Deep Research & Report", "Communication & Email"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
-factor_a1 = 1   # Cross-Service Dependency (email + corpus)
+factor_a1 = 0
 factor_a2 = 0   # Contaminated Initial State
 factor_b1 = 1   # Implicit Goal Resolution
 factor_b2 = 0   # Knowledge System Maintenance
