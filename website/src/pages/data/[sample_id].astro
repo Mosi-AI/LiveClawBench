@@ -1,5 +1,6 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro';
+import { withBase } from '../../lib/urls';
 import rawRowsData from '../../../site-data/raw-rows.json';
 
 interface TrajectoryStep {
@@ -99,7 +100,7 @@ const sourceIcon: Record<string, string> = {
 <PageLayout title={`Trajectory: ${row.sample_id} - LiveClawBench`}>
   <div class="container mx-auto px-4 py-12 max-w-5xl">
     <!-- Back link -->
-    <a href="/data" class="text-primary-600 hover:text-primary-700 text-sm font-medium mb-4 inline-block">← Back to Trajectory Data</a>
+    <a href={withBase('/data')} class="text-primary-600 hover:text-primary-700 text-sm font-medium mb-4 inline-block">← Back to Trajectory Data</a>
 
     <h1 class="text-2xl font-bold mb-1">Trajectory Detail</h1>
     <p class="text-gray-500 text-sm mb-6 font-mono">{row.sample_id}</p>
@@ -303,6 +304,6 @@ const sourceIcon: Record<string, string> = {
     </div>
 
     <!-- Back link -->
-    <a href="/data" class="text-primary-600 hover:text-primary-700 text-sm font-medium">← Back to Trajectory Data</a>
+    <a href={withBase('/data')} class="text-primary-600 hover:text-primary-700 text-sm font-medium">← Back to Trajectory Data</a>
   </div>
 </PageLayout>

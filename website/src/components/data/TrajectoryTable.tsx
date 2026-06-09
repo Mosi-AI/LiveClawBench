@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { withBase } from '../../lib/urls';
 
 interface TrajectoryRow {
   sample_id: string;
@@ -241,7 +242,7 @@ export default function TrajectoryTable({ rows, modelNames }: Props) {
                 <tr key={row.sample_id} className="border-b hover:bg-gray-50">
                   {/* sample_id */}
                   <td className="px-2 py-2 text-xs text-gray-700 break-all">
-                    <a href={`/data/${row.sample_id}`} className="text-primary-600 hover:underline hover:text-primary-700">
+                    <a href={withBase(`/data/${row.sample_id}`)} className="text-primary-600 hover:underline hover:text-primary-700">
                       {row.sample_id}
                     </a>
                   </td>

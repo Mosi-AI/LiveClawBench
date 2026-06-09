@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../lib/urls';
+
 interface Props {
   id: string;
   name: string;
@@ -12,10 +14,10 @@ interface Props {
 const { id, name, summary, tasksCount, thumbnailSrc, agentActions = [], liveDemoStatus } = Astro.props;
 ---
 
-<a href={`/mocks/${id}`} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
+<a href={withBase(`/mocks/${id}`)} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
   <div class="aspect-video bg-gray-100 relative">
     {thumbnailSrc ? (
-      <img src={thumbnailSrc} alt={name} class="w-full h-full object-cover" />
+      <img src={withBase(thumbnailSrc)} alt={name} class="w-full h-full object-cover" />
     ) : (
       <div class="flex items-center justify-center h-full text-gray-400">
         <span>No preview</span>

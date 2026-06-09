@@ -1,13 +1,14 @@
 ---
 import { getSiteConfig } from '../../data/site-config';
+import { withBase } from '../../lib/urls';
 
 const navItems = getSiteConfig().nav;
 ---
 
 <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
   <nav class="container mx-auto px-4 h-16 flex items-center justify-between">
-    <a href="/" class="flex items-center gap-2 font-bold text-xl text-gray-900">
-      <img src="/logo.png" alt="LiveClawBench" class="h-8 w-8" />
+    <a href={withBase('/')} class="flex items-center gap-2 font-bold text-xl text-gray-900">
+      <img src={withBase('/logo.png')} alt="LiveClawBench" class="h-8 w-8" />
       LiveClawBench
     </a>
 
@@ -15,7 +16,7 @@ const navItems = getSiteConfig().nav;
     <ul class="hidden md:flex items-center gap-6">
       {navItems.map(item => (
         <li>
-          <a href={item.href} class="text-gray-600 hover:text-primary-600 transition-colors text-sm font-medium">
+          <a href={withBase(item.href)} class="text-gray-600 hover:text-primary-600 transition-colors text-sm font-medium">
             {item.label}
           </a>
         </li>
@@ -35,7 +36,7 @@ const navItems = getSiteConfig().nav;
     <ul class="px-4 py-2 space-y-2 border-t">
       {navItems.map(item => (
         <li>
-          <a href={item.href} class="block py-2 text-gray-600 hover:text-primary-600 text-sm font-medium">
+          <a href={withBase(item.href)} class="block py-2 text-gray-600 hover:text-primary-600 text-sm font-medium">
             {item.label}
           </a>
         </li>

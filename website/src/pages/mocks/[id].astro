@@ -3,6 +3,7 @@ import PageLayout from '../../layouts/PageLayout.astro';
 import PreviewGallery from '../../components/mocks/PreviewGallery.tsx';
 import { getAllMockApps } from '../../data/mocks';
 import { getGithubFileUrl, getGithubDirUrl } from '../../data/site-config';
+import { withBase } from '../../lib/urls';
 import type { MockApp } from '../../data/types';
 
 export function getStaticPaths() {
@@ -25,7 +26,7 @@ const { app } = Astro.props;
     <!-- Header -->
     <div class="mb-8">
       <div class="flex items-center gap-3 mb-2">
-        <a href="/mocks" class="text-sm text-gray-500 hover:text-gray-700">← Mock Apps</a>
+        <a href={withBase('/mocks')} class="text-sm text-gray-500 hover:text-gray-700">← Mock Apps</a>
       </div>
       <h1 class="text-3xl font-bold">{app.name} Mock App</h1>
       <div class="mt-2 flex items-center gap-3">
@@ -95,7 +96,7 @@ const { app } = Astro.props;
         <h2 class="font-bold text-lg mb-3">Used by Tasks</h2>
         <div class="space-y-2">
           {app.usedByTasks.map(taskSlug => (
-            <a href={`/tasks/${taskSlug}`} class="block text-sm text-primary-600 hover:text-primary-700 hover:underline">
+            <a href={withBase(`/tasks/${taskSlug}`)} class="block text-sm text-primary-600 hover:text-primary-700 hover:underline">
               {taskSlug}
             </a>
           ))}

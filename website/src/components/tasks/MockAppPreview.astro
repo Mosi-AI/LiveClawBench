@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../lib/urls';
+
 interface Props {
   mockId: string;
   mockData: {
@@ -17,7 +19,7 @@ const hasPreviews = mockData.previewAssets && mockData.previewAssets.length > 0;
 <div class="border rounded-lg overflow-hidden">
   <div class="aspect-video bg-gray-100 relative">
     {hasPreviews ? (
-      <img src={mockData.previewAssets[0].src} alt={mockData.name} class="w-full h-full object-cover" />
+      <img src={withBase(mockData.previewAssets[0].src)} alt={mockData.name} class="w-full h-full object-cover" />
     ) : (
       <div class="flex items-center justify-center h-full text-gray-400">
         <span>Preview pending</span>
@@ -34,7 +36,7 @@ const hasPreviews = mockData.previewAssets && mockData.previewAssets.length > 0;
           {mockData.mainScreens.map(screen => (
             <div class="text-center">
               <div class="aspect-[4/3] bg-gray-100 rounded overflow-hidden border border-gray-200">
-                <img src={screen.src} alt={screen.name} class="w-full h-full object-cover" />
+                <img src={withBase(screen.src)} alt={screen.name} class="w-full h-full object-cover" />
               </div>
               <span class="text-xs text-gray-500 truncate block mt-0.5">{screen.name}</span>
             </div>
@@ -43,7 +45,7 @@ const hasPreviews = mockData.previewAssets && mockData.previewAssets.length > 0;
       </div>
     )}
     {showExploreButton && (
-      <a href={`/mocks/${mockId}`} class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700">
+      <a href={withBase(`/mocks/${mockId}`)} class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700">
         Explore {mockData.name} Mock →
       </a>
     )}

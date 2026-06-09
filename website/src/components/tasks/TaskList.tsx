@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Task } from '../../data/types';
 import siteConfig from '../../../site-content/site-config.json';
+import { withBase } from '../../lib/urls';
 
 interface Props {
   tasks: Task[];
@@ -247,7 +248,7 @@ export default function TaskList({ tasks }: Props) {
                 >
                   <td className="px-2 py-2 text-xs text-gray-500">{task.case_id}</td>
                   <td className="px-2 py-2 text-xs">
-                    <a href={`/tasks/${task.name}`} className="font-medium text-primary-600 hover:text-primary-700 hover:underline break-words">
+                    <a href={withBase(`/tasks/${task.name}`)} className="font-medium text-primary-600 hover:text-primary-700 hover:underline break-words">
                       {task.name}
                     </a>
                   </td>
@@ -279,7 +280,7 @@ export default function TaskList({ tasks }: Props) {
                       {task.mock_apps.map(app => (
                         <a
                           key={app}
-                          href={`/mocks/${app}`}
+                          href={withBase(`/mocks/${app}`)}
                           className="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 hover:underline"
                           onClick={(e) => e.stopPropagation()}
                         >

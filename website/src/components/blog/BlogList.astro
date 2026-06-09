@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../lib/urls';
+
 interface BlogPost {
   slug: string;
   title: string;
@@ -28,7 +30,7 @@ function formatDate(date: Date): string {
     <p class="text-gray-500 italic">No blog posts yet.</p>
   ) : (
     posts.map(post => (
-      <a href={`/blogs/${post.slug}`} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
+      <a href={withBase(`/blogs/${post.slug}`)} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
         <div class="p-6">
           <h2 class="text-xl font-bold text-gray-900 mb-2">{post.title}</h2>
           <div class="flex items-center gap-3 text-sm text-gray-500 mb-3">

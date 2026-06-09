@@ -1,5 +1,6 @@
 ---
 import { getFactorMap } from '../../data/site-config';
+import { withBase } from '../../lib/urls';
 
 interface Props {
   name: string;
@@ -23,7 +24,7 @@ const difficultyClass: Record<string, string> = {
 };
 ---
 
-<a href={`/tasks/${name}`} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
+<a href={withBase(`/tasks/${name}`)} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
   <div class="p-4 space-y-3">
     <div class="flex items-center justify-between">
       <h3 class="font-semibold text-gray-900">{name}</h3>

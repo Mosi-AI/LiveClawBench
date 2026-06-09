@@ -1,5 +1,6 @@
 ---
 import { getTopModels } from '../../data/leaderboard';
+import { withBase } from '../../lib/urls';
 
 const topModels = getTopModels(5);
 ---
@@ -50,7 +51,7 @@ const topModels = getTopModels(5);
     )}
 
     <div class="mt-4">
-      <a href="/leaderboard" class="text-gray-900 hover:text-black font-medium">View Full Leaderboard →</a>
+      <a href={withBase('/leaderboard')} class="text-gray-900 hover:text-black font-medium">View Full Leaderboard →</a>
     </div>
   </div>
 </section>

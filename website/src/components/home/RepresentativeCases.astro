@@ -1,6 +1,7 @@
 ---
 import type { RepresentativeCase } from '../../data/types';
 import { getFactorMap } from '../../data/site-config';
+import { withBase } from '../../lib/urls';
 
 interface Props {
   cases: RepresentativeCase[];
@@ -26,7 +27,7 @@ const difficultyClass: Record<string, string> = {
           .map(([key]) => key);
 
         return (
-          <a href={c.detailUrl} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
+          <a href={withBase(c.detailUrl)} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
             <div class="p-4 space-y-3">
               <div class="flex items-center justify-between">
                 <h3 class="font-semibold text-gray-900">{c.name}</h3>
@@ -56,7 +57,7 @@ const difficultyClass: Record<string, string> = {
       })}
     </div>
     <div class="mt-6">
-      <a href="/tasks" class="text-gray-900 hover:text-black font-medium">Browse All Tasks →</a>
+      <a href={withBase('/tasks')} class="text-gray-900 hover:text-black font-medium">Browse All Tasks →</a>
     </div>
   </div>
 </section>
