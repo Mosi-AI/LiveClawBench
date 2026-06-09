@@ -1,0 +1,1322 @@
+{
+  "baggage-tracking-application": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "blog-site-completion-from-starter": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "blog-site-from-scratch": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "conflict-repair-acb": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "email-reply": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "email-washer-change": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "email-watch-shop": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "email-writing": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "flight-booking": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "flight-cancel-claim": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "flight-info-change-notice": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "flight-seat-selection": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "flight-seat-selection-failed": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "incremental-update-ctp": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "info-change": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "live-web-research-sqlite-fts5": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "mixed-tool-memory": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "noise-filtering": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "schedule-change-request": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "skill-combination": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "skill-conflict-resolution": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "skill-creation": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "skill-dependency-fix": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "skill-repository-curation": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "skill-supplementation": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "vue-build-fix-chain": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "vue-build-fix-single": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "washer-change": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "washer-shop": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ],
+  "watch-shop": [
+    {
+      "model": "glm-5-turbo",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "glm_5_reasoning_true_moonshot",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-122b-a10b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-27b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    },
+    {
+      "model": "qwen3.5-397b-a17b",
+      "avgScore": null,
+      "attempts": 3,
+      "allPassed": false
+    }
+  ]
+}

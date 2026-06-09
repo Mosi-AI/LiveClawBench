@@ -1,0 +1,100 @@
+{
+  "cases": [
+    {
+      "name": "watch-shop",
+      "domain": "E-commerce & Daily Svcs",
+      "difficulty": "easy",
+      "factors": {
+        "A1": false,
+        "A2": false,
+        "B1": false,
+        "B2": false,
+        "C1": false,
+        "C2": false
+      },
+      "summary_zh": "我希望从 Mosi Shop 上买个智能手表，要求评分达到 4.6 且价格最便宜。",
+      "summary_en": "Buy a smartwatch from Mosi Shop with a rating of at least 4.6 and the lowest price",
+      "detailUrl": "/tasks/watch-shop"
+    },
+    {
+      "name": "email-watch-shop",
+      "domain": "E-commerce & Daily Svcs",
+      "difficulty": "easy",
+      "factors": {
+        "A1": true,
+        "A2": false,
+        "B1": false,
+        "B2": false,
+        "C1": false,
+        "C2": false
+      },
+      "summary_zh": "读取 brian.griffin 的邮件，并从 Mosi Shop 上买个智能手表，要求评分达到 4.6 且价格最便宜。",
+      "summary_en": "Read brian.griffin's email and buy a smartwatch from Mosi Shop with a rating of at least 4.6 and the lowest price",
+      "detailUrl": "/tasks/email-watch-shop"
+    },
+    {
+      "name": "flight-cancel-claim",
+      "domain": "E-commerce & Daily Svcs",
+      "difficulty": "hard",
+      "factors": {
+        "A1": true,
+        "A2": false,
+        "B1": true,
+        "B2": false,
+        "C1": false,
+        "C2": false
+      },
+      "summary_zh": "让OpenClaw检查预定航班的状态是否正常；如果出现被取消的情况，需要帮助用户按照航司网站上的公告申请理赔",
+      "summary_en": "Check the status of a booked flight; if the flight is cancelled, help the user file a compensation claim according to the airline website announcement",
+      "detailUrl": "/tasks/flight-cancel-claim"
+    },
+    {
+      "name": "conflict-repair-acb",
+      "domain": "Documents & Knowledge",
+      "difficulty": "easy",
+      "factors": {
+        "A1": true,
+        "A2": true,
+        "B1": false,
+        "B2": true,
+        "C1": false,
+        "C2": false
+      },
+      "summary_zh": "旧 durable note 里有明显错误，需要结合本地材料和 internal browser portal，把 Adaptive Cache Bridging 的关键机制与错误 shorthand 区分开。",
+      "summary_en": "Old durable notes contain obvious errors; use local materials and an internal browser portal to distinguish Adaptive Cache Bridging's key mechanisms from incorrect shorthand",
+      "detailUrl": "/tasks/conflict-repair-acb"
+    },
+    {
+      "name": "vue-build-fix-single",
+      "domain": "DevOps & Env Repair",
+      "difficulty": "medium",
+      "factors": {
+        "A1": false,
+        "A2": true,
+        "B1": false,
+        "B2": false,
+        "C1": false,
+        "C2": false
+      },
+      "summary_zh": "构建 GitHub 上的开源 Vue 项目仓库，解决构建过程中的软件依赖版本冲突；构建成功后打开浏览器，在网页上找到固定信息并写入文件。",
+      "summary_en": "Build an open-source Vue project from GitHub, resolve software dependency version conflicts; after a successful build, open a browser, find fixed information on the webpage, and write it to a file",
+      "detailUrl": "/tasks/vue-build-fix-single"
+    },
+    {
+      "name": "social-unlike-post",
+      "domain": "Social Media",
+      "difficulty": "medium",
+      "factors": {
+        "A1": false,
+        "A2": false,
+        "B1": false,
+        "B2": false,
+        "C1": false,
+        "C2": false
+      },
+      "summary_zh": "以 alice 身份登录社交媒体平台，找到她之前点赞的帖子，通过 POST /api/posts/:id/like 取消点赞，并验证 liked=false 且 like_count 减少 1。",
+      "summary_en": "Log in as alice, find a post she previously liked, remove the like via POST /api/posts/:id/like, and verify liked=false and like_count decreased by 1",
+      "detailUrl": "/tasks/social-unlike-post"
+    }
+  ]
+}

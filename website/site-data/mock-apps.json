@@ -1,0 +1,212 @@
+{
+  "mockApps": [
+    {
+      "id": "airline",
+      "name": "airline",
+      "summary": "Flight booking, seat selection, baggage tracking",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "chat",
+      "name": "chat",
+      "summary": "Chat messaging with sticker engagement",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "email",
+      "name": "email",
+      "summary": "Email inbox, compose, reply",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "shop",
+      "name": "shop",
+      "summary": "E-commerce: products, cart, orders, user profile, search",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "todolist",
+      "name": "todolist",
+      "summary": "Task management with date filtering",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "doc-search",
+      "name": "doc-search",
+      "summary": "FTS5 full-text search with BM25 ranking, JSONL access logging",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "insurance",
+      "name": "insurance",
+      "summary": "Health insurance: claims, appointments, plan selection",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "calendar",
+      "name": "calendar",
+      "summary": "Calendar events CRUD with overlap rejection",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "mint-diet",
+      "name": "mint-diet",
+      "summary": "Diet logging, nutrition tracking, snack management",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "weather",
+      "name": "weather",
+      "summary": "Weather reports, AQI, outdoor activity recommendations",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "social",
+      "name": "social",
+      "summary": "Social media posting, scheduling, analytics, moderation",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "expense",
+      "name": "expense",
+      "summary": "Expense tracking and draft management",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "health",
+      "name": "health",
+      "summary": "Health records, medication tracking, appointments",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "finance",
+      "name": "finance",
+      "summary": "Portfolio, invoices, tax, budget, anomaly detection",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "smarthome",
+      "name": "smarthome",
+      "summary": "Smart device management and automation",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    },
+    {
+      "id": "workspace",
+      "name": "workspace",
+      "summary": "Workspace briefs, task records, batch operations",
+      "mainScreens": [],
+      "agentActions": [],
+      "demoGif": null,
+      "previewAssets": [],
+      "sourceFiles": [
+        "mock-platform/config/task-binary-map.json",
+        "mock-platform/README.md"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+---
+interface Props {
+  id: string;
+  name: string;
+  summary: string;
+  tasksCount: number;
+  thumbnailSrc?: string;
+  agentActions?: string[];
+  liveDemoStatus?: 'normal' | 'error' | 'running';
+}
+
+const { id, name, summary, tasksCount, thumbnailSrc, agentActions = [], liveDemoStatus } = Astro.props;
+---
+
+<a href={`/mocks/${id}`} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
+  <div class="aspect-video bg-gray-100 relative">
+    {thumbnailSrc ? (
+      <img src={thumbnailSrc} alt={name} class="w-full h-full object-cover" />
+    ) : (
+      <div class="flex items-center justify-center h-full text-gray-400">
+        <span>No preview</span>
+      </div>
+    )}
+  </div>
+  <div class="p-4 space-y-2">
+    <h3 class="font-semibold text-lg">{name}</h3>
+    <p class="text-sm text-gray-600">{summary}</p>
+    {agentActions.length > 0 && (
+      <div class="flex flex-wrap gap-1.5">
+        {agentActions.map(action => (
+          <span class="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 border border-primary-100">
+            {action}
+          </span>
+        ))}
+      </div>
+    )}
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-500">{tasksCount} tasks</span>
+        {liveDemoStatus === 'normal' && (
+          <span class="inline-flex items-center gap-1 text-xs text-green-600">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+            Online
+          </span>
+        )}
+        {liveDemoStatus === 'running' && (
+          <span class="inline-flex items-center gap-1 text-xs text-blue-600">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+            Starting
+          </span>
+        )}
+        {liveDemoStatus === 'error' && (
+          <span class="inline-flex items-center gap-1 text-xs text-red-600">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+            Offline
+          </span>
+        )}
+      </div>
+      <span class="text-sm text-primary-600 font-medium">Explore →</span>
+    </div>
+  </div>
+</a>

@@ -1,0 +1,51 @@
+---
+interface Props {
+  mockId: string;
+  mockData: {
+    name: string;
+    summary: string;
+    previewAssets: { type: string; src: string; caption?: string }[];
+    mainScreens: { name: string; src: string }[];
+  };
+  showExploreButton?: boolean;
+}
+
+const { mockId, mockData, showExploreButton = true } = Astro.props;
+const hasPreviews = mockData.previewAssets && mockData.previewAssets.length > 0;
+---
+
+<div class="border rounded-lg overflow-hidden">
+  <div class="aspect-video bg-gray-100 relative">
+    {hasPreviews ? (
+      <img src={mockData.previewAssets[0].src} alt={mockData.name} class="w-full h-full object-cover" />
+    ) : (
+      <div class="flex items-center justify-center h-full text-gray-400">
+        <span>Preview pending</span>
+      </div>
+    )}
+  </div>
+  <div class="p-4 space-y-3">
+    <h4 class="font-semibold text-lg">{mockData.name}</h4>
+    <p class="text-sm text-gray-600">{mockData.summary}</p>
+    {mockData.mainScreens && mockData.mainScreens.length > 0 && (
+      <div>
+        <span class="text-xs text-gray-500">Main screens:</span>
+        <div class="grid grid-cols-3 gap-2 mt-1">
+          {mockData.mainScreens.map(screen => (
+            <div class="text-center">
+              <div class="aspect-[4/3] bg-gray-100 rounded overflow-hidden border border-gray-200">
+                <img src={screen.src} alt={screen.name} class="w-full h-full object-cover" />
+              </div>
+              <span class="text-xs text-gray-500 truncate block mt-0.5">{screen.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+    {showExploreButton && (
+      <a href={`/mocks/${mockId}`} class="inline-flex items-center text-sm text-primary-600 hover:text-primary-700">
+        Explore {mockData.name} Mock →
+      </a>
+    )}
+  </div>
+</div>

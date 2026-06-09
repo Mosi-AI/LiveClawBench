@@ -1,0 +1,295 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import trajectoryData from '../../site-data/trajectory-distribution.json';
+import leaderboardData from '../../site-data/leaderboard.json';
+import metricsData from '../../site-data/metrics-summary.json';
+import tasksData from '../../site-data/tasks.json';
+import taskResultsData from '../../site-data/task-results.json';
+import rawRowsData from '../../site-data/raw-rows.json';
+import TrajectoryTable from '../components/data/TrajectoryTable.tsx';
+import { getFactorMap } from '../data/site-config';
+
+const factorMap = getFactorMap();
+const totalModels = leaderboardData.models.length;
+const totalDomains = Object.keys(metricsData.domainDistribution).length;
+const totalTasks = tasksData.tasks.length;
+
+const factorColors: Record<string, string> = {
+  A1: 'bg-orange-100 text-orange-800',
+  A2: 'bg-red-100 text-red-800',
+  B1: 'bg-purple-100 text-purple-800',
+  B2: 'bg-green-100 text-green-800',
+  C1: 'bg-cyan-100 text-cyan-800',
+  C2: 'bg-blue-100 text-blue-800',
+};
+
+const factorBarColors: Record<string, string> = {
+  A1: 'bg-orange-500',
+  A2: 'bg-red-500',
+  B1: 'bg-purple-500',
+  B2: 'bg-green-500',
+  C1: 'bg-cyan-500',
+  C2: 'bg-blue-500',
+};
+
+const domainColors = [
+  'bg-blue-500', 'bg-indigo-500', 'bg-cyan-500', 'bg-teal-500',
+  'bg-emerald-500', 'bg-amber-500', 'bg-rose-500',
+];
+
+const stepColors = [
+  'bg-sky-300', 'bg-sky-400', 'bg-blue-400', 'bg-blue-500',
+  'bg-indigo-400', 'bg-indigo-500', 'bg-violet-400', 'bg-violet-500',
+  'bg-purple-500', 'bg-purple-600',
+];
+
+const modelColors = [
+  'bg-blue-500', 'bg-indigo-500', 'bg-violet-500', 'bg-purple-500',
+  'bg-cyan-500', 'bg-teal-500', 'bg-emerald-500',
+];
+
+// Per-model trajectory counts
+const modelTrajCounts = leaderboardData.models.map(m => ({ model: m.model, runs: m.runs }));
+
+// Data fields definition (for field reference table)
+const dataFields = [
+  { field: 'sample_id', desc: 'Unique trajectory identifier', usage: 'Trajectory identification, debugging' },
+  { field: 'model_name', desc: 'Model name', usage: 'Leaderboard, filter by model' },
+  { field: 'case_id', desc: 'Task case number', usage: 'Task case reference' },
+  { field: 'case_name', desc: 'Task name', usage: 'Task name reference' },
+  { field: 'difficulty', desc: 'Difficulty level (E/M/H)', usage: 'Difficulty distribution & filtering' },
+  { field: 'domain', desc: 'Primary domain', usage: 'Domain distribution & analysis' },
+  { field: 'domains_multi', desc: 'Multi-domain info', usage: 'Cross-domain task display' },
+  { field: 'ability_category', desc: 'Ability category', usage: 'Ability classification & analysis' },
+  { field: 'complexity_factor', desc: 'A1/A2/B1/B2/C1/C2 list', usage: 'Complexity factor analysis' },
+  { field: 'trajectory', desc: 'ATIF-v1.2 trajectory JSON', usage: 'Step count, tool calls, tokens, behavior analysis' },
+];
+
+// Prepare trajectory rows for the table (compute step counts server-side, omit full trajectory JSON)
+interface TableRow {
+  sample_id: string;
+  model_name: string;
+  case_id: number;
+  ability_category: string;
+  case_name: string;
+  difficulty: string;
+  domain: string;
+  domains_multi: string;
+  complexity_factor: string[];
+  step_count: number;
+}
+
+const tableRows: TableRow[] = (rawRowsData as any[]).map((row: any) => {
+  // Compute step count server-side to avoid sending huge trajectory JSON to client
+  let stepCount = 0;
+  try {
+    const parsed = JSON.parse(row.trajectory || '{}');
+    stepCount = parsed?.steps?.length ?? 0;
+  } catch {}
+  return {
+    sample_id: row.sample_id,
+    model_name: row.model_name,
+    case_id: row.case_id,
+    ability_category: row.ability_category,
+    case_name: row.case_name,
+    difficulty: row.difficulty,
+    domain: row.domain,
+    domains_multi: row.domains_multi,
+    complexity_factor: row.complexity_factor || [],
+    step_count: stepCount,
+  };
+});
+
+// Extract unique model names for filter dropdown
+const modelNames = [...new Set(tableRows.map(r => r.model_name))].sort();
+
+// Task-trajectory linkage: compute per-task stats
+const taskTrajStats: Record<string, { hasTrajectories: boolean; modelCount: number; totalRuns: number }> = {};
+for (const task of tasksData.tasks) {
+  const results = (taskResultsData as Record<string, unknown[]>)[task.name];
+  taskTrajStats[task.name] = {
+    hasTrajectories: !!results && results.length > 0,
+    modelCount: results ? results.length : 0,
+    totalRuns: results ? results.reduce((sum: number, r: any) => sum + (r.attempts || 0), 0) : 0,
+  };
+}
+const tasksWithTrajectories = Object.values(taskTrajStats).filter(t => t.hasTrajectories).length;
+---
+
+<PageLayout title="Data & Trajectories - LiveClawBench">
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-2">Data & Trajectories</h1>
+    <p class="text-gray-600 mb-8">Public trajectory dataset description, field reference, and data distribution.</p>
+
+    <!-- ==================== 7.1 Dataset Description ==================== -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-4">Dataset Description</h2>
+      <div class="space-y-3 text-sm">
+        <div class="flex items-start gap-3">
+          <span class="text-gray-500 w-36 shrink-0">Dataset Name</span>
+          <code class="text-xs bg-gray-100 px-2 py-0.5 rounded">Mosi-AI/LiveClawbench-trajectories</code>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-gray-500 w-36 shrink-0">Dataset URL</span>
+          <a href="https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories" target="_blank" rel="noopener noreferrer" class="text-primary-600 hover:underline text-xs">
+            https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories
+          </a>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-gray-500 w-36 shrink-0">Public Split</span>
+          <code class="text-xs bg-gray-100 px-2 py-0.5 rounded">v0.1.0</code>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-gray-500 w-36 shrink-0">Scale</span>
+          <span class="text-gray-800">{trajectoryData.totalTrajectories} agent trajectories</span>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-gray-500 w-36 shrink-0">Generation</span>
+          <span class="text-gray-800">{totalModels} models × {totalTasks} tasks × 3 independent runs</span>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-gray-500 w-36 shrink-0">Trajectory Format</span>
+          <code class="text-xs bg-gray-100 px-2 py-0.5 rounded">ATIF-v1.2</code>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="text-gray-500 w-36 shrink-0">Usage</span>
+          <span class="text-gray-800">Reproduce leaderboard, analyze agent behavior, study tool use / step count / token usage, research failure patterns across complexity factors</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 7.2 Trajectory Data ==================== -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-1">Trajectory Data</h2>
+      <p class="text-sm text-gray-500 mb-4">
+        Browse all {tableRows.length} trajectory records. Hover on column headers to see field descriptions.
+      </p>
+      <TrajectoryTable client:load rows={tableRows} modelNames={modelNames} />
+    </div>
+
+    <!-- ==================== 7.3 Data Distribution ==================== -->
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="bg-white rounded-lg p-5 border text-center">
+        <div class="text-3xl font-bold text-primary-600">{trajectoryData.totalTrajectories}</div>
+        <div class="text-sm text-gray-500 mt-1">Trajectories</div>
+      </div>
+      <div class="bg-white rounded-lg p-5 border text-center">
+        <div class="text-3xl font-bold text-primary-600">{totalModels}</div>
+        <div class="text-sm text-gray-500 mt-1">Models</div>
+      </div>
+      <div class="bg-white rounded-lg p-5 border text-center">
+        <div class="text-3xl font-bold text-primary-600">{totalTasks}</div>
+        <div class="text-sm text-gray-500 mt-1">Tasks</div>
+      </div>
+    </div>
+
+    <!-- Per-Model Trajectory Count -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-4">Trajectories per Model</h2>
+      <div class="space-y-3">
+        {modelTrajCounts.map((m, idx) => (
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-600 w-32 truncate">{m.model}</span>
+            <div class="flex-1 bg-gray-100 rounded-full h-6 relative">
+              <div
+                class={`${modelColors[idx % modelColors.length]} h-6 rounded-full flex items-center justify-end pr-2`}
+                style={`width: ${Math.max((m.runs / trajectoryData.totalTrajectories) * 100, 5)}%`}
+              >
+                <span class="text-xs text-white font-medium">{m.runs}</span>
+              </div>
+            </div>
+            <span class="text-xs text-gray-400 w-12 text-right">{((m.runs / trajectoryData.totalTrajectories) * 100).toFixed(1)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Difficulty Distribution -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-4">Difficulty Distribution</h2>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="text-center p-4 bg-green-50 rounded-lg">
+          <div class="text-2xl font-bold text-green-700">{trajectoryData.byDifficulty.easy}</div>
+          <div class="text-sm text-green-600">Easy</div>
+          <div class="text-xs text-green-500 mt-1">{((trajectoryData.byDifficulty.easy / trajectoryData.totalTrajectories) * 100).toFixed(1)}%</div>
+        </div>
+        <div class="text-center p-4 bg-yellow-50 rounded-lg">
+          <div class="text-2xl font-bold text-yellow-700">{trajectoryData.byDifficulty.medium}</div>
+          <div class="text-sm text-yellow-600">Medium</div>
+          <div class="text-xs text-yellow-500 mt-1">{((trajectoryData.byDifficulty.medium / trajectoryData.totalTrajectories) * 100).toFixed(1)}%</div>
+        </div>
+        <div class="text-center p-4 bg-red-50 rounded-lg">
+          <div class="text-2xl font-bold text-red-700">{trajectoryData.byDifficulty.hard}</div>
+          <div class="text-sm text-red-600">Hard</div>
+          <div class="text-xs text-red-500 mt-1">{((trajectoryData.byDifficulty.hard / trajectoryData.totalTrajectories) * 100).toFixed(1)}%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Domain Distribution -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-4">Domain Distribution</h2>
+      <div class="space-y-3">
+        {Object.entries(trajectoryData.byDomain).map(([domain, count], idx) => (
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-600 w-48 truncate">{domain}</span>
+            <div class="flex-1 bg-gray-100 rounded-full h-6 relative">
+              <div
+                class={`${domainColors[idx % domainColors.length]} h-6 rounded-full flex items-center justify-end pr-2`}
+                style={`width: ${Math.max((count as number / trajectoryData.totalTrajectories) * 100, 5)}%`}
+              >
+                <span class="text-xs text-white font-medium">{count as number}</span>
+              </div>
+            </div>
+            <span class="text-xs text-gray-400 w-12 text-right">{((count as number / trajectoryData.totalTrajectories) * 100).toFixed(1)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Complexity Factor Distribution -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-1">Complexity Factor Distribution</h2>
+      <p class="text-sm text-gray-500 mb-4">A single trajectory may match multiple factors.</p>
+      <div class="space-y-3">
+        {Object.entries(trajectoryData.byFactor).map(([factor, count]) => (
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-600 w-48 truncate">{factor}: {factorMap[factor]?.name || factor}</span>
+            <div class="flex-1 bg-gray-100 rounded-full h-6 relative">
+              <div
+                class={`${factorBarColors[factor] || 'bg-gray-500'} h-6 rounded-full flex items-center justify-end pr-2`}
+                style={`width: ${Math.max((count as number / trajectoryData.totalTrajectories) * 100, 5)}%`}
+              >
+                <span class="text-xs text-white font-medium">{count as number}</span>
+              </div>
+            </div>
+            <span class="text-xs text-gray-400 w-12 text-right">{((count as number / trajectoryData.totalTrajectories) * 100).toFixed(1)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Step Count Distribution -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-1">Trajectory Step Count Distribution</h2>
+      <p class="text-sm text-gray-500 mb-4">Number of steps per trajectory, showing the complexity of agent interactions.</p>
+      <div class="space-y-3">
+        {Object.entries(trajectoryData.stepLengthDistribution || {}).map(([range, count], idx) => (
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-600 w-48 truncate">{range} steps</span>
+            <div class="flex-1 bg-gray-100 rounded-full h-6 relative">
+              <div
+                class={`${stepColors[idx % stepColors.length]} h-6 rounded-full flex items-center justify-end pr-2`}
+                style={`width: ${Math.max((count as number / trajectoryData.totalTrajectories) * 100, 3)}%`}
+              >
+                <span class="text-xs text-white font-medium">{count as number}</span>
+              </div>
+            </div>
+            <span class="text-xs text-gray-400 w-12 text-right">{((count as number / trajectoryData.totalTrajectories) * 100).toFixed(1)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</PageLayout>

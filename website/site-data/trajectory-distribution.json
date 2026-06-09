@@ -1,0 +1,38 @@
+{
+  "updatedAt": "2026-05-27",
+  "totalTrajectories": 630,
+  "byDifficulty": {
+    "easy": 378,
+    "hard": 105,
+    "medium": 147
+  },
+  "byDomain": {
+    "E-commerce & Daily Svcs": 231,
+    "Coding & Software Dev": 42,
+    "Documents & Knowledge": 189,
+    "Communication & Email": 42,
+    "Calendar & Task Mgmt": 42,
+    "Deep Research & Report": 42,
+    "DevOps & Env Repair": 42
+  },
+  "byFactor": {
+    "B1": 84,
+    "A2": 126,
+    "A1": 210,
+    "B2": 231,
+    "C1": 0,
+    "C2": 0
+  },
+  "stepLengthDistribution": {
+    "1-5": 15,
+    "6-10": 123,
+    "11-15": 140,
+    "16-20": 101,
+    "21-25": 58,
+    "26-30": 40,
+    "31-35": 20,
+    "36-40": 25,
+    "41-50": 39,
+    "51+": 69
+  }
+}

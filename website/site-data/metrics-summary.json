@@ -1,0 +1,41 @@
+{
+  "updatedAt": "2026-06-09",
+  "totalTasks": 134,
+  "difficultyDistribution": {
+    "easy": 53,
+    "medium": 58,
+    "hard": 23
+  },
+  "domainDistribution": {
+    "E-commerce & Daily Svcs": 22,
+    "DevOps & Env Repair": 18,
+    "Deep Research & Report": 17,
+    "Finance & Data Analytics": 13,
+    "Documents & Knowledge": 12,
+    "Health & Fitness": 11,
+    "Social Media": 11,
+    "Communication & Email": 10,
+    "Calendar & Task Mgmt": 10,
+    "Coding & Software Dev": 10
+  },
+  "factorDistribution": {
+    "A1": 45,
+    "A2": 38,
+    "B1": 43,
+    "B2": 17,
+    "C1": 7,
+    "C2": 6
+  },
+  "factorOverlapDistribution": {
+    "0 factors": 41,
+    "1 factor": 44,
+    "2 factors": 35,
+    "3 factors": 14,
+    "4+ factors": 0
+  },
+  "verifierTypeDistribution": {
+    "evaluate.py": 7,
+    "verify.py": 106,
+    "llm_judge.py": 21
+  }
+}

@@ -1,0 +1,20 @@
+---
+import { getSiteConfig } from '../../data/site-config';
+
+const currentYear = new Date().getFullYear();
+const siteConfig = getSiteConfig();
+---
+
+<footer class="border-t border-gray-200 bg-white">
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="text-sm text-gray-500">
+        &copy; {currentYear} LiveClawBench Team. All rights reserved.
+      </div>
+      <div class="flex gap-6 text-sm text-gray-500">
+        <a href={siteConfig.links.code} target="_blank" rel="noopener noreferrer" class="hover:text-gray-700">GitHub</a>
+        <a href={siteConfig.links.data} target="_blank" rel="noopener noreferrer" class="hover:text-gray-700">HuggingFace</a>
+      </div>
+    </div>
+  </div>
+</footer>

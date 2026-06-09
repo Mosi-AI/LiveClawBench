@@ -1,0 +1,44 @@
+---
+import { getSiteConfig, getFactorSlugs } from '../../data/site-config';
+
+const config = getSiteConfig();
+const factorSlugs = getFactorSlugs();
+const factorSummary = factorSlugs.map(s => s).join(', ');
+---
+
+<section class="py-8 bg-white">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <h2 class="text-2xl md:text-3xl font-bold mb-6">Core Values</h2>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="p-6 bg-gray-50 rounded-xl border">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-2xl">🔄</span>
+          <h3 class="font-bold text-lg">Real Assistant Workflows</h3>
+        </div>
+        <p class="text-sm text-gray-600">Tasks are derived from genuine multi-step assistant scenarios, not synthetic toy problems.</p>
+      </div>
+      <div class="p-6 bg-gray-50 rounded-xl border">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-2xl">📐</span>
+          <h3 class="font-bold text-lg">Triple-Axis Complexity</h3>
+        </div>
+        <p class="text-sm text-gray-600">Six complexity factors ({factorSummary}) along {config.factors.map(f => f.Axis).filter((v, i, a) => a.indexOf(v) === i).join(', ')} axes.</p>
+      </div>
+      <div class="p-6 bg-gray-50 rounded-xl border">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-2xl">🖥️</span>
+          <h3 class="font-bold text-lg">Deterministic Mock Environments</h3>
+        </div>
+        <p class="text-sm text-gray-600">Every task runs in a controlled mock environment ensuring reproducible and fair evaluation.</p>
+      </div>
+      <div class="p-6 bg-gray-50 rounded-xl border">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="text-2xl">✅</span>
+          <h3 class="font-bold text-lg">Outcome-Driven Evaluation</h3>
+        </div>
+        <p class="text-sm text-gray-600">Evaluation is based on final outcomes, not intermediate steps — did the agent actually complete the task?</p>
+      </div>
+    </div>
+  </div>
+</section>
