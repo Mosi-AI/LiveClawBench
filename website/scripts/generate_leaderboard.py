@@ -25,9 +25,18 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate leaderboard.json from analysis tables")
-    parser.add_argument("--analysis-root", type=Path, required=True, help="Path to analysis_outputs/v0.2.0")
-    parser.add_argument("--output", type=Path, required=True, help="Output path for leaderboard.json")
+    parser = argparse.ArgumentParser(
+        description="Generate leaderboard.json from analysis tables"
+    )
+    parser.add_argument(
+        "--analysis-root",
+        type=Path,
+        required=True,
+        help="Path to analysis_outputs/v0.2.0",
+    )
+    parser.add_argument(
+        "--output", type=Path, required=True, help="Output path for leaderboard.json"
+    )
     return parser.parse_args()
 
 
@@ -91,28 +100,43 @@ def main() -> None:
     ranked = sorted(models_data.values(), key=lambda m: m["overall"], reverse=True)
     models_output = []
     for i, m in enumerate(ranked, 1):
-        models_output.append({
-            "rank": i,
-            "model": m["model"],
-            "overall": m["overall"],
-            "difficulty": m["difficulty"],
-            "factors": m["factors"],
-            "domains": m["domains"],
-            "runs": m["runs"],
-            "coverage": 1.0,
-        })
+        models_output.append(
+            {
+                "rank": i,
+                "model": m["model"],
+                "overall": m["overall"],
+                "difficulty": m["difficulty"],
+                "factors": m["factors"],
+                "domains": m["domains"],
+                "runs": m["runs"],
+                "coverage": 1.0,
+            }
+        )
 
     # ── Build leaderboard.json ──
     leaderboard = {
         "updatedAt": date.today().isoformat(),
         "source": "https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories",
         "scoreScale": "0-100",
-        "metrics": ["overall", "easy", "medium", "hard", "A1", "A2", "B1", "B2", "C1", "C2"],
+        "metrics": [
+            "overall",
+            "easy",
+            "medium",
+            "hard",
+            "A1",
+            "A2",
+            "B1",
+            "B2",
+            "C1",
+            "C2",
+        ],
         "models": models_output,
     }
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(leaderboard, indent=2, ensure_ascii=False), encoding="utf-8")
+    args.output.write_text(
+        json.dumps(leaderboard, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     print(f"  ✅ leaderboard.json: {len(models_output)} models ranked")
     print(f"  💾 Written: {args.output}")
 

@@ -11,6 +11,7 @@ Usage:
 """
 
 from __future__ import annotations
+
 import argparse
 import csv
 import json
@@ -19,8 +20,8 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
-
 # ─── TOML parser (flat + single-level tables, matching task.toml format) ──────
+
 
 def parse_toml(text: str) -> dict:
     root: dict = {}
@@ -77,12 +78,14 @@ def parse_toml(text: str) -> dict:
 
 # ─── CSV parser ───────────────────────────────────────────────────────────────
 
+
 def read_csv_file(path: Path) -> list[dict[str, str]]:
     with path.open("r", encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
 
 
 # ─── Main generation logic ────────────────────────────────────────────────────
+
 
 def generate_tasks(worktree: Path, output: Path) -> list[dict]:
     """Generate tasks.json and metrics-summary.json."""
@@ -167,8 +170,14 @@ def generate_tasks(worktree: Path, output: Path) -> list[dict]:
 
         # mock_apps from binary map
         task_binary = binary_map.get(case_name, {})
-        mock_apps = task_binary.get("binaries", []) if isinstance(task_binary, dict) else []
-        has_frontend = bool(task_binary.get("frontends")) if isinstance(task_binary, dict) else False
+        mock_apps = (
+            task_binary.get("binaries", []) if isinstance(task_binary, dict) else []
+        )
+        has_frontend = (
+            bool(task_binary.get("frontends"))
+            if isinstance(task_binary, dict)
+            else False
+        )
 
         # Verifier type from tests/test.sh
         verifier_type = ""
@@ -222,7 +231,9 @@ def generate_tasks(worktree: Path, output: Path) -> list[dict]:
 
     # Write tasks.json
     tasks_path = output / "tasks.json"
-    tasks_path.write_text(json.dumps({"tasks": tasks}, indent=2, ensure_ascii=False), encoding="utf-8")
+    tasks_path.write_text(
+        json.dumps({"tasks": tasks}, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     print(f"  💾 Written: {tasks_path}")
 
     # ── Generate metrics-summary.json ──
@@ -230,7 +241,13 @@ def generate_tasks(worktree: Path, output: Path) -> list[dict]:
     difficulty_dist: dict[str, int] = {"easy": 0, "medium": 0, "hard": 0}
     domain_dist: dict[str, int] = defaultdict(int)
     factor_dist: dict[str, int] = {"A1": 0, "A2": 0, "B1": 0, "B2": 0, "C1": 0, "C2": 0}
-    factor_overlap_dist: dict[str, int] = {"0 factors": 0, "1 factor": 0, "2 factors": 0, "3 factors": 0, "4+ factors": 0}
+    factor_overlap_dist: dict[str, int] = {
+        "0 factors": 0,
+        "1 factor": 0,
+        "2 factors": 0,
+        "3 factors": 0,
+        "4+ factors": 0,
+    }
     verifier_dist: dict[str, int] = defaultdict(int)
 
     for t in tasks:
@@ -273,7 +290,9 @@ def generate_tasks(worktree: Path, output: Path) -> list[dict]:
     }
 
     metrics_path = output / "metrics-summary.json"
-    metrics_path.write_text(json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8")
+    metrics_path.write_text(
+        json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
     print(f"  ✅ metrics-summary.json: totalTasks={total_tasks}")
     print(f"  💾 Written: {metrics_path}")
 
@@ -311,22 +330,27 @@ def generate_mock_apps(worktree: Path, output: Path) -> None:
 
     mock_apps = []
     for binary_name in binaries:
-        mock_apps.append({
-            "id": binary_name,
-            "name": binary_name,
-            "summary": summary_map.get(binary_name, ""),
-            "mainScreens": [],
-            "agentActions": [],
-            "demoGif": None,
-            "previewAssets": [],
-            "sourceFiles": [
-                "mock-platform/config/task-binary-map.json",
-                "mock-platform/README.md",
-            ],
-        })
+        mock_apps.append(
+            {
+                "id": binary_name,
+                "name": binary_name,
+                "summary": summary_map.get(binary_name, ""),
+                "mainScreens": [],
+                "agentActions": [],
+                "demoGif": None,
+                "previewAssets": [],
+                "sourceFiles": [
+                    "mock-platform/config/task-binary-map.json",
+                    "mock-platform/README.md",
+                ],
+            }
+        )
 
     dst = output / "mock-apps.json"
-    dst.write_text(json.dumps({"mockApps": mock_apps}, indent=2, ensure_ascii=False), encoding="utf-8")
+    dst.write_text(
+        json.dumps({"mockApps": mock_apps}, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
     print(f"  ✅ mock-apps.json: {len(mock_apps)} mock apps")
     print(f"  💾 Written: {dst}")
 
@@ -373,10 +397,15 @@ def _parse_mock_services_table(readme: str) -> dict[str, str]:
 
 # ─── CLI ──────────────────────────────────────────────────────────────────────
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate site-data from worktree")
-    parser.add_argument("--worktree", type=Path, required=True, help="Path to worktree root")
-    parser.add_argument("--output", type=Path, required=True, help="Output directory (site-data/)")
+    parser.add_argument(
+        "--worktree", type=Path, required=True, help="Path to worktree root"
+    )
+    parser.add_argument(
+        "--output", type=Path, required=True, help="Output directory (site-data/)"
+    )
     return parser.parse_args()
 
 
