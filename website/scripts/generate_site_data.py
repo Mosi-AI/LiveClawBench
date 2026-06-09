@@ -287,7 +287,7 @@ def generate_domains(worktree: Path, output: Path) -> None:
     dst = output / "domains.toml"
     if src.exists():
         dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
-        print(f"  ✅ domains.toml copied")
+        print("  ✅ domains.toml copied")
         print(f"  💾 Written: {dst}")
     else:
         print(f"  ⚠️  domains.toml not found at {src}")
