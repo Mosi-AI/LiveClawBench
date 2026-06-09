@@ -10,7 +10,7 @@ domains_multi = ["Documents & Knowledge", "Browser & Web Scraping", "Deep Resear
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
 factor_a1 = 1   # Cross-Service Dependency
-factor_a2 = 1   # Contaminated Initial State
+factor_a2 = 0
 factor_b1 = 0   # Implicit Goal Resolution
 factor_b2 = 1   # Knowledge System Maintenance
 factor_c1 = 0

@@ -49,7 +49,7 @@ single, clean environment without structural complexity.
 |     10 | flight-seat-selection-failed      |     M      | ✓  |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |     11 | flight-cancel-claim               |     H      | ✓  |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |     12 | flight-info-change-notice         |     M      | ✓  |    | ✓  |    |    |    | Calendar & Task Mgmt       |
-|     13 | baggage-tracking-application      |     E      |    |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
+|     13 | baggage-tracking-application      |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     14 | schedule-change-request           |     E      | ✓  |    |    |    |    |    | Calendar & Task Mgmt       |
 |     15 | blog-site-from-scratch            |     E      |    |    |    |    |    |    | Coding & Software Dev      |
 |     16 | blog-site-completion-from-starter |     E      |    | ✓  |    |    |    |    | Coding & Software Dev      |
@@ -63,7 +63,7 @@ single, clean environment without structural complexity.
 |     24 | vue-build-fix-chain               |     E      |    | ✓  |    |    |    |    | DevOps & Env Repair        |
 |     25 | noise-filtering                   |     M      |    | ✓  |    | ✓  |    |    | Deep Research & Report     |
 |     26 | incremental-update-ctp            |     E      |    | ✓  |    | ✓  |    |    | Documents & Knowledge      |
-|     27 | conflict-repair-acb               |     E      | ✓  | ✓  |    | ✓  |    |    | Documents & Knowledge      |
+|     27 | conflict-repair-acb               |     E      | ✓  |    |    | ✓  |    |    | Documents & Knowledge      |
 |     28 | mixed-tool-memory                 |     E      | ✓  |    |    | ✓  |    |    | Documents & Knowledge      |
 |     29 | live-web-research-sqlite-fts5     |     M      | ✓  |    |    | ✓  |    |    | Deep Research & Report     |
 |     30 | skill-combination                 |     E      |    |    |    | ✓  |    |    | Documents & Knowledge      |
@@ -73,9 +73,9 @@ single, clean environment without structural complexity.
 |     34 | social-unlike-post                |     M      |    |    |    |    |    |    | Social Media               |
 |     35 | expense-draft-delete              |     E      |    |    |    |    |    |    | Finance & Data Analytics   |
 |     36 | insurance-deductible-selection    |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
-|     37 | health-insurance-optimization     |     E      | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
+|     37 | health-insurance-optimization     |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     38 | health-daily-record               |     H      |    |    |    |    |    |    | Health & Fitness           |
-|     39 | finance-portfolio-rebalancing     |     E      |    |    | ✓  |    |    |    | Finance & Data Analytics   |
+|     39 | finance-portfolio-rebalancing     |     E      |    |    |    |    |    |    | Finance & Data Analytics   |
 |     40 | finance-monthly-close             |     E      |    | ✓  |    |    |    |    | Finance & Data Analytics   |
 |     41 | nutrition-log-meal                |     M      |    |    |    |    |    |    | Health & Fitness           |
 |     42 | mint-diet-comprehensive           |     M      |    |    |    |    |    |    | Health & Fitness           |
@@ -84,8 +84,8 @@ single, clean environment without structural complexity.
 |     45 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    |    |    | Health & Fitness           |
 |     46 | weather-city-travel-pick          |     E      |    |    |    |    |    |    | Health & Fitness           |
 |     47 | weather-outdoor-window            |     E      |    |    |    |    |    |    | Health & Fitness           |
-|     48 | pre-meeting-research-brief        |     E      |    |    | ✓  | ✓  |    |    | Deep Research & Report     |
-|     49 | vendor-due-diligence-brief        |     E      | ✓  |    | ✓  |    |    |    | Deep Research & Report     |
+|     48 | pre-meeting-research-brief        |     E      |    |    | ✓  |    |    |    | Deep Research & Report     |
+|     49 | vendor-due-diligence-brief        |     E      |    |    | ✓  |    |    |    | Deep Research & Report     |
 |     50 | social-schedule-audit             |     H      |    | ✓  |    |    |    |    | Social Media               |
 |     51 | social-keyword-cleanup            |     H      | ✓  |    | ✓  |    |    |    | Social Media               |
 |     52 | social-event-campaign             |     H      | ✓  |    | ✓  |    |    |    | Social Media               |
@@ -98,26 +98,26 @@ single, clean environment without structural complexity.
 |     59 | medication-prescription-sync      |     E      | ✓  | ✓  | ✓  |    |    |    | Health & Fitness           |
 |     60 | health-appointment-scheduling     |     M      | ✓  | ✓  | ✓  |    |    |    | Health & Fitness           |
 |     61 | content-calendar-cross-publish    |     H      | ✓  | ✓  | ✓  |    |    |    | Calendar & Task Mgmt       |
-|     62 | finance-tax-prepare               |     E      | ✓  |    | ✓  | ✓  |    |    | Finance & Data Analytics   |
-|     63 | finance-analysis-generate         |     E      | ✓  |    | ✓  | ✓  |    |    | Finance & Data Analytics   |
-|     64 | finance-depreciation-audit        |     E      |    | ✓  | ✓  | ✓  |    |    | Finance & Data Analytics   |
-|     65 | finance-dashboard-repair          |     M      |    | ✓  |    | ✓  |    |    | Finance & Data Analytics   |
-|     66 | finance-expense-log               |     E      |    |    | ✓  |    |    |    | Finance & Data Analytics   |
+|     62 | finance-tax-prepare               |     E      | ✓  |    | ✓  |    |    |    | Finance & Data Analytics   |
+|     63 | finance-analysis-generate         |     E      |    |    | ✓  |    |    |    | Finance & Data Analytics   |
+|     64 | finance-depreciation-audit        |     E      |    | ✓  | ✓  |    |    |    | Finance & Data Analytics   |
+|     65 | finance-dashboard-repair          |     M      |    | ✓  |    |    |    |    | Finance & Data Analytics   |
+|     66 | finance-expense-log               |     E      |    |    |    |    |    |    | Finance & Data Analytics   |
 |     67 | finance-invoice-process           |     M      | ✓  |    |    |    |    |    | Finance & Data Analytics   |
 |     68 | finance-anomaly-detect            |     M      |    | ✓  | ✓  |    |    |    | Finance & Data Analytics   |
 |     69 | finance-budget-alert              |     M      | ✓  | ✓  |    |    |    |    | Finance & Data Analytics   |
 |     70 | sticker-store-acquire             |     M      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     71 | chat-sticker-engagement           |     E      |    |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
-|     72 | cd-pipeline-setup                 |     E      | ✓  | ✓  | ✓  | ✓  |    |    | DevOps & Env Repair        |
+|     72 | cd-pipeline-setup                 |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     73 | security-audit-remediation        |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
-|     74 | tls-cert-rotation-sla             |     M      | ✓  | ✓  | ✓  | ✓  |    |    | DevOps & Env Repair        |
+|     74 | tls-cert-rotation-sla             |     M      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     75 | grpc-service-crash-diagnosis      |     M      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     76 | db-corruption-multi-recovery      |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     77 | legacy-stack-migration-deploy     |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
-|     78 | chaotic-repo-restoration          |     E      |    | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
+|     78 | chaotic-repo-restoration          |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     79 | monitoring-alerting-setup         |     M      | ✓  |    | ✓  |    |    |    | DevOps & Env Repair        |
 |     80 | git-merge-conflict-deploy         |     E      | ✓  | ✓  |    |    |    |    | DevOps & Env Repair        |
-|     81 | log-triage-incident-report        |     M      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
+|     81 | log-triage-incident-report        |     M      |    | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     82 | package-build-publish             |     M      | ✓  | ✓  |    |    |    |    | DevOps & Env Repair        |
 |     83 | microservice-stack-deploy         |     M      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     84 | python-dependency-hell-resolution |     H      |    | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
@@ -146,13 +146,13 @@ single, clean environment without structural complexity.
 |    107 | ai-copyright-international-jurisprudence |     M      |    |    |    |    |    |    | Deep Research & Report     |
 |    108 | long-covid-neurological-hypotheses |     H      |    |    |    |    |    |    | Deep Research & Report     |
 |    109 | ansible-iptables-ipset            |     E      |    | ✓  | ✓  |    |    |    | Coding & Software Dev      |
-|    110 | citation-network-influence        |     E      |    |    | ✓  |    |    |    | Coding & Software Dev      |
+|    110 | citation-network-influence        |     E      |    |    |    |    |    |    | Coding & Software Dev      |
 |    111 | element-web-unverified-device     |     H      |    | ✓  | ✓  |    |    |    | Coding & Software Dev      |
-|    112 | ga-classical-optimization         |     M      |    |    | ✓  | ✓  |    |    | Coding & Software Dev      |
+|    112 | ga-classical-optimization         |     M      |    |    | ✓  |    |    |    | Coding & Software Dev      |
 |    113 | ga-gol-persistent-structures      |     H      |    |    | ✓  |    |    |    | Coding & Software Dev      |
-|    114 | openlibrary-3rd-metadata-source   |     H      | ✓  |    |    | ✓  |    |    | Coding & Software Dev      |
-|    115 | teleport-gcp-cert-identity        |     H      | ✓  |    |    | ✓  |    |    | Coding & Software Dev      |
-|    116 | vuls-kernel-detection             |     H      |    | ✓  |    | ✓  |    |    | Coding & Software Dev      |
+|    114 | openlibrary-3rd-metadata-source   |     H      |    |    |    |    |    |    | Coding & Software Dev      |
+|    115 | teleport-gcp-cert-identity        |     H      |    |    |    |    |    |    | Coding & Software Dev      |
+|    116 | vuls-kernel-detection             |     H      |    | ✓  |    |    |    |    | Coding & Software Dev      |
 |     117 | email-reply-context-shift          |     H      |    |    |    |    | ✓  |    | Communication & Email      |
 |     118 | email-sending-verify               |     E      |    |    |    |    |    | ✓  | Communication & Email      |
 |     119 | watch-shop-stockout                 |     E      |    |    |    |    | ✓  |    | E-commerce & Daily Svcs    |
@@ -164,13 +164,13 @@ single, clean environment without structural complexity.
 |     125 | social-post-rate-limit              |     M      |    |    |    |    | ✓  |    | Social Media               |
 |     126 | social-unlike-verify                |     H      |    |    |    |    |    | ✓  | Social Media               |
 |     127 | expense-submit-verify               |     M      |    |    |    |    |    | ✓  | Finance & Data Analytics   |
-|     128 | finance-budget-shift                |     H      | ✓  | ✓  |    |    | ✓  |    | Finance & Data Analytics   |
+|     128 | finance-budget-shift                |     H      |    | ✓  |    |    | ✓  |    | Finance & Data Analytics   |
 |     129 | vue-fix-rebreak                     |     M      |    | ✓  |    |    | ✓  |    | DevOps & Env Repair        |
-|     130 | vendor-requirement-followup       |     E      | ✓  |    | ✓  | ✓  |    |    | Communication & Email      |
+|     130 | vendor-requirement-followup       |     E      |    |    | ✓  | ✓  |    |    | Communication & Email      |
 |     131 | invoice-to-expense-draft          |     M      | ✓  |    | ✓  |    |    |    | Communication & Email      |
-|     132 | newsletter-digest-forward         |     M      | ✓  |    | ✓  |    |    |    | Communication & Email      |
+|     132 | newsletter-digest-forward         |     M      |    |    | ✓  |    |    |    | Communication & Email      |
 |     133 | procurement-quote-compare-reply   |     H      |    |    | ✓  |    |    |    | Communication & Email      |
-|     134 | stale-client-escalation           |     M      | ✓  |    | ✓  | ✓  |    |    | Communication & Email      |
+|     134 | stale-client-escalation           |     M      |    |    | ✓  | ✓  |    |    | Communication & Email      |
 
 ---
 
@@ -178,23 +178,22 @@ single, clean environment without structural complexity.
 
 | Factor | Description                    | Count | Percentage | Representative Cases                                          |
 |--------|--------------------------------|------:|-----------:|---------------------------------------------------------------|
-| A1     | Cross-Service Dependency       |    54 |      40.3% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
-| A2     | Contaminated Initial State     |    39 |      29.1% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
-| B1     | Implicit Goal Resolution       |    47 |      35.1% | flight-seat-selection-failed, flight-cancel-claim, baggage-tracking-application, smarthome-test, pre-meeting-research-brief |
-| B2     | Knowledge System Maintenance   |    28 |      20.9% | skill-creation, skill-dependency-fix, noise-filtering, pre-meeting-research-brief, research-with-adversarial-sources |
-| C1     | Environmental State Invalidation |  7 |       5.4% | email-reply-context-shift, watch-shop-stockout, meeting-slot-race, social-post-rate-limit, vue-fix-rebreak |
-| C2     | Outcome Verification under Altered State | 6 | 4.7% | email-sending-verify, watch-shop-silent-fail, interview-slot-verify, health-record-verify, expense-submit-verify |
+| A1     | Cross-Service Dependency       |    45 |      33.6% | flight-seat-selection, email-watch-shop, conflict-repair-acb, grocery-reorder, content-calendar-cross-publish |
+| A2     | Contaminated Initial State     |    38 |      28.4% | blog-site-completion-from-starter, vue-build-fix-single, noise-filtering, morning-comfort-setup, ambiguous-cleanup-task |
+| B1     | Implicit Goal Resolution       |    43 |      32.1% | flight-seat-selection-failed, flight-cancel-claim, smarthome-test, pre-meeting-research-brief, finance-anomaly-detect |
+| B2     | Knowledge System Maintenance   |    17 |      12.7% | skill-creation, skill-dependency-fix, noise-filtering, conflict-repair-acb, research-with-adversarial-sources |
+| C1     | Environmental State Invalidation |  7 |       5.2% | email-reply-context-shift, watch-shop-stockout, meeting-slot-race, social-post-rate-limit, vue-fix-rebreak |
+| C2     | Outcome Verification under Altered State | 6 | 4.5% | email-sending-verify, watch-shop-silent-fail, interview-slot-verify, health-record-verify, expense-submit-verify |
 
 > Percentages are relative to 134 implemented cases.
 
 Factor combination distribution:
 
-- No factors (baseline): 34 cases (25.4%)
-- Single factor: 42 cases (31.3%)
-- Dual factor: 37 cases (27.6%)
-- Triple factor: 19 cases (14.2%)
-- Quad factor: 2 cases (1.5%)
-- **Multi-factor (≥2 factors): 58 cases (43.3%)**
+- No factors (baseline): 41 cases (30.6%)
+- Single factor: 44 cases (32.8%)
+- Dual factor: 35 cases (26.1%)
+- Triple factor: 14 cases (10.4%)
+- **Multi-factor (≥2 factors): 49 cases (36.6%)**
 
 
 ---
@@ -205,24 +204,24 @@ Factor occurrence frequency per primary domain:
 
 | Primary Domain             | A1 | A2 | B1 | B2 | C1 | C2 | Total Factor Instances |
 |----------------------------|----|----|----|----|----|----|-----------------------:|
-| Documents & Knowledge      |  3 |  3 |  0 | 11 |  0 |  0 |                     17 |
-| Communication & Email      |  4 |  0 |  5 |  2 |  1 |  1 |                     13 |
-| E-commerce & Daily Svcs    |  9 |  0 |  6 |  0 |  1 |  1 |                     17 |
+| Documents & Knowledge      |  3 |  2 |  0 | 11 |  0 |  0 |                     16 |
+| Communication & Email      |  1 |  0 |  5 |  2 |  1 |  1 |                     10 |
+| E-commerce & Daily Svcs    |  8 |  0 |  5 |  0 |  1 |  1 |                     15 |
 | Calendar & Task Mgmt       |  9 |  1 |  3 |  0 |  1 |  1 |                     15 |
-| Coding & Software Dev      |  2 |  4 |  5 |  4 |  0 |  0 |                     15 |
-| DevOps & Env Repair        | 11 | 17 | 11 |  2 |  1 |  0 |                     42 |
-| Deep Research & Report     |  3 |  2 |  2 |  5 |  0 |  0 |                     12 |
+| Coding & Software Dev      |  0 |  4 |  4 |  0 |  0 |  0 |                      8 |
+| DevOps & Env Repair        | 11 | 17 | 11 |  0 |  1 |  0 |                     40 |
+| Deep Research & Report     |  2 |  2 |  2 |  4 |  0 |  0 |                     10 |
 | Health & Fitness           |  2 |  3 |  3 |  0 |  1 |  1 |                     10 |
 | Social Media               |  6 |  3 |  6 |  0 |  1 |  1 |                     17 |
-| Finance & Data Analytics   |  5 |  6 |  6 |  4 |  1 |  1 |                     23 |
+| Finance & Data Analytics   |  3 |  6 |  4 |  0 |  1 |  1 |                     15 |
 
 Key observations:
 - **B2 is highly concentrated in Documents & Knowledge** (11/17), reflecting the nature of knowledge management tasks
-- **A1 is the most broadly distributed**, spanning 8 domains — cross-service coordination is a universal complexity source
+- **A1 is the most broadly distributed**, spanning 9 domains — cross-service coordination is a universal complexity source
 - **C1 and C2 are distributed across 8 domains**, reflecting the cross-cutting nature of runtime adaptability
 - **Communication & Email is no longer a pure zero-factor domain** — it now carries B1, B2, C1, and C2 coverage via 10 tasks spanning email, calendar, and procurement workflows
-- **Finance & Data Analytics gains C1/C2 coverage** via finance-budget-shift and finance-anomaly-detect, adding to its already high factor density
-- **DevOps & Env Repair is the most factor-dense domain** (42 total instances) with heavy A2 and B1 load from environment repair tasks
+- **Finance & Data Analytics gains C1/C2 coverage** via finance-budget-shift and finance-anomaly-detect, retaining strong A2/B1 density after the v0.2.0 audit
+- **DevOps & Env Repair is the most factor-dense domain** (40 total instances) with heavy A2 and B1 load from environment repair tasks
 
 ---
 
@@ -245,7 +244,7 @@ Pair design rationale:
 
 ### C-Axis Controlled Pairs
 
-13 C-axis pairs: 9 pure C independent pairs, 3 A1+C stacking pairs, and 1 A2+C1 cascading failure pair.
+13 C-axis pairs: 9 pure C independent pairs, 2 A1+C stacking pairs, 1 A2+C stacking pair, and 1 A2+C1 cascading failure pair.
 
 | # | Base Task | Base D/F | C-Axis Variant | Variant D/F | Measurement |
 |---|-----------|----------|----------------|-------------|-------------|
@@ -260,7 +259,7 @@ Pair design rationale:
 | 9 | social-media-posting | E, — | social-post-rate-limit | M, C1 | C1 independent |
 | 10 | social-unlike-post | E, — | social-unlike-verify | M, C2 | C2 independent |
 | 11 | expense-draft-delete | E, — | expense-submit-verify | M, C2 | C2 independent |
-| 12 | finance-budget-alert | M, A1+A2 | finance-budget-shift | H, A1+A2+C1 | A1+A2 x C1 stack |
+| 12 | finance-budget-alert | M, A1+A2 | finance-budget-shift | H, A2+C1 | C1 stack on shared A2 base |
 | 13 | vue-build-fix-single | M, A2 | vue-fix-rebreak | M, A2+C1 | A2 x C1 cascade |
 
 > **Coverage gap.** The pilot benchmark has no validated controlled pairs for A2
@@ -284,12 +283,12 @@ Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
-| Easy       |             1.26 |          16 |       22 |      19 |
-| Medium     |             1.40 |          11 |       12 |      22 |
-| Hard       |             1.44 |          7 |       8 |      17 |
+| Easy       |             1.04 |          21 |       20 |      16 |
+| Medium     |             1.27 |          11 |       15 |      19 |
+| Hard       |             1.25 |          9 |       9 |      14 |
 
 The empirical reclassification (based on deepseek-v4-pro 3-trial average rewards) shows that Easy
-cases are the largest group (42.5%). Easy cases include both baselines (28.1%) and factor-bearing tasks
-(71.9%), with medium cases at 33.6% and hard cases at 23.9%.
+cases are the largest group (42.5%). Easy cases include both baselines (36.8%) and factor-bearing tasks
+(63.2%), with medium cases at 33.6% and hard cases at 23.9%.
 Hard cases are concentrated in tasks requiring constraint failure handling
 (B1) or specific challenging environments (A2 in DevOps).

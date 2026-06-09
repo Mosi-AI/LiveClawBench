@@ -8,7 +8,7 @@ tags = ["communication_email", "documents_knowledge"]
 domain = "Communication & Email"
 domains_multi = ["Communication & Email", "Documents & Knowledge"]
 
-factor_a1 = 1
+factor_a1 = 0
 factor_a2 = 0
 factor_b1 = 1
 factor_b2 = 1

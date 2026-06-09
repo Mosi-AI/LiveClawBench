@@ -9,10 +9,10 @@ domain = "Coding & Software Dev"
 domains_multi = ["Coding & Software Dev"]
 
 # Triple-Axis Complexity Factors (0 = absent, 1 = present)
-factor_a1 = 1   # A1: Cross-Service Dependency (cert issuance + identity broker + GCP cloud-provider auth)
+factor_a1 = 0
 factor_a2 = 0   # A2: Contaminated Initial State
 factor_b1 = 0   # B1: Implicit Goal Resolution
-factor_b2 = 1   # B2: Knowledge System Maintenance (extend CloudIdentityProvider abstraction; don't add 3rd sibling branch)
+factor_b2 = 0
 factor_c1 = 0
 factor_c2 = 0
 
