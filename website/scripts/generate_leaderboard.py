@@ -2,6 +2,7 @@
 
 Reads:
   - tables/model_summary.csv        → overall scores, run counts
+  - tables/model_case_scores_long.csv → per-case run_scores (for best-of-N)
   - tables/difficulty_model_scores.csv → per-difficulty breakdown
   - tables/factor_model_scores.csv  → per-factor breakdown
   - tables/domain_model_scores.csv  → per-domain breakdown
@@ -22,6 +23,32 @@ from pathlib import Path
 def read_csv(path: Path) -> list[dict[str, str]]:
     with path.open("r", encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
+
+
+def compute_best_scores(rows: list[dict[str, str]]) -> dict[str, float]:
+    """Compute pass@N best score per model.
+
+    For each (model, case) take max(run_scores), then average across cases.
+    `run_scores` column is "/"-separated floats like "0/0/1".
+    """
+    per_model_case_best: dict[str, list[float]] = {}
+    for row in rows:
+        model = row["model"]
+        raw = (row.get("run_scores") or "").strip()
+        if not raw:
+            continue
+        try:
+            scores = [float(s) for s in raw.split("/") if s != ""]
+        except ValueError:
+            continue
+        if not scores:
+            continue
+        per_model_case_best.setdefault(model, []).append(max(scores))
+    return {
+        model: sum(bests) / len(bests)
+        for model, bests in per_model_case_best.items()
+        if bests
+    }
 
 
 def parse_args() -> argparse.Namespace:
@@ -52,15 +79,26 @@ def main() -> None:
         mean_score = float(row["mean_case_avg_at_3"])
         n_runs = int(row["n_runs"])
         n_cases = int(row["n_cases"])
+        # runs displayed in the leaderboard = floor(total runs / cases) per the
+        # convention "402 runs / 134 cases → 3 attempts per case".
+        runs_per_case = n_runs // n_cases if n_cases > 0 else 0
         models_data[model] = {
             "model": model,
             "overall": round(mean_score * 100, 1),
-            "runs": n_runs,
+            "bestScore": 0.0,  # filled in below
+            "runs": runs_per_case,
             "n_cases": n_cases,
             "difficulty": {},
             "factors": {},
             "domains": {},
         }
+
+    # ── Read model_case_scores_long.csv for pass@N best score ──
+    case_rows = read_csv(tables_dir / "model_case_scores_long.csv")
+    best_scores = compute_best_scores(case_rows)
+    for model, best in best_scores.items():
+        if model in models_data:
+            models_data[model]["bestScore"] = round(best * 100, 1)
 
     # ── Read difficulty_model_scores.csv ──
     diff_rows = read_csv(tables_dir / "difficulty_model_scores.csv")
@@ -105,6 +143,7 @@ def main() -> None:
                 "rank": i,
                 "model": m["model"],
                 "overall": m["overall"],
+                "bestScore": m["bestScore"],
                 "difficulty": m["difficulty"],
                 "factors": m["factors"],
                 "domains": m["domains"],
@@ -120,6 +159,7 @@ def main() -> None:
         "scoreScale": "0-100",
         "metrics": [
             "overall",
+            "bestScore",
             "easy",
             "medium",
             "hard",

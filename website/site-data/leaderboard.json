@@ -1,9 +1,10 @@
 {
-  "updatedAt": "2026-06-09",
+  "updatedAt": "2026-06-10",
   "source": "https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories",
   "scoreScale": "0-100",
   "metrics": [
     "overall",
+    "bestScore",
     "easy",
     "medium",
     "hard",
@@ -19,10 +20,11 @@
       "rank": 1,
       "model": "gpt-5.5-medium",
       "overall": 73.8,
+      "bestScore": 78.9,
       "difficulty": {
-        "easy": 95.3,
-        "hard": 29.3,
-        "medium": 71.9
+        "easy": 95.2,
+        "hard": 23.7,
+        "medium": 70.1
       },
       "factors": {
         "A1": 70.5,
@@ -44,17 +46,18 @@
         "Health & Fitness": 75.9,
         "Social Media": 56.7
       },
-      "runs": 402,
+      "runs": 3,
       "coverage": 1.0
     },
     {
       "rank": 2,
       "model": "qwen3.6-plus",
       "overall": 70.6,
+      "bestScore": 77.6,
       "difficulty": {
-        "easy": 97.0,
-        "hard": 18.1,
-        "medium": 67.3
+        "easy": 96.8,
+        "hard": 15.3,
+        "medium": 63.8
       },
       "factors": {
         "A1": 67.8,
@@ -76,17 +79,18 @@
         "Health & Fitness": 58.1,
         "Social Media": 42.4
       },
-      "runs": 402,
+      "runs": 3,
       "coverage": 1.0
     },
     {
       "rank": 3,
       "model": "qwen3.6-35b-a3b",
       "overall": 70.2,
+      "bestScore": 78.7,
       "difficulty": {
-        "easy": 94.9,
-        "hard": 17.0,
-        "medium": 68.7
+        "easy": 95.1,
+        "hard": 15.6,
+        "medium": 64.5
       },
       "factors": {
         "A1": 66.7,
@@ -108,17 +112,18 @@
         "Health & Fitness": 67.2,
         "Social Media": 53.5
       },
-      "runs": 402,
+      "runs": 3,
       "coverage": 1.0
     },
     {
       "rank": 4,
       "model": "deepseek-v4-pro",
       "overall": 65.6,
+      "bestScore": 81.1,
       "difficulty": {
-        "easy": 87.5,
-        "hard": 15.6,
-        "medium": 65.5
+        "easy": 87.6,
+        "hard": 15.0,
+        "medium": 61.4
       },
       "factors": {
         "A1": 66.1,
@@ -140,17 +145,18 @@
         "Health & Fitness": 71.8,
         "Social Media": 43.0
       },
-      "runs": 402,
+      "runs": 3,
       "coverage": 1.0
     },
     {
       "rank": 5,
       "model": "deepseek-v4-flash",
       "overall": 60.5,
+      "bestScore": 76.0,
       "difficulty": {
-        "easy": 88.2,
-        "hard": 16.5,
-        "medium": 52.7
+        "easy": 87.8,
+        "hard": 13.2,
+        "medium": 49.9
       },
       "factors": {
         "A1": 54.7,
@@ -172,17 +178,18 @@
         "Health & Fitness": 44.8,
         "Social Media": 33.5
       },
-      "runs": 402,
+      "runs": 3,
       "coverage": 1.0
     },
     {
       "rank": 6,
       "model": "qwen3.5-397b-a17b",
       "overall": 57.0,
+      "bestScore": 72.4,
       "difficulty": {
-        "easy": 86.5,
-        "hard": 15.6,
-        "medium": 46.3
+        "easy": 84.7,
+        "hard": 12.7,
+        "medium": 44.8
       },
       "factors": {
         "A1": 54.1,
@@ -204,17 +211,18 @@
         "Health & Fitness": 33.2,
         "Social Media": 44.1
       },
-      "runs": 402,
+      "runs": 3,
       "coverage": 1.0
     },
     {
       "rank": 7,
       "model": "qwen3.6-27b",
       "overall": 54.5,
+      "bestScore": 66.7,
       "difficulty": {
-        "easy": 89.5,
-        "hard": 8.7,
-        "medium": 40.7
+        "easy": 89.0,
+        "hard": 3.9,
+        "medium": 37.7
       },
       "factors": {
         "A1": 51.4,
@@ -236,16 +244,50 @@
         "Health & Fitness": 27.1,
         "Social Media": 30.6
       },
-      "runs": 402,
+      "runs": 3,
       "coverage": 1.0
     },
     {
       "rank": 8,
+      "model": "qwen3.5-35b-a3b",
+      "overall": 43.4,
+      "bestScore": 59.1,
+      "difficulty": {
+        "easy": 70.3,
+        "hard": 3.7,
+        "medium": 30.4
+      },
+      "factors": {
+        "A1": 39.6,
+        "A2": 49.9,
+        "B1": 37.7,
+        "B2": 56.3,
+        "C1": 23.8,
+        "C2": 22.2
+      },
+      "domains": {
+        "Calendar & Task Mgmt": 16.0,
+        "Coding & Software Dev": 42.7,
+        "Communication & Email": 7.3,
+        "Deep Research & Report": 56.6,
+        "DevOps & Env Repair": 60.8,
+        "Documents & Knowledge": 70.2,
+        "E-commerce & Daily Svcs": 44.5,
+        "Finance & Data Analytics": 64.5,
+        "Health & Fitness": 23.3,
+        "Social Media": 16.4
+      },
+      "runs": 3,
+      "coverage": 1.0
+    },
+    {
+      "rank": 9,
       "model": "qwen3.5-27b",
       "overall": 31.6,
+      "bestScore": 50.5,
       "difficulty": {
-        "easy": 54.5,
-        "hard": 1.5,
+        "easy": 51.1,
+        "hard": 1.7,
         "medium": 22.8
       },
       "factors": {
@@ -268,39 +310,7 @@
         "Health & Fitness": 21.2,
         "Social Media": 14.7
       },
-      "runs": 402,
-      "coverage": 1.0
-    },
-    {
-      "rank": 9,
-      "model": "qwen3.5-35b-a3b",
-      "overall": 25.4,
-      "difficulty": {
-        "easy": 47.6,
-        "hard": 1.8,
-        "medium": 14.5
-      },
-      "factors": {
-        "A1": 18.6,
-        "A2": 29.2,
-        "B1": 18.2,
-        "B2": 44.6,
-        "C1": 45.2,
-        "C2": 38.9
-      },
-      "domains": {
-        "Calendar & Task Mgmt": 7.0,
-        "Coding & Software Dev": 52.7,
-        "Communication & Email": 20.0,
-        "Deep Research & Report": 27.4,
-        "DevOps & Env Repair": 27.5,
-        "Documents & Knowledge": 41.8,
-        "E-commerce & Daily Svcs": 21.7,
-        "Finance & Data Analytics": 21.3,
-        "Health & Fitness": 16.5,
-        "Social Media": 19.1
-      },
-      "runs": 402,
+      "runs": 3,
       "coverage": 1.0
     }
   ]
