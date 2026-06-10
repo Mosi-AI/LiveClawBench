@@ -1,4 +1,4 @@
-"""Generate leaderboard.json and task-results.json from v0.2.0 analysis tables.
+"""Generate leaderboard.json and task-results.json from v0.2.1 analysis tables.
 
 Reads:
   - tables/model_summary.csv        → overall scores, run counts
@@ -73,7 +73,7 @@ def parse_args() -> argparse.Namespace:
         "--analysis-root",
         type=Path,
         required=True,
-        help="Path to analysis_outputs/v0.2.0",
+        help="Path to analysis_outputs/v0.2.1",
     )
     parser.add_argument(
         "--output", type=Path, required=True, help="Output path for leaderboard.json"

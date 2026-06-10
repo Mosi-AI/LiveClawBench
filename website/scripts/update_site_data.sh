@@ -34,9 +34,9 @@ esac
 # branch's task data.
 WORKTREE="${WORKTREE:-$REPO_ROOT}"
 # Analysis outputs are typically only present in the primary checkout.
-ANALYSIS_ROOT_DEFAULT="$REPO_ROOT/traj_validation/analysis_outputs/v0.2.0"
-if [[ ! -d "$ANALYSIS_ROOT_DEFAULT" && -d "$PRIMARY_REPO_ROOT/traj_validation/analysis_outputs/v0.2.0" ]]; then
-  ANALYSIS_ROOT_DEFAULT="$PRIMARY_REPO_ROOT/traj_validation/analysis_outputs/v0.2.0"
+ANALYSIS_ROOT_DEFAULT="$REPO_ROOT/traj_validation/analysis_outputs/v0.2.1"
+if [[ ! -d "$ANALYSIS_ROOT_DEFAULT" && -d "$PRIMARY_REPO_ROOT/traj_validation/analysis_outputs/v0.2.1" ]]; then
+  ANALYSIS_ROOT_DEFAULT="$PRIMARY_REPO_ROOT/traj_validation/analysis_outputs/v0.2.1"
 fi
 ANALYSIS_ROOT="${ANALYSIS_ROOT:-$ANALYSIS_ROOT_DEFAULT}"
 SITE_DATA="$WEBSITE_ROOT/site-data"
