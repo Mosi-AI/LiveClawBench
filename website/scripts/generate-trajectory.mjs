@@ -17,6 +17,18 @@ import { execSync } from 'child_process';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SITE_DATA = path.resolve(__dirname, '../site-data');
 
+// Display name overrides applied to raw model identifiers from HF rows.
+// Keep aligned with website/scripts/generate_leaderboard.py.
+const MODEL_RENAME_MAP = {
+  'gpt-5.5-medium': 'gpt-5.5',
+  'qwen3.6-35b-a3b': 'qwen3.6-flash',
+  'qwen3.5-35b-a3b': 'qwen3.5-flash',
+};
+
+function renameModel(name) {
+  return MODEL_RENAME_MAP[name] || name;
+}
+
 function parseTrajectory(trajStr) {
   try {
     return JSON.parse(trajStr);
@@ -67,7 +79,8 @@ function processTrajectoryData(rows) {
   const modelStats = {};
 
   for (const row of rows) {
-    const { model_name, difficulty, domain, complexity_factor, trajectory } = row;
+    const { difficulty, domain, complexity_factor, trajectory } = row;
+    const model_name = renameModel(row.model_name);
     const diff = normalizeDifficulty(difficulty);
     const traj = parseTrajectory(trajectory);
     const stepCount = getStepCount(traj);
@@ -255,7 +268,7 @@ for (const row of rows) {
   const taskName = row.case_name;
   if (!taskResults[taskName]) taskResults[taskName] = [];
   taskResults[taskName].push({
-    model: row.model_name,
+    model: renameModel(row.model_name),
     reward: row.reward ?? null,
     is_correct: row.is_correct ?? null,
   });

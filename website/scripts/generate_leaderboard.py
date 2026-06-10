@@ -25,6 +25,19 @@ def read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(f))
 
 
+# Display name overrides applied when reading the analysis tables.
+# Keep keys aligned with the raw model identifiers used in the source CSVs.
+MODEL_RENAME_MAP: dict[str, str] = {
+    "gpt-5.5-medium": "gpt-5.5",
+    "qwen3.6-35b-a3b": "qwen3.6-flash",
+    "qwen3.5-35b-a3b": "qwen3.5-flash",
+}
+
+
+def rename_model(name: str) -> str:
+    return MODEL_RENAME_MAP.get(name, name)
+
+
 def compute_best_scores(rows: list[dict[str, str]]) -> dict[str, float]:
     """Compute pass@N best score per model.
 
@@ -33,7 +46,7 @@ def compute_best_scores(rows: list[dict[str, str]]) -> dict[str, float]:
     """
     per_model_case_best: dict[str, list[float]] = {}
     for row in rows:
-        model = row["model"]
+        model = rename_model(row["model"])
         raw = (row.get("run_scores") or "").strip()
         if not raw:
             continue
@@ -75,7 +88,7 @@ def main() -> None:
     summary_rows = read_csv(tables_dir / "model_summary.csv")
     models_data: dict[str, dict] = {}
     for row in summary_rows:
-        model = row["model"]
+        model = rename_model(row["model"])
         mean_score = float(row["mean_case_avg_at_3"])
         n_runs = int(row["n_runs"])
         n_cases = int(row["n_cases"])
@@ -108,7 +121,7 @@ def main() -> None:
         if not raw_difficulty.startswith("calibrated:"):
             continue
         difficulty = raw_difficulty.split(":")[-1]
-        model = row["model"]
+        model = rename_model(row["model"])
         mean_score = float(row["mean_model_avg_at_3"])
         if model in models_data:
             models_data[model]["difficulty"][difficulty] = round(mean_score * 100, 1)
@@ -120,7 +133,7 @@ def main() -> None:
         # Skip "none" pseudo-factor
         if factor == "none":
             continue
-        model = row["model"]
+        model = rename_model(row["model"])
         mean_score = float(row["mean_model_avg_at_3"])
         if model in models_data:
             models_data[model]["factors"][factor] = round(mean_score * 100, 1)
@@ -129,7 +142,7 @@ def main() -> None:
     domain_rows = read_csv(tables_dir / "domain_model_scores.csv")
     for row in domain_rows:
         domain = row["domain"]
-        model = row["model"]
+        model = rename_model(row["model"])
         mean_score = float(row["mean_model_avg_at_3"])
         if model in models_data:
             models_data[model]["domains"][domain] = round(mean_score * 100, 1)

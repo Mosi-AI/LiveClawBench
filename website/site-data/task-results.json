@@ -31,7 +31,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -75,7 +75,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -119,7 +119,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -163,7 +163,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -207,7 +207,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -251,7 +251,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -295,7 +295,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -339,7 +339,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -383,7 +383,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -427,7 +427,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -471,7 +471,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -515,7 +515,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -559,7 +559,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -603,7 +603,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -647,7 +647,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -691,7 +691,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -735,7 +735,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -779,7 +779,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -823,7 +823,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -867,7 +867,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -911,7 +911,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -955,7 +955,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -999,7 +999,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -1043,7 +1043,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -1087,7 +1087,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -1131,7 +1131,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -1175,7 +1175,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -1219,7 +1219,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -1263,7 +1263,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false
@@ -1307,7 +1307,7 @@
       "allPassed": false
     },
     {
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "avgScore": null,
       "attempts": 3,
       "allPassed": false

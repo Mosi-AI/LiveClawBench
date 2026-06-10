@@ -152,7 +152,7 @@ const githubTasksUrl = getGithubDirUrl('tasks');
               <div class="flex-1 bg-gray-100 rounded-full h-6 relative">
                 <div
                   class={`${domainColors[idx % domainColors.length]} h-6 rounded-full flex items-center justify-end pr-2`}
-                  style={`width: ${Math.max((count as number / totalTasks) * 100, 5)}%`}
+                  style={`width: ${Math.min(Math.max((count as number / totalTasks) * 100 / 35 * 100, 5), 100)}%`}
                 >
                   <span class="text-xs text-white font-medium">{count as number}</span>
                 </div>
@@ -174,7 +174,7 @@ const githubTasksUrl = getGithubDirUrl('tasks');
               <div class="flex-1 bg-gray-100 rounded-full h-5 relative">
                 <div
                   class={`${factorBarColors[factor] || 'bg-gray-400'} h-5 rounded-full flex items-center justify-end pr-2`}
-                  style={`width: ${Math.max((count as number / totalTasks) * 100, 5)}%`}
+                  style={`width: ${Math.min(Math.max((count as number / totalTasks) * 100 / 60 * 100, 5), 100)}%`}
                 >
                   <span class="text-xs text-white font-medium">{count as number}</span>
                 </div>

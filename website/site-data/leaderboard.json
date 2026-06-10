@@ -18,7 +18,7 @@
   "models": [
     {
       "rank": 1,
-      "model": "gpt-5.5-medium",
+      "model": "gpt-5.5",
       "overall": 73.8,
       "bestScore": 78.9,
       "difficulty": {
@@ -84,7 +84,7 @@
     },
     {
       "rank": 3,
-      "model": "qwen3.6-35b-a3b",
+      "model": "qwen3.6-flash",
       "overall": 70.2,
       "bestScore": 78.7,
       "difficulty": {
@@ -249,7 +249,7 @@
     },
     {
       "rank": 8,
-      "model": "qwen3.5-35b-a3b",
+      "model": "qwen3.5-flash",
       "overall": 43.4,
       "bestScore": 59.1,
       "difficulty": {
