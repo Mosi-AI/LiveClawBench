@@ -2,9 +2,9 @@
   "updatedAt": "2026-06-10",
   "totalTasks": 134,
   "difficultyDistribution": {
-    "easy": 53,
-    "medium": 58,
-    "hard": 23
+    "easy": 57,
+    "medium": 45,
+    "hard": 32
   },
   "domainDistribution": {
     "E-commerce & Daily Svcs": 22,

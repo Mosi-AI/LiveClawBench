@@ -20,9 +20,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WEBSITE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$WEBSITE_ROOT/.." && pwd)"
 
+# If REPO_ROOT is a worktree under .worktrees/<name>, the analysis data
+# (traj_validation/) usually lives only in the primary checkout. Walk one
+# level out so ANALYSIS_ROOT defaults can find it.
+PRIMARY_REPO_ROOT="$REPO_ROOT"
+case "$REPO_ROOT" in
+  */.worktrees/*) PRIMARY_REPO_ROOT="${REPO_ROOT%/.worktrees/*}" ;;
+esac
+
 # Configurable paths
-WORKTREE="${WORKTREE:-$REPO_ROOT/.worktrees/fix-difficulty-recalibration}"
-ANALYSIS_ROOT="${ANALYSIS_ROOT:-$REPO_ROOT/traj_validation/analysis_outputs/v0.2.0}"
+# Tasks/registry CSVs live alongside the script in REPO_ROOT, so we always
+# read from the current checkout. Override WORKTREE to point at a different
+# branch's task data.
+WORKTREE="${WORKTREE:-$REPO_ROOT}"
+# Analysis outputs are typically only present in the primary checkout.
+ANALYSIS_ROOT_DEFAULT="$REPO_ROOT/traj_validation/analysis_outputs/v0.2.0"
+if [[ ! -d "$ANALYSIS_ROOT_DEFAULT" && -d "$PRIMARY_REPO_ROOT/traj_validation/analysis_outputs/v0.2.0" ]]; then
+  ANALYSIS_ROOT_DEFAULT="$PRIMARY_REPO_ROOT/traj_validation/analysis_outputs/v0.2.0"
+fi
+ANALYSIS_ROOT="${ANALYSIS_ROOT:-$ANALYSIS_ROOT_DEFAULT}"
 SITE_DATA="$WEBSITE_ROOT/site-data"
 PUBLIC_DIAGRAMS="$WEBSITE_ROOT/public/diagrams"
 

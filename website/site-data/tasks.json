@@ -53,7 +53,7 @@
     {
       "case_id": 2,
       "name": "skill-supplementation",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Documents & Knowledge",
       "domains_multi": [
         "Documents & Knowledge",
@@ -153,7 +153,7 @@
     {
       "case_id": 4,
       "name": "skill-repository-curation",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "Documents & Knowledge",
       "domains_multi": [
         "Documents & Knowledge",
@@ -203,7 +203,7 @@
     {
       "case_id": 5,
       "name": "skill-dependency-fix",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "Documents & Knowledge",
       "domains_multi": [
         "Documents & Knowledge",
@@ -353,7 +353,7 @@
     {
       "case_id": 8,
       "name": "flight-booking",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "E-commerce & Daily Svcs",
       "domains_multi": [
         "E-commerce & Daily Svcs"
@@ -403,7 +403,7 @@
     {
       "case_id": 9,
       "name": "flight-seat-selection",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "E-commerce & Daily Svcs",
       "domains_multi": [
         "E-commerce & Daily Svcs",
@@ -562,7 +562,7 @@
     {
       "case_id": 12,
       "name": "flight-info-change-notice",
-      "difficulty": "hard",
+      "difficulty": "medium",
       "domain": "Calendar & Task Mgmt",
       "domains_multi": [
         "Calendar & Task Mgmt",
@@ -668,7 +668,7 @@
     {
       "case_id": 14,
       "name": "schedule-change-request",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Calendar & Task Mgmt",
       "domains_multi": [
         "Calendar & Task Mgmt",
@@ -818,7 +818,7 @@
     {
       "case_id": 17,
       "name": "washer-shop",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "E-commerce & Daily Svcs",
       "domains_multi": [
         "E-commerce & Daily Svcs"
@@ -1176,7 +1176,7 @@
     {
       "case_id": 24,
       "name": "vue-build-fix-chain",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "DevOps & Env Repair",
       "domains_multi": [
         "DevOps & Env Repair",
@@ -1228,7 +1228,7 @@
     {
       "case_id": 25,
       "name": "noise-filtering",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "Deep Research & Report",
       "domains_multi": [
         "Deep Research & Report",
@@ -1541,7 +1541,7 @@
     {
       "case_id": 31,
       "name": "mint-diet-snack-log",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Health & Fitness",
       "domains_multi": [
         "Health & Fitness"
@@ -1591,7 +1591,7 @@
     {
       "case_id": 32,
       "name": "weather-aqi-report",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "Deep Research & Report",
       "domains_multi": [
         "Deep Research & Report"
@@ -1691,7 +1691,7 @@
     {
       "case_id": 34,
       "name": "social-unlike-post",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "Social Media",
       "domains_multi": [
         "Social Media"
@@ -1741,7 +1741,7 @@
     {
       "case_id": 35,
       "name": "expense-draft-delete",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Finance & Data Analytics",
       "domains_multi": [
         "Finance & Data Analytics"
@@ -1841,7 +1841,7 @@
     {
       "case_id": 37,
       "name": "health-insurance-optimization",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "E-commerce & Daily Svcs",
       "domains_multi": [
         "E-commerce & Daily Svcs",
@@ -1894,7 +1894,7 @@
     {
       "case_id": 38,
       "name": "health-daily-record",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "Health & Fitness",
       "domains_multi": [
         "Health & Fitness"
@@ -2250,7 +2250,7 @@
     {
       "case_id": 45,
       "name": "morning-comfort-setup",
-      "difficulty": "hard",
+      "difficulty": "medium",
       "domain": "Health & Fitness",
       "domains_multi": [
         "Health & Fitness",
@@ -2715,7 +2715,7 @@
     {
       "case_id": 54,
       "name": "social-comment-moderation",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "Social Media",
       "domains_multi": [
         "Social Media",
@@ -2768,7 +2768,7 @@
     {
       "case_id": 55,
       "name": "social-cross-publish",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Social Media",
       "domains_multi": [
         "Social Media",
@@ -2986,7 +2986,7 @@
     {
       "case_id": 59,
       "name": "medication-prescription-sync",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Health & Fitness",
       "domains_multi": [
         "Health & Fitness",
@@ -3099,7 +3099,7 @@
     {
       "case_id": 61,
       "name": "content-calendar-cross-publish",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "Calendar & Task Mgmt",
       "domains_multi": [
         "Calendar & Task Mgmt",
@@ -3514,7 +3514,7 @@
     {
       "case_id": 69,
       "name": "finance-budget-alert",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "Finance & Data Analytics",
       "domains_multi": [
         "Finance & Data Analytics",
@@ -3617,7 +3617,7 @@
     {
       "case_id": 71,
       "name": "chat-sticker-engagement",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "E-commerce & Daily Svcs",
       "domains_multi": [
         "E-commerce & Daily Svcs",
@@ -3669,7 +3669,7 @@
     {
       "case_id": 72,
       "name": "cd-pipeline-setup",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "DevOps & Env Repair",
       "domains_multi": [
         "DevOps & Env Repair",
@@ -3719,7 +3719,7 @@
     {
       "case_id": 73,
       "name": "security-audit-remediation",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "DevOps & Env Repair",
       "domains_multi": [
         "DevOps & Env Repair",
@@ -3769,7 +3769,7 @@
     {
       "case_id": 74,
       "name": "tls-cert-rotation-sla",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "DevOps & Env Repair",
       "domains_multi": [
         "DevOps & Env Repair",
@@ -3819,7 +3819,7 @@
     {
       "case_id": 75,
       "name": "grpc-service-crash-diagnosis",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "DevOps & Env Repair",
       "domains_multi": [
         "DevOps & Env Repair",
@@ -4213,7 +4213,7 @@
     {
       "case_id": 83,
       "name": "microservice-stack-deploy",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "DevOps & Env Repair",
       "domains_multi": [
         "DevOps & Env Repair"
@@ -4309,7 +4309,7 @@
     {
       "case_id": 85,
       "name": "email-phishing-injection",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Communication & Email",
       "domains_multi": [
         "Communication & Email"
@@ -4412,7 +4412,7 @@
     {
       "case_id": 87,
       "name": "email-shop-privacy-leak",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "E-commerce & Daily Svcs",
       "domains_multi": [
         "E-commerce & Daily Svcs",
@@ -4515,7 +4515,7 @@
     {
       "case_id": 89,
       "name": "fake-system-notification",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "E-commerce & Daily Svcs",
       "domains_multi": [
         "E-commerce & Daily Svcs"
@@ -4721,7 +4721,7 @@
     {
       "case_id": 93,
       "name": "phishing-in-inbox",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Calendar & Task Mgmt",
       "domains_multi": [
         "Calendar & Task Mgmt",
@@ -5079,7 +5079,7 @@
     {
       "case_id": 100,
       "name": "autonomous-weapons-ethics",
-      "difficulty": "hard",
+      "difficulty": "medium",
       "domain": "Deep Research & Report",
       "domains_multi": [
         "Deep Research & Report"
@@ -5175,7 +5175,7 @@
     {
       "case_id": 102,
       "name": "defi-systemic-risk-contagion",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Deep Research & Report",
       "domains_multi": [
         "Deep Research & Report"
@@ -5367,7 +5367,7 @@
     {
       "case_id": 106,
       "name": "fusion-energy-commercial-viability",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "Deep Research & Report",
       "domains_multi": [
         "Deep Research & Report"
@@ -5463,7 +5463,7 @@
     {
       "case_id": 108,
       "name": "long-covid-neurological-hypotheses",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "Deep Research & Report",
       "domains_multi": [
         "Deep Research & Report"
@@ -5657,7 +5657,7 @@
     {
       "case_id": 112,
       "name": "ga-classical-optimization",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "Coding & Software Dev",
       "domains_multi": [
         "Coding & Software Dev"
@@ -5753,7 +5753,7 @@
     {
       "case_id": 114,
       "name": "openlibrary-3rd-metadata-source",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "Coding & Software Dev",
       "domains_multi": [
         "Coding & Software Dev"
@@ -5801,7 +5801,7 @@
     {
       "case_id": 115,
       "name": "teleport-gcp-cert-identity",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "Coding & Software Dev",
       "domains_multi": [
         "Coding & Software Dev"
@@ -5849,7 +5849,7 @@
     {
       "case_id": 116,
       "name": "vuls-kernel-detection",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "Coding & Software Dev",
       "domains_multi": [
         "Coding & Software Dev"
@@ -6047,7 +6047,7 @@
     {
       "case_id": 120,
       "name": "watch-shop-silent-fail",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "E-commerce & Daily Svcs",
       "domains_multi": [
         "E-commerce & Daily Svcs"
@@ -6199,7 +6199,7 @@
     {
       "case_id": 123,
       "name": "mint-diet-stockout",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Health & Fitness",
       "domains_multi": [
         "Health & Fitness"
@@ -6299,7 +6299,7 @@
     {
       "case_id": 125,
       "name": "social-post-rate-limit",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "Social Media",
       "domains_multi": [
         "Social Media"
@@ -6399,7 +6399,7 @@
     {
       "case_id": 127,
       "name": "expense-submit-verify",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "domain": "Finance & Data Analytics",
       "domains_multi": [
         "Finance & Data Analytics"
@@ -6449,7 +6449,7 @@
     {
       "case_id": 128,
       "name": "finance-budget-shift",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "Finance & Data Analytics",
       "domains_multi": [
         "Finance & Data Analytics"
@@ -6548,7 +6548,7 @@
     {
       "case_id": 130,
       "name": "vendor-requirement-followup",
-      "difficulty": "medium",
+      "difficulty": "easy",
       "domain": "Communication & Email",
       "domains_multi": [
         "Communication & Email",
@@ -6705,7 +6705,7 @@
     {
       "case_id": 133,
       "name": "procurement-quote-compare-reply",
-      "difficulty": "medium",
+      "difficulty": "hard",
       "domain": "Communication & Email",
       "domains_multi": [
         "Communication & Email",
