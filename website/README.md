@@ -26,11 +26,10 @@ LiveClawBench/
 │   ├── pages/                     # 页面路由（基于文件的路由）
 │   │   ├── index.astro            #   首页
 │   │   ├── leaderboard.astro      #   排行榜
-│   │   ├── data.astro             #   数据分布页面
 │   │   ├── tasks/                 #   Task Browser
 │   │   │   ├── index.astro       #     任务列表页
-│   │   │   └── [slug].astro       #     任务详情页（动态路由）
-│   │   ├── mocks/                 #   Mock App Explorer
+│   │   │   └── [name].astro       #     任务详情页（动态路由）
+│   │   ├── _mocks_disabled/       #   ⚠️ 暂时下线：原 /mocks 路由（重命名为下划线前缀以离开 Astro 路由表）
 │   │   │   ├── index.astro       #     Mock App 列表页
 │   │   │   └── [id].astro        #     Mock App 详情页（动态路由）
 │   │   └── blogs/                 #   Blog
@@ -40,10 +39,9 @@ LiveClawBench/
 │   ├── components/                # UI 组件
 │   │   ├── common/                #   通用组件（Header、Footer、Button、Card）
 │   │   ├── home/                  #   首页组件（Hero、Abstract、DataStatistics）
-│   │   ├── data/                  #   数据页组件（TrajectoryTable）
-│   │   ├── leaderboard/           #   排行榜组件（LeaderboardTable、FilterPanel、ScoreChart）
+│   │   ├── leaderboard/           #   排行榜组件（LeaderboardTable）
 │   │   ├── tasks/                 #   Task 组件（TaskList、TaskFilter、TaskCard）
-│   │   ├── mocks/                 #   Mock App 组件（PreviewGallery、HotspotImage）
+│   │   ├── mocks/                 #   Mock App 组件（PreviewGallery、HotspotImage，随 /mocks 一同下线但保留源码）
 │   │   └── blog/                  #   Blog 组件（BlogList、BlogPost）
 │   │
 │   ├── layouts/                   # 布局组件
@@ -81,15 +79,11 @@ LiveClawBench/
 │   ├── tasks.json                 #   任务数据
 │   ├── leaderboard.json           #   排行榜数据
 │   ├── trajectory-distribution.json # 轨迹分布数据
-│   ├── task-results.json          #   任务结果数据
+│   ├── task-results.json          #   任务结果数据（由 generate_leaderboard.py 生成）
 │   ├── raw-rows.json              #   原始轨迹行数据（由 fetch-data.ps1 生成）
-│   ├── metrics-summary.json       #   指标汇总数据
 │   ├── mock-apps.json             #   Mock App 数据
 │   ├── representative-cases.json #   代表性案例数据
 │   └── domains.toml               #   领域定义
-│
-├── documents/                     # 本地数据镜像
-│   └── LiveClawBench-main/        #   仓库原始数据（脚本从此读取）
 │
 ├── public/                        # 静态资源（原样复制到构建输出）
 │   ├── favicon.svg                #   网站图标
@@ -98,7 +92,7 @@ LiveClawBench/
 │
 └── .github/
     └── workflows/
-        └── deploy.yml             # GitHub Actions 部署工作流
+        └── deploy-website.yml     # GitHub Actions 部署工作流
 ```
 
 ## 页面路由
@@ -108,12 +102,11 @@ LiveClawBench/
 | 首页 | `/` | 项目介绍、导航入口、数据概览 |
 | 排行榜 | `/leaderboard` | 模型排名、筛选、排序 |
 | Task 列表 | `/tasks` | 任务浏览器列表 |
-| Task 详情 | `/tasks/[slug]` | 单个任务详情 |
-| Mock 列表 | `/mocks` | Mock App Explorer |
-| Mock 详情 | `/mocks/[id]` | 单个 Mock App 详情 |
-| 数据分布 | `/data` | 轨迹数据浏览与分布统计 |
+| Task 详情 | `/tasks/[name]` | 单个任务详情 |
 | Blog 列表 | `/blogs` | 文章列表 |
 | Blog 详情 | `/blogs/[slug]` | 文章详情 |
+
+> Mock App Explorer (`/mocks` 及 `/mocks/[id]`) 当前已暂时下线，源文件保留在 `src/pages/_mocks_disabled/` 下方便日后恢复。
 
 ## 构建与部署
 
@@ -147,7 +140,7 @@ npm run preview
 
 ```bash
 # 主流程：从当前 worktree + traj_validation/analysis_outputs 刷新
-# tasks.json / metrics-summary.json / domains.toml / mock-apps.json / leaderboard.json
+# tasks.json / domains.toml / mock-apps.json / leaderboard.json / task-results.json
 # 以及 public/diagrams/ 下的分析图。无需网络。
 bash scripts/update_site_data.sh
 
@@ -249,7 +242,7 @@ summary: 文章摘要
 2. 执行 `bash scripts/update_site_data.sh`（从 worktree + traj_validation/analysis_outputs 生成 tasks/leaderboard/diagrams）。如需刷新 HuggingFace 轨迹数据，另跑 `node scripts/generate-trajectory.mjs`。
 3. dev环境开发：`npm install;npm run dev`
 4. 生产环境预览：`npm run build;npm run preview`
-5. Deploy to GitHub Pages `.github/workflows/deploy.yml`
+5. Deploy to GitHub Pages `.github/workflows/deploy-website.yml`
 
 
 ## 开发规范

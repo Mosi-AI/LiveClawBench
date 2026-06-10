@@ -155,6 +155,18 @@ if (rawContent.charCodeAt(0) === 0xFEFF) {
 const rows = JSON.parse(rawContent);
 console.log(`📊 Loaded ${rows.length} rows`);
 
+// Guard against an empty raw-rows.json (placeholder or failed fetch)
+// clobbering the calibrated task-results.json that generate_leaderboard.py
+// already produced from the analysis tables.
+if (rows.length === 0) {
+  console.warn(
+    '⚠️  raw-rows.json is empty — skipping trajectory-distribution.json and ' +
+      'task-results.json regeneration to avoid overwriting valid data. ' +
+      'Run without --skip-fetch (or repopulate raw-rows.json) before re-running.'
+  );
+  process.exit(0);
+}
+
 console.log('\n📈 Processing trajectory data...');
 const processed = processTrajectoryData(rows);
 
@@ -207,4 +219,3 @@ console.log(`  Models: ${Object.keys(processed.byModel).length}`);
 console.log(`  Difficulties: ${JSON.stringify(trajectoryDist.byDifficulty)}`);
 console.log(`  Domains: ${Object.keys(trajectoryDist.byDomain).join(', ')}`);
 console.log(`  Step length distribution: ${JSON.stringify(trajectoryDist.stepLengthDistribution)}`);
-console.log(`  Top model: ${rankedModels[0]?.model} (${rankedModels[0]?.overall}%)`);
