@@ -1,0 +1,195 @@
+{
+  "title": "LiveClawBench",
+  "subtitle": "Benchmarking LLM Agents on Complex, Real-World Assistant Tasks",
+  "version": "v1.0",
+  "team": {
+    "name": "Mosi-AI",
+    "url": "https://github.com/Mosi-AI"
+  },
+  "affiliations": [
+    {
+      "id": 1,
+      "name": "Mosi-AI",
+      "url": "https://github.com/Mosi-AI"
+    },  {
+      "id": 2,
+      "name": "Institute of Computing Technology, Chinese Academy of Sciences",
+      "url": ""
+    }, {
+      "id": 3,
+      "name": "City University of Hong Kong",
+      "url": ""
+    },  {
+      "id": 4,
+      "name": "Peking University",
+      "url": ""
+    }
+
+  ],
+  "members": [
+    {
+      "name": "Xiang Long",
+      "url": "",
+      "affiliations": [
+        1
+      ]
+    },
+    {
+      "name": "Li Du",
+      "url": "",
+      "affiliations": [
+        1
+      ]
+    },
+    {
+      "name": "Yilong Xu",
+      "url": "",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "name": "RongJian Xu",
+      "url": "",
+      "affiliations": [
+        3
+      ]
+    },
+    {
+      "name": "QiYanHui Lu",
+      "url": "",
+      "affiliations": [
+        3
+      ]
+    },
+    {
+      "name": "Ying Gao",
+      "url": "",
+      "affiliations": [
+        3
+      ]
+    },
+    {
+      "name": "Qinhua Xie",
+      "url": "",
+      "affiliations": [
+        3
+      ]
+    },
+    {
+      "name": "Fangcheng Liu",
+      "url": "",
+      "affiliations": [
+        1
+      ]
+    },
+    {
+      "name": "Ning Ding",
+      "url": "",
+      "affiliations": [
+        1
+      ]
+    },
+    {
+      "name": "Haoqing Wang",
+      "url": "",
+      "affiliations": [
+        1
+      ]
+    },
+    {
+      "name": "Ziheng Li",
+      "url": "",
+      "affiliations": [
+        4
+      ]
+    },{
+      "name": "Changjiang Zhou",
+      "url": "",
+      "affiliations": [
+        2
+      ]
+    },{
+      "name": "Jianyuan Guo",
+      "url": "",
+      "affiliations": [
+        3
+      ]
+    },{
+      "name": "Yehui Tang",
+      "url": "",
+      "affiliations": [
+        1
+      ]
+    }
+  ],
+  "links": {
+    "paper": "https://github.com/Mosi-AI/LiveClawBench/releases/download/v0.1-preprint/LiveClawBench.pdf",
+    "code": "https://github.com/Mosi-AI/LiveClawBench",
+    "data": "https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories"
+  },
+  "nav": [
+    {
+      "label": "Home",
+      "href": "/"
+    },
+    {
+      "label": "Leaderboard",
+      "href": "/leaderboard"
+    },
+    {
+      "label": "Tasks",
+      "href": "/tasks"
+    },
+    {
+      "label": "Blogs",
+      "href": "/blogs"
+    }
+  ],
+  "representative-cases": [
+    "watch-shop",
+    "email-watch-shop",
+    "flight-cancel-claim",
+    "conflict-repair-acb",
+    "vue-build-fix-single",
+    "social-unlike-post"
+  ],
+  "factors": [
+    {
+      "slug": "A1",
+      "name": "Cross-Service Dependency",
+      "Axis": "Environment",
+      "Description": "Coordinate multiple independent services (email, airline, calendar) in a single workflow"
+    },
+    {
+      "slug": "A2",
+      "name": "Contaminated Initial State",
+      "Axis": "Environment",
+      "Description": "Environment starts broken or corrupt; agent must diagnose and repair before acting"
+    },
+    {
+      "slug": "B1",
+      "name": "Implicit Goal Resolution",
+      "Axis": "Cognitive",
+      "Description": "Goal is not stated explicitly; agent must infer constraints or seek clarification"
+    },
+    {
+      "slug": "B2",
+      "name": "Knowledge System Maintenance",
+      "Axis": "Cognitive",
+      "Description": "Create,update,resolve conflicts in,or manage a persistent skill/knowledge repository"
+    },
+    {
+      "slug": "C1",
+      "name": "Environmental State Invalidation",
+      "Axis": "Runtime",
+      "Description": "Replan when mid-execution environment changes invalidate established assumptions"
+    },
+    {
+      "slug": "C2",
+      "name": "Outcome Verification under Altered State",
+      "Axis": "Runtime",
+      "Description": "Actively verify task success when no simple pass/fail signal is available"
+    }
+  ]
+}

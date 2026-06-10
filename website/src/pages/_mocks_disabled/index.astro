@@ -1,0 +1,33 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import MockCard from '../../components/mocks/MockCard.astro';
+import { getAllMockApps } from '../../data/mocks';
+
+const mockApps = getAllMockApps();
+---
+
+<PageLayout title="Mock App Explorer - LiveClawBench">
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-2">Mock App Explorer</h1>
+    <p class="text-gray-600 mb-8">Explore mock applications used in benchmark tasks.</p>
+
+    {mockApps.length > 0 ? (
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {mockApps.map(app => (
+          <MockCard
+            id={app.id}
+            name={app.name}
+            summary={app.summary}
+            tasksCount={app.tasksCount}
+            thumbnailSrc={app.previewAssets.length > 0 ? app.previewAssets[0].src : undefined}
+            agentActions={app.agentActions}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="bg-white rounded-xl border p-12 text-center text-gray-400">
+        <p>No mock apps available yet.</p>
+      </div>
+    )}
+  </div>
+</PageLayout>

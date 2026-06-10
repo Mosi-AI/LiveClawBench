@@ -1,0 +1,240 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import MockAppPreview from '../../components/tasks/MockAppPreview.astro';
+import { getAllTasks } from '../../data/tasks';
+import { getAllMockApps } from '../../data/mocks';
+import { getGithubFileUrl, getFactorMap, getFactorSlugs } from '../../data/site-config';
+import { withBase } from '../../lib/urls';
+import type { Task } from '../../data/types';
+import taskResultsData from '../../../site-data/task-results.json';
+
+export function getStaticPaths() {
+  const tasks = getAllTasks();
+  return tasks.map(task => ({
+    params: { name: task.name },
+    props: { task },
+  }));
+}
+
+interface Props {
+  task: Task;
+}
+
+const { task } = Astro.props;
+const allMockApps = getAllMockApps();
+const factorMap = getFactorMap();
+const factorSlugs = getFactorSlugs();
+
+const difficultyClass: Record<string, string> = {
+  easy: 'bg-green-100 text-green-800',
+  medium: 'bg-yellow-100 text-yellow-800',
+  hard: 'bg-red-100 text-red-800',
+};
+
+const relatedMockApps = allMockApps.filter(app => task.mock_apps.includes(app.id));
+
+// Evaluation info
+const verifierType = task.verifier_type || 'script';
+const isLlmJudge = verifierType.toLowerCase().includes('llm');
+const hasPartialCredit = true; // reward range 0-1 implies partial credit
+const rewardRange = '0 – 1';
+
+// Per-task results from leaderboard data
+const taskResults = (taskResultsData as Record<string, { model: string; avgScore: number | null; attempts: number; allPassed: boolean }[]>)[task.name] || [];
+taskResults.sort((a, b) => (b.avgScore ?? 0) - (a.avgScore ?? 0));
+
+---
+
+<PageLayout title={`${task.name} - LiveClawBench`}>
+  <div class="container mx-auto px-4 py-12 max-w-4xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center gap-3 mb-2">
+        <a href={withBase('/tasks')} class="text-sm text-gray-500 hover:text-gray-700">← Tasks</a>
+      </div>
+      <h1 class="text-3xl font-bold">{task.name} <span class="text-gray-400 font-normal text-lg">Case #{task.case_id}</span></h1>
+      <div class="mt-3 flex flex-wrap items-center gap-3">
+        <span class={`px-2.5 py-0.5 rounded-full text-xs font-medium ${difficultyClass[task.difficulty] || 'bg-gray-100 text-gray-800'}`}>
+          {task.difficulty.charAt(0).toUpperCase() + task.difficulty.slice(1)}
+        </span>
+        <span class="text-sm text-gray-500">Domain: {task.domain}</span>
+        {task.mock_apps.map(app => (
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{app}</span>
+        ))}
+      </div>
+    </div>
+
+    <!-- User Instruction -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-lg">User Instruction</h2>
+        <a href={getGithubFileUrl(task.paths.instruction)} target="_blank" rel="noopener noreferrer" class="text-sm text-primary-600 hover:text-primary-700 hover:underline flex items-center gap-1">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4 relative">
+        <p class="text-gray-800 whitespace-pre-wrap">{task.instruction}</p>
+      </div>
+    </div>
+
+    <!-- Task Description -->
+    {(task.description_zh || task.description_en) && (
+      <div class="bg-white rounded-xl border p-6 mb-6">
+        <h2 class="font-bold text-lg mb-3">Task Description</h2>
+        <div class="space-y-2">
+          {task.description_en && (
+            <p class="text-gray-700"><span class="font-medium text-gray-500">EN:</span> {task.description_en}</p>
+          )}
+          {task.description_zh && (
+            <p class="text-gray-700"><span class="font-medium text-gray-500">中文:</span> {task.description_zh}</p>
+          )}
+        </div>
+      </div>
+    )}
+
+    <!-- Complexity Factors -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-3">Complexity Factors</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {factorSlugs.map(f => (
+          <div class={`p-3 rounded-lg border text-center ${
+            task.factors[f as keyof typeof task.factors]
+              ? f === 'A1' ? 'bg-orange-50 border-orange-200' : f === 'A2' ? 'bg-red-50 border-red-200' : f === 'B1' ? 'bg-purple-50 border-purple-200' : f === 'B2' ? 'bg-green-50 border-green-200' : f === 'C1' ? 'bg-cyan-50 border-cyan-200' : 'bg-blue-50 border-blue-200'
+              : 'bg-gray-50 border-gray-200 opacity-50'
+          }`} title={factorMap[f]?.Description || ''}>
+            <div class="font-bold text-sm">{f}</div>
+            <div class="text-xs text-gray-500 mt-1">{task.factors[f as keyof typeof task.factors] ? '✓' : '✗'}</div>
+            <div class="text-xs text-gray-400 mt-0.5">{factorMap[f]?.name || ''}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Mock Apps section temporarily hidden alongside the disabled /mocks pages.
+        To restore: rename pages/_mocks_disabled back to pages/mocks, re-add the
+        Mock Apps nav entry in site-content/site-config.json, and re-enable this
+        block + the linked tags in TaskList.tsx and [name].astro headline. */}
+    {false && relatedMockApps.length > 0 && (
+      <div class="bg-white rounded-xl border p-6 mb-6">
+        <h2 class="font-bold text-lg mb-3">Mock Apps</h2>
+        <div class="grid md:grid-cols-2 gap-4">
+          {relatedMockApps.map(app => (
+            <MockAppPreview
+              mockId={app.id}
+              mockData={{
+                name: app.name,
+                summary: app.summary,
+                previewAssets: app.previewAssets,
+                mainScreens: app.mainScreens,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- Evaluation -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-3">Evaluation</h2>
+      <div class="space-y-3">
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-gray-500 w-32">Verifier Type:</span>
+          <code class="text-xs bg-gray-100 px-2 py-0.5 rounded">{verifierType}</code>
+        </div>
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-gray-500 w-32">Partial Credit:</span>
+          <span class={`text-xs px-2 py-0.5 rounded ${hasPartialCredit ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{hasPartialCredit ? 'Yes' : 'No'}</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-gray-500 w-32">Reward Range:</span>
+          <code class="text-xs bg-gray-100 px-2 py-0.5 rounded">{rewardRange}</code>
+        </div>
+        {isLlmJudge && (
+          <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div class="flex items-center gap-2 text-sm text-amber-800 font-medium">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              LLM Judge Task
+            </div>
+            <p class="text-xs text-amber-700 mt-1">This task uses an LLM-based judge for evaluation, which requires judge credentials to run.</p>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Results for This Task -->
+    {taskResults.length > 0 && (
+      <div class="bg-white rounded-xl border p-6 mb-6">
+        <h2 class="font-bold text-lg mb-3">Results for This Task</h2>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b text-left text-gray-500">
+                <th class="pb-2 font-medium">Model</th>
+                <th class="pb-2 font-medium text-right">Avg Score</th>
+                <th class="pb-2 font-medium text-right">Attempts</th>
+                <th class="pb-2 font-medium text-center">All Passed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {taskResults.map(r => (
+                <tr class="border-b last:border-0 hover:bg-gray-50">
+                  <td class="py-2 font-medium text-gray-800">{r.model}</td>
+                  <td class="py-2 text-right">
+                    {r.avgScore != null ? (
+                      <span class={`px-2 py-0.5 rounded text-xs font-medium ${r.avgScore >= 0.8 ? 'bg-green-100 text-green-700' : r.avgScore >= 0.5 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                        {r.avgScore}
+                      </span>
+                    ) : (
+                      <span class="text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td class="py-2 text-right text-gray-600">{r.attempts}</td>
+                  <td class="py-2 text-center">
+                    {r.allPassed
+                      ? <span class="text-green-600">✓</span>
+                      : <span class="text-gray-300">✗</span>
+                    }
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
+
+    <!-- Trajectory Info -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-3">Public Trajectories</h2>
+      <p class="text-sm text-gray-500 mb-3">Run trajectories for this task live on HuggingFace.</p>
+      <a href={`https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories/viewer/default/v0.2.1?views%5B%5D=v021&sql=SELECT+*+FROM+v021+where+case_id%3D${task.case_id}%3B`} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.079 2.25a.75.75 0 0 0-.67.489l-3.5 8.5a.75.75 0 0 0 1.382.572L10.56 8.5h3.882l1.269 3.311a.75.75 0 1 0 1.382-.572l-3.5-8.5a.75.75 0 0-.67-.489h-.844zM12 4.678L13.56 7h-3.12L12 4.678zM5.5 14.75a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5h-13zM5.5 18.75a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5h-13z"/></svg>
+        View trajectories on HuggingFace
+      </a>
+    </div>
+
+    <!-- Source Files -->
+    <div class="bg-white rounded-xl border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-3">Source Files</h2>
+      <div class="space-y-2">
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-gray-500">task.toml:</span>
+          <a href={getGithubFileUrl(task.paths.task_toml)} target="_blank" rel="noopener noreferrer" class="text-xs bg-gray-100 px-2 py-0.5 rounded text-primary-600 hover:text-primary-700 hover:underline">{task.paths.task_toml}</a>
+        </div>
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-gray-500">instruction:</span>
+          <a href={getGithubFileUrl(task.paths.instruction)} target="_blank" rel="noopener noreferrer" class="text-xs bg-gray-100 px-2 py-0.5 rounded text-primary-600 hover:text-primary-700 hover:underline">{task.paths.instruction}</a>
+        </div>
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-gray-500">environment:</span>
+          <a href={getGithubFileUrl(task.paths.environment)} target="_blank" rel="noopener noreferrer" class="text-xs bg-gray-100 px-2 py-0.5 rounded text-primary-600 hover:text-primary-700 hover:underline">{task.paths.environment}</a>
+        </div>
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-gray-500">test:</span>
+          <a href={getGithubFileUrl(task.paths.test_sh)} target="_blank" rel="noopener noreferrer" class="text-xs bg-gray-100 px-2 py-0.5 rounded text-primary-600 hover:text-primary-700 hover:underline">{task.paths.test_sh}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</PageLayout>

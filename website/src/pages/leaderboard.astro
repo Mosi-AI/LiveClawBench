@@ -1,0 +1,188 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import LeaderboardTable from '../components/leaderboard/LeaderboardTable.tsx';
+import { getLeaderboardData } from '../data/leaderboard';
+
+const leaderboardData = getLeaderboardData();
+const models = leaderboardData.models;
+
+const allDomains = [...new Set(models.flatMap(m => Object.keys(m.domains || {})))];
+const factors = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const difficulties = ['easy', 'medium', 'hard'];
+
+// Pre-compute factor & difficulty scores as plain Records for template access
+const factorScores: Record<string, Record<string, number | undefined>> = {};
+const diffScores: Record<string, Record<string, number | undefined>> = {};
+for (const m of models) {
+  const fs: Record<string, number | undefined> = {};
+  for (const f of factors) { fs[f] = m.factors[f as 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2']; }
+  factorScores[m.model] = fs;
+
+  const ds: Record<string, number | undefined> = {};
+  for (const d of difficulties) { ds[d] = m.difficulty[d as 'easy' | 'medium' | 'hard']; }
+  diffScores[m.model] = ds;
+}
+
+function getHeatColor(score: number | undefined): string {
+  if (score == null) return 'bg-gray-50';
+  if (score >= 80) return 'bg-green-200';
+  if (score >= 60) return 'bg-green-100';
+  if (score >= 40) return 'bg-yellow-100';
+  if (score >= 20) return 'bg-orange-100';
+  return 'bg-red-100';
+}
+
+function getHeatTextColor(score: number | undefined): string {
+  if (score == null) return 'text-gray-300';
+  if (score >= 60) return 'text-green-800';
+  if (score >= 40) return 'text-yellow-800';
+  return 'text-red-800';
+}
+---
+
+<PageLayout title="Leaderboard - LiveClawBench">
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-2">Leaderboard</h1>
+    <p class="text-gray-600 mb-8">Model rankings and performance comparison across all benchmark tasks.</p>
+
+    {models.length > 0 ? (
+      <div class="space-y-8">
+        <!-- Leaderboard Table -->
+        <div class="bg-white rounded-xl border p-6">
+          <LeaderboardTable client:load data={models} />
+        </div>
+
+        <!-- Domain Heatmap -->
+        <div class="bg-white rounded-xl border p-6">
+          <h3 class="font-bold text-lg mb-1">Domain Heatmap</h3>
+          <p class="text-sm text-gray-500 mb-4">Model performance across domains. Scores range from 0 to 100.</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b">
+                  <th class="pb-2 pr-4 text-left font-medium text-gray-500 sticky left-0 bg-white">Model</th>
+                  {allDomains.map(d => (
+                    <th class="pb-2 px-2 text-center font-medium text-gray-500 whitespace-nowrap" title={d}>
+                      <span class="block max-w-[100px] truncate text-xs">{d}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {models.map(m => (
+                  <tr class="border-b last:border-0">
+                    <td class="py-2 pr-4 font-medium text-gray-800 text-xs whitespace-nowrap sticky left-0 bg-white">{m.model}</td>
+                    {allDomains.map(d => {
+                      const score = (m.domains || {})[d];
+                      return (
+                        <td class={`py-2 px-2 text-center ${getHeatColor(score)}`}>
+                          <span class={`text-xs font-medium ${getHeatTextColor(score)}`}>
+                            {score != null ? score.toFixed(1) : '—'}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Factor Heatmap -->
+        <div class="bg-white rounded-xl border p-6">
+          <h3 class="font-bold text-lg mb-1">Factor Heatmap</h3>
+          <p class="text-sm text-gray-500 mb-4">Model performance across complexity factors. Scores range from 0 to 100.</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b">
+                  <th class="pb-2 pr-4 text-left font-medium text-gray-500">Model</th>
+                  {factors.map(f => (
+                    <th class="pb-2 px-4 text-center font-medium text-gray-500">{f}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {models.map(m => (
+                  <tr class="border-b last:border-0">
+                    <td class="py-2 pr-4 font-medium text-gray-800 text-xs whitespace-nowrap">{m.model}</td>
+                    {factors.map(f => {
+                      const score = factorScores[m.model][f];
+                      return (
+                        <td class={`py-2 px-4 text-center ${getHeatColor(score)}`}>
+                          <span class={`text-xs font-medium ${getHeatTextColor(score)}`}>
+                            {score != null ? score.toFixed(1) : '—'}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Difficulty Breakdown -->
+        <div class="bg-white rounded-xl border p-6">
+          <h3 class="font-bold text-lg mb-1">Difficulty Breakdown</h3>
+          <p class="text-sm text-gray-500 mb-4">Model performance by difficulty level. Scores range from 0 to 100.</p>
+          <div class="space-y-4">
+            {models.map(m => (
+              <div>
+                <div class="text-xs font-medium text-gray-700 mb-1.5">{m.model}</div>
+                <div class="flex items-center gap-2">
+                  {difficulties.map((d, idx) => {
+                    const score = diffScores[m.model][d];
+                    const colors = ['bg-green-400', 'bg-yellow-400', 'bg-red-400'];
+                    const bgColors = ['bg-green-50', 'bg-yellow-50', 'bg-red-50'];
+                    const textColors = ['text-green-700', 'text-yellow-700', 'text-red-700'];
+                    return (
+                      <div class="flex-1">
+                        <div class={`rounded-lg p-2 ${bgColors[idx]}`}>
+                          <div class="flex items-center justify-between mb-1">
+                            <span class={`text-xs font-medium ${textColors[idx]} capitalize`}>{d}</span>
+                            <span class={`text-xs font-bold ${textColors[idx]}`}>{score != null ? score.toFixed(1) : '—'}</span>
+                          </div>
+                          <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              class={`${colors[idx]} h-2 rounded-full transition-all`}
+                              style={`width: ${score != null ? Math.max(score, 2) : 0}%`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Metrics & Source info -->
+        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-400">
+          <span>Score scale: {leaderboardData.scoreScale}</span>
+          {leaderboardData.metrics && leaderboardData.metrics.length > 0 && (
+            <>
+              <span>·</span>
+              <span>Metrics: {leaderboardData.metrics.join(', ')}</span>
+            </>
+          )}
+          {leaderboardData.source && (
+            <>
+              <span>·</span>
+              <span>Source: <a href={leaderboardData.source} target="_blank" rel="noopener noreferrer" class="text-primary-500 hover:text-primary-600 underline">HuggingFace</a></span>
+            </>
+          )}
+        </div>
+      </div>
+    ) : (
+      <div class="bg-white rounded-xl border p-12 text-center text-gray-400">
+        <p>No leaderboard data available yet.</p>
+        <p class="text-sm mt-2">Data will be populated after evaluation runs are completed.</p>
+      </div>
+    )}
+  </div>
+</PageLayout>

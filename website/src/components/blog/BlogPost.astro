@@ -1,0 +1,35 @@
+---
+interface Props {
+  title: string;
+  date: Date;
+  author: string;
+  tags: string[];
+}
+
+const { title, date, author, tags } = Astro.props;
+
+function formatDate(date: Date): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+---
+
+<article class="prose prose-gray max-w-none">
+  <header class="mb-8 not-prose">
+    <h1 class="text-3xl font-bold text-gray-900 mb-3">{title}</h1>
+    <div class="flex items-center gap-3 text-sm text-gray-500 mb-4">
+      <span>{formatDate(date)}</span>
+      <span>·</span>
+      <span>{author}</span>
+    </div>
+    <div class="flex gap-2">
+      {tags.map(tag => (
+        <span class="px-2.5 py-0.5 bg-gray-100 rounded-full text-xs text-gray-600 font-medium">{tag}</span>
+      ))}
+    </div>
+  </header>
+  <slot />
+</article>

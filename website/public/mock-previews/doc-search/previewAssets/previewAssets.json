@@ -1,0 +1,55 @@
+{
+    "previewAssets": [
+        {
+            "type": "image",
+            "src": "orders.png",
+            "caption": "Product search page",
+            "hotspots": [
+                {
+                    "x": 50,
+                    "y": 8,
+                    "description": "Search bar — type keywords to find products"
+                },
+                {
+                    "x": 85,
+                    "y": 8,
+                    "description": "Cart icon — view items in your cart"
+                },
+                {
+                    "x": 50,
+                    "y": 45,
+                    "description": "Product cards — click to view details and compare"
+                }
+            ]
+        },
+        {
+            "type": "image",
+            "src": "orders.png",
+            "caption": "Product detail page",
+            "hotspots": [
+                {
+                    "x": 50,
+                    "y": 55,
+                    "description": "Add to cart button"
+                },
+                {
+                    "x": 30,
+                    "y": 30,
+                    "description": "Price and rating info"
+                }
+            ]
+        },
+        {
+            "type": "image",
+            "src": "cart.png",
+            "caption": "Shopping cart",
+            "hotspots": [
+                {
+                    "x": 80,
+                    "y": 85,
+                    "description": "Checkout button — proceed to payment"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,63 @@
+---
+import type { RepresentativeCase } from '../../data/types';
+import { getFactorMap } from '../../data/site-config';
+import { withBase } from '../../lib/urls';
+
+interface Props {
+  cases: RepresentativeCase[];
+}
+
+const { cases } = Astro.props;
+const factorMap = getFactorMap();
+
+const difficultyClass: Record<string, string> = {
+  easy: 'bg-green-100 text-green-800',
+  medium: 'bg-yellow-100 text-yellow-800',
+  hard: 'bg-red-100 text-red-800',
+};
+---
+
+<section class="py-8 bg-gray-50">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <h2 class="text-2xl md:text-3xl font-bold mb-6">Representative Cases</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      {cases.map(c => {
+        const activeFactors = Object.entries(c.factors)
+          .filter(([_, active]) => active)
+          .map(([key]) => key);
+
+        return (
+          <a href={withBase(c.detailUrl)} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
+            <div class="p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-gray-900">{c.name}</h3>
+                <span class={`px-2.5 py-0.5 rounded-full text-xs font-medium ${difficultyClass[c.difficulty] || 'bg-gray-100 text-gray-800'}`}>
+                  {c.difficulty}
+                </span>
+              </div>
+              <p class="text-sm text-gray-500">{c.domain}</p>
+              <p class="text-sm text-gray-700 leading-relaxed">{c.summary_en}</p>
+              <div class="flex flex-wrap gap-1">
+                {activeFactors.map(f => (
+                  <span class={`px-2 py-0.5 rounded text-xs border ${
+                    f === 'A1' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                    f === 'A2' ? 'bg-red-50 text-red-700 border-red-200' :
+                    f === 'B1' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                    f === 'B2' ? 'bg-green-50 text-green-700 border-green-200' :
+                    f === 'C1' ? 'bg-cyan-50 text-cyan-700 border-cyan-200' :
+                    'bg-blue-50 text-blue-700 border-blue-200'
+                  }`} title={factorMap[f]?.Description || ''}>
+                    {f}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+    <div class="mt-6">
+      <a href={withBase('/tasks')} class="text-gray-900 hover:text-black font-medium">Browse All Tasks →</a>
+    </div>
+  </div>
+</section>

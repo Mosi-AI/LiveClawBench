@@ -1,0 +1,51 @@
+---
+import { withBase } from '../../lib/urls';
+
+interface BlogPost {
+  slug: string;
+  title: string;
+  date: Date;
+  author: string;
+  tags: string[];
+  summary: string;
+}
+
+interface Props {
+  posts: BlogPost[];
+}
+
+const { posts } = Astro.props;
+
+function formatDate(date: Date): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+---
+
+<div class="space-y-6">
+  {posts.length === 0 ? (
+    <p class="text-gray-500 italic">No blog posts yet.</p>
+  ) : (
+    posts.map(post => (
+      <a href={withBase(`/blogs/${post.slug}`)} class="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
+        <div class="p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-2">{post.title}</h2>
+          <div class="flex items-center gap-3 text-sm text-gray-500 mb-3">
+            <span>{formatDate(post.date)}</span>
+            <span>·</span>
+            <span>{post.author}</span>
+          </div>
+          <p class="text-gray-600 text-sm mb-3">{post.summary}</p>
+          <div class="flex gap-2">
+            {post.tags.map(tag => (
+              <span class="px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-600">{tag}</span>
+            ))}
+          </div>
+        </div>
+      </a>
+    ))
+  )}
+</div>

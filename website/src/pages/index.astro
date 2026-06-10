@@ -1,0 +1,118 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import Hero from '../components/home/Hero.astro';
+import CoreValue from '../components/home/CoreValue.astro';
+import LeaderboardPreview from '../components/home/LeaderboardPreview.astro';
+import DataStatistics from '../components/home/DataStatistics.astro';
+import RepresentativeCases from '../components/home/RepresentativeCases.astro';
+import { getRepresentativeCases } from '../data/representative-cases';
+import { withBase } from '../lib/urls';
+
+const cases = getRepresentativeCases();
+
+const citationBibtex = `@article{long2026liveclawbench,
+  title={LiveClawBench: Benchmarking LLM agents on complex, real-world assistant tasks},
+  author={Long, Xiang and Du, Li and Xu, Yilong and Liu, Fangcheng and Wang, Haoqing and Ding, Ning and Li, Ziheng and Guo, Jianyuan and Tang, Yehui},
+  journal={arXiv preprint arXiv:2604.13072},
+  year={2026}
+}`;
+---
+
+<PageLayout title="LiveClawBench - Benchmarking LLM Agents on Complex, Real-World Assistant Tasks">
+  <!-- 1. Hero / 首屏 -->
+  <Hero />
+
+  <!-- Task Demonstration -->
+  <section class="pt-2 pb-8 bg-gray-50">
+    <div class="container mx-auto px-4 max-w-5xl text-center space-y-8">
+      <div class="w-4/5 mx-auto">
+        <img
+          src={withBase('/diagrams/main_frame.png')}
+          alt="LiveClawBench Overview"
+          class="w-full rounded-xl border shadow-sm"
+        />
+        <p class="text-sm text-gray-500 mt-2 text-left leading-relaxed">
+          LiveClawBench overview. The benchmark first characterizes tasks with the Triple-Axis Complexity Framework, covering Environment Complexity, Cognitive Demand, and Runtime Adaptability. Each instruction is executed in an image-pinned Docker environment, where an agent interacts with full-stack mock services, bash tools, and a file system through a cross-server environment framework. The coupled environment supports stateful workflow execution, while database verification and rubric judging jointly determine the final score. Task example shown in the below Figure.
+        </p>
+      </div>
+      <img
+        src={withBase('/diagrams/LiveClawBench_case1.jpg')}
+        alt="Task Demonstration"
+        class="w-4/5 rounded-xl border shadow-sm mx-auto"
+      />
+    </div>
+  </section>
+
+  <!-- 3. Leaderboard Summary / Leaderboard 摘要 -->
+  <LeaderboardPreview />
+
+  <!-- 4. Data Distribution / 数据分布可视化 -->
+  <DataStatistics />
+
+  <!-- 5. Analysis -->
+  <section class="py-8">
+    <div class="container mx-auto px-4 max-w-4xl space-y-12">
+      <h2 class="text-2xl md:text-3xl font-bold mb-8">Analysis</h2>
+
+      <div class="w-4/5 mx-auto">
+        <img
+          src={withBase('/diagrams/factor_delta.png')}
+          alt="Factor Delta"
+          class="w-full rounded-xl border shadow-sm"
+        />
+        <p class="text-sm text-gray-500 mt-2 text-left leading-relaxed">
+          Per-model performance impact of each complexity factor. Error bars indicate 95% CI.
+        </p>
+      </div>
+
+      <div class="w-4/5 mx-auto">
+        <img
+          src={withBase('/diagrams/factor_behavior_frontier.png')}
+          alt="Factor Behavior Frontier"
+          class="w-full rounded-xl border shadow-sm"
+        />
+        <p class="text-sm text-gray-500 mt-2 text-left leading-relaxed">
+          Average behaviour metric delta per complexity factor derived from frontier models (GPT 5.5, Deepseek-v4-Pro, Deepseek-v4-Flash). Columns are grouped by what the metric measures (Effort, Looping, Diversity, Errors, State awareness, Termination); cell text is the raw delta of metrics and cell colour is z-score standardized value.
+        </p>
+      </div>
+
+      <div class="w-4/5 mx-auto">
+        <img
+          src={withBase('/diagrams/size_scaling.png')}
+          alt="Size Scaling"
+          class="w-full rounded-xl border shadow-sm"
+        />
+        <p class="text-sm text-gray-500 mt-2 text-left leading-relaxed">
+          The cost-quality scatter of mean reward against mean agent steps per trial.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Evaluation -->
+  <section class="py-12 bg-gray-50">
+    <div class="container mx-auto px-4 max-w-4xl space-y-4">
+      <h2 class="text-2xl md:text-3xl font-bold">Evaluation</h2>
+      <h3 class="text-xl font-semibold">Submitting to the LiveClawBench leaderboard</h3>
+      <p class="text-gray-600 leading-relaxed">
+        Leaderboard logs are stored in <a href="https://huggingface.co/datasets/Mosi-AI/LiveClawBench-leaderborad" target="_blank" rel="noopener noreferrer" class="font-bold text-gray-900 hover:text-black underline">this HuggingFace repo</a>. To submit your results, open a PR there following the instructions in the README.
+      </p>
+    </div>
+  </section>
+
+  <!-- 7. Representative Cases / 代表性 Case -->
+  {cases.length > 0 && (
+    <RepresentativeCases cases={cases} />
+  )}
+
+  <!-- 8. Citation -->
+  <section class="py-4">
+    <div class="container mx-auto px-4 max-w-4xl">
+      <h2 class="text-2xl md:text-3xl font-bold mb-6">Citation</h2>
+      <div class="bg-gray-50 rounded-xl">
+        <pre class="text-sm bg-gray-200 whitespace-pre-wrap break-words font-mono text-gray-700 leading-relaxed">{citationBibtex}</pre>
+      </div>
+    </div>
+  </section>
+
+</PageLayout>

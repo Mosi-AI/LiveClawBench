@@ -1,0 +1,210 @@
+---
+import tasksData from '../../../site-data/tasks.json';
+import { getSiteConfig, getFactorMap, getGithubDirUrl } from '../../data/site-config';
+
+const config = getSiteConfig();
+const factorMap = getFactorMap();
+
+// Compute task-level statistics from tasks.json
+const tasks = tasksData.tasks;
+const totalTasks = tasks.length;
+
+const tasksByDifficulty: Record<string, number> = {};
+const tasksByDomain: Record<string, number> = {};
+const tasksByFactor: Record<string, number> = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+
+// Multi-factor overlap distribution
+const factorCountBuckets: Record<string, number> = { '0 factors': 0, '1 factor': 0, '2 factors': 0, '3 factors': 0, '4+ factors': 0 };
+
+for (const task of tasks) {
+  const diff = task.difficulty;
+  tasksByDifficulty[diff] = (tasksByDifficulty[diff] || 0) + 1;
+
+  const domain = task.domain;
+  tasksByDomain[domain] = (tasksByDomain[domain] || 0) + 1;
+
+  let enabledFactorCount = 0;
+  if (task.factors) {
+    for (const [factor, enabled] of Object.entries(task.factors)) {
+      if (enabled) {
+        tasksByFactor[factor] = (tasksByFactor[factor] || 0) + 1;
+        enabledFactorCount++;
+      }
+    }
+  }
+
+  if (enabledFactorCount === 0) {
+    factorCountBuckets['0 factors']++;
+  } else if (enabledFactorCount === 1) {
+    factorCountBuckets['1 factor']++;
+  } else if (enabledFactorCount === 2) {
+    factorCountBuckets['2 factors']++;
+  } else if (enabledFactorCount === 3) {
+    factorCountBuckets['3 factors']++;
+  } else {
+    factorCountBuckets['4+ factors']++;
+  }
+}
+
+const factorSubColors: Record<string, string> = {
+  A1: 'text-orange-600',
+  A2: 'text-red-600',
+  B1: 'text-purple-600',
+  B2: 'text-green-600',
+  C1: 'text-cyan-600',
+  C2: 'text-blue-600',
+};
+
+const factorBarColors: Record<string, string> = {
+  A1: 'bg-orange-400',
+  A2: 'bg-red-400',
+  B1: 'bg-purple-400',
+  B2: 'bg-green-400',
+  C1: 'bg-cyan-400',
+  C2: 'bg-blue-400',
+};
+
+// Factor overlap bucket colors
+const factorOverlapColors = ['bg-gray-400', 'bg-blue-400', 'bg-indigo-400', 'bg-violet-500', 'bg-purple-600'];
+const factorOverlapTextColors = ['text-gray-600', 'text-blue-600', 'text-indigo-600', 'text-violet-600', 'text-purple-600'];
+
+// Domain color palette
+const domainColors = [
+  'bg-blue-500',
+  'bg-indigo-500',
+  'bg-cyan-500',
+  'bg-teal-500',
+  'bg-emerald-500',
+  'bg-amber-500',
+  'bg-rose-500',
+];
+
+// Step length gradient colors
+const stepColors = [
+  'bg-sky-300',
+  'bg-sky-400',
+  'bg-blue-400',
+  'bg-blue-500',
+  'bg-indigo-400',
+  'bg-indigo-500',
+  'bg-violet-400',
+  'bg-violet-500',
+  'bg-purple-500',
+  'bg-purple-600',
+];
+
+// GitHub tasks folder URL
+const githubTasksUrl = getGithubDirUrl('tasks');
+---
+
+<section class="py-8">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <h2 class="text-2xl md:text-3xl font-bold mb-8">Data Distribution</h2>
+
+    <!-- ==================== Task Data Distribution ==================== -->
+    <div class="mb-10">
+      <div class="flex items-center gap-3 mb-6">
+        <h3 class="font-bold text-lg text-gray-800">Task Data Distribution</h3>
+        <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200">
+          {totalTasks} Tasks
+        </span>
+        <a
+          href={githubTasksUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 text-sm text-gray-900 hover:text-black font-medium"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          View on GitHub →
+        </a>
+      </div>
+
+      <!-- Task Difficulty Distribution -->
+      <div class="bg-white rounded-xl border p-6 mb-6">
+        <h4 class="font-bold text-lg mb-4">Difficulty Distribution</h4>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="text-center p-4 bg-green-50 rounded-lg border border-green-100">
+            <div class="text-2xl font-bold text-green-700">{tasksByDifficulty.easy || 0}</div>
+            <div class="text-sm text-green-600">Easy</div>
+            <div class="text-xs text-green-500 mt-1">{(((tasksByDifficulty.easy || 0) / totalTasks) * 100).toFixed(1)}%</div>
+          </div>
+          <div class="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+            <div class="text-2xl font-bold text-yellow-700">{tasksByDifficulty.medium || 0}</div>
+            <div class="text-sm text-yellow-600">Medium</div>
+            <div class="text-xs text-yellow-500 mt-1">{(((tasksByDifficulty.medium || 0) / totalTasks) * 100).toFixed(1)}%</div>
+          </div>
+          <div class="text-center p-4 bg-red-50 rounded-lg border border-red-100">
+            <div class="text-2xl font-bold text-red-700">{tasksByDifficulty.hard || 0}</div>
+            <div class="text-sm text-red-600">Hard</div>
+            <div class="text-xs text-red-500 mt-1">{(((tasksByDifficulty.hard || 0) / totalTasks) * 100).toFixed(1)}%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Domain Distribution -->
+      <div class="bg-white rounded-xl border p-6 mb-6">
+        <h4 class="font-bold text-lg mb-4">Domain Distribution</h4>
+        <div class="space-y-3">
+          {Object.entries(tasksByDomain).map(([domain, count], idx) => (
+            <div class="flex items-center gap-3">
+              <span class="text-sm text-gray-600 w-48 truncate">{domain}</span>
+              <div class="flex-1 bg-gray-100 rounded-full h-6 relative">
+                <div
+                  class={`${domainColors[idx % domainColors.length]} h-6 rounded-full flex items-center justify-end pr-2`}
+                  style={`width: ${Math.min(Math.max((count as number / totalTasks) * 100 / 35 * 100, 5), 100)}%`}
+                >
+                  <span class="text-xs text-white font-medium">{count as number}</span>
+                </div>
+              </div>
+              <span class="text-xs text-gray-400 w-12 text-right">{((count as number / totalTasks) * 100).toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Task Complexity Factor Distribution (bar chart only) -->
+      <div class="bg-white rounded-xl border p-6 mb-6">
+        <h4 class="font-bold text-lg mb-4">Complexity Factor Distribution</h4>
+        <p class="text-sm text-gray-500 mb-4">Tasks are tagged with complexity factors that make them challenging for agents. A single task may match multiple factors.</p>
+        <div class="space-y-2">
+          {Object.entries(tasksByFactor).map(([factor, count]) => (
+            <div class="flex items-center gap-3">
+              <span class={`text-xs font-medium w-48 truncate ${factorSubColors[factor] || 'text-gray-600'}`}>{factor}: {factorMap[factor]?.name || factor}</span>
+              <div class="flex-1 bg-gray-100 rounded-full h-5 relative">
+                <div
+                  class={`${factorBarColors[factor] || 'bg-gray-400'} h-5 rounded-full flex items-center justify-end pr-2`}
+                  style={`width: ${Math.min(Math.max((count as number / totalTasks) * 100 / 60 * 100, 5), 100)}%`}
+                >
+                  <span class="text-xs text-white font-medium">{count as number}</span>
+                </div>
+              </div>
+              <span class="text-xs text-gray-400 w-12 text-right">{((count as number / totalTasks) * 100).toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Multi-Factor Overlap Distribution -->
+      <div class="bg-white rounded-xl border p-6 mb-6">
+        <h4 class="font-bold text-lg mb-4">Multi-Factor Overlap Distribution</h4>
+        <p class="text-sm text-gray-500 mb-4">How many factors each task has enabled simultaneously.</p>
+        <div class="space-y-2">
+          {Object.entries(factorCountBuckets).map(([label, count], idx) => (
+            <div class="flex items-center gap-3">
+              <span class={`text-xs font-medium w-48 truncate ${factorOverlapTextColors[idx]}`}>{label}</span>
+              <div class="flex-1 bg-gray-100 rounded-full h-5 relative">
+                <div
+                  class={`${factorOverlapColors[idx]} h-5 rounded-full flex items-center justify-end pr-2`}
+                  style={`width: ${Math.max((count / totalTasks) * 100, 5)}%`}
+                >
+                  <span class="text-xs text-white font-medium">{count}</span>
+                </div>
+              </div>
+              <span class="text-xs text-gray-400 w-12 text-right">{((count / totalTasks) * 100).toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,22 @@
+---
+import PageLayout from '../../layouts/PageLayout.astro';
+import TaskList from '../../components/tasks/TaskList.tsx';
+import { getAllTasks } from '../../data/tasks';
+
+const tasks = getAllTasks();
+---
+
+<PageLayout title="Task Browser - LiveClawBench">
+  <div class="container mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-2">Task Browser</h1>
+    <p class="text-gray-600 mb-8">Browse and filter all benchmark tasks.</p>
+
+    {tasks.length > 0 ? (
+      <TaskList client:load tasks={tasks} />
+    ) : (
+      <div class="bg-white rounded-xl border p-12 text-center text-gray-400">
+        <p>No tasks available yet.</p>
+      </div>
+    )}
+  </div>
+</PageLayout>
