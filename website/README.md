@@ -68,7 +68,7 @@ LiveClawBench/
 │   ├── update_site_data.sh        #   主流程：tasks/leaderboard/diagrams 全量刷新
 │   ├── generate_site_data.py      #   从 worktree 生成 tasks.json/domains.toml/mock-apps.json
 │   ├── generate_leaderboard.py    #   从 analysis_outputs 生成 leaderboard.json
-│   ├── generate-trajectory.mjs    #   从 HuggingFace 拉取轨迹数据并生成分布/任务结果
+│   ├── generate-trajectory.mjs    #   从 HuggingFace 拉取轨迹数据并生成 trajectory-distribution.json
 │   └── fetch-data.ps1             #   PowerShell 脚本：从 HuggingFace 下载 raw-rows.json
 │
 ├── site-content/                  # 项目方维护的内容（手工编辑）
@@ -148,7 +148,7 @@ bash scripts/update_site_data.sh
 python scripts/generate_site_data.py --worktree <PATH> --output site-data
 python scripts/generate_leaderboard.py --analysis-root <PATH> --output site-data/leaderboard.json
 
-# 从 HuggingFace 拉取真实轨迹数据（trajectory-distribution.json / task-results.json）
+# 从 HuggingFace 拉取真实轨迹数据（trajectory-distribution.json）
 node scripts/generate-trajectory.mjs
 node scripts/generate-trajectory.mjs --skip-fetch  # 仅处理已有 raw-rows.json
 ```
@@ -156,7 +156,7 @@ node scripts/generate-trajectory.mjs --skip-fetch  # 仅处理已有 raw-rows.js
 > **注意**：
 > - `site-data/` 目录下的文件由脚本自动生成，请勿手工编辑。如需修改内容，请编辑 `site-content/` 下的源文件后重新运行生成脚本。
 > - `update_site_data.sh` 默认从当前 worktree (`REPO_ROOT`) 读取任务数据；如果 worktree 中没有 `traj_validation/analysis_outputs`，会自动回落到 primary checkout。可通过 `WORKTREE=` / `ANALYSIS_ROOT=` 环境变量覆盖。
-> - `generate-trajectory.mjs` 先执行 `fetch-data.ps1` 从 HuggingFace 下载 `raw-rows.json`，然后处理生成 `trajectory-distribution.json` 和 `task-results.json`。使用 `--skip-fetch` 可跳过下载步骤。Leaderboard 由 `generate_leaderboard.py` 独立维护，该脚本不再覆盖它。
+> - `generate-trajectory.mjs` 先执行 `fetch-data.ps1` 从 HuggingFace 下载 `raw-rows.json`，然后处理生成 `trajectory-distribution.json`。使用 `--skip-fetch` 可跳过下载步骤。Leaderboard 和 task-results 由 `generate_leaderboard.py` 独立维护（同一份 calibrated analysis tables），该脚本不再写它们，避免数据漂移。
 
 ### 部署流程
 
