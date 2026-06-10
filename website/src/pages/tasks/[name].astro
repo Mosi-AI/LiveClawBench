@@ -59,7 +59,7 @@ taskResults.sort((a, b) => (b.avgScore ?? 0) - (a.avgScore ?? 0));
         </span>
         <span class="text-sm text-gray-500">Domain: {task.domain}</span>
         {task.mock_apps.map(app => (
-          <a href={withBase(`/mocks/${app}`)} class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">{app}</a>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{app}</span>
         ))}
       </div>
     </div>
@@ -111,8 +111,11 @@ taskResults.sort((a, b) => (b.avgScore ?? 0) - (a.avgScore ?? 0));
       </div>
     </div>
 
-    <!-- Mock Apps -->
-    {relatedMockApps.length > 0 && (
+    {/* Mock Apps section temporarily hidden alongside the disabled /mocks pages.
+        To restore: rename pages/_mocks_disabled back to pages/mocks, re-add the
+        Mock Apps nav entry in site-content/site-config.json, and re-enable this
+        block + the linked tags in TaskList.tsx and [name].astro headline. */}
+    {false && relatedMockApps.length > 0 && (
       <div class="bg-white rounded-xl border p-6 mb-6">
         <h2 class="font-bold text-lg mb-3">Mock Apps</h2>
         <div class="grid md:grid-cols-2 gap-4">

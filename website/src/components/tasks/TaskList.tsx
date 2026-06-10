@@ -195,7 +195,7 @@ export default function TaskList({ tasks }: Props) {
           {FACTOR_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label === 'All' ? 'Factor: All' : o.label}</option>)}
         </select>
 
-        {/* Mock App */}
+        {/* Mock App filter temporarily hidden alongside the disabled /mocks pages.
         <select
           value={mockAppFilter}
           onChange={(e) => { setMockAppFilter(e.target.value); setCurrentPage(1); }}
@@ -203,6 +203,7 @@ export default function TaskList({ tasks }: Props) {
         >
           {mockAppOptions.map(o => <option key={o.value} value={o.value}>{o.label === 'All' ? 'Mock App: All' : o.label}</option>)}
         </select>
+        */}
 
         {/* Reset */}
         <button onClick={resetFilters} className="text-sm text-gray-500 hover:text-gray-700 underline">
@@ -283,14 +284,12 @@ export default function TaskList({ tasks }: Props) {
                   <td className="px-2 py-2 text-xs">
                     <div className="flex flex-wrap gap-1">
                       {task.mock_apps.map(app => (
-                        <a
+                        <span
                           key={app}
-                          href={withBase(`/mocks/${app}`)}
-                          className="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 hover:underline"
-                          onClick={(e) => e.stopPropagation()}
+                          className="px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700"
                         >
                           {app}
-                        </a>
+                        </span>
                       ))}
                     </div>
                   </td>
