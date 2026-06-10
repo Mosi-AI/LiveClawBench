@@ -18,10 +18,12 @@ permissions:
   pages: write
   id-token: write
 
-# Only one concurrent deployment; cancel in-progress runs on the same branch
+# Build is scoped per ref so a slow PR build can't block main's deploy.
+# Deploy-only serialization lives on the deploy job below (GitHub Pages
+# requires one in-flight deploy at a time).
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -65,6 +67,10 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
+    # GitHub Pages allows one in-flight deploy at a time.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

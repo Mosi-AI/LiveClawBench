@@ -67,11 +67,10 @@ LiveClawBench/
 │       └── global.css             # 全局样式（Tailwind 指令 + 自定义组件样式）
 │
 ├── scripts/                       # 数据生成脚本
-│   ├── generate-all.ts            #   执行所有生成脚本
-│   ├── generate-trajectory.mjs    #   从 HuggingFace 拉取轨迹数据并生成排行榜/分布数据
-│   ├── generate-tasks.ts          #   从本地镜像生成 tasks.json
-│   ├── generate-mocks.ts          #   从本地镜像生成 mock apps 数据
-│   ├── generate-domains.ts        #   从本地镜像复制 domains.toml
+│   ├── update_site_data.sh        #   主流程：tasks/leaderboard/diagrams 全量刷新
+│   ├── generate_site_data.py      #   从 worktree 生成 tasks.json/domains.toml/mock-apps.json
+│   ├── generate_leaderboard.py    #   从 analysis_outputs 生成 leaderboard.json
+│   ├── generate-trajectory.mjs    #   从 HuggingFace 拉取轨迹数据并生成分布/任务结果
 │   └── fetch-data.ps1             #   PowerShell 脚本：从 HuggingFace 下载 raw-rows.json
 │
 ├── site-content/                  # 项目方维护的内容（手工编辑）
@@ -144,24 +143,27 @@ npm run preview
 
 ### 数据生成
 
-网站数据由脚本从本地数据镜像和 HuggingFace 生成到 `site-data/` 目录。所有脚本均从本地 `documents/LiveClawBench-main/` 目录读取源数据，不依赖在线 GitHub 访问。
+网站数据由脚本从本地 worktree 和 HuggingFace 生成到 `site-data/` 目录。
 
 ```bash
-# 生成所有数据（tasks、mocks、domains、trajectory）
-npx ts-node --esm scripts/generate-all.ts
+# 主流程：从当前 worktree + traj_validation/analysis_outputs 刷新
+# tasks.json / metrics-summary.json / domains.toml / mock-apps.json / leaderboard.json
+# 以及 public/diagrams/ 下的分析图。无需网络。
+bash scripts/update_site_data.sh
 
-# 单独生成
-npx ts-node --esm scripts/generate-tasks.ts      # 从本地镜像生成 tasks.json
-npx ts-node --esm scripts/generate-mocks.ts      # 从本地镜像生成 mock-apps.json
-npx ts-node --esm scripts/generate-domains.ts    # 从本地镜像复制 domains.toml
-node scripts/generate-trajectory.mjs              # 从 HuggingFace 拉取 + 处理轨迹数据
-node scripts/generate-trajectory.mjs --skip-fetch # 仅处理已有数据（跳过下载）
+# 也可单独跑（高级用法）
+python scripts/generate_site_data.py --worktree <PATH> --output site-data
+python scripts/generate_leaderboard.py --analysis-root <PATH> --output site-data/leaderboard.json
+
+# 从 HuggingFace 拉取真实轨迹数据（trajectory-distribution.json / task-results.json）
+node scripts/generate-trajectory.mjs
+node scripts/generate-trajectory.mjs --skip-fetch  # 仅处理已有 raw-rows.json
 ```
 
 > **注意**：
 > - `site-data/` 目录下的文件由脚本自动生成，请勿手工编辑。如需修改内容，请编辑 `site-content/` 下的源文件后重新运行生成脚本。
-> - `generate-trajectory.mjs` 会先执行 `fetch-data.ps1` 从 HuggingFace 下载 `raw-rows.json`，然后处理生成 `leaderboard.json`、`trajectory-distribution.json` 和 `task-results.json`。使用 `--skip-fetch` 可跳过下载步骤。
-> - `generate-tasks.ts`、`generate-mocks.ts`、`generate-domains.ts` 均从本地 `documents/LiveClawBench-main/` 目录读取数据，无需网络访问。
+> - `update_site_data.sh` 默认从当前 worktree (`REPO_ROOT`) 读取任务数据；如果 worktree 中没有 `traj_validation/analysis_outputs`，会自动回落到 primary checkout。可通过 `WORKTREE=` / `ANALYSIS_ROOT=` 环境变量覆盖。
+> - `generate-trajectory.mjs` 先执行 `fetch-data.ps1` 从 HuggingFace 下载 `raw-rows.json`，然后处理生成 `trajectory-distribution.json` 和 `task-results.json`。使用 `--skip-fetch` 可跳过下载步骤。Leaderboard 由 `generate_leaderboard.py` 独立维护，该脚本不再覆盖它。
 
 ### 部署流程
 
@@ -196,15 +198,15 @@ push to main → GitHub Actions 触发 → npm ci → npm run build → 上传 d
 
 ### 更新 Task 数据
 
-在本地镜像 `documents/LiveClawBench-main/` 中更新仓库原始数据后，重新生成：
+在当前 worktree 的 `tasks/` 或 `docs/metadata/cases_registry*.csv` 更新后，重新生成 site-data：
 
 ```bash
-npx ts-node --esm scripts/generate-tasks.ts
+bash scripts/update_site_data.sh
 ```
 
 ### 更新 Leaderboard / 轨迹数据
 
-从 HuggingFace 拉取最新轨迹数据并重新生成排行榜和分布统计：
+Leaderboard 由 `update_site_data.sh` 从 `traj_validation/analysis_outputs/` 生成。如果要刷新 HuggingFace 上的真实轨迹数据：
 
 ```bash
 node scripts/generate-trajectory.mjs
@@ -235,16 +237,16 @@ summary: 文章摘要
 ### 补充 Mock App 截图
 
 1. 将截图放入 `public/mock-previews/<mock-id>/`
-2. 重新运行 `npx ts-node --esm scripts/generate-mocks.ts` 生成数据
+2. 重新运行 `bash scripts/update_site_data.sh` 刷新 `mock-apps.json`
 
 ## 使用流程
 
 1. 补充数据
-     - [ ] 从`https://github.com/Mosi-AI/LiveClawBench`下载对应代码到`documents/`(github链接不稳定，最好下载到本地生成数据，防止重试多次后任务失败)
+     - [ ] 在当前 worktree 中更新 `tasks/`、`docs/metadata/cases_registry*.csv`
      - [ ] 网站首页展示信息，修改`site-content/site-config.json`文件内容
      - [ ] mock app截图
      - [ ] blog 内容 
-2. 执行 `npx ts-node --esm scripts/generate-all.ts` (会从本地LiveClawBench代码中组织task/mock app/domain数据，并从HuggingFace 拉取最新轨迹数据)
+2. 执行 `bash scripts/update_site_data.sh`（从 worktree + traj_validation/analysis_outputs 生成 tasks/leaderboard/diagrams）。如需刷新 HuggingFace 轨迹数据，另跑 `node scripts/generate-trajectory.mjs`。
 3. dev环境开发：`npm install;npm run dev`
 4. 生产环境预览：`npm run build;npm run preview`
 5. Deploy to GitHub Pages `.github/workflows/deploy.yml`

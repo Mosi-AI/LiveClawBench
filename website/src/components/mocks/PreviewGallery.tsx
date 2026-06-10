@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { PreviewAsset } from '../../data/types';
+import { withBase } from '../../lib/urls';
 import HotspotImage from './HotspotImage';
 
 interface Props {
@@ -31,19 +32,19 @@ export default function PreviewGallery({ assets }: Props) {
       >
         {current.type === 'video' ? (
           <div className="aspect-video">
-            <video src={current.src} controls className="w-full h-full object-contain" />
+            <video src={withBase(current.src)} controls className="w-full h-full object-contain" />
           </div>
         ) : hasHotspots ? (
           <div>
             <HotspotImage
-              src={current.src}
+              src={withBase(current.src)}
               alt={current.caption || 'Preview'}
               hotspots={current.hotspots}
             />
           </div>
         ) : (
           <div className="aspect-video">
-            <img src={current.src} alt={current.caption || 'Preview'} className="w-full h-full object-contain" />
+            <img src={withBase(current.src)} alt={current.caption || 'Preview'} className="w-full h-full object-contain" />
           </div>
         )}
         {current.caption && !hasHotspots && (
@@ -76,7 +77,7 @@ export default function PreviewGallery({ assets }: Props) {
                     Video
                   </div>
                 ) : (
-                  <img src={asset.src} alt={asset.caption || `Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                  <img src={withBase(asset.src)} alt={asset.caption || `Preview ${idx + 1}`} className="w-full h-full object-cover" />
                 )}
                 {itemHasHotspots && (
                   <div className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-yellow-400 rounded-full border border-white" />
@@ -95,9 +96,9 @@ export default function PreviewGallery({ assets }: Props) {
         >
           <div className="max-w-4xl max-h-full" onClick={e => e.stopPropagation()}>
             {current.type === 'video' ? (
-              <video src={current.src} controls className="max-w-full max-h-[80vh]" />
+              <video src={withBase(current.src)} controls className="max-w-full max-h-[80vh]" />
             ) : (
-              <img src={current.src} alt={current.caption || 'Preview'} className="max-w-full max-h-[80vh] object-contain" />
+              <img src={withBase(current.src)} alt={current.caption || 'Preview'} className="max-w-full max-h-[80vh] object-contain" />
             )}
             {current.caption && (
               <p className="text-white text-center mt-2 text-sm">{current.caption}</p>

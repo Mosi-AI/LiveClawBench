@@ -21,34 +21,9 @@ const DIFFICULTY_OPTIONS = [
   { value: 'hard', label: 'Hard' },
 ];
 
-const DOMAIN_OPTIONS = [
-  { value: '', label: 'All' },
-  { value: 'E-commerce & Daily Svcs', label: 'E-commerce & Daily Svcs' },
-  { value: 'Communication', label: 'Communication' },
-  { value: 'Travel & Transportation', label: 'Travel & Transportation' },
-  { value: 'Productivity & Organization', label: 'Productivity & Organization' },
-  { value: 'Documents & Knowledge', label: 'Documents & Knowledge' },
-  { value: 'IT & DevOps', label: 'IT & DevOps' },
-];
-
 const FACTOR_OPTIONS = [
   { value: '', label: 'All' },
   ...siteConfig.factors.map(f => ({ value: f.slug, label: `${f.slug}: ${f.name}` })),
-];
-
-const MOCK_APP_OPTIONS = [
-  { value: '', label: 'All' },
-  { value: 'shop', label: 'Shop' },
-  { value: 'email', label: 'Email' },
-  { value: 'map', label: 'Map' },
-  { value: 'calendar', label: 'Calendar' },
-  { value: 'docs', label: 'Docs' },
-  { value: 'terminal', label: 'Terminal' },
-  { value: 'notes', label: 'Notes' },
-  { value: 'drive', label: 'Drive' },
-  { value: 'chat', label: 'Chat' },
-  { value: 'flight', label: 'Flight' },
-  { value: 'hotel', label: 'Hotel' },
 ];
 
 const difficultyClass: Record<string, string> = {
@@ -75,6 +50,36 @@ export default function TaskList({ tasks }: Props) {
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
+
+  // Derive filter options from the actual task corpus so they always match
+  // what the user can find. Hardcoded lists drift the moment a task is
+  // added/renamed/removed.
+  const domainOptions = useMemo(() => {
+    const seen = new Set<string>();
+    for (const t of tasks) {
+      if (t.domain) seen.add(t.domain);
+      for (const d of t.domains_multi || []) {
+        if (d) seen.add(d);
+      }
+    }
+    return [
+      { value: '', label: 'All' },
+      ...[...seen].sort().map(d => ({ value: d, label: d })),
+    ];
+  }, [tasks]);
+
+  const mockAppOptions = useMemo(() => {
+    const seen = new Set<string>();
+    for (const t of tasks) {
+      for (const m of t.mock_apps || []) {
+        if (m) seen.add(m);
+      }
+    }
+    return [
+      { value: '', label: 'All' },
+      ...[...seen].sort().map(m => ({ value: m, label: m })),
+    ];
+  }, [tasks]);
 
   const filteredTasks = useMemo(() => {
     let result = tasks;
@@ -178,7 +183,7 @@ export default function TaskList({ tasks }: Props) {
           onChange={(e) => { setDomainFilter(e.target.value); setCurrentPage(1); }}
           className="px-3 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
-          {DOMAIN_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label === 'All' ? 'Domain: All' : o.label}</option>)}
+          {domainOptions.map(o => <option key={o.value} value={o.value}>{o.label === 'All' ? 'Domain: All' : o.label}</option>)}
         </select>
 
         {/* Factor */}
@@ -196,7 +201,7 @@ export default function TaskList({ tasks }: Props) {
           onChange={(e) => { setMockAppFilter(e.target.value); setCurrentPage(1); }}
           className="px-3 py-1.5 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
-          {MOCK_APP_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label === 'All' ? 'Mock App: All' : o.label}</option>)}
+          {mockAppOptions.map(o => <option key={o.value} value={o.value}>{o.label === 'All' ? 'Mock App: All' : o.label}</option>)}
         </select>
 
         {/* Reset */}

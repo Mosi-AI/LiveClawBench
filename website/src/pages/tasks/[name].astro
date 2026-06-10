@@ -7,7 +7,6 @@ import { getGithubFileUrl, getFactorMap, getFactorSlugs } from '../../data/site-
 import { withBase } from '../../lib/urls';
 import type { Task } from '../../data/types';
 import taskResultsData from '../../../site-data/task-results.json';
-import rawRowsData from '../../../site-data/raw-rows.json';
 
 export function getStaticPaths() {
   const tasks = getAllTasks();
@@ -44,39 +43,6 @@ const rewardRange = '0 – 1';
 const taskResults = (taskResultsData as Record<string, { model: string; avgScore: number | null; attempts: number; allPassed: boolean }[]>)[task.name] || [];
 taskResults.sort((a, b) => (b.avgScore ?? 0) - (a.avgScore ?? 0));
 
-// Per-task trajectory stats from raw-rows data
-const taskRows = (rawRowsData as any[]).filter((r: any) => r.case_name === task.name);
-const hasPublicTrajectories = taskRows.length > 0;
-const trajectoryModelCount = new Set(taskRows.map((r: any) => r.model_name)).size;
-// Group trajectories by model
-const trajectoriesByModel = new Map<string, any[]>();
-for (const row of taskRows) {
-  const list = trajectoriesByModel.get(row.model_name) || [];
-  list.push(row);
-  trajectoriesByModel.set(row.model_name, list);
-}
-let avgSteps = 0;
-let avgPromptTokens = 0;
-let avgCompletionTokens = 0;
-if (taskRows.length > 0) {
-  let totalSteps = 0;
-  let totalPromptTokens = 0;
-  let totalCompletionTokens = 0;
-  for (const row of taskRows) {
-    try {
-      const parsed = JSON.parse(row.trajectory || '{}');
-      const steps = parsed?.steps ?? [];
-      totalSteps += steps.length;
-      for (const step of steps) {
-        totalPromptTokens += step.metrics?.prompt_tokens || 0;
-        totalCompletionTokens += step.metrics?.completion_tokens || 0;
-      }
-    } catch {}
-  }
-  avgSteps = Math.round(totalSteps / taskRows.length);
-  avgPromptTokens = Math.round(totalPromptTokens / taskRows.length);
-  avgCompletionTokens = Math.round(totalCompletionTokens / taskRows.length);
-}
 ---
 
 <PageLayout title={`${task.name} - LiveClawBench`}>
@@ -238,73 +204,11 @@ if (taskRows.length > 0) {
     <!-- Trajectory Info -->
     <div class="bg-white rounded-xl border p-6 mb-6">
       <h2 class="font-bold text-lg mb-3">Public Trajectories</h2>
-      {hasPublicTrajectories ? (
-        <div class="space-y-4">
-          <!-- Status badge -->
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">✓ Trajectories Available</span>
-            <span class="text-sm text-gray-500">{taskRows.length} trajectories from {trajectoryModelCount} models</span>
-          </div>
-          <!-- Stats cards -->
-          <div class="grid grid-cols-3 gap-3">
-            <div class="text-center p-3 bg-blue-50 rounded-lg">
-              <div class="text-xl font-bold text-blue-700">{avgSteps}</div>
-              <div class="text-xs text-blue-600">Avg Steps</div>
-            </div>
-            <div class="text-center p-3 bg-indigo-50 rounded-lg">
-              <div class="text-xl font-bold text-indigo-700">{(avgPromptTokens / 1000).toFixed(1)}k</div>
-              <div class="text-xs text-indigo-600">Avg Prompt Tokens</div>
-            </div>
-            <div class="text-center p-3 bg-violet-50 rounded-lg">
-              <div class="text-xl font-bold text-violet-700">{(avgCompletionTokens / 1000).toFixed(1)}k</div>
-              <div class="text-xs text-violet-600">Avg Completion Tokens</div>
-            </div>
-          </div>
-          <!-- Model breakdown -->
-          <div class="space-y-2">
-            {[...trajectoriesByModel.entries()].map(([modelName, rows]) => (
-              <details class="border rounded-lg group">
-                <summary class="px-4 py-2.5 cursor-pointer hover:bg-gray-50 flex items-center justify-between text-sm">
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium text-gray-800">{modelName}</span>
-                    <span class="text-xs text-gray-400">{rows.length} trajectory{rows.length > 1 ? 'ies' : 'y'}</span>
-                  </div>
-                  <svg class="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </summary>
-                <div class="px-4 pb-3">
-                  <div class="flex flex-wrap gap-2">
-                    {rows.map(row => (
-                      <span
-                        class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200"
-                      >
-                        {row.sample_id.replace(`${modelName}_`, '').replace(/_\d+$/, '')} #{row.sample_id.split('_').pop()}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </details>
-            ))}
-          </div>
-          <!-- Links -->
-          <div class="flex flex-wrap gap-3">
-            <a href={`https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories/viewer/default/v0.1.0?views%5B%5D=v010&sql=SELECT+*+FROM+v010+where+case_id%3D${task.case_id}%3B`} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.079 2.25a.75.75 0 0 0-.67.489l-3.5 8.5a.75.75 0 0 0 1.382.572L10.56 8.5h3.882l1.269 3.311a.75.75 0 1 0 1.382-.572l-3.5-8.5a.75.75 0 0-.67-.489h-.844zM12 4.678L13.56 7h-3.12L12 4.678zM5.5 14.75a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5h-13zM5.5 18.75a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5h-13z"/></svg>
-              View on HuggingFace
-            </a>
-          </div>
-        </div>
-      ) : (
-        <div class="space-y-3">
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">✗ No Public Trajectories</span>
-            <span class="text-sm text-gray-400">No trajectories have been published for this task yet.</span>
-          </div>
-          <a href={`https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories`} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.079 2.25a.75.75 0 0 0-.67.489l-3.5 8.5a.75.75 0 0 0 1.382.572L10.56 8.5h3.882l1.269 3.311a.75.75 0 1 0 1.382-.572l-3.5-8.5a.75.75 0 0-.67-.489h-.844zM12 4.678L13.56 7h-3.12L12 4.678zM5.5 14.75a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5h-13zM5.5 18.75a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5h-13z"/></svg>
-            Browse Dataset on HuggingFace
-          </a>
-        </div>
-      )}
+      <p class="text-sm text-gray-500 mb-3">Run trajectories for this task live on HuggingFace.</p>
+      <a href={`https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories/viewer/default/v0.1.0?views%5B%5D=v010&sql=SELECT+*+FROM+v010+where+case_id%3D${task.case_id}%3B`} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.079 2.25a.75.75 0 0 0-.67.489l-3.5 8.5a.75.75 0 0 0 1.382.572L10.56 8.5h3.882l1.269 3.311a.75.75 0 1 0 1.382-.572l-3.5-8.5a.75.75 0 0-.67-.489h-.844zM12 4.678L13.56 7h-3.12L12 4.678zM5.5 14.75a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5h-13zM5.5 18.75a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5h-13z"/></svg>
+        View trajectories on HuggingFace
+      </a>
     </div>
 
     <!-- Source Files -->

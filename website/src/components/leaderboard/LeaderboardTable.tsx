@@ -1,10 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { Fragment, useState, useMemo, useEffect } from 'react';
 import type { LeaderboardEntry } from '../../data/types';
 import siteConfig from '../../../site-content/site-config.json';
-
-const factorMap = Object.fromEntries(
-  siteConfig.factors.map(f => [f.slug, { name: f.name, Axis: f.Axis, Description: f.Description }])
-) as Record<string, { name: string; Axis: string; Description: string }>;
 
 interface Props {
   data: LeaderboardEntry[];
@@ -32,17 +28,17 @@ export default function LeaderboardTable({ data }: Props) {
     if (key === 'rank') return entry.rank;
     if (key === 'overall') return entry.overall;
     if (key === 'bestScore') return entry.bestScore ?? 0;
-    if (key === 'easy') return entry.difficulty.easy;
-    if (key === 'medium') return entry.difficulty.medium;
-    if (key === 'hard') return entry.difficulty.hard;
-    if (key === 'A1') return entry.factors.A1;
-    if (key === 'A2') return entry.factors.A2;
-    if (key === 'B1') return entry.factors.B1;
-    if (key === 'B2') return entry.factors.B2;
-    if (key === 'C1') return entry.factors.C1;
-    if (key === 'C2') return entry.factors.C2;
-    if (key === 'runs') return entry.runs;
-    if (key === 'coverage') return entry.coverage;
+    if (key === 'easy') return entry.difficulty.easy ?? 0;
+    if (key === 'medium') return entry.difficulty.medium ?? 0;
+    if (key === 'hard') return entry.difficulty.hard ?? 0;
+    if (key === 'A1') return entry.factors.A1 ?? 0;
+    if (key === 'A2') return entry.factors.A2 ?? 0;
+    if (key === 'B1') return entry.factors.B1 ?? 0;
+    if (key === 'B2') return entry.factors.B2 ?? 0;
+    if (key === 'C1') return entry.factors.C1 ?? 0;
+    if (key === 'C2') return entry.factors.C2 ?? 0;
+    if (key === 'runs') return entry.runs ?? 0;
+    if (key === 'coverage') return entry.coverage ?? 0;
     if (key.startsWith('domain:')) {
       const domainKey = key.slice(7);
       return entry.domains[domainKey] ?? 0;
@@ -191,7 +187,7 @@ export default function LeaderboardTable({ data }: Props) {
                     </div>
                     <div>
                       <div className="text-xs text-gray-500">Runs</div>
-                      <div className="text-sm font-semibold text-gray-800">{entry.runs || '—'}</div>
+                      <div className="text-sm font-semibold text-gray-800">{entry.runs ?? '—'}</div>
                     </div>
                     <div>
                       <div className="text-xs text-gray-500">Coverage</div>
@@ -360,9 +356,8 @@ export default function LeaderboardTable({ data }: Props) {
           </thead>
           <tbody>
             {filteredData.map((entry) => (
-              <>
+              <Fragment key={entry.model}>
                 <tr
-                  key={entry.model}
                   className="border-b hover:bg-gray-50 cursor-pointer"
                   onClick={() => setExpandedRow(expandedRow === entry.model ? null : entry.model)}
                 >
@@ -421,11 +416,11 @@ export default function LeaderboardTable({ data }: Props) {
                   {view === 'domain' && domainKeys.map(dk => (
                     <td key={dk} className="px-2 py-3 text-xs text-blue-600 text-center">{entry.domains[dk]?.toFixed(1) ?? '-'}</td>
                   ))}
-                  <td className="px-3 py-3 text-xs text-gray-600 text-center">{entry.runs || '—'}</td>
+                  <td className="px-3 py-3 text-xs text-gray-600 text-center">{entry.runs ?? '—'}</td>
                 </tr>
                 {/* Expanded Detail View */}
                 {expandedRow === entry.model && (
-                  <tr key={`${entry.model}-expanded`}>
+                  <tr>
                     <td colSpan={5 + (view === 'difficulty' ? 3 : view === 'factor' ? siteConfig.factors.length : view === 'domain' ? domainKeys.length : 0)} className="px-4 sm:px-8 py-4 bg-gray-50">
                       <div className="space-y-4">
                         {/* Domain Scores */}
@@ -483,7 +478,7 @@ export default function LeaderboardTable({ data }: Props) {
                           <div className="grid grid-cols-3 gap-3 sm:gap-4 text-sm">
                             <div>
                               <span className="text-gray-500">Runs: </span>
-                              <span className="font-medium">{entry.runs || '—'}</span>
+                              <span className="font-medium">{entry.runs ?? '—'}</span>
                             </div>
                             <div>
                               <span className="text-gray-500">Best Score: </span>
@@ -499,7 +494,7 @@ export default function LeaderboardTable({ data }: Props) {
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             ))}
           </tbody>
         </table>

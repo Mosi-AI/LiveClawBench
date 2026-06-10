@@ -31,6 +31,9 @@ while ($offset -lt $total) {
 Write-Host "Fetched $($allRows.Count) rows total"
 
 # Save to file
-$json = $allRows | ConvertTo-Json -Depth 3
+# Depth must accommodate fully-nested trajectory payloads; otherwise the
+# nested objects serialize as type-name strings ("System.Object[]") and
+# downstream JSON.parse(trajectory) reads garbage.
+$json = $allRows | ConvertTo-Json -Depth 100 -Compress
 $json | Out-File -FilePath $OutputFile -Encoding utf8
 Write-Host "Saved to $OutputFile"

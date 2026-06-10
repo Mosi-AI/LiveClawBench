@@ -49,7 +49,7 @@ const { app } = Astro.props;
       <div class="bg-white rounded-xl border p-6 mb-6">
         <h2 class="font-bold text-lg mb-3">Demo Recording</h2>
         <div class="rounded-lg overflow-hidden bg-gray-100">
-          <img src={app.demoGif} alt={`${app.name} demo`} class="w-full" />
+          <img src={withBase(app.demoGif)} alt={`${app.name} demo`} class="w-full" />
         </div>
         <p class="text-xs text-gray-400 mt-2">Short recording showing typical usage flow</p>
       </div>
@@ -69,7 +69,7 @@ const { app } = Astro.props;
           {app.mainScreens.map(screen => (
             <div class="group">
               <div class="aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group-hover:border-primary-300 transition-colors">
-                <img src={screen.src} alt={screen.name} class="w-full h-full object-cover" />
+                <img src={withBase(screen.src)} alt={screen.name} class="w-full h-full object-cover" />
               </div>
               <p class="mt-1.5 text-sm text-gray-600 text-center truncate">{screen.name}</p>
             </div>

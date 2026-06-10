@@ -2,7 +2,6 @@
 
 Produces:
   - tasks.json          (from cases_registry + task dirs)
-  - metrics-summary.json (derived from tasks.json)
   - domains.toml        (copy from worktree)
   - mock-apps.json      (from task-binary-map.json)
 
@@ -16,65 +15,8 @@ import argparse
 import csv
 import json
 import re
-from collections import defaultdict
-from datetime import date
+import tomllib
 from pathlib import Path
-
-# ─── TOML parser (flat + single-level tables, matching task.toml format) ──────
-
-
-def parse_toml(text: str) -> dict:
-    root: dict = {}
-    current = root
-
-    for raw_line in text.split("\n"):
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
-            continue
-
-        # [section]
-        section_match = re.match(r"^\[(\w+)\]$", line)
-        if section_match:
-            name = section_match.group(1)
-            current = {}
-            root[name] = current
-            continue
-
-        # key = value
-        kv_match = re.match(r"^(\w+)\s*=\s*(.+)$", line)
-        if kv_match:
-            key = kv_match.group(1)
-            val = kv_match.group(2).strip()
-            # strip inline comment
-            val = re.sub(r"\s+#\s+.*$", "", val).strip()
-
-            # array
-            if val.startswith("["):
-                inner = val[1:-1].strip()
-                if not inner:
-                    current[key] = []
-                else:
-                    current[key] = [s.strip().strip('"') for s in inner.split(",")]
-                continue
-
-            # boolean
-            if val == "true":
-                current[key] = True
-                continue
-            if val == "false":
-                current[key] = False
-                continue
-
-            # number
-            if re.match(r"^-?\d+(\.\d+)?$", val):
-                current[key] = float(val) if "." in val else int(val)
-                continue
-
-            # string
-            current[key] = val.strip('"')
-
-    return root
-
 
 # ─── CSV parser ───────────────────────────────────────────────────────────────
 
@@ -88,7 +30,7 @@ def read_csv_file(path: Path) -> list[dict[str, str]]:
 
 
 def generate_tasks(worktree: Path, output: Path) -> list[dict]:
-    """Generate tasks.json and metrics-summary.json."""
+    """Generate tasks.json."""
     registry_zh_path = worktree / "docs" / "metadata" / "cases_registry_zh.csv"
     registry_en_path = worktree / "docs" / "metadata" / "cases_registry.csv"
     tasks_dir = worktree / "tasks"
@@ -161,7 +103,8 @@ def generate_tasks(worktree: Path, output: Path) -> list[dict]:
         toml_data: dict = {}
         toml_path = tasks_dir / case_name / "task.toml"
         if toml_path.exists():
-            toml_data = parse_toml(toml_path.read_text(encoding="utf-8"))
+            with toml_path.open("rb") as f:
+                toml_data = tomllib.load(f)
 
         meta = toml_data.get("metadata", {})
         verifier_cfg = toml_data.get("verifier", {})
@@ -236,65 +179,10 @@ def generate_tasks(worktree: Path, output: Path) -> list[dict]:
     )
     print(f"  💾 Written: {tasks_path}")
 
-    # ── Generate metrics-summary.json ──
-    total_tasks = len(tasks)
-    difficulty_dist: dict[str, int] = {"easy": 0, "medium": 0, "hard": 0}
-    domain_dist: dict[str, int] = defaultdict(int)
-    factor_dist: dict[str, int] = {"A1": 0, "A2": 0, "B1": 0, "B2": 0, "C1": 0, "C2": 0}
-    factor_overlap_dist: dict[str, int] = {
-        "0 factors": 0,
-        "1 factor": 0,
-        "2 factors": 0,
-        "3 factors": 0,
-        "4+ factors": 0,
-    }
-    verifier_dist: dict[str, int] = defaultdict(int)
-
-    for t in tasks:
-        d = t["difficulty"]
-        if d in difficulty_dist:
-            difficulty_dist[d] += 1
-
-        domain_dist[t["domain"]] += 1
-
-        enabled = sum(1 for v in t["factors"].values() if v)
-        for factor_name, factor_val in t["factors"].items():
-            if factor_val:
-                factor_dist[factor_name] += 1
-
-        if enabled == 0:
-            factor_overlap_dist["0 factors"] += 1
-        elif enabled == 1:
-            factor_overlap_dist["1 factor"] += 1
-        elif enabled == 2:
-            factor_overlap_dist["2 factors"] += 1
-        elif enabled == 3:
-            factor_overlap_dist["3 factors"] += 1
-        else:
-            factor_overlap_dist["4+ factors"] += 1
-
-        if t["verifier_type"]:
-            verifier_dist[t["verifier_type"]] += 1
-
-    # Sort domain dist by count descending
-    sorted_domain = dict(sorted(domain_dist.items(), key=lambda x: x[1], reverse=True))
-
-    metrics = {
-        "updatedAt": date.today().isoformat(),
-        "totalTasks": total_tasks,
-        "difficultyDistribution": difficulty_dist,
-        "domainDistribution": sorted_domain,
-        "factorDistribution": factor_dist,
-        "factorOverlapDistribution": factor_overlap_dist,
-        "verifierTypeDistribution": dict(verifier_dist),
-    }
-
-    metrics_path = output / "metrics-summary.json"
-    metrics_path.write_text(
-        json.dumps(metrics, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
-    print(f"  ✅ metrics-summary.json: totalTasks={total_tasks}")
-    print(f"  💾 Written: {metrics_path}")
+    # NOTE: metrics-summary.json used to be generated here, but nothing on
+    # the site imported it — DataStatistics.astro recomputes the same
+    # distributions from tasks.json at render time. Keeping a second copy
+    # invited drift; the file is now considered dead output.
 
     return tasks
 
@@ -413,7 +301,7 @@ def main() -> None:
     args = parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
 
-    print("── Generating tasks.json + metrics-summary.json ──")
+    print("── Generating tasks.json ──")
     generate_tasks(args.worktree, args.output)
 
     print("")

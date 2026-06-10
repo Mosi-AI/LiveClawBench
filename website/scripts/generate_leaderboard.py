@@ -1,14 +1,15 @@
-"""Generate leaderboard.json from v0.2.0 analysis tables.
+"""Generate leaderboard.json and task-results.json from v0.2.0 analysis tables.
 
 Reads:
   - tables/model_summary.csv        → overall scores, run counts
-  - tables/model_case_scores_long.csv → per-case run_scores (for best-of-N)
+  - tables/model_case_scores_long.csv → per-case run_scores (for best-of-N + per-task results)
   - tables/difficulty_model_scores.csv → per-difficulty breakdown
   - tables/factor_model_scores.csv  → per-factor breakdown
   - tables/domain_model_scores.csv  → per-domain breakdown
 
 Writes:
-  - site-data/leaderboard.json (same schema as existing)
+  - site-data/leaderboard.json
+  - site-data/task-results.json  (alongside leaderboard, sibling of --output)
 """
 
 from __future__ import annotations
@@ -192,6 +193,47 @@ def main() -> None:
     )
     print(f"  ✅ leaderboard.json: {len(models_output)} models ranked")
     print(f"  💾 Written: {args.output}")
+
+    # ── Build task-results.json (per-task model breakdown) ──
+    # Schema: { task_name: [{model, avgScore, attempts, allPassed}, ...] }
+    # Source: model_case_scores_long.csv (same as bestScore), so model names
+    # and the run-pool stay consistent with leaderboard.json.
+    task_results: dict[str, list[dict]] = {}
+    for row in case_rows:
+        case_name = (row.get("case_name") or "").strip()
+        if not case_name:
+            continue
+        model = rename_model(row["model"])
+        raw = (row.get("run_scores") or "").strip()
+        try:
+            scores = [float(s) for s in raw.split("/") if s != ""]
+        except ValueError:
+            scores = []
+        attempts = int(row.get("n_runs") or len(scores))
+        if scores:
+            avg = round(sum(scores) / len(scores), 3)
+            all_passed = all(s >= 1.0 for s in scores)
+        else:
+            avg = None
+            all_passed = False
+        task_results.setdefault(case_name, []).append(
+            {
+                "model": model,
+                "avgScore": avg,
+                "attempts": attempts,
+                "allPassed": all_passed,
+            }
+        )
+    # Sort each task's models by avgScore desc (nulls last) for a stable on-page order.
+    for case_name, entries in task_results.items():
+        entries.sort(key=lambda e: (e["avgScore"] is None, -(e["avgScore"] or 0)))
+
+    task_results_path = args.output.parent / "task-results.json"
+    task_results_path.write_text(
+        json.dumps(task_results, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    print(f"  ✅ task-results.json: {len(task_results)} tasks")
+    print(f"  💾 Written: {task_results_path}")
 
 
 if __name__ == "__main__":

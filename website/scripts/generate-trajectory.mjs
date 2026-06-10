@@ -1,6 +1,9 @@
 /**
  * Fetch trajectory data from HuggingFace and process it to generate
- * leaderboard.json, trajectory-distribution.json, and task-results.json
+ * trajectory-distribution.json and task-results.json.
+ *
+ * Note: leaderboard.json is owned by generate_leaderboard.py (calibrated
+ * scores from analysis_outputs CSVs). This script does NOT write it.
  *
  * This script runs fetch-data.ps1 first to download raw-rows.json,
  * then processes the data locally.
@@ -42,16 +45,6 @@ function getStepCount(traj) {
   return traj.steps.length;
 }
 
-function inferSuccess(traj) {
-  if (!traj || !traj.steps) return false;
-  const agentSteps = traj.steps.filter(s => s.source === 'agent' && s.message && s.message.trim().length > 0);
-  if (agentSteps.length === 0) return false;
-  const lastAgentStep = agentSteps[agentSteps.length - 1];
-  const msg = lastAgentStep.message.toLowerCase();
-  const successIndicators = ['success', 'completed', 'done', 'submitted', 'finished', 'created', 'updated', 'sent', 'registered', 'confirmed', 'saved', 'installed', 'resolved', 'fixed'];
-  return successIndicators.some(ind => msg.includes(ind));
-}
-
 function normalizeDifficulty(d) {
   const map = { 'E': 'easy', 'M': 'medium', 'H': 'hard' };
   return map[d] || d?.toLowerCase() || d;
@@ -76,7 +69,6 @@ function processTrajectoryData(rows) {
   const byFactor = {};
   const byModel = {};
   const stepLengthDistribution = {};
-  const modelStats = {};
 
   for (const row of rows) {
     const { difficulty, domain, complexity_factor, trajectory } = row;
@@ -84,7 +76,6 @@ function processTrajectoryData(rows) {
     const diff = normalizeDifficulty(difficulty);
     const traj = parseTrajectory(trajectory);
     const stepCount = getStepCount(traj);
-    const success = inferSuccess(traj);
 
     byDifficulty[diff] = (byDifficulty[diff] || 0) + 1;
     byDomain[domain] = (byDomain[domain] || 0) + 1;
@@ -100,37 +91,6 @@ function processTrajectoryData(rows) {
     // Step length distribution
     const bucket = getStepLengthBucket(stepCount);
     stepLengthDistribution[bucket] = (stepLengthDistribution[bucket] || 0) + 1;
-
-    if (!modelStats[model_name]) {
-      modelStats[model_name] = {
-        total: 0,
-        success: 0,
-        byDifficulty: { easy: { total: 0, success: 0 }, medium: { total: 0, success: 0 }, hard: { total: 0, success: 0 } },
-        byFactor: {},
-        byDomain: {},
-      };
-    }
-    const ms = modelStats[model_name];
-    ms.total++;
-    if (success) ms.success++;
-
-    if (ms.byDifficulty[diff]) {
-      ms.byDifficulty[diff].total++;
-      if (success) ms.byDifficulty[diff].success++;
-    }
-
-    if (Array.isArray(complexity_factor)) {
-      for (const f of complexity_factor) {
-        if (!ms.byFactor[f]) ms.byFactor[f] = { total: 0, success: 0 };
-        ms.byFactor[f].total++;
-        if (success) ms.byFactor[f].success++;
-      }
-    }
-
-    // Track per-domain success (not just count)
-    if (!ms.byDomain[domain]) ms.byDomain[domain] = { total: 0, success: 0 };
-    ms.byDomain[domain].total++;
-    if (success) ms.byDomain[domain].success++;
   }
 
   // Sort step length distribution by bucket order
@@ -142,52 +102,7 @@ function processTrajectoryData(rows) {
     }
   }
 
-  return { byDifficulty, byDomain, byFactor, byModel, stepLengthDistribution: sortedStepLengthDistribution, modelStats };
-}
-
-function buildLeaderboard(modelStats) {
-  const models = [];
-
-  for (const [modelName, stats] of Object.entries(modelStats)) {
-    const overall = stats.total > 0 ? Math.round((stats.success / stats.total) * 1000) / 10 : 0;
-
-    const difficulty = {};
-    for (const [diff, data] of Object.entries(stats.byDifficulty)) {
-      if (data.total > 0) {
-        difficulty[diff] = Math.round((data.success / data.total) * 1000) / 10;
-      }
-    }
-
-    const factors = {};
-    for (const [factor, data] of Object.entries(stats.byFactor)) {
-      if (data.total > 0) {
-        factors[factor] = Math.round((data.success / data.total) * 1000) / 10;
-      }
-    }
-
-    // Compute actual per-domain success rates
-    const domains = {};
-    for (const [domain, data] of Object.entries(stats.byDomain)) {
-      if (data.total > 0) {
-        domains[domain] = Math.round((data.success / data.total) * 1000) / 10;
-      }
-    }
-
-    models.push({ model: modelName, overall, difficulty, factors, domains, runs: stats.total });
-  }
-
-  models.sort((a, b) => b.overall - a.overall);
-
-  return models.map((m, i) => ({
-    rank: i + 1,
-    model: m.model,
-    overall: m.overall,
-    difficulty: m.difficulty,
-    factors: m.factors,
-    domains: m.domains,
-    runs: m.runs,
-    coverage: 1.0,
-  }));
+  return { byDifficulty, byDomain, byFactor, byModel, stepLengthDistribution: sortedStepLengthDistribution };
 }
 
 function buildTrajectoryDistribution(rows, processed) {
@@ -249,18 +164,10 @@ const trajPath = path.join(SITE_DATA, 'trajectory-distribution.json');
 fs.writeFileSync(trajPath, JSON.stringify(trajectoryDist, null, 2));
 console.log(`✅ Written ${trajPath}`);
 
-// Build leaderboard.json
-const rankedModels = buildLeaderboard(processed.modelStats);
-const leaderboard = {
-  updatedAt: new Date().toISOString().split('T')[0],
-  source: 'https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories',
-  scoreScale: '0-100',
-  metrics: ['overall', 'easy', 'medium', 'hard', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
-  models: rankedModels,
-};
-const lbPath = path.join(SITE_DATA, 'leaderboard.json');
-fs.writeFileSync(lbPath, JSON.stringify(leaderboard, null, 2));
-console.log(`✅ Written ${lbPath}`);
+// Note: leaderboard.json is generated by website/scripts/generate_leaderboard.py
+// from the analysis_outputs CSVs, not from HF rows here. Keyword-inferred success
+// and the schema this file used to emit are not compatible with the calibrated
+// leaderboard, so this script intentionally does not touch leaderboard.json.
 
 // Build per-task results (task-results.json)
 const taskResults = {};

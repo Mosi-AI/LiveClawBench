@@ -5,11 +5,11 @@ set -euo pipefail
 # update_site_data.sh
 #
 # Regenerates website/site-data/ and website/public/diagrams/ from:
-#   - worktree tasks + docs  (tasks.json, metrics-summary.json, domains.toml, mock-apps.json)
-#   - traj_validation analysis outputs (leaderboard.json, diagrams)
+#   - worktree tasks + docs  (tasks.json, domains.toml, mock-apps.json)
+#   - traj_validation analysis outputs (leaderboard.json, task-results.json, diagrams)
 #
 # Excluded (not updated by this script):
-#   trajectory-distribution.json, task-results.json, raw-rows.json, representative-cases.json
+#   trajectory-distribution.json, raw-rows.json, representative-cases.json
 #
 # Usage:
 #   bash website/scripts/update_site_data.sh
@@ -61,15 +61,15 @@ echo "[update_site_data] public_diagrams=$PUBLIC_DIAGRAMS"
 echo "[update_site_data] python=$PYTHON_BIN"
 echo ""
 
-# ── Step 1: Generate tasks.json, metrics-summary.json, domains.toml, mock-apps.json ──
-echo "═══ Step 1: Generating tasks.json, metrics-summary.json, domains.toml, mock-apps.json ═══"
+# ── Step 1: Generate tasks.json, domains.toml, mock-apps.json ──
+echo "═══ Step 1: Generating tasks.json, domains.toml, mock-apps.json ═══"
 "$PYTHON_BIN" "$SCRIPT_DIR/generate_site_data.py" \
   --worktree "$WORKTREE" \
   --output "$SITE_DATA"
 
-# ── Step 2: Generate leaderboard.json from analysis tables ──
+# ── Step 2: Generate leaderboard.json + task-results.json from analysis tables ──
 echo ""
-echo "═══ Step 2: Generating leaderboard.json from analysis tables ═══"
+echo "═══ Step 2: Generating leaderboard.json + task-results.json from analysis tables ═══"
 "$PYTHON_BIN" "$SCRIPT_DIR/generate_leaderboard.py" \
   --analysis-root "$ANALYSIS_ROOT" \
   --output "$SITE_DATA/leaderboard.json"
