@@ -1,34 +1,8 @@
 ---
-import fs from 'fs';
-import path from 'path';
 import { getSiteConfig } from '../../data/site-config';
-import { getAllTasks } from '../../data/tasks';
 import { withBase } from '../../lib/urls';
 
 const config = getSiteConfig();
-
-// Use process.cwd() as project root (reliable during Astro build)
-const projectRoot = process.cwd();
-
-// Compute stats from data sources
-const tasksCount = getAllTasks().length;
-
-// Read leaderboard data
-const leaderboardPath = path.join(projectRoot, 'site-data', 'leaderboard.json');
-const leaderboardData = fs.existsSync(leaderboardPath) ? JSON.parse(fs.readFileSync(leaderboardPath, 'utf-8')) : { models: [] };
-const topModel = leaderboardData.models.length > 0 ? leaderboardData.models[0].model : '';
-const topScore = leaderboardData.models.length > 0 ? leaderboardData.models[0].overall : 0;
-const modelsCount = leaderboardData.models.length;
-
-// Read trajectory data
-const trajectoryPath = path.join(projectRoot, 'site-data', 'trajectory-distribution.json');
-const trajectoryData = fs.existsSync(trajectoryPath) ? JSON.parse(fs.readFileSync(trajectoryPath, 'utf-8')) : {};
-const trajectoriesCount = trajectoryData.totalTrajectories || 0;
-
-// Count domains from domains.toml (each [[domain]] entry)
-const domainsTomlPath = path.join(projectRoot, 'site-data', 'domains.toml');
-const domainsToml = fs.existsSync(domainsTomlPath) ? fs.readFileSync(domainsTomlPath, 'utf-8') : '';
-const domainsCount = (domainsToml.match(/\[\[domain\]\]/g) || []).length;
 ---
 
 <section class="py-8 md:py-12">

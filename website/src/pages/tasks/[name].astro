@@ -208,7 +208,7 @@ taskResults.sort((a, b) => (b.avgScore ?? 0) - (a.avgScore ?? 0));
     <div class="bg-white rounded-xl border p-6 mb-6">
       <h2 class="font-bold text-lg mb-3">Public Trajectories</h2>
       <p class="text-sm text-gray-500 mb-3">Run trajectories for this task live on HuggingFace.</p>
-      <a href={`https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories/viewer/default/v0.1.0?views%5B%5D=v010&sql=SELECT+*+FROM+v010+where+case_id%3D${task.case_id}%3B`} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors">
+      <a href={`https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories/viewer/default/v0.2.1?views%5B%5D=v021&sql=SELECT+*+FROM+v021+where+case_id%3D${task.case_id}%3B`} target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors">
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.079 2.25a.75.75 0 0 0-.67.489l-3.5 8.5a.75.75 0 0 0 1.382.572L10.56 8.5h3.882l1.269 3.311a.75.75 0 1 0 1.382-.572l-3.5-8.5a.75.75 0 0-.67-.489h-.844zM12 4.678L13.56 7h-3.12L12 4.678zM5.5 14.75a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5h-13zM5.5 18.75a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5h-13z"/></svg>
         View trajectories on HuggingFace
       </a>

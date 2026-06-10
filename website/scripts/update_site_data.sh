@@ -9,7 +9,7 @@ set -euo pipefail
 #   - traj_validation analysis outputs (leaderboard.json, task-results.json, diagrams)
 #
 # Excluded (not updated by this script):
-#   trajectory-distribution.json, raw-rows.json, representative-cases.json
+#   representative-cases.json (hand-curated)
 #
 # Usage:
 #   bash website/scripts/update_site_data.sh
