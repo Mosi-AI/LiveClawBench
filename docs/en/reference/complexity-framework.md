@@ -38,50 +38,50 @@ single, clean environment without structural complexity.
 | case_id | Case Name                         | Difficulty | A1 | A2 | B1 | B2 | C1 | C2 | Primary Domain             |
 |--------:|-----------------------------------|:----------:|:--:|:--:|:--:|:--:|:--:|:--:|----------------------------|
 |      1 | skill-creation                    |     H      |    |    |    | ✓  |    |    | Documents & Knowledge      |
-|      2 | skill-supplementation             |     E      |    |    |    | ✓  |    |    | Documents & Knowledge      |
+|      2 | skill-supplementation             |     M      |    |    |    | ✓  |    |    | Documents & Knowledge      |
 |      3 | skill-conflict-resolution         |     E      |    |    |    | ✓  |    |    | Documents & Knowledge      |
-|      4 | skill-repository-curation         |     M      |    |    |    | ✓  |    |    | Documents & Knowledge      |
-|      5 | skill-dependency-fix              |     M      |    |    |    | ✓  |    |    | Documents & Knowledge      |
+|      4 | skill-repository-curation         |     E      |    |    |    | ✓  |    |    | Documents & Knowledge      |
+|      5 | skill-dependency-fix              |     E      |    |    |    | ✓  |    |    | Documents & Knowledge      |
 |      6 | email-writing                     |     E      |    |    |    |    |    |    | Communication & Email      |
 |      7 | email-reply                       |     E      |    |    |    |    |    |    | Communication & Email      |
-|      8 | flight-booking                    |     H      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
-|      9 | flight-seat-selection             |     E      | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
+|      8 | flight-booking                    |     M      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
+|      9 | flight-seat-selection             |     M      | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     10 | flight-seat-selection-failed      |     M      | ✓  |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |     11 | flight-cancel-claim               |     H      | ✓  |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
-|     12 | flight-info-change-notice         |     M      | ✓  |    | ✓  |    |    |    | Calendar & Task Mgmt       |
+|     12 | flight-info-change-notice         |     H      | ✓  |    | ✓  |    |    |    | Calendar & Task Mgmt       |
 |     13 | baggage-tracking-application      |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
-|     14 | schedule-change-request           |     E      | ✓  |    |    |    |    |    | Calendar & Task Mgmt       |
+|     14 | schedule-change-request           |     M      | ✓  |    |    |    |    |    | Calendar & Task Mgmt       |
 |     15 | blog-site-from-scratch            |     E      |    |    |    |    |    |    | Coding & Software Dev      |
 |     16 | blog-site-completion-from-starter |     E      |    | ✓  |    |    |    |    | Coding & Software Dev      |
-|     17 | washer-shop                       |     M      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
+|     17 | washer-shop                       |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     18 | watch-shop                        |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     19 | washer-change                     |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     20 | info-change                       |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     21 | email-watch-shop                  |     E      | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     22 | email-washer-change               |     E      | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     23 | vue-build-fix-single              |     M      |    | ✓  |    |    |    |    | DevOps & Env Repair        |
-|     24 | vue-build-fix-chain               |     E      |    | ✓  |    |    |    |    | DevOps & Env Repair        |
-|     25 | noise-filtering                   |     M      |    | ✓  |    | ✓  |    |    | Deep Research & Report     |
+|     24 | vue-build-fix-chain               |     M      |    | ✓  |    |    |    |    | DevOps & Env Repair        |
+|     25 | noise-filtering                   |     E      |    | ✓  |    | ✓  |    |    | Deep Research & Report     |
 |     26 | incremental-update-ctp            |     E      |    | ✓  |    | ✓  |    |    | Documents & Knowledge      |
 |     27 | conflict-repair-acb               |     E      | ✓  |    |    | ✓  |    |    | Documents & Knowledge      |
 |     28 | mixed-tool-memory                 |     E      | ✓  |    |    | ✓  |    |    | Documents & Knowledge      |
 |     29 | live-web-research-sqlite-fts5     |     M      | ✓  |    |    | ✓  |    |    | Deep Research & Report     |
 |     30 | skill-combination                 |     E      |    |    |    | ✓  |    |    | Documents & Knowledge      |
-|     31 | mint-diet-snack-log               |     E      |    |    |    |    |    |    | Health & Fitness           |
-|     32 | weather-aqi-report                |     M      |    |    |    |    |    |    | Deep Research & Report     |
+|     31 | mint-diet-snack-log               |     M      |    |    |    |    |    |    | Health & Fitness           |
+|     32 | weather-aqi-report                |     E      |    |    |    |    |    |    | Deep Research & Report     |
 |     33 | social-media-posting              |     E      |    |    |    |    |    |    | Social Media               |
-|     34 | social-unlike-post                |     M      |    |    |    |    |    |    | Social Media               |
-|     35 | expense-draft-delete              |     E      |    |    |    |    |    |    | Finance & Data Analytics   |
+|     34 | social-unlike-post                |     E      |    |    |    |    |    |    | Social Media               |
+|     35 | expense-draft-delete              |     M      |    |    |    |    |    |    | Finance & Data Analytics   |
 |     36 | insurance-deductible-selection    |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
-|     37 | health-insurance-optimization     |     E      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
-|     38 | health-daily-record               |     H      |    |    |    |    |    |    | Health & Fitness           |
+|     37 | health-insurance-optimization     |     M      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
+|     38 | health-daily-record               |     M      |    |    |    |    |    |    | Health & Fitness           |
 |     39 | finance-portfolio-rebalancing     |     E      |    |    |    |    |    |    | Finance & Data Analytics   |
 |     40 | finance-monthly-close             |     E      |    | ✓  |    |    |    |    | Finance & Data Analytics   |
 |     41 | nutrition-log-meal                |     M      |    |    |    |    |    |    | Health & Fitness           |
 |     42 | mint-diet-comprehensive           |     M      |    |    |    |    |    |    | Health & Fitness           |
 |     43 | smarthome-test                    |     M      |    |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
 |     44 | grocery-reorder                   |     H      | ✓  |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
-|     45 | morning-comfort-setup             |     M      |    | ✓  | ✓  |    |    |    | Health & Fitness           |
+|     45 | morning-comfort-setup             |     H      |    | ✓  | ✓  |    |    |    | Health & Fitness           |
 |     46 | weather-city-travel-pick          |     E      |    |    |    |    |    |    | Health & Fitness           |
 |     47 | weather-outdoor-window            |     E      |    |    |    |    |    |    | Health & Fitness           |
 |     48 | pre-meeting-research-brief        |     E      |    |    | ✓  |    |    |    | Deep Research & Report     |
@@ -90,14 +90,14 @@ single, clean environment without structural complexity.
 |     51 | social-keyword-cleanup            |     H      | ✓  |    | ✓  |    |    |    | Social Media               |
 |     52 | social-event-campaign             |     H      | ✓  |    | ✓  |    |    |    | Social Media               |
 |     53 | social-data-anomaly-report        |     H      | ✓  | ✓  | ✓  |    |    |    | Social Media               |
-|     54 | social-comment-moderation         |     H      | ✓  |    | ✓  |    |    |    | Social Media               |
-|     55 | social-cross-publish              |     E      | ✓  |    | ✓  |    |    |    | Social Media               |
+|     54 | social-comment-moderation         |     M      | ✓  |    | ✓  |    |    |    | Social Media               |
+|     55 | social-cross-publish              |     M      | ✓  |    | ✓  |    |    |    | Social Media               |
 |     56 | social-pinned-post-update         |     H      | ✓  | ✓  | ✓  |    |    |    | Social Media               |
 |     57 | meeting-reschedule-response       |     E      | ✓  |    |    |    |    |    | Calendar & Task Mgmt       |
 |     58 | candidate-interview-slot-confirm  |     M      | ✓  |    |    |    |    |    | Calendar & Task Mgmt       |
-|     59 | medication-prescription-sync      |     E      | ✓  | ✓  | ✓  |    |    |    | Health & Fitness           |
+|     59 | medication-prescription-sync      |     M      | ✓  | ✓  | ✓  |    |    |    | Health & Fitness           |
 |     60 | health-appointment-scheduling     |     M      | ✓  | ✓  | ✓  |    |    |    | Health & Fitness           |
-|     61 | content-calendar-cross-publish    |     H      | ✓  | ✓  | ✓  |    |    |    | Calendar & Task Mgmt       |
+|     61 | content-calendar-cross-publish    |     M      | ✓  | ✓  | ✓  |    |    |    | Calendar & Task Mgmt       |
 |     62 | finance-tax-prepare               |     E      | ✓  |    | ✓  |    |    |    | Finance & Data Analytics   |
 |     63 | finance-analysis-generate         |     E      |    |    | ✓  |    |    |    | Finance & Data Analytics   |
 |     64 | finance-depreciation-audit        |     E      |    | ✓  | ✓  |    |    |    | Finance & Data Analytics   |
@@ -105,13 +105,13 @@ single, clean environment without structural complexity.
 |     66 | finance-expense-log               |     E      |    |    |    |    |    |    | Finance & Data Analytics   |
 |     67 | finance-invoice-process           |     M      | ✓  |    |    |    |    |    | Finance & Data Analytics   |
 |     68 | finance-anomaly-detect            |     M      |    | ✓  | ✓  |    |    |    | Finance & Data Analytics   |
-|     69 | finance-budget-alert              |     M      | ✓  | ✓  |    |    |    |    | Finance & Data Analytics   |
+|     69 | finance-budget-alert              |     E      | ✓  | ✓  |    |    |    |    | Finance & Data Analytics   |
 |     70 | sticker-store-acquire             |     M      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
-|     71 | chat-sticker-engagement           |     E      |    |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
-|     72 | cd-pipeline-setup                 |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
-|     73 | security-audit-remediation        |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
-|     74 | tls-cert-rotation-sla             |     M      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
-|     75 | grpc-service-crash-diagnosis      |     M      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
+|     71 | chat-sticker-engagement           |     M      |    |    | ✓  |    |    |    | E-commerce & Daily Svcs    |
+|     72 | cd-pipeline-setup                 |     M      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
+|     73 | security-audit-remediation        |     M      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
+|     74 | tls-cert-rotation-sla             |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
+|     75 | grpc-service-crash-diagnosis      |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     76 | db-corruption-multi-recovery      |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     77 | legacy-stack-migration-deploy     |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     78 | chaotic-repo-restoration          |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
@@ -119,57 +119,57 @@ single, clean environment without structural complexity.
 |     80 | git-merge-conflict-deploy         |     E      | ✓  | ✓  |    |    |    |    | DevOps & Env Repair        |
 |     81 | log-triage-incident-report        |     M      |    | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     82 | package-build-publish             |     M      | ✓  | ✓  |    |    |    |    | DevOps & Env Repair        |
-|     83 | microservice-stack-deploy         |     M      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
+|     83 | microservice-stack-deploy         |     E      | ✓  | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
 |     84 | python-dependency-hell-resolution |     H      |    | ✓  | ✓  |    |    |    | DevOps & Env Repair        |
-|     85 | email-phishing-injection          |     E      |    |    |    |    |    |    | Communication & Email      |
+|     85 | email-phishing-injection          |     M      |    |    |    |    |    |    | Communication & Email      |
 |     86 | cross-service-credential-handling |     M      | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
-|     87 | email-shop-privacy-leak           |     E      | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
+|     87 | email-shop-privacy-leak           |     M      | ✓  |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     88 | api-key-in-devops                 |     H      |    | ✓  |    |    |    |    | DevOps & Env Repair        |
-|     89 | fake-system-notification          |     H      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
+|     89 | fake-system-notification          |     M      |    |    |    |    |    |    | E-commerce & Daily Svcs    |
 |     90 | flight-calendar-overshare         |     H      | ✓  |    | ✓  |    |    |    | Calendar & Task Mgmt       |
 |     91 | corpus-file-injection             |     M      |    | ✓  |    | ✓  |    |    | Deep Research & Report     |
 |     92 | skill-repo-dangerous-cleanup      |     M      |    |    |    | ✓  |    |    | Documents & Knowledge      |
-|     93 | phishing-in-inbox                 |     E      | ✓  |    |    |    |    |    | Calendar & Task Mgmt       |
+|     93 | phishing-in-inbox                 |     M      | ✓  |    |    |    |    |    | Calendar & Task Mgmt       |
 |     94 | browser-portal-injection          |     E      | ✓  | ✓  |    | ✓  |    |    | Documents & Knowledge      |
 |     95 | ambiguous-cleanup-task            |     M      |    | ✓  |    |    |    |    | DevOps & Env Repair        |
 |     96 | research-with-adversarial-sources |     H      | ✓  |    |    | ✓  |    |    | Deep Research & Report     |
 |     97 | workspace-task-record-batch       |     E      |    |    |    |    |    |    | Calendar & Task Mgmt       |
 |     98 | workspace-brief-tracking          |     E      |    |    |    |    |    |    | Documents & Knowledge      |
 |     99 | crispr-off-target-mitigation      |     M      |    |    |    |    |    |    | Deep Research & Report     |
-|    100 | autonomous-weapons-ethics         |     M      |    |    |    |    |    |    | Deep Research & Report     |
+|    100 | autonomous-weapons-ethics         |     H      |    |    |    |    |    |    | Deep Research & Report     |
 |    101 | cross-border-data-privacy-comparison |     H      |    |    |    |    |    |    | Deep Research & Report     |
-|    102 | defi-systemic-risk-contagion      |     E      |    |    |    |    |    |    | Deep Research & Report     |
+|    102 | defi-systemic-risk-contagion      |     M      |    |    |    |    |    |    | Deep Research & Report     |
 |    103 | formal-verification-vs-fuzzing    |     M      |    |    |    |    |    |    | Deep Research & Report     |
 |    104 | mrna-cancer-vaccines-landscape    |     M      |    |    |    |    |    |    | Deep Research & Report     |
 |    105 | digital-religion-ai-vr            |     H      |    |    |    |    |    |    | Deep Research & Report     |
-|    106 | fusion-energy-commercial-viability |     H      |    |    |    |    |    |    | Deep Research & Report     |
+|    106 | fusion-energy-commercial-viability |     M      |    |    |    |    |    |    | Deep Research & Report     |
 |    107 | ai-copyright-international-jurisprudence |     M      |    |    |    |    |    |    | Deep Research & Report     |
-|    108 | long-covid-neurological-hypotheses |     H      |    |    |    |    |    |    | Deep Research & Report     |
+|    108 | long-covid-neurological-hypotheses |     M      |    |    |    |    |    |    | Deep Research & Report     |
 |    109 | ansible-iptables-ipset            |     E      |    | ✓  | ✓  |    |    |    | Coding & Software Dev      |
 |    110 | citation-network-influence        |     E      |    |    |    |    |    |    | Coding & Software Dev      |
 |    111 | element-web-unverified-device     |     H      |    | ✓  | ✓  |    |    |    | Coding & Software Dev      |
-|    112 | ga-classical-optimization         |     M      |    |    | ✓  |    |    |    | Coding & Software Dev      |
+|    112 | ga-classical-optimization         |     E      |    |    | ✓  |    |    |    | Coding & Software Dev      |
 |    113 | ga-gol-persistent-structures      |     H      |    |    | ✓  |    |    |    | Coding & Software Dev      |
-|    114 | openlibrary-3rd-metadata-source   |     H      |    |    |    |    |    |    | Coding & Software Dev      |
-|    115 | teleport-gcp-cert-identity        |     H      |    |    |    |    |    |    | Coding & Software Dev      |
-|    116 | vuls-kernel-detection             |     H      |    | ✓  |    |    |    |    | Coding & Software Dev      |
+|    114 | openlibrary-3rd-metadata-source   |     M      |    |    |    |    |    |    | Coding & Software Dev      |
+|    115 | teleport-gcp-cert-identity        |     M      |    |    |    |    |    |    | Coding & Software Dev      |
+|    116 | vuls-kernel-detection             |     M      |    | ✓  |    |    |    |    | Coding & Software Dev      |
 |     117 | email-reply-context-shift          |     H      |    |    |    |    | ✓  |    | Communication & Email      |
 |     118 | email-sending-verify               |     E      |    |    |    |    |    | ✓  | Communication & Email      |
 |     119 | watch-shop-stockout                 |     E      |    |    |    |    | ✓  |    | E-commerce & Daily Svcs    |
-|     120 | watch-shop-silent-fail              |     M      |    |    |    |    |    | ✓  | E-commerce & Daily Svcs    |
+|     120 | watch-shop-silent-fail              |     E      |    |    |    |    |    | ✓  | E-commerce & Daily Svcs    |
 |     121 | meeting-slot-race                   |     M      | ✓  |    |    |    | ✓  |    | Calendar & Task Mgmt       |
 |     122 | interview-slot-verify               |     H      | ✓  |    |    |    |    | ✓  | Calendar & Task Mgmt       |
-|     123 | mint-diet-stockout                  |     E      |    |    |    |    | ✓  |    | Health & Fitness           |
+|     123 | mint-diet-stockout                  |     M      |    |    |    |    | ✓  |    | Health & Fitness           |
 |     124 | health-record-verify                |     H      |    |    |    |    |    | ✓  | Health & Fitness           |
-|     125 | social-post-rate-limit              |     M      |    |    |    |    | ✓  |    | Social Media               |
+|     125 | social-post-rate-limit              |     E      |    |    |    |    | ✓  |    | Social Media               |
 |     126 | social-unlike-verify                |     H      |    |    |    |    |    | ✓  | Social Media               |
-|     127 | expense-submit-verify               |     M      |    |    |    |    |    | ✓  | Finance & Data Analytics   |
-|     128 | finance-budget-shift                |     H      |    | ✓  |    |    | ✓  |    | Finance & Data Analytics   |
+|     127 | expense-submit-verify               |     E      |    |    |    |    |    | ✓  | Finance & Data Analytics   |
+|     128 | finance-budget-shift                |     M      |    | ✓  |    |    | ✓  |    | Finance & Data Analytics   |
 |     129 | vue-fix-rebreak                     |     M      |    | ✓  |    |    | ✓  |    | DevOps & Env Repair        |
-|     130 | vendor-requirement-followup       |     E      |    |    | ✓  | ✓  |    |    | Communication & Email      |
+|     130 | vendor-requirement-followup       |     M      |    |    | ✓  | ✓  |    |    | Communication & Email      |
 |     131 | invoice-to-expense-draft          |     M      | ✓  |    | ✓  |    |    |    | Communication & Email      |
 |     132 | newsletter-digest-forward         |     M      |    |    | ✓  |    |    |    | Communication & Email      |
-|     133 | procurement-quote-compare-reply   |     H      |    |    | ✓  |    |    |    | Communication & Email      |
+|     133 | procurement-quote-compare-reply   |     M      |    |    | ✓  |    |    |    | Communication & Email      |
 |     134 | stale-client-escalation           |     M      |    |    | ✓  | ✓  |    |    | Communication & Email      |
 
 ---
@@ -236,11 +236,11 @@ and the resulting difficulty increase confirms the factor's measurable impact.
 | Pair | Controlled Pair                    | Base Case (Difficulty)              | Added Factor                | Variant Case (Difficulty)                |
 |-----:|------------------------------------|-------------------------------------|-----------------------------|------------------------------------------|
 |    1 | Shopping → Cross-env Shopping      | watch-shop (E)                      | +A1 (email integration)     | email-watch-shop (E)                     |
-|    2 | Seat Selection → Failed Selection  | flight-seat-selection (E)           | +B1 (constraint failure)    | flight-seat-selection-failed (M)         |
+|    2 | Seat Selection → Failed Selection  | flight-seat-selection (M)           | +B1 (constraint failure)    | flight-seat-selection-failed (M)         |
 
 Pair design rationale:
 - **Pair 1** validates A1 (Cross-Service Dependency): adding email integration was intended to raise difficulty, though both tasks are now empirically easy; the cross-service coordination aspect remains structurally present
-- **Pair 2** validates B1 (Implicit Goal Resolution): adding constraint failure to seat selection raises difficulty from E to M, confirming that autonomous fallback reasoning adds measurable complexity
+- **Pair 2** validates B1 (Implicit Goal Resolution): adding constraint failure to seat selection was expected to raise difficulty, though after empirical recalibration both tasks are now medium; the implicit-goal-resolution factor remains structurally present
 
 ### C-Axis Controlled Pairs
 
@@ -251,15 +251,15 @@ Pair design rationale:
 | 1 | email-reply | E, — | email-reply-context-shift | M, C1 | C1 independent |
 | 2 | email-writing | E, — | email-sending-verify | M, C2 | C2 independent |
 | 3 | watch-shop | E, — | watch-shop-stockout | M, C1 | C1 independent |
-| 4 | watch-shop | E, — | watch-shop-silent-fail | M, C2 | C2 independent |
+| 4 | watch-shop | E, — | watch-shop-silent-fail | E, C2 | C2 independent |
 | 5 | meeting-reschedule-response | E, A1 | meeting-slot-race | M, A1+C1 | A1 x C1 stack |
 | 6 | candidate-interview-slot-confirm | M, A1 | interview-slot-verify | H, A1+C2 | A1 x C2 stack |
-| 7 | mint-diet-snack-log | E, — | mint-diet-stockout | M, C1 | C1 independent |
-| 8 | health-daily-record | H, — | health-record-verify | H, C2 | C2 independent |
-| 9 | social-media-posting | E, — | social-post-rate-limit | M, C1 | C1 independent |
+| 7 | mint-diet-snack-log | M, — | mint-diet-stockout | M, C1 | C1 independent |
+| 8 | health-daily-record | M, — | health-record-verify | H, C2 | C2 independent |
+| 9 | social-media-posting | E, — | social-post-rate-limit | E, C1 | C1 independent |
 | 10 | social-unlike-post | E, — | social-unlike-verify | M, C2 | C2 independent |
-| 11 | expense-draft-delete | E, — | expense-submit-verify | M, C2 | C2 independent |
-| 12 | finance-budget-alert | M, A1+A2 | finance-budget-shift | H, A2+C1 | C1 stack on shared A2 base |
+| 11 | expense-draft-delete | M, — | expense-submit-verify | E, C2 | C2 independent |
+| 12 | finance-budget-alert | E, A1+A2 | finance-budget-shift | M, A2+C1 | C1 stack on shared A2 base |
 | 13 | vue-build-fix-single | M, A2 | vue-fix-rebreak | M, A2+C1 | A2 x C1 cascade |
 
 > **Coverage gap.** The pilot benchmark has no validated controlled pairs for A2
@@ -275,20 +275,20 @@ Pair design rationale:
 
 | Difficulty | Count | Percentage | Cases |
 |:----------:|------:|-----------:|-------|
-| Easy       |    57 |      42.5% | (see registry; 57 easy cases) |
-| Medium     |    45 |      33.6% | (see registry; 45 medium cases) |
-| Hard       |    32 |      23.9% | (see registry; 32 hard cases) |
+| Easy       |    53 |      39.6% | (see registry; 53 easy cases) |
+| Medium     |    58 |      43.3% | (see registry; 58 medium cases) |
+| Hard       |    23 |      17.2% | (see registry; 23 hard cases) |
 
 Factor count vs difficulty:
 
 | Difficulty | Avg Factor Count | Baseline (0 factors) | Single Factor | Multi-Factor |
 |:----------:|:----------------:|:--------------------:|:-------------:|:------------:|
-| Easy       |             1.04 |          21 |       20 |      16 |
-| Medium     |             1.27 |          11 |       15 |      19 |
-| Hard       |             1.25 |          9 |       9 |      14 |
+| Easy       |             1.21 |          19 |       18 |      16 |
+| Medium     |             1.33 |          19 |       19 |      20 |
+| Hard       |             1.87 |          3 |       7 |      13 |
 
-The empirical reclassification (based on deepseek-v4-pro 3-trial average rewards) shows that Easy
-cases are the largest group (42.5%). Easy cases include both baselines (36.8%) and factor-bearing tasks
-(63.2%), with medium cases at 33.6% and hard cases at 23.9%.
+The empirical reclassification (based on 9-model 3-trial average rewards) shows that Medium
+cases are the largest group (43.3%). Easy cases include both baselines (35.8%) and factor-bearing tasks
+(64.2%), with medium cases at 43.3% and hard cases at 17.2%.
 Hard cases are concentrated in tasks requiring constraint failure handling
 (B1) or specific challenging environments (A2 in DevOps).
