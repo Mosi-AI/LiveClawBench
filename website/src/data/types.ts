@@ -147,8 +147,6 @@ export interface SiteConfig {
     paper: string;
     code: string;
     data: string;
-    data_viewer: string;
-
   };
   nav: Array<{
     label: string;

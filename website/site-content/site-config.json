@@ -126,8 +126,7 @@
   "links": {
     "paper": "https://github.com/Mosi-AI/LiveClawBench/releases/download/v0.1-preprint/LiveClawBench.pdf",
     "code": "https://github.com/Mosi-AI/LiveClawBench",
-    "data": "https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories",
-    "data_viewer": "/data"
+    "data": "https://huggingface.co/datasets/Mosi-AI/LiveClawbench-trajectories"
   },
   "nav": [
     {
@@ -145,10 +144,6 @@
     {
       "label": "Mock Apps",
       "href": "/mocks"
-    },
-    {
-      "label": "Data",
-      "href": "/data"
     },
     {
       "label": "Blogs",
