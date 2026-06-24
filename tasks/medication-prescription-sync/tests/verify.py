@@ -10,8 +10,18 @@ import sqlite3
 import sys
 from datetime import datetime
 
+from verify_lib import wait_for_tables
+
 HEALTH_DB_PATH = "/var/lib/mock-data/health/health.db"
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
+
+# Wait for both DBs to be ready before probing tables.
+# Health and calendar mocks may still be initializing schema when the verifier
+# starts (Issue #110 B2.1 — same race as B2.2, but verify.py was not patched
+# in PR #113). The startup.sh already uses wait_for_db_tables for data injection,
+# but the verifier itself runs independently and can race the mock.
+wait_for_tables(HEALTH_DB_PATH, ["medication"])
+wait_for_tables(CALENDAR_DB_PATH, ["calendar_event"])
 
 ACTIVE_MED_SLOTS = []
 
