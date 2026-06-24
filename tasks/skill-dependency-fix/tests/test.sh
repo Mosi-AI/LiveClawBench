@@ -16,6 +16,10 @@ python3 /tests/evaluate.py \
 SCORE=$(grep -oP 'TOTAL SCORE:\s*\K[0-9]+' /tmp/eval_output.txt | head -1 || echo "0")
 python3 -c "print(${SCORE}/100.0)" > /logs/verifier/reward.txt
 
-# reward.json: detailed per-criterion breakdown
-cp /workspace/output/eval_result.json /logs/verifier/reward.json 2>/dev/null || \
-    echo '{"error":"eval_result.json not generated"}' > /logs/verifier/reward.json
+# reward.json: harbor-compliant schema ({reward: float, _meta_*: ...}).
+# Issue #110 (B1): raw `cp eval_result.json reward.json` violates harbor's
+# VerifierResult schema (top-level non-float keys without `_meta_` prefix).
+python3 /tests/normalize_reward.py \
+    --input /workspace/output/eval_result.json \
+    --output /logs/verifier/reward.json \
+    --reward "$(cat /logs/verifier/reward.txt)"
