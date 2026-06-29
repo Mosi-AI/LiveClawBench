@@ -59,7 +59,7 @@ harbor run -p tasks/watch-shop -a openclaw -m moonshot/<YOUR_MODEL_ID> \
 To run all 134 tasks:
 
 ```bash
-harbor run --dataset liveclawbench@0.2.0 -a openclaw \
+harbor run --dataset liveclawbench@0.2.1 -a openclaw \
   -m moonshot/<YOUR_MODEL_ID> --n-concurrent 4 -o jobs \
   --ae CUSTOM_BASE_URL="<YOUR_BASE_URL>" \
   --ae CUSTOM_API_KEY="<YOUR_API_KEY>" \
@@ -113,7 +113,7 @@ Complexity factors: A1 Cross-Service Dependency (45), A2 Contaminated State (38)
 
 The public leaderboard is available at [mosi-ai.github.io/LiveClawBench](https://mosi-ai.github.io/LiveClawBench/).
 Scores are Avg@3: mean of 3 independent runs per task, averaged across 134 v0.2.1 tasks and rescaled to [0, 100].
-The corresponding [HuggingFace dataset](https://huggingface.co/datasets/Mosi-AI/LiveClawBench) includes 6,834 v0.2.1 trajectories in ATIF-v1.2 format, plus 630 v0.1.0 pilot trajectories.
+The corresponding [HuggingFace dataset](https://huggingface.co/datasets/Mosi-AI/LiveClawBench) includes 6,834 v0.2.1 trajectories in ATIF-v1.2 format, plus 630 earlier pilot trajectories.
 
 | Rank | Model | Avg@3 |
 |------|-------|-------|
