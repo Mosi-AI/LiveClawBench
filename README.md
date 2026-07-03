@@ -123,6 +123,8 @@ The corresponding [HuggingFace dataset](https://huggingface.co/datasets/Mosi-AI/
 | 4 | GLM-5.2 | 72.9 |
 | 5 | MiniMax-M3 | 71.4 |
 
+Full leaderboard: [mosi-ai.github.io/LiveClawBench/leaderboard/](https://mosi-ai.github.io/LiveClawBench/leaderboard/).
+
 Full per-factor and per-domain breakdowns, plus trajectory data, are available on
 [HuggingFace](https://huggingface.co/datasets/Mosi-AI/LiveClawBench).
 
