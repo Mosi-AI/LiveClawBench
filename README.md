@@ -2,10 +2,11 @@
 
 > Benchmarking LLM Agents on Complex, Real-World Assistant Tasks
 
-[![Paper](https://img.shields.io/badge/Paper-Preprint-orange)](https://github.com/Mosi-AI/LiveClawBench/releases/download/v0.1-preprint/LiveClawBench.pdf)
+[![Paper](https://img.shields.io/badge/Paper-arXiv-orange)](https://arxiv.org/pdf/2604.13072)
+[![Leaderboard](https://img.shields.io/badge/Leaderboard-Live-brightgreen)](https://mosi-ai.github.io/LiveClawBench/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 [![Tasks](https://img.shields.io/badge/Tasks-134-green)](tasks/)
-[![Dataset](https://img.shields.io/badge/HuggingFace-630_Trajectories-yellow)](https://huggingface.co/datasets/Mosi-AI/LiveClawBench)
+[![Dataset](https://img.shields.io/badge/HuggingFace-7.46k_Trajectories-yellow)](https://huggingface.co/datasets/Mosi-AI/LiveClawBench)
 
 LiveClawBench evaluates LLM agents on realistic, multi-step assistant tasks using the [Harbor](https://github.com/Mosi-AI/claw-harbor) framework and the [OpenClaw](https://github.com/openclaw/openclaw) agent platform.
 
@@ -16,34 +17,29 @@ LiveClawBench evaluates LLM agents on realistic, multi-step assistant tasks usin
 LLM agents are increasingly expected to handle real-world assistant tasks, yet existing
 benchmarks evaluate them under isolated difficulty sources. LiveClawBench addresses this
 by introducing a **Triple-Axis Complexity Framework** derived from empirical analysis of
-production OpenClaw usage data, and building a pilot benchmark with explicit factor
-annotations, controlled pairs, deterministic mock environments, and outcome-driven evaluation.
+production OpenClaw usage data, and building a benchmark with explicit factor
+annotations, deterministic mock environments, and outcome-driven evaluation.
 
-> **Status** (updated May 2026): 134 tasks validated across 10 domains, automated evaluation harness complete.
-> Leaderboard and 630 agent trajectories (7 models, ATIF-v1.2, v0.1.0 pilot) published on
-> [HuggingFace](https://huggingface.co/datasets/Mosi-AI/LiveClawBench).
+> **Status** (updated June 2026): 134 tasks validated across 10 domains, automated evaluation harness complete.
+> Leaderboard scores for 17 models and 6,834 v0.2.1 agent trajectories (ATIF-v1.2; 17 models x 134 tasks x 3 runs) are published on
+> [HuggingFace](https://huggingface.co/datasets/Mosi-AI/LiveClawBench), with the public leaderboard at
+> [mosi-ai.github.io/LiveClawBench](https://mosi-ai.github.io/LiveClawBench/).
 
-**Paper**: [LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks](https://github.com/Mosi-AI/LiveClawBench/releases/download/v0.1-preprint/LiveClawBench.pdf) — arXiv preprint (submission in progress)
+**Paper**: [LiveClawBench: Benchmarking LLM Agents on Complex, Real-World Assistant Tasks](https://arxiv.org/pdf/2604.13072)
 
 ## Triple-Axis Complexity Framework
 
-Task difficulty is characterized along three orthogonal axes. The pilot benchmark covers
-A1, A2, B1, B2; axes A3, A4, B3, C1, C2 are on the expansion roadmap.
+Task difficulty is characterized along three orthogonal axes. The benchmark covers six
+complexity factors across Environment, Cognitive, and Adaptability dimensions.
 
-| Factor | Axis | Description | In Pilot |
+| Factor | Axis | Description | Coverage |
 |--------|------|-------------|----------|
-| **A1** Cross-Service Dependency | Environment | Coordinate multiple services in a single workflow | ✓ 47 tasks |
-| **A2** Contaminated Initial State | Environment | Diagnose and repair corrupted environments before acting | ✓ 37 tasks |
-| A3 Temporal & Resource Constraints | Environment | Reason under deadlines or rate limits | — planned |
-| A4 Cross-Modal Interaction | Environment | Extract and integrate information across non-text modalities (images, PDFs, CAPTCHAs) | — planned |
-| **B1** Implicit Goal Resolution | Cognitive | Infer missing preconditions; seek clarification when ambiguous | ✓ 42 tasks |
-| **B2** Knowledge System Maintenance | Cognitive | Create, update, and repair persistent skill/knowledge artifacts | ✓ 26 tasks |
-| B3 Multi-Agent Delegation | Cognitive | Orchestrate specialized sub-agents and synthesize results | — planned |
-| C1 Environmental State Invalidation | Runtime | Replan when mid-execution environment changes invalidate established assumptions | — planned |
-| C2 Outcome Verification under Altered State | Runtime | Actively verify task success when no simple pass/fail signal is available | — planned |
-
-**Controlled pairs** allow direct factor attribution: each pair shares the same core logic
-but differs in exactly one complexity factor, enabling causal analysis of agent degradation.
+| **A1** Cross-Service Dependency | Environment | Coordinate multiple independent services in a single workflow | ✓ 45 tasks |
+| **A2** Contaminated Initial State | Environment | Diagnose and repair corrupted environments before acting | ✓ 38 tasks |
+| **B1** Implicit Goal Resolution | Cognitive | Infer missing constraints or seek clarification when ambiguous | ✓ 43 tasks |
+| **B2** Knowledge System Maintenance | Cognitive | Create, update, and repair persistent skill/knowledge artifacts | ✓ 17 tasks |
+| **C1** Runtime State Mutation | Adaptability | Detect and adapt when environment state changes during execution | ✓ 7 tasks |
+| **C2** Runtime Verification | Adaptability | Verify action outcomes and handle silent failures | ✓ 6 tasks |
 
 ## Quick Start
 
@@ -63,7 +59,7 @@ harbor run -p tasks/watch-shop -a openclaw -m moonshot/<YOUR_MODEL_ID> \
 To run all 134 tasks:
 
 ```bash
-harbor run --dataset liveclawbench@0.2.0 -a openclaw \
+harbor run --dataset liveclawbench@0.2.1 -a openclaw \
   -m moonshot/<YOUR_MODEL_ID> --n-concurrent 4 -o jobs \
   --ae CUSTOM_BASE_URL="<YOUR_BASE_URL>" \
   --ae CUSTOM_API_KEY="<YOUR_API_KEY>" \
@@ -99,43 +95,60 @@ See [docs/en/guide/getting-started.md](docs/en/guide/getting-started.md) for ful
 
 | Domain | Easy | Medium | Hard | Total |
 |--------|------|--------|------|-------|
-| E-commerce & Daily Svcs | 12 | 6 | 4 | 22 |
-| Documents & Knowledge | 8 | 3 | 1 | 12 |
-| Deep Research & Report | 3 | 9 | 5 | 17 |
+| E-commerce & Daily Svcs | 10 | 10 | 2 | 22 |
+| Documents & Knowledge | 9 | 2 | 1 | 12 |
+| Deep Research & Report | 4 | 9 | 4 | 17 |
 | DevOps & Env Repair | 7 | 9 | 2 | 18 |
-| Finance & Data Analytics | 7 | 5 | 1 | 13 |
-| Coding & Software Dev | 4 | 1 | 5 | 10 |
-| Health & Fitness | 5 | 4 | 2 | 11 |
-| Social Media | 2 | 2 | 7 | 11 |
-| Calendar & Task Mgmt | 4 | 3 | 3 | 10 |
-| Communication & Email | 5 | 3 | 2 | 10 |
-| **Total** | **57** | **45** | **32** | **134** |
+| Finance & Data Analytics | 8 | 5 | 0 | 13 |
+| Coding & Software Dev | 5 | 3 | 2 | 10 |
+| Health & Fitness | 2 | 7 | 2 | 11 |
+| Social Media | 3 | 2 | 6 | 11 |
+| Calendar & Task Mgmt | 2 | 5 | 3 | 10 |
+| Communication & Email | 3 | 6 | 1 | 10 |
+| **Total** | **53** | **58** | **23** | **134** |
 
-Complexity factors: A1 Cross-Service Dependency (54), A2 Contaminated State (39), B1 Implicit Goals (47), B2 Knowledge Maintenance (28), C1 Environmental State Invalidation (7), C2 Outcome Verification under Altered State (6).
+Complexity factors: A1 Cross-Service Dependency (45), A2 Contaminated State (38), B1 Implicit Goals (43), B2 Knowledge Maintenance (17), C1 Runtime State Mutation (7), C2 Runtime Verification (6).
 
 ## Leaderboard
 
-Scores are Avg@3: mean of 3 independent runs per task, averaged across 30 pilot tasks (v0.1.0), rescaled to [0, 100].
-Evaluated with claw-harbor `v0.1.0` and OpenClaw `2026.3.11`.
-Updated 134-task leaderboard coming soon.
+The public leaderboard is available at [mosi-ai.github.io/LiveClawBench](https://mosi-ai.github.io/LiveClawBench/).
+Scores are Avg@3: mean of 3 independent runs per task, averaged across 134 v0.2.1 tasks and rescaled to [0, 100].
+The corresponding [HuggingFace dataset](https://huggingface.co/datasets/Mosi-AI/LiveClawBench) includes 6,834 v0.2.1 trajectories in ATIF-v1.2 format, plus 630 earlier pilot trajectories.
 
-| Model | Avg@3 (0–100) |
-|-------|---------------|
-| Qwen3.5-397B-A17B | 72.6 |
-| MiniMax-M2.7 | 71.2 |
-| GLM-5 | 69.9 |
-| GLM-5-Turbo | 66.5 |
-| Qwen3.5-122B-A10B | 64.4 |
-| Qwen3.5-27B | 64.2 |
-| Qwen3.5-35B-A3B | 58.3 |
+| Rank | Model | Avg@3 |
+|------|-------|-------|
+| 1 | Kimi-K2.7-Code | 76.0 |
+| 2 | GLM-5.1 | 74.7 |
+| 3 | GPT-5.5 | 74.5 |
+| 4 | GLM-5.2 | 72.9 |
+| 5 | MiniMax-M3 | 71.4 |
 
-**Key findings:**
+Full leaderboard: [mosi-ai.github.io/LiveClawBench/leaderboard/](https://mosi-ai.github.io/LiveClawBench/leaderboard/).
 
-- **B1 (Implicit Goal Resolution)** causes -28.7 to -51.3 score degradation across all models
-- **DevOps & Env Repair** is the weakest domain (most models < 15%)
-- **Coding & Software Dev** achieves near-perfect scores on routine tasks (v0.1.0 pilot)
+Full per-factor and per-domain breakdowns, plus trajectory data, are available on
+[HuggingFace](https://huggingface.co/datasets/Mosi-AI/LiveClawBench).
 
-Full per-factor and per-domain breakdowns, plus all 630 trajectories → [HuggingFace](https://huggingface.co/datasets/Mosi-AI/LiveClawBench)
+## Analysis Highlights
+
+**Complexity profiles explain more variance than domains alone.** Domain labels identify
+where a task happens, but complexity profiles better capture what makes it difficult. For
+high-tier models, domain explains 9.6% of case-level score variance on average, while the
+complexity profile explains 18.6%; for mid-tier models, the shares are 12.9% and 21.1%.
+
+![Variance partition by model-summary tiers](assets/bars_variance_partition_shapley_model_summary_tiers.png)
+
+**Different complexity factors stress different capabilities.** Cross-service dependency,
+implicit goals, runtime mutation, and runtime verification each reduce scores in distinct
+ways, showing that benchmark difficulty is not a single scalar property.
+
+![Per-factor performance impact](assets/factor_delta.png)
+
+**Complexity factors also reshape agent behavior.** Factor-present cases change execution
+patterns such as effort, looping, tool diversity, recovery, verification, and termination.
+This exposes failure modes that final reward alone can hide, especially silent failures
+under implicit-goal tasks and re-grounding failures under runtime-adaptation tasks.
+
+![Behavior shifts by complexity factor](assets/factor_behavior.png)
 
 ## Case Study
 
@@ -158,24 +171,19 @@ LiveClawBench is a living benchmark designed to evolve alongside the OpenClaw ec
 - [x] 30-task pilot benchmark with manual validation (March 2026)
 - [x] Automated evaluation harness for all 30 tasks (March 2026)
 - [x] Public leaderboard with agent trajectories on HuggingFace (April 2026)
-- [x] Expand to 134 tasks across 10 domains (May 2026)
-- [ ] Community task submission pipeline
+- [x] Expand to 134 tasks across 10 domains (June 2026)
+- [x] Community task submission pipeline
+- [ ] Support multiple harnesses, including CLI and Hermes
 
 ### Future Expansion
 
-Add coverage for remaining complexity factors:
+Add broader coverage for the existing complexity factors and domains:
 
-- [ ] A3: Temporal & Resource Constraints (deadline reasoning, rate-limit handling)
-- [ ] A4: Cross-Modal Interaction (images, PDFs, CAPTCHAs — requires vision-capable model)
-- [ ] B3: Multi-Agent Delegation (orchestrator/sub-agent patterns)
-- [ ] C1: Environmental State Invalidation (mid-execution environment changes invalidate agent assumptions)
-- [ ] C2: Outcome Verification under Altered State (active verification without simple pass/fail signal)
+- [ ] Add more tasks for underrepresented domain-factor combinations
 
 ### Stronger Diagnostics
 
-- [ ] Synthesize A2 and B2 controlled pairs (currently only A1 and B1 have validated gradients)
-- [ ] Scale controlled pairs to 6+ for robust factor-level attribution
-- [ ] Per-factor performance breakdown in leaderboard
+- [x] Per-factor performance breakdown in leaderboard
 - [ ] Cross-model statistical significance testing
 
 ### Contribute
