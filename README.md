@@ -128,6 +128,28 @@ Full leaderboard: [mosi-ai.github.io/LiveClawBench/leaderboard/](https://mosi-ai
 Full per-factor and per-domain breakdowns, plus trajectory data, are available on
 [HuggingFace](https://huggingface.co/datasets/Mosi-AI/LiveClawBench).
 
+## Analysis Highlights
+
+**Complexity profiles explain more variance than domains alone.** Domain labels identify
+where a task happens, but complexity profiles better capture what makes it difficult. For
+high-tier models, domain explains 9.6% of case-level score variance on average, while the
+complexity profile explains 18.6%; for mid-tier models, the shares are 12.9% and 21.1%.
+
+![Variance partition by model-summary tiers](assets/bars_variance_partition_shapley_model_summary_tiers.png)
+
+**Different complexity factors stress different capabilities.** Cross-service dependency,
+implicit goals, runtime mutation, and runtime verification each reduce scores in distinct
+ways, showing that benchmark difficulty is not a single scalar property.
+
+![Per-factor performance impact](assets/factor_delta.png)
+
+**Complexity factors also reshape agent behavior.** Factor-present cases change execution
+patterns such as effort, looping, tool diversity, recovery, verification, and termination.
+This exposes failure modes that final reward alone can hide, especially silent failures
+under implicit-goal tasks and re-grounding failures under runtime-adaptation tasks.
+
+![Behavior shifts by complexity factor](assets/factor_behavior.png)
+
 ## Case Study
 
 ![Case Study: Flight Cancellation Claim](assets/LiveClawBench_case1.jpg)
