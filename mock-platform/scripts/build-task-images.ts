@@ -1427,8 +1427,20 @@ async function buildTaskImage(
   dockerfileLines.push("RUN chmod 755 /opt/mock/entrypoint.sh");
   dockerfileLines.push("");
 
+  // COPY shared verify_lib.py so verifier scripts can import wait_for_tables
+  // without duplicating the ~55-line function in every verify.py.
+  // Placed at /opt/mock/python/verify_lib.py with PYTHONPATH set below.
+  // See Issue #110 B2 — defensive mock-readiness wait for all DB-accessing verifiers.
+  dockerfileLines.push("RUN mkdir -p /opt/mock/python");
+  dockerfileLines.push("COPY verify_lib.py /opt/mock/python/verify_lib.py");
+  dockerfileLines.push("");
+
   // Set TASK_NAME so the entrypoint finds the correct startup script
   dockerfileLines.push(`ENV TASK_NAME=${task}`);
+  // PYTHONPATH includes /opt/mock/python so verify.py can `from verify_lib import ...`
+  // without sys.path hacks. The env var is appended to preserve any existing value
+  // set by the base image.
+  dockerfileLines.push(`ENV PYTHONPATH=/opt/mock/python:\${PYTHONPATH:-}`);
   dockerfileLines.push("");
 
   dockerfileLines.push(`ENTRYPOINT ["/opt/mock/entrypoint.sh"]`);
@@ -1457,6 +1469,15 @@ async function buildTaskImage(
   if (existsSync(entrypointSrc)) {
     const raw = readFileSync(entrypointSrc, "utf-8");
     writeFileSync(entrypointDest, raw.replace(/\r\n/g, "\n"), "utf-8");
+  }
+
+  // Copy shared verify_lib.py into the Docker build context so the COPY
+  // directive above can find it. Same CRLF normalization as entrypoint.sh.
+  const VERIFY_LIB_SRC = join(import.meta.dir, "..", "..", "shared", "verify_lib.py");
+  const verifyLibDest = join(DIST_DIR, "verify_lib.py");
+  if (existsSync(VERIFY_LIB_SRC)) {
+    const raw = readFileSync(VERIFY_LIB_SRC, "utf-8");
+    writeFileSync(verifyLibDest, raw.replace(/\r\n/g, "\n"), "utf-8");
   }
 
   if (dryRun) {

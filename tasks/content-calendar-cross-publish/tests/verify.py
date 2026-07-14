@@ -12,7 +12,14 @@ import sqlite3
 import sys
 from datetime import datetime, timedelta
 
+from verify_lib import wait_for_tables
+
 CALENDAR_DB_PATH = "/var/lib/mock-data/calendar/calendar.db"
+
+# Wait for both DBs to be ready before probing tables.
+# Social mock may still be initializing schema when the verifier starts
+# (Issue #110 B2.1 — same race as B2.2, but verify.py was not patched in PR #113).
+wait_for_tables(CALENDAR_DB_PATH, ["calendar_event"])
 
 # Social DB uses a relative path via getDb(), find it
 SOCIAL_DB_PATH = None
@@ -30,6 +37,10 @@ if SOCIAL_DB_PATH is None:
         if os.path.exists(p):
             SOCIAL_DB_PATH = p
             break
+
+# If we found the social DB via the standard mock-data path, also wait for it
+if SOCIAL_DB_PATH and SOCIAL_DB_PATH.startswith("/var/lib/mock-data/social"):
+    wait_for_tables(SOCIAL_DB_PATH, ["post"])
 
 
 def parse_iso(s):
